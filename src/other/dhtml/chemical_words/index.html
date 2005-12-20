@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title></title>
+<meta name="GENERATOR" content="Microsoft Visual Studio .NET 7.1">
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
+<script language=javascript>
+var objMap = {
+b:"b",be:"be",/*n:"n",*/
+
+j:"j",or:"or",ko:"ko",vi:"vi",nk:"nk",
+jo:"jo",rk:"rk",ov:"ov"
+
+};
+objMap["in"]="in";
+objMap[" "]=0;
+
+function test()
+{
+
+var astrInput = fldinput.value.toLowerCase().split("").reverse();
+var results = [];
+
+var test=[1,2,3,4];
+
+
+var ans = FindLetters( astrInput, results );
+if ( ans)
+{
+
+var strDisplay = "";
+for (var i=0;i<ans.length;i++)
+	strDisplay += ans[i] + " , "
+
+alert(strDisplay);
+}
+else
+alert ("Not possible");
+//debugger;
+}
+function FindLetters( remainingLetters, results )
+{
+	var nLength = remainingLetters.length;
+	
+	if (nLength == 0)
+		return results;
+		
+	if (nLength == 1)
+	{
+		var nOneLetter = objMap[remainingLetters[nLength-1]];
+		if (! nOneLetter) 
+			return null;
+		else
+		{
+			results.push(nOneLetter)
+			return results;
+		}
+	}
+	
+	var nOneLetter = objMap[remainingLetters[nLength-1]];
+	var nTwoLetter = objMap[remainingLetters[nLength-1] + remainingLetters[nLength-2]];
+	
+	if (nOneLetter && !nTwoLetter)
+	{
+		remainingLetters.pop();
+		var tempRes = results.slice(0); tempRes.push(nOneLetter);
+		return FindLetters( remainingLetters, tempRes );
+	}
+	if (nTwoLetter && !nOneLetter)
+	{
+		remainingLetters.pop();
+		remainingLetters.pop();
+		var tempRes = results.slice(0); tempRes.push(nTwoLetter);
+		return FindLetters( remainingLetters, tempRes );
+	}
+	if (nOneLetter && nTwoLetter)
+	{
+		//now this is the tricky part - either could work
+		var tempRes = results.slice(0); tempRes.push(nOneLetter);
+		var tryOneResults = FindLetters( remainingLetters.slice(0,nLength-1), tempRes );
+		if (tryOneResults != null)
+			return tryOneResults;
+			
+		var tempRes = results.slice(0); tempRes.push(nTwoLetter);
+		var tryTwoResults = FindLetters( remainingLetters.slice(0,nLength-2), tempRes );
+		if (tryTwoResults != null)
+			return tryTwoResults;
+		
+		return null; //if nothing in the future will work then quit.
+	}
+	if (!nOneLetter && !nTwoLetter)
+	{
+		return null;
+	}
+}
+function cloneArray(arin)
+{
+	var arout = [];
+
+	for(var i in arin)
+		arout[i] = arin[i];
+
+	return arout;
+}
+
+</script>
+</head>
+<body>
+<input type=text name="fldinput" id="fldinput">
+<button onmouseup="test();">Go</button>
+
+</body>
+</html>
