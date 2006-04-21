@@ -1,0 +1,224 @@
+<html>
+<head><title>Console</title>
+<style>
+.consError {color:red; text-align:right}
+.consOut {color:white; text-align:right}
+.consIn {color:white; text-align:left}
+.styleConsole { color:white; background:#222222;  }
+.styleTips {background:rgb(200,200,200);}
+</style>
+<script language="JavaScript">
+AvailFunctions = new Object;
+Docs = new Object;
+Docs.Prototypes = new Object;
+Docs.ProtoExplain = new Object;
+Docs.FormulaPics = new Object;
+Docs.Description = new Object;
+
+var WXIR = "Where x is real.";
+var WXIN = "Where x is integer.";
+</script>
+<script language="JavaScript" src="statsEngine.js"></script>
+<script language="JavaScript" src="statsBuiltin.js"></script>
+<script language="JavaScript" src="statsBasic.js"></script>
+
+
+<script language="JavaScript" src="statsInterface.js"></script>
+<script language="JavaScript" src="docInterface.js"></script>
+<script language="JavaScript">
+var g_InputHistory = [];
+var g_OutputHistory = [];
+var g_nCurrentIndex;
+var mem = new Object; //used for console memory.
+
+var g_tip = null;
+/*
+NOTES
+
+Custom Function Objects:: http://www.permadi.com/tutorial/jsFunc/index.html
+
+Already made speadsheet?
+http://www.siteexperts.com/paradise/getResource.asp?r_id=1404&more=6
+
+*/
+
+function InputConsole()
+{
+	var oCon = document.getElementById("inConsole");
+	var strIn = oCon.value;
+
+	if (strIn == '' || !strIn || strIn == '>') return;
+	
+//Set up links to Math object
+//Trig
+var sin=Math.sin;		sin.doc=function() {return ShowDoc("0.2.0");}
+var cos=Math.cos;		cos.doc=function() {return ShowDoc("0.2.1");}
+var tan=Math.tan;		tan.doc=function() {return ShowDoc("0.2.2");}
+
+var sec=function(x) {return 1/Math.sin(x);}  
+sec.doc=function() {return ShowDoc("0.1.h");}
+
+var acos=Math.acos; 	acos.doc=function() {return ShowDoc("0.1.1");}
+var asin=Math.asin; 		asin.doc=function() {return ShowDoc("0.1.2");}
+var atan=Math.atan; 	atan.doc=function() {return ShowDoc("0.1.3");}
+var atan2=Math.atan2;	atan2.doc=function() {return ShowDoc("0.1.4");}
+
+
+
+
+//Basic
+var abs=Math.abs; 		abs.doc=function() {return ShowDoc("0.1.0");}
+
+var ceil=Math.ceil;		ceil.doc=function() {return ShowDoc("0.1.5");}
+
+var exp=Math.exp;		exp.doc=function() {return ShowDoc("0.1.7");}
+var floor=Math.floor;	floor.doc=function() {return ShowDoc("0.1.8");}
+var ln=Math.log;		ln.doc=function() {return ShowDoc("0.1.9");}
+var max=Math.max;		max.doc=function() {return ShowDoc("0.1.a");}
+var min=Math.min;		min.doc=function() {return ShowDoc("0.1.b");}
+var pow=Math.pow;		pow.doc=function() {return ShowDoc("0.1.c");}
+var random=Math.random;	random.doc=function() {return ShowDoc("0.1.d");}
+var round=Math.round;	round.doc=function() {return ShowDoc("0.1.e");}
+
+var sqrt=Math.sqrt;		sqrt.doc=function() {return ShowDoc("0.1.g");}
+
+//Constants:
+var E=Math.E;
+var PI=Math.PI;
+var RT2=Math.SQRT2;
+var RT1_2=Math.SQRT1_2;
+var LN2=Math.LN2;
+var LN10=Math.LN10;
+var LOG2E=Math.LOG2E;
+var LOG10E=Math.LOG10E;
+
+	if (strIn.charAt(0)=='>') strIn = strIn.substr(1,strIn.length-1);
+	
+	var strEval = strIn;
+	
+	var strResult = ''; 
+	var bError;
+	try
+	{
+		bError = false;
+		strResult = eval(strEval);
+	}
+	catch (err)
+	{
+		bError = true;
+		strResult = "Error:" + err.description;
+	}
+	
+	//Render
+	var oCons = document.getElementById("txtConsole")
+	oCons.value += '\n>' + strIn;
+	echo( strResult );
+	
+	
+	g_InputHistory[g_InputHistory.length]  = strIn;
+	g_OutputHistory[g_OutputHistory.length] = strResult;
+	g_nCurrentIndex = g_OutputHistory.length;
+	oCon.value='>';
+	//Set scroll of text area
+	oCons.scrollTop = (g_OutputHistory.length)*40; //rough estimate
+	
+	inTip.value = '';
+	g_tip = null;
+}
+function FixAlignRight( strIn)
+{
+	if (strIn === undefined || strIn === null) strIn = 'NULL';
+	var CONSTWIDTH = 29;
+	strIn = strIn.toString();
+	var nLeng = strIn.length;
+	if (nLeng < CONSTWIDTH)
+	{
+		var strWhite = '';
+		for (var i=0;i<CONSTWIDTH-nLeng;i++) strWhite += " ";
+		return strWhite + strIn;
+	}
+	else return strIn;
+}
+
+
+function ConsoleHistory( bUp )
+{
+	if (bUp)
+		g_nCurrentIndex --;
+	else
+		g_nCurrentIndex ++;
+	if (!g_InputHistory[g_nCurrentIndex]) document.getElementById("inConsole").value= '>';
+	else document.getElementById("inConsole").value= '>' + g_InputHistory[g_nCurrentIndex];
+}
+
+/*function RegexExpand( strIn )
+{
+	return strIn.replace(/(\w)\^(\w)/gi,"Math.pow($1,$2)").
+		replace(/(\w)\^(\w)/gi,"Math.pow($1,$2)");
+
+}*/
+
+function AutoComplete()
+{
+	var oCon = document.getElementById('inConsole');
+	var strIn = oCon.value;
+	if (strIn.charAt(0)=='>') strIn = strIn.substr(1,strIn.length-1);
+	
+	for (var strFuncId in AvailFunctions)
+	{
+		if ((AvailFunctions[strFuncId].indexOf(strIn) == 0)    &&   (AvailFunctions[strFuncId]!=strIn))
+		{
+			oCon.value = '>' + AvailFunctions[strFuncId] + '(';
+			inTip.value = GetPrototype( strFuncId );
+			g_tip = strFuncId;
+			break;
+		}
+	}
+	setTimeout( "document.getElementById('inConsole').focus();",25);
+	return;
+}
+function getTip() { if (g_tip) ShowDoc(g_tip); }
+
+
+function keyup(e)
+{
+	if (event.keyCode == 13)
+		InputConsole( );
+	else if (event.keyCode == 38)
+		ConsoleHistory(true);
+	else if (event.keyCode == 40)
+		ConsoleHistory(false);
+	else if (event.keyCode == 9)
+		AutoComplete();
+	else if (event.keyCode!= 16 && document.getElementById('inConsole').value == '>')
+	{
+		if (event.shiftKey && (event.keyCode == 56||event.keyCode == 187))
+			document.getElementById('inConsole').value += 'ans()';
+		else if (!event.shiftKey && (event.keyCode == 191||event.keyCode == 189))
+			document.getElementById('inConsole').value += 'ans()';
+		else if (event.keyCode == 54)
+			document.getElementById('inConsole').value += 'pow(ans(),';
+	}
+}
+</script>
+</head>
+<body>
+<input type="button" onclick="clr();" value="Clear Console">
+<input type="button" onclick="ClearMem();" value="Clear Memory">
+<br>
+<textarea class="styleConsole" contentEditable=false id="txtConsole" canHaveChildren="true" rows=10 cols=30>
+Welcome to MiniminiTab
+By Ben Fisher, 2006
+</textarea>
+<br>
+<input id="inConsole" class="styleConsole" onkeydown="keyup();" value=">" size="30" style="font-family: 'Courier New', Courier, mono; position:relative; top:-4px">
+<br><input id="inTip" class="styleTips" onclick="getTip()" contentEditable=false value=" " size="30" tabindex=2 style="font-family: 'Courier New', Courier, mono; position:relative; top:-4px">
+<br><br><!--<input type="checkbox" id="bExpand" checked>Expand<br>-->
+Use "mem" for memory.<br>Use ans() to recall previous output.<br>Use arrow up/down to recall previous input.
+<br>Use mem.fn = function(a,b){return a+b} to create function.
+<br><br><br>
+<div id="divDoc">&nbsp;</div>
+
+</body>
+</html>
+

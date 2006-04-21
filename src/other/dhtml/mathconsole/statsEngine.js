@@ -1,39 +1,50 @@
-///////////////////////////////////////
-//Data
-function findmean()
+//Real Stats
+
+//All functions should return null if result is not valid
+function ASum( an )
 {
-	var an = parseData( dataIn.value.split('\r\n') );
-	if (an.length==0) { output.value = '(No data)'; return; }
+	if (an.length==0)
+		return null;
 	
 	var total = 0;
 	for (var i in an) total += an[i];
-	outputData.value = total/an.length;
+	return total;
 }
 
-function findvar()
+function AMean( an )
 {
-	var an = parseData( dataIn.value.split('\r\n') );
-	if (an.length==0) { output.value = '(No data)'; return; }
+	if (an.length==0)
+		return null;
 	
 	var total = 0;
 	for (var i in an) total += an[i];
-	var mean = total/an.length;
-	total = 0;
-	for (var i in an) total += Math.pow(an[i]-mean,2);
-	
-	outputData.value = (1/(an.length-1))*total;
+	return total/an.length;
 }
-function parseData( an )
+
+function AVar( an )
 {
-	dataOut = [];
-	for (var i=0;i<an.length;i++)
-	{
-		if (an[i]==='' || an[i]===null)
-			continue;
-		dataOut.push(parseInt(an[i],10));
-	}
-	return dataOut;
+	if (an.length==0)
+		return null;
+	
+	var nMean = AMean(an);
+	var total = 0;
+	for (var i in an) total += Math.pow(an[i]-nMean,2);
+	
+	return (total/(an.length-1));
 }
+
+function AChiSqr( anGot, anExpected )
+{
+	if (an.length==0 || anExpected.length==0 || anExpected.length<anGot.length)
+		return null;
+	
+	var total = 0;
+	for (var i in an) total += Math.pow(anGot[i]-anExpected[i],2)/anExpected[i];
+	
+	return total;
+}
+
+
 
 
 
@@ -78,21 +89,21 @@ function normalCdfInverseStd(p)
 	// Author:      Peter J. Acklam
 	// An algorithm with a relative error less than 1.15·10-9 in the entire region.
 	var a = new Array(-3.969683028665376e+01,  2.209460984245205e+02,
-			-2.759285104469687e+02,  1.383577518672690e+02,
-			-3.066479806614716e+01,  2.506628277459239e+00);
-        var b = new Array(-5.447609879822406e+01,  1.615858368580409e+02,
-			-1.556989798598866e+02,  6.680131188771972e+01,
-			-1.328068155288572e+01 );
-        var c = new Array(-7.784894002430293e-03, -3.223964580411365e-01,
-			-2.400758277161838e+00, -2.549732539343734e+00,
-			4.374664141464968e+00,  2.938163982698783e+00);
-        var d = new Array (7.784695709041462e-03,  3.224671290700398e-01,
-			2.445134137142996e+00,  3.754408661907416e+00);
+		-2.759285104469687e+02,  1.383577518672690e+02,
+		-3.066479806614716e+01,  2.506628277459239e+00);
+	var b = new Array(-5.447609879822406e+01,  1.615858368580409e+02,
+		-1.556989798598866e+02,  6.680131188771972e+01,
+		-1.328068155288572e+01 );
+	var c = new Array(-7.784894002430293e-03, -3.223964580411365e-01,
+		-2.400758277161838e+00, -2.549732539343734e+00,
+		4.374664141464968e+00,  2.938163982698783e+00);
+	var d = new Array (7.784695709041462e-03,  3.224671290700398e-01,
+		2.445134137142996e+00,  3.754408661907416e+00);
 
 	var plow  = 0.02425;  // Define break-points.
 	var phigh = 1 - plow;
 	// Rational approximation for lower region:
-        if ( p < plow ) {
+	if ( p < plow ) {
 		var q  = Math.sqrt(-2*Math.log(p));
 		return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
 			((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
@@ -170,7 +181,6 @@ function tCdfInverse( o )
 
 
 
-////////////////////////////////////////
 //Auxillary
 
 /*  PROGRAMMED BY: T.Haavie  */
@@ -392,54 +402,56 @@ function betacf( a,  b,  x) // Evaluates continued fraction for incomplete beta 
 
 function Hills_inv_t(p, df) 
 {
-// Hill's approx. inverse t-dist.: Comm. of A.C.M Vol.13 No.10 1970 pg 620.
-// Calculates t given df and two-tail probability.
-    var a, b, c, d, t, x, y;
-  
-        if      (df == 1) t = Math.cos(p*Math.PI/2)/Math.sin(p*Math.PI/2);
-	else if (df == 2) t = Math.sqrt(2/(p*(2 - p)) - 2);
-        else {
-	    a = 1/(df - 0.5);
-	    b = 48/(a*a);
-	    c = ((20700*a/b - 98)*a - 16)*a + 96.36;
-	    d = ((94.5/(b + c) - 3)/b + 1)*Math.sqrt(a*Math.PI*0.5)*df;
-	    x = d*p;
-	    y = Math.pow(x, 2/df);
-	    if (y > 0.05 + a) {
-	        x = Norm_z(0.5*(1 - p));
-		y = x*x;
-		if (df < 5) c = c + 0.3*(df - 4.5)*(x + 0.6);
-		c = (((0.05*d*x - 5)*x - 7)*x - 2)*x + b + c;
-		y = (((((0.4*y + 6.3)*y + 36)*y + 94.5)/c - y - 3)/b + 1)*x;
-		y = a*y*y;
-		if (y > 0.002) y = Math.exp(y) - 1;
-	  	else y = 0.5*y*y + y;
-	        t = Math.sqrt(df*y);
-	    }
-	    else {
-		y = ((1/(((df + 6)/(df*y) - 0.089*d - 0.822)*(df + 2)*3)
-		    + 0.5/(df + 4))*y - 1)*(df + 1)/(df + 2) + 1/y;
-	        t = Math.sqrt(df*y);
-            }
-	}
-    
-    return t;
-}
-function Norm_z(p) {
-// Returns z given a half-middle tail type p.
+	// Hill's approx. inverse t-dist.: Comm. of A.C.M Vol.13 No.10 1970 pg 620.
+	// Calculates t given df and two-tail probability.
+	var a, b, c, d, t, x, y;
 
-    var a0= 2.5066282,  a1=-18.6150006,  a2= 41.3911977,   a3=-25.4410605,
+	if (df == 1) t = Math.cos(p*Math.PI/2)/Math.sin(p*Math.PI/2);
+	else if (df == 2) t = Math.sqrt(2/(p*(2 - p)) - 2);
+	else {
+		a = 1/(df - 0.5);
+		b = 48/(a*a);
+		c = ((20700*a/b - 98)*a - 16)*a + 96.36;
+		d = ((94.5/(b + c) - 3)/b + 1)*Math.sqrt(a*Math.PI*0.5)*df;
+		x = d*p;
+		y = Math.pow(x, 2/df);
+		if (y > 0.05 + a) {
+			x = Norm_z(0.5*(1 - p));
+			y = x*x;
+			if (df < 5) c = c + 0.3*(df - 4.5)*(x + 0.6);
+			c = (((0.05*d*x - 5)*x - 7)*x - 2)*x + b + c;
+			y = (((((0.4*y + 6.3)*y + 36)*y + 94.5)/c - y - 3)/b + 1)*x;
+			y = a*y*y;
+			if (y > 0.002) y = Math.exp(y) - 1;
+			else y = 0.5*y*y + y;
+			t = Math.sqrt(df*y);
+		}
+		else {
+		y = ((1/(((df + 6)/(df*y) - 0.089*d - 0.822)*(df + 2)*3)
+			+ 0.5/(df + 4))*y - 1)*(df + 1)/(df + 2) + 1/y;
+	        t = Math.sqrt(df*y);
+		}
+	}
+	return t;
+}
+
+function Norm_z(p) 
+{
+	// Returns z given a half-middle tail type p.
+	var a0= 2.5066282,  a1=-18.6150006,  a2= 41.3911977,   a3=-25.4410605,
 	b1=-8.4735109,  b2= 23.0833674,  b3=-21.0622410,   b4=  3.1308291,
 	c0=-2.7871893,  c1= -2.2979648,  c2=  4.8501413,   c3=  2.3212128,
 	d1= 3.5438892,  d2=  1.6370678, r, z;
 
-    if (p>0.42) {
-	r=Math.sqrt(-Math.log(0.5-p));
-	z=(((c3*r+c2)*r+c1)*r+c0)/((d2*r+d1)*r+1)
-    }
-    else {
-	r=p*p;
-	z=p*(((a3*r+a2)*r+a1)*r+a0)/((((b4*r+b3)*r+b2)*r+b1)*r+1)
-    }
-    return z
+	if (p>0.42)
+	{
+		r=Math.sqrt(-Math.log(0.5-p));
+		z=(((c3*r+c2)*r+c1)*r+c0)/((d2*r+d1)*r+1);
+	}
+	else
+	{
+		r=p*p;
+		z=p*(((a3*r+a2)*r+a1)*r+a0)/((((b4*r+b3)*r+b2)*r+b1)*r+1);
+	}
+	return z;
 }
