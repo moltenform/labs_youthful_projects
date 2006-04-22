@@ -111,9 +111,15 @@ var LOG10E=Math.LOG10E;
 	
 	//Render
 	var oCons = document.getElementById("txtConsole")
-	oCons.value += '\n>' + strIn;
-	echo( strResult );
-	
+	var oDivIn = document.createElement('DIV');
+	oDivIn.className = 'consIn';
+	oDivIn.innerText = strIn;
+	oCons.value += '\n>' + strIn; //appendChild( oDivIn );
+
+	var oDiv = document.createElement('DIV');
+	oDiv.className = bError ? 'consError' : 'consOut' ;
+	oDiv.innerText = strResult;
+	oCons.value += '\n' + FixAlignRight(strResult); //appendChild( oDiv );
 	
 	g_InputHistory[g_InputHistory.length]  = strIn;
 	g_OutputHistory[g_OutputHistory.length] = strResult;
@@ -139,6 +145,12 @@ function FixAlignRight( strIn)
 	}
 	else return strIn;
 }
+function echo( strIn )
+{
+
+
+}
+
 
 
 function ConsoleHistory( bUp )
@@ -192,12 +204,11 @@ function keyup(e)
 		AutoComplete();
 	else if (event.keyCode!= 16 && document.getElementById('inConsole').value == '>')
 	{
-		if (event.shiftKey && (event.keyCode == 56||event.keyCode == 187))
-			document.getElementById('inConsole').value += 'ans()';
-		else if (!event.shiftKey && (event.keyCode == 191||event.keyCode == 189))
+		if (event.keyCode == 56)
 			document.getElementById('inConsole').value += 'ans()';
 		else if (event.keyCode == 54)
 			document.getElementById('inConsole').value += 'pow(ans(),';
+	
 	}
 }
 </script>
