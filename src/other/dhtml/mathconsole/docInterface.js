@@ -32,6 +32,11 @@ function ShowDoc(strDocId)
 //so that there are no ugly "NULL"
 function unnull(strIn) { return (strIn) ? strIn : ''; }
 
+//Tutorials
+//TutorName[0]='How to define a piecewise function';
+//Tutor[0]='Use the ternary operator. m.p=function(x){return (x>3) ? 4 : 6;}';
+
+
 
 
 

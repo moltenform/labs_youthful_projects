@@ -22,12 +22,10 @@ Docs.Description["0.0.1"] = "Clear the memory.";
 
 function ans( nIndex )
 {
-	var strIn;
 	if (nIndex === null || nIndex === undefined)
-		strIn = g_OutputHistory[g_OutputHistory.length-1 ];
+		return g_OutputHistory[g_OutputHistory.length-1 ];
 	else
-		strIn = g_OutputHistory[g_OutputHistory.length-1-nIndex ];
-	return strIn;
+		return g_OutputHistory[g_OutputHistory.length-1-nIndex ];
 }
 ans.doc = function() { return ShowDoc("0.0.2"); }
 AvailFunctions["0.0.2"] = "ans";
@@ -38,7 +36,9 @@ Docs.Description["0.0.2"] = "Interface:Returns the result of a previous command.
 
 function echo( strIn )
 {
-	document.getElementById("txtConsole").value += '\n' + FixAlignRight(strIn);
+	var o = document.getElementById("txtConsole");
+	o.value += '\n' + FixAlignRight(strIn);
+	o.scrollTop = 1000;
 }
 echo.doc = function() { return ShowDoc("0.0.3"); }
 AvailFunctions["0.0.3"] = "ans";
