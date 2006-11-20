@@ -1,0 +1,67 @@
+body
+{
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+td
+{
+	border: 1px solid black;
+
+/*white-space:nowrap;
+	word-wrap:break-word;*/
+
+	background-color: rgb(255,240,255);
+	color:rgb(110,100,110);
+	font-size:80%;
+	margin:0px;
+}
+
+
+
+td.spacer
+{
+	border: 0px solid white;
+	background-color: rgb(255,255,255);
+}
+td.pressed
+{
+	background-color: rgb(200,200,200);
+}
+td.mode
+{
+	border: 0px;
+	font-size:75%
+}
+div.cmd
+{
+
+	height:20px;
+	overflow:hidden;
+	
+	
+	font-size:70%;
+	color:rgb(0,0,0);
+	margin: 0px;
+	padding: 0px
+}
+
+.docname
+{
+	font-size:150%;
+	width:500px
+}
+.docimp
+{
+	font-style:italic;
+	text-align:right;
+	width:500px
+}
+.docshortcut
+{
+	font-size:100%;
+	width:500px
+}
+.docdoc
+{
+	font-size: 70%;
+	width:500px
+}
