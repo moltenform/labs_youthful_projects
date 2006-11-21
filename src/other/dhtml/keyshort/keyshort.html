@@ -1,0 +1,219 @@
+<html>
+<head>
+<title>Keyshort 0.1</title>
+<link rel="stylesheet" type="text/css" href="keyboard.css" />
+<script language="JavaScript">
+//Global variables holding the shortcut data
+keys = {};
+gk = {};
+Modes = {};
+Modes.current = 1;
+
+Layout = {};
+
+</script>
+<script language="JavaScript" src="modules/vstudio.js"></script>
+<script language="JavaScript" src="layouts/en-us.js"></script>
+<script language="JavaScript" src="render.js"></script>
+<script language="JavaScript">
+//Global variable with current style
+modifierstyle = 'normal';
+
+function Debug(str) { debug.value= str; }
+function test()
+{
+//alert('here i am  ' + keys.a.control.doc);
+//populate("control");
+//alert(divmode.innerHTML);
+Debug(divdoc.innerHTML)//.substring(0,3000));
+//alert(keys[);
+}
+
+
+
+
+//Function is called after keydown event
+function recordkey(e)
+{
+	//Browser compatibility to find keycode
+	if (!e) var e = window.event;
+	var n =  e.keyCode;
+
+	//Is it a modifier?
+	if (Layout.keycodeModifiers[n])
+	{
+		//Highlight all cellids defined
+		var ar = Layout.keycodeModifiers[n];
+		for (var i=1; i<ar.length;i++) presskey(Layout.keycodeModifiers[n][i], true);
+		
+		//Redraw keyboard with key modifiers
+		setModifiers (e.ctrlKey, e.shiftKey, e.altKey);
+		
+	}
+	//Is it a standard key?
+	else if (Layout.keycodeMap[n])
+	{
+		//Highlight the cell
+		var cellid = Layout.keycodeMap[n];
+		presskey( cellid );
+		
+		//Get documentation
+		var strModifiers = getModifierString(e.ctrlKey, e.shiftKey, e.altKey);
+		divdoc.innerHTML = renderDocumentation(strModifiers, cellid);
+	}
+	if (window.event) window.event.cancelBubble = true;
+	 e.cancelBubble = true;
+	if (e.stopPropagation) e.stopPropagation();
+	if (e.preventDefault) e.preventDefault();
+	if (e.stopPropagation) e.stopPropagation();
+	return false;
+}
+
+//On keyup, release modifier keys
+function recordkeyup(e)
+{
+	if (!e) var e = window.event;
+	var n =  e.keyCode;
+	if (Layout.keycodeModifiers[n])
+	{
+		unpresskey(Layout.keycodeModifiers[n][1]);
+		unpresskey(Layout.keycodeModifiers[n][2]);
+		setModifiers (e.ctrlKey, e.altKey, e.shiftKey);
+	}
+	keycapture.value = '';
+	if (e.preventDefault) e.preventDefault();
+	if (e.stopPropagation) e.stopPropagation();
+	return false;
+}
+
+//Visual showing pressed keys
+function presskey(cellid, bStay)
+{
+	var o = document.getElementById('cell'+cellid);
+	o.className = 'pressed';
+	if (!bStay) setTimeout('unpresskey('+cellid+')', 300);
+}
+function unpresskey(cellid)
+{
+	var o = document.getElementById('cell'+cellid);
+	o.className = '';
+}
+function clickkey(cellid)
+{
+	presskey(cellid);
+	divdoc.innerHTML = renderDocumentation( modifierstyle, cellid);
+}
+
+function dochtml(name,shortcut,imp,doc)
+{
+	var replacenull = function(str) { if (str) return str; else return '&nbsp;' };
+	return '<div id="divdocname" class="docname">'+replacenull(name)+'</div>'+
+	'<div  class="docshortcut">'+replacenull(shortcut)+'</div>'+
+	'<div  class="docimp">'+replacenull(imp)+'</div>'+
+	'<div  class="docdoc">'+replacenull(doc)+'</div>';
+}
+function docrenderedhtml(name,shortcut,imp,doc)
+{
+	var replacenull = function(str) { if (str) return str.replace('\\','\\\\').replace("'","\\'").replace('"',''); else return '&nbsp;' };
+	return '<div class="docname" style="font-size:100%" onclick="divdoc.innerHTML=dochtml('+"'" +replacenull(name)+"','"+replacenull(shortcut)+ "','"+replacenull(imp)+"','"+replacenull(doc)+"')" +  '" >'+replacenull(name)+'</div>'+
+	'<div class="docshortcut" style="margin-left:300px">'+replacenull(shortcut)+'</div>';
+}
+function renderDocumentation(strModifiers, cellid)
+{
+	//Get an array with doc information. [name, imp, doc]
+	var ar = getdoc(strModifiers, cellid);
+
+	if (! ar) return '';
+	else
+	{
+		var rendershortcut = getModifierStringRendered(strModifiers) + Layout.cellLayout[cellid][0];
+		return dochtml(  ar[0], rendershortcut, ar[1],  ar[2]);
+	}
+}
+
+function displayall()
+{
+	var o = gk[Modes.current];
+	if (!o) return;
+
+	var str = '';
+	var res = [];
+	for (key in o)
+	{
+		for (keycmd in o[key])
+		{
+			res[res.length]= docrenderedhtml(o[key][keycmd].name, getModifierStringRendered(keycmd) + key, o[key][keycmd].imp, o[key][keycmd].doc);
+		}
+	}
+	res = res.sort();
+	divdoc.innerHTML = res.join('');
+}
+function search(e)
+{
+	//if (!e) var e = window.event;if (e.keyCode!=13) return;
+	
+	var str = prompt('Enter search keywords:','');
+	if (!str) return;
+	
+}
+
+function loadmode(nmode)
+{
+	divdoc.innerHTML = '';
+	if (!gk) { alert('Different modes are not enabled for this map.'); return; }
+	if (!gk[nmode]) { alert('No shortcuts for this mode?'); return;	}
+	keys = gk[nmode];
+	populate('normal');
+	
+	Modes.current = nmode;
+}
+
+document.onclick = setfocus;
+function setfocus() { document.getElementById('keycapture').focus(); }
+
+</script>
+
+</head>
+<body onload="setfocus();">
+<span id="notify">Press Keys =&gt;</span><input onkeydown="return recordkey(event);" onkeyup="return recordkeyup(event);" id="keycapture" style="color:white;" />
+<!--<span id="notify">Search:</span><input onkeydown="search();" />-->
+<!--<input type="checkbox" checked="checked" id="chkallmodes"><label for="chkallmodes">All Modes</label>-->
+<button onclick="search();">Search</button>
+<button onclick="displayall();">Display All</button>
+<button onclick="test();">Debug</button>
+<textarea id="debug"></textarea>
+
+<div id="divout"><!--Keyboard here--></div> 
+<br/><br/>
+<div id="divdoc"><!--Documentation here-->&nbsp;</div>
+
+<script language="JavaScript">
+drawKeyboard(0.5,100,'standard');
+</script>
+
+<div id="divmode"><!--Mode information -->
+<b>Modes</b>
+<script language="JavaScript">
+function rendermodes()
+{
+	if (! Modes.modes) return;
+	var m = Modes.modes;
+	document.write('<table border="0">');
+	for (var i=0; i<m.length; i++)
+	{
+		if (i%3==0) document.write('</tr><tr>');
+		var id = 'rad' + m[i][1];
+		var cmd = ' onclick = "loadmode('+m[i][1] + ')" ';
+		document.write('<td class="mode"><input type="radio" value="' + m[i][1] + '" name="mode" id="' + id + '" '+cmd+ (i==0?' checked="checked" ': '') + ' ><label for="' + id + '" style="padding-left:0px" '+cmd+' >'+m[i][0] + '</label></td>');
+	
+	}
+	document.write('</tr></table>');
+	
+	loadmode(m[0][1]); //Load first mode as default
+}
+rendermodes();
+</script>
+</div>
+
+</body>
+</html>
