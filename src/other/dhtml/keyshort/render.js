@@ -17,14 +17,13 @@ function entity(charin)
 }
 function drawKeyboard(scale, height, type)
 {
-	//var strNewtable = '<table style="width:500px">'
 	var strNewtable = '<table class="keyboard" cellpadding=0 cellspacing=2><tr>'
 	var strHtml = strNewtable;
 	var ao, nWidth;
 	for (var i=0; i<Layout.cellLayout_length; i++)
 	{
 		ao = Layout.cellLayout[i];
-		if (ao[0]===null && ao[1]==-9999)
+		if (ao[0]===null && ao[1]==NEW_LINE)
 		{
 			strHtml+= '</tr></table>'+strNewtable;
 			
@@ -36,7 +35,6 @@ function drawKeyboard(scale, height, type)
 			strHtml += '<td id="cell' + i + '" '  ;
 			strHtml += (ao[0]===null) ? 'class="spacer" ' : 'onclick="clickkey(' + i + ')" ';
 			strHtml += '>' + ((ao[0]===null) ? '&nbsp;' : entity(stripPercent(ao[0])));
-			//strHtml += '<div class="cmd" id="cmd' + i + '"  style="width:' + (nWidth-30) + 'px">&nbsp;</div></td>\r\n';
 			strHtml += '<div class="cmd" id="cmd' + i + '" style="width:' + nWidth + 'px;" >&nbsp;</div></td>\r\n';
 		}
 	}
@@ -55,8 +53,6 @@ function populate(style)
 		if (ao[0]===null)
 			continue;
 		
-		//o = document.getElementById('cmd'+i);
-		//	o.innerText = 'h';
 		o = document.getElementById('cmd'+i);
 		if (keys[ ao[0] ] && keys[ ao[0] ][style] && keys[ ao[0] ][style].brev)
 		{
@@ -104,18 +100,9 @@ function setModifiers(bCtrl, bShift, bAlt)
 	{
 		populate(strstyle);
 		modifierstyle = strstyle;
-		//out.value = strstyle + "\r\n" + Math.random();
 	}
 }
-/*function getModifierStringRendered(bCtrl, bShift, bAlt)
-{
-	var astyle = [];
-	if (bCtrl) astyle[astyle.length] = ( 'Ctrl' );
-	if (bShift) astyle[astyle.length]  = ( 'Shift' );
-	if (bAlt) astyle[astyle.length] = ( 'Alt' );
-	if (!astyle.length) return '';
-	else return astyle.join('+') + '+';
-}*/
+
 function getModifierStringRendered(strModifiers)
 {
 	if (strModifiers == 'normal') return '';

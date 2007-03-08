@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Keyshort 0.1</title>
+<title>Keyshort - Shows shortcut keys</title>
 <link rel="stylesheet" type="text/css" href="keyboard.css" />
 <script language="JavaScript">
 //Global variables holding the shortcut data
@@ -20,19 +20,8 @@ Layout = {};
 modifierstyle = 'normal';
 
 function Debug(str) { debug.value= str; }
-function test()
-{
-//alert('here i am  ' + keys.a.control.doc);
-//populate("control");
-//alert(divmode.innerHTML);
-Debug(divdoc.innerHTML)//.substring(0,3000));
-//alert(keys[);
-}
 
-
-
-
-//Function is called after keydown event
+//function is called after keydown event
 function recordkey(e)
 {
 	//Browser compatibility to find keycode
@@ -150,11 +139,9 @@ function displayall()
 }
 function search(e)
 {
-	//if (!e) var e = window.event;if (e.keyCode!=13) return;
-	
 	var str = prompt('Enter search keywords:','');
 	if (!str) return;
-	
+	alert('Planned for a future version...');
 }
 
 function loadmode(nmode)
@@ -180,8 +167,8 @@ function setfocus() { document.getElementById('keycapture').focus(); }
 <!--<input type="checkbox" checked="checked" id="chkallmodes"><label for="chkallmodes">All Modes</label>-->
 <button onclick="search();">Search</button>
 <button onclick="displayall();">Display All</button>
-<button onclick="test();">Debug</button>
-<textarea id="debug"></textarea>
+<!--<button onclick="test();">Debug</button>
+<textarea id="debug"></textarea>-->
 
 <div id="divout"><!--Keyboard here--></div> 
 <br/><br/>
@@ -212,6 +199,8 @@ function rendermodes()
 	loadmode(m[0][1]); //Load first mode as default
 }
 rendermodes();
+
+document.write('<br/><b><font size="2">Current module:'+g_modulename +'</font></b>');
 </script>
 </div>
 

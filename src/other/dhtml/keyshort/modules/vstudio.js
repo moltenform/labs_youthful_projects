@@ -1,5 +1,5 @@
-
-	Modes.modes  = 	[
+g_modulename = 'Visual Studio';
+Modes.modes  = 	[
 ['Global' , 4],
 ['Text Editor' , 10],
 
@@ -22,26 +22,6 @@
 ['Windows Forms Designer' , 17],
 ['XML Editor Schema View' , 18]];
 	
-
-//http://www.codinghorror.com/blog/archives/000315.html
-//~ Keyboard Shortcut To Reach the Command Bar Toolbars
-
-//~ To reach the standard toolbar that 99% of the time lives under the Main Menu, use the following keyboard shortcut combination:
-//~ Press Alt to put focus on the File Menu.
-//~ Press Ctrl-Tab to navigate among the different toolbars.  
-
-//~ Keyboard Shortcut To Reach Toolbars within a Tool Window (like Solution Explorer)
-
-//~ Press Shift-Alt. (not alt-shift).
-//~ Keyboard Shortcut To Drag a Floating Tool Window Around
-
-//~ Most tool windows are docked by default.  If you want to make a tool window floating, go to Window – Floating, which will enable floating.  Then press Alt-minus.  This will drop down a window “Move” menu.  Select move and press enter.  Now you can move the tool window around via the keyboard.
-
-/*availablestyles = {
-'control' : true,
-'shift': true
-};*/
-
 //In the order of control|shift|alt
 //Possible combinations:
 //normal

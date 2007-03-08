@@ -30,7 +30,9 @@ Layout.keycodeModifiers =
 
 //~ Visual layout data for the keyboard. One entry for every key.
 //~ cellid : [keyName , keyWidth], where keyWidth is relative (not in pixels).
-//~ A null keyName and positive width means a spacer element. A null keyName and negative width means a new line.
+//~ A null keyName and positive width means a spacer element. 
+//A null keyName and negative width means a new line.
+var NEW_LINE = -9999;
 Layout.cellLayout = {
 0: ['Esc',100],
 1:['F1',100],
@@ -49,7 +51,7 @@ Layout.cellLayout = {
 14:['PntScr',100],
 15:['ScrLck',100],
 16:['Break',100],
-17:[null,-9999], /*New line*/
+17:[null,NEW_LINE], /*New line*/
 
 18:['`',100],
 19:['1',100],
@@ -72,7 +74,7 @@ Layout.cellLayout = {
 36:['%Num%/',100],
 37:['%Num%*',100],
 38:['%Num%-',100],
-39:[null,-9999],
+39:[null,NEW_LINE],
 
 40:['Tab',160],
 41:['Q',100],
@@ -95,7 +97,7 @@ Layout.cellLayout = {
 58:['%Num%8',100],
 59:['%Num%9',100],
 60:['%Num%+',100],
-61:[null,-9999],
+61:[null, NEW_LINE],
 
 
 62:['Caps',180],
@@ -115,7 +117,7 @@ Layout.cellLayout = {
 76:['%Num%4',100],
 77:['%Num%5',100],
 78:['%Num%6',/*200*/ 100],
-79:[null,-9999],
+79:[null, NEW_LINE],
 
 80:['Shift',250],
 81:['Z',100],
@@ -136,7 +138,7 @@ Layout.cellLayout = {
 96:['%Num%2',100],
 97:['%Num%3',100],
 98:['%Num%Enter',100],
-99:[null,-9999],
+99:[null, NEW_LINE],
 
 100:['Ctrl',140],
 101:['Win',140],
