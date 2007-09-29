@@ -1,0 +1,10 @@
+BODY { margin: 0; background-color: white; color: black; font-family: Arial, Arial Unicode MS, sans-serif; }
+
+ .rightup	{ background-color: #FA0; }
+ .upsidedown	{filter: FlipV() FlipH();background-color: #FA0; }
+
+ div.chemLetter	{ font-size: 1.5em; font-weight: bold; width: 2.5em; }
+
+ div.chemNumber	{ font-size: 1em; font-weight: normal; }
+
+ div, div.chemWeight { font-size: 0.7em; font-style: normal; }

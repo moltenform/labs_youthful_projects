@@ -1,9 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title></title>
+<title>The Periodic Generator</title>
 <link href="style.css" rel="stylesheet" type="text/css">
 <script language=javascript>
+function $(strO) { return document.getElementById(strO);}
 var objMap = {
 
 /*flipped*/
@@ -27,64 +28,43 @@ var gData = [
 ];
 
 
-
 function Go()
 {
+	var astrInput = $('fldinput').value.toLowerCase().split("").reverse();
+	var results = [];
 
-var astrInput = fldinput.value.toLowerCase().split("").reverse();
-var results = [];
+	var ans = FindLetters( astrInput, results );
+	if (! ans)
+	{
+		alert("That combination of letters will not work.");
+		return;
+	}
 
-var ans = FindLetters( astrInput, results );
-if ( ans)
-{
-	
-	divHere.innerHTML = ""; //wipes it out
-	var tbl = document.createElement("table");
-	tbl.id = "Main";
-	tbl.cellSpacing = 3;
-	
-	var trInsert = document.createElement("tr");
+	$('divHere').innerHTML = ""; //wipes it out
 
+	var strHtml = '';
+	strHtml += '<table cellspacing=3>';
+	strHtml += '<tr>';
 	for (var i=0;i<ans.length;i++)
 	{
 		var nElement = ans[i];
+		
 		if (nElement==0)
-		{
-			var td = document.createElement("td");
-			td.innerText = "   ";
-			trInsert.appendChild(td);
-		}
+			strHtml += '<td><span style="width:30px"> </span></td>';
 		else if (nElement<0)
-		{
-			var td = document.createElement("td");
-			td.className = "upsidedown";
-			td.innerHTML = RenderLetterInnerText(nElement*-1);
-			trInsert.appendChild(td);
-		}
-		else 
-		{
-			var td = document.createElement("td");
-			td.className = "rightup";	
-			td.innerHTML = RenderLetterInnerText(nElement);
-			trInsert.appendChild(td);
-		}
+			strHtml += '<td class="upsidedown">' + RenderLetterInnerText(nElement*-1) + '</td>';
+		else
+			strHtml += '<td class="rightup">' + RenderLetterInnerText(nElement) + '</td>';
+
 	}
-	tbl.appendChild(trInsert);
-
-	oldTable=document.getElementById("Main");
-	oldTable.outerHTML = tbl.outerHTML;
-
-}
-	else
-	alert ("That combination is not possible");
-
+	strHtml += '</tr>';
+	$('divHere').innerHTML = strHtml;
 }
 
 function RenderLetterInnerText( nElement )
 {
-		return "<strong>" + nElement + "</strong><big>" + gData[nElement][0] + "</big><em>" + gData[nElement][1] + "</em><div>"
-		+ gData[nElement][2] + "</div>";
-		
+	return '<div class="chemNumber">' + nElement + '</div><div class="chemLetter">' + gData[nElement][0] + '</div><div class="chemWeight">' + gData[nElement][1] + "</div><div>"
+	+ gData[nElement][2] + "</div>";
 }
 
 function FindLetters( remainingLetters, results )
@@ -148,39 +128,44 @@ function test(nIn)
 	return true;
 }
 
-function keyup(e)
+function keyup()
 {
   if (event.keyCode == 13)
 	Go();
 }
 
-function sample()
+function myname()
 {
-	fldinput.value="Ben Fisher";
+	$('fldinput').value="Ben Fisher";
 	Go();
 }
-function onload()
+function loadsample()
 {
-	var strs = ["pwned", "pwned", "hello world","hellao world",  "hello world","yuck", "hellao world", "fringe elements", "great chemistry", "coolness", "you be nerd", "yuck", "i hated chemistry", "i love you", "i destroy you", "it's periodic baby", "my atomic weight","scary chemicals","scary chemicals", "scary chemicals", "stupidium"];
-	fldinput.value= strs[Math.floor(Math.random()*strs.length)];
+	var strs = ["pwned", "pwned", "hello world","Half Hour Hacks","Half Hour Hacks","Half Hour Hacks",  "hello world","yuck", "hellao world", "chem", "fringe elements", "great chemistry", "coolness", "you be nerd", "yuck", "i hated chemistry", "i love you", "i destroy you", "it's periodic baby", "my atomic weight","scary chemicals","scary chemicals", "scary chemicals", "stupidium",'i can has chemistry','cheesburger','cheesburger','microsoft chem plus', 'chem errors','wikipedia', "what's up my homies",'i am you','stand back fools','i has computer'];
+	$('fldinput').value= strs[Math.floor(Math.random()*strs.length)];
 	Go();
+	if (! isIE())
+		$('divNeedIE').style.display = '';
 }
+
+function isIE() { return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent); }
 </script>
 </head>
-<body link="#000000"  vlink="#000000" onload="onload();">
-DHTML Elements&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-By <a href="javascript:sample();">Ben Fisher</a><br>
-<input type=text name="fldinput" id="fldinput" onkeyup="keyup();">
-<button onmouseup="Go();">Go</button>
+<body link="#000000"  vlink="#000000" onload="loadsample();">
+The Periodic Table of DHTML Elements<span style="width:30em">&nbsp; </span>By <a href="javascript:myname();">Ben Fisher</a><br/><br/>
+<input name="fldinput" id="fldinput" onkeyup="keyup();">
+<button onmouseup="Go();">Go</button> <font size="1"><a href="javascript:loadsample();">(Sample)</a></font>
 <br><br><br><br>
 
 <div id="divHere"></div>
 
+<br><br><br><br>
+<i>...Perfect for your lame chemistry joke needs.</i>
+<br /><br />
+<br /><br />
+<p align="left">Coded up on a whim by Ben Fisher in 2005<br /><a href="/">Half Hour Hacks</a></p>
 
-<table id="Main"></table>
-
-
-
+<div style="display:none" id="divNeedIE">Sorry, needs IE for letters to be rotated, because of the FlipV filter.</div>
 
 </body>
 </html>
