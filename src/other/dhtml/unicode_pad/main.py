@@ -1,6 +1,7 @@
 """
 UnicodePad
 Ben Fisher, 2007
+License: GPL
 
 """
 from Tkinter import *
@@ -14,7 +15,6 @@ import layouts
 import keymaps
 
 
-
 class App:
 	currentMode = ''
 	currentFilename = ''
@@ -24,11 +24,10 @@ class App:
 	dictHotkeys = None
 	textFormat = ('Times New Roman', 12, 'normal')
 	undoStack = []
+	undoIndex = -1
+	enableUndo = True
 	def __init__(self, root):
-		
 		root.title('Unicode Pad')
-		
-		
 		
 		frameMain = Frame(width=400, height=100)
 		frameMain.pack(side=TOP,fill=BOTH, expand=True)
@@ -38,7 +37,6 @@ class App:
 		self.txtFilename.pack(side=TOP)
 		self.txtMode = Label(frameMain, text='Normal Mode')
 		self.txtMode.pack(side=TOP)
-		self.txtMode.bind('<Button-1>', Callable(self.showModes))
 		
 		self.dictModes, self.dictHotkeys = keymaps.parse()
 		
@@ -69,22 +67,31 @@ class App:
 		menuFile.add_command(label="Exit", command=root.quit, underline=1)
 		menubar.add_cascade(label="File", menu=menuFile, underline=0)
 		
+		menuEdit = Menu(menubar, tearoff=0)
+		menuEdit.add_command(label="Undo", command=self.edit_undo, underline=0, accelerator='Ctrl+Z')
+		menuEdit.add_command(label="Redo", command=self.edit_redo, underline=0, accelerator='Ctrl+Y')
+		menubar.add_cascade(label="Edit", menu=menuEdit, underline=0)
+		
 		menuFont = Menu(menubar, tearoff=0)
 		menuFont.add_command(label="Smaller", command=Callable(self.changeFontSize,'-'), accelerator='Ctrl+[')
 		menuFont.add_command(label="Larger", command=Callable(self.changeFontSize,'+'), accelerator='Ctrl+]')
+		menuFont.add_command(label="Change...", command=self.changeFont)
 		menubar.add_cascade(label="Font", menu=menuFont, underline=0)
 		
 		menuBindings = Menu(menubar, tearoff=0)
 		menuBindings.add_command(label="List modes", command=Callable(self.show_bindings,'modes'))
-		menuBindings.add_command(label="List bindings", command=Callable(self.show_bindings,'binding'), underline=0)
+		menuBindings.add_command(label="List bindings", command=Callable(self.show_bindings,'bindings'), underline=0)
 		menuBindings.add_command(label="List ASCII", command=Callable(self.show_bindings,'ascii'))
+		menuBindings.add_command(label="Selected Text...", command=self.analyzeText)
+		menuBindings.add_command(label="Insert Character...", command=self.insertCharacter)
 		menuBindings.add_separator()
 		menuBindings.add_command(label="Visualize Bindings!", command=self.viz_bindings)
 		menuBindings.add_command(label="Edit Key Bindings", command=self.edit_bindings)
-		menubar.add_cascade(label="Bindings", menu=menuBindings, underline=0)
+		menubar.add_cascade(label="Characters", menu=menuBindings, underline=0)
 		
 		self.manualbindings.update({'Alt+F4':root.quit, 'Control+O':self.open_file,'Control+N':self.new_file, 'Control+A':self.selectAll, 'Control+S':self.save_file, 'Control+Shift+S':Callable(self.save_file,True),
-			'Control+[':Callable(self.changeFontSize,'-'),'Control+]':Callable(self.changeFontSize,'+')
+			'Control+[':Callable(self.changeFontSize,'-'),'Control+]':Callable(self.changeFontSize,'+'),
+			'Control+Z':self.edit_undo, 'Control+Y':self.edit_redo,
 			})
 		
 		root.config(menu=menubar)
@@ -103,19 +110,19 @@ class App:
 		self.txtContent.mark_set(INSERT, '1.0')
 		self.txtContent.see(INSERT)
 		return 'break'
-	def showModes(self, evt=None):
-		modekeys = [(hotkey,self.dictHotkeys[hotkey]) for hotkey in self.dictHotkeys if self.dictHotkeys[hotkey][0]=='setmode']
-		strShow = ''
-		for hotkey in modekeys:
-			strShow += hotkey[0] + '(' + self.dictModes[hotkey[1][1]] + ') ,'
-		self.txtMode.config(text=strShow)
+		
 	def changeFontSize(self, relsize):
 		if relsize == '+':
 			self.textFormat = (self.textFormat[0], self.textFormat[1] + 2,self.textFormat[2])
 		else:
 			self.textFormat = (self.textFormat[0], self.textFormat[1] - 2,self.textFormat[2])
 		self.txtContent['font'] = self.textFormat
-	
+	def changeFont(self):
+		import tkSimpleDialog
+		newfont = tkSimpleDialog.askstring('Font:','Choose new font (i.e. Verdana).')
+		if not newfont: return
+		self.textFormat = (newfont, self.textFormat[1],self.textFormat[2])
+		self.txtContent['font'] = self.textFormat
 	
 	def checkSaved(self):
 		if self.currentSaved: return True
@@ -139,6 +146,7 @@ class App:
 		self._settext('')
 		self.currentSaved = True
 		self.currentFilename = ''
+		self.enableUndo = True
 		return True
 	def save_file(self, saveAs = False):
 		if self.currentFilename == '' or saveAs:
@@ -161,6 +169,12 @@ class App:
 		f = open(strFileName, 'r')
 		alltext = f.read()
 		f.close()
+		if len(alltext) > 1000000:
+			tkMessageBox.showinfo('Warning: this file is large, so Undo/Redo are disabled!')
+			self.enableUndo = False
+		else:
+			self.enableUndo = True
+		
 		self._settext(alltext)
 		self.currentFilename = strFileName
 		self.currentSaved = True
@@ -168,20 +182,22 @@ class App:
 		return True
 		
 	def onkey_normal(self, event):
-		if event.keycode==16 or event.keycode==17 or event.keycode==0: #I don't know what keycode 0 means
+		if event.keycode==16 or event.keycode==17 or event.keycode==0:
 			return
+			
 		mods = ''
-		
 		if event.state & 0x00000004: mods += 'Control+'
 		if event.state & 0x00020000: mods += 'Alt+'
 		if event.state & 0x00000001: mods += 'Shift+'
 		
+		keypressed = mods + layouts.layout.get(event.keycode,'')
+		if keypressed=='': return #unrecognized key
+			
 		if mods == '' and self.currentSaved==True and len(event.char)==1:
 			self.currentSaved = False
 			self._updatefilename()
-		
-		keypressed = mods + layouts.layout.get(event.keycode,'')
-		if keypressed=='': return #unrecognized key
+			
+		if mods == '' and len(event.char)==1: self.check_undo_event(event)
 		
 		if keypressed in self.manualbindings:
 			self.manualbindings[keypressed]()
@@ -220,16 +236,60 @@ class App:
 		if ret==False: return
 		
 		if strParam == 'ascii':
-			for i in range(255):
-				self.txtContent.insert(INSERT, str(i) +': '+ unichr(i))
-				self.txtContent.insert(INSERT, '\n')
+			for i in range(32,256):
+				self.txtContent.insert(INSERT, str(i) +': '+ unichr(i) + '\n')
+		elif strParam == 'modes':
+			modekeys = [(hotkey,self.dictHotkeys[hotkey]) for hotkey in self.dictHotkeys if self.dictHotkeys[hotkey][0]=='setmode']
+			strShow = ''
+			for hotkey in modekeys:
+				strShow += hotkey[0].replace(' ','Space') + ' (' + self.dictModes[hotkey[1][1]] + ') \n'
+			self.txtContent.insert(INSERT,strShow)
+		elif strParam == 'bindings':
+			self.txtContent.insert(INSERT, str(self.dictHotkeys).replace("'),","'),\n"))
+			
 	def edit_bindings(self):
 		import os
 		self.open_file(os.path.join('keymaps','current.py.js'))
 	def viz_bindings(self):
 		import os
-		os.system( os.path.join('keymaps','visualize.html'))
-	
+		kdir = os.path.join (os.path.abspath(os.path.dirname(sys.argv[0])), 'keymaps')
+		kf = os.path.join(kdir,r'C:\pydev\trill\pad\realpad\keymaps\visualize.html')
+		if os.path.exists(kf):
+			makeThread(os.system, kf)
+		else:
+			tkMessageBox.showinfo(message='Could not find visualize.html.')
+			
+	def check_undo_event(self, evt):
+		if self.enableUndo and (len(self.undoStack)==0 or evt.time - self.undoStack[0][0] > 5000):
+			self.undoStack.insert(0,(evt.time, self._gettext()))
+			self.undoIndex = 0
+			if len(self.undoStack)>100:
+				self.undoStack = self.undoStack[0:100]
+		
+	def edit_undo(self):
+		if self.enableUndo:
+			if len(self.undoStack)==0: return
+			if self.undoIndex < len(self.undoStack)-1:
+				self.undoIndex +=1
+			self._settext(self.undoStack[self.undoIndex][1])
+			
+	def edit_redo(self):
+		if self.enableUndo:
+			if self.undoIndex <= 0: return
+			if self.undoIndex > 0:
+				self.undoIndex -=1
+			self._settext(self.undoStack[self.undoIndex][1])
+	def analyzeText(self):
+		try:
+			strText = self.txtContent.get( self.txtContent.index("sel.first"), self.txtContent.index("sel.last"))
+		except:
+			return
+		tkMessageBox.showinfo('Values', ', '.join([str(ord(c)) for c in strText]))
+			
+	def insertCharacter(self):
+		import tkSimpleDialog
+		chars = tkSimpleDialog.askstring('Characters:','Enter Unicode values, separated by commas.(32,')
+		if not newfont: return
 root = Tk()
 app = App(root)
 

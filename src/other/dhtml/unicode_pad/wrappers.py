@@ -53,11 +53,13 @@ class Callable:
 	def __str__(self):
 		return self.func.__name__
 
-if False:
+def makeThread(fn, args):
+	import threading
 	class MyThread(threading.Thread):
-	    """this is a wrapper for threading.Thread that improves
-	    the syntax for creating and starting threads.
-	    """
-	    def __init__(self, target, *args):
-		threading.Thread.__init__(self, target=target, args=args)
-		self.start()
+		"""this is a wrapper for threading.Thread that improves
+		the syntax for creating and starting threads.
+		"""
+		def __init__(self, target, *args):
+			threading.Thread.__init__(self, target=target, args=args)
+			self.start()
+	MyThread(fn, args)
