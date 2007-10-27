@@ -19,6 +19,7 @@ class App:
 	currentMode = ''
 	currentFilename = ''
 	currentSaved = True
+	currentMap, currentMapname = 'default.py.js', ''
 	manualbindings = {}
 	dictModes = None
 	dictHotkeys = None
@@ -31,14 +32,15 @@ class App:
 		
 		frameMain = Frame(width=400, height=100)
 		frameMain.pack(side=TOP,fill=BOTH, expand=True)
-		self.txtContent = ScrolledText.ScrolledText(frameMain)
+		self.txtContent = ScrolledText.ScrolledText(frameMain, wrap=WORD)
 		self.txtContent.pack(side=TOP,fill=BOTH, expand=True)
 		self.txtFilename = Label(frameMain, text="Untitled")
 		self.txtFilename.pack(side=TOP)
-		self.txtMode = Label(frameMain, text='Normal Mode')
+		self.txtMode = Label(frameMain)
 		self.txtMode.pack(side=TOP)
 		
-		self.dictModes, self.dictHotkeys = keymaps.parse()
+		self.dictModes, self.dictHotkeys, self.currentMapname = keymaps.parse()
+		self._updateMode()
 		
 		root.bind_all('<Key>', self.onkey_normal)
 		root.bind_all('<Any-Alt-Key>', self.onkey_normal)
@@ -87,7 +89,15 @@ class App:
 		menuBindings.add_separator()
 		menuBindings.add_command(label="Visualize Bindings!", command=self.viz_bindings)
 		menuBindings.add_command(label="Edit Key Bindings", command=self.edit_bindings)
+		menuBindings.add_separator()
+		for filename in keymaps.get_available():
+			menuBindings.add_command(label=filename.replace('.py.js',''), command=Callable(self.change_keymap,filename))
 		menubar.add_cascade(label="Characters", menu=menuBindings, underline=0)
+		
+		menuHelp = Menu(menubar, tearoff=0)
+		menuHelp.add_command(label='About', command=(lambda: tkMessageBox.showinfo('Unicode Pad','Unicode Pad, by Ben Fisher 2007')))
+		menuHelp.add_command(label='Help', command=self.showDocs)
+		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		self.manualbindings.update({'Alt+F4':root.quit, 'Control+O':self.open_file,'Control+N':self.new_file, 'Control+A':self.selectAll, 'Control+S':self.save_file, 'Control+Shift+S':Callable(self.save_file,True),
 			'Control+[':Callable(self.changeFontSize,'-'),'Control+]':Callable(self.changeFontSize,'+'),
@@ -154,7 +164,7 @@ class App:
 			if not strFileName: return False
 			self.currentFilename = strFileName
 			
-		f = open(self.currentFilename, 'w')
+		f = codecs.open(self.currentFilename, 'w','utf-8')
 		f.write(self._gettext())
 		f.close()
 		self.currentSaved = True
@@ -166,7 +176,8 @@ class App:
 			strFileName = tkFileDialog.askopenfilename()
 			if not strFileName: return False
 		
-		f = open(strFileName, 'r')
+		
+		f = codecs.open(strFileName, 'r')
 		alltext = f.read()
 		f.close()
 		if len(alltext) > 1000000:
@@ -218,7 +229,10 @@ class App:
 
 	def change_mode(self, newmode):
 		self.currentMode = newmode
-		self.txtMode.config(text='Mode:' + self.dictModes[newmode])
+		self._updateMode()
+		
+	def _updateMode(self):
+		self.txtMode.config(text='Map: ' + self.currentMapname + ', Mode:' + self.dictModes[self.currentMode])
 	
 	def insert_character(self, hotkey):
 		try:
@@ -246,18 +260,30 @@ class App:
 			self.txtContent.insert(INSERT,strShow)
 		elif strParam == 'bindings':
 			self.txtContent.insert(INSERT, str(self.dictHotkeys).replace("'),","'),\n"))
-			
+	
 	def edit_bindings(self):
 		import os
-		self.open_file(os.path.join('keymaps','current.py.js'))
+		self.open_file(os.path.join('keymaps',self.currentMap))
 	def viz_bindings(self):
 		import os
 		kdir = os.path.join (os.path.abspath(os.path.dirname(sys.argv[0])), 'keymaps')
-		kf = os.path.join(kdir,r'C:\pydev\trill\pad\realpad\keymaps\visualize.html')
+		kf = os.path.join(kdir, 'visualize.html')
+		# Copy file to js:
+		try:
+			import shutil
+			shutil.copy(os.path.join(kdir, self.currentMap), os.path.join(kdir, '_current.js'))
+		except:
+			print 'Warning: could not copy file.'
 		if os.path.exists(kf):
 			makeThread(os.system, kf)
 		else:
 			tkMessageBox.showinfo(message='Could not find visualize.html.')
+			
+	def change_keymap(self, filename):
+		import os
+		self.dictModes, self.dictHotkeys, self.currentMapname = keymaps.parse(filename)
+		self.currentMode = ''
+		self._updateMode()
 			
 	def check_undo_event(self, evt):
 		if self.enableUndo and (len(self.undoStack)==0 or evt.time - self.undoStack[0][0] > 5000):
@@ -288,8 +314,27 @@ class App:
 			
 	def insertCharacter(self):
 		import tkSimpleDialog
-		chars = tkSimpleDialog.askstring('Characters:','Enter Unicode values, separated by commas.(32,')
-		if not newfont: return
+		chars = tkSimpleDialog.askstring('Characters:','Enter Unicode values, separated by commas.(i.e. 293,111,349)')
+		if not chars: return
+		self.txtContent.insert(INSERT, ''.join([unichr(int(char)) for char in chars.replace(' ','').split(',')]))
+	
+	def showDocs(self):
+		ret = self.new_file()
+		if ret==False: return
+		self._settext(
+		"""
+Unicode Pad, By Ben Fisher
+
+This program is a lightweight text editor intended for writing text in other languages. Most word processors have a "Insert Symbol" option for inserting a character, but this process is too slow. If you do all of your typing in another language, one can set the system language, but this will be a system-wide change and is not very customizeable. In this program, on the other hand, it is simple to set up your own keymaps and choose what keys create which characters. One can also conveniently visualize these bindings.
+
+Because some languages require access to more than 26 symbols, this program uses the concept of "modes." For example, the default keymap has a mode called Grave Accent. In this mode, typing a vowel like o will produce o with a grave accent. The program begins in Normal Mode, but you can press Control+L to enter Grave Accent mode. View the available modes for the current keymap by choosing List Modes from the Characters menu.
+
+When you enter a mode, you stay in that mode until you press the key combination, typically Control+Space, to return to Normal mode.
+
+Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take place when the mode is selected from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
+		"""
+		)
+	
 root = Tk()
 app = App(root)
 

@@ -1,14 +1,19 @@
 # Convert .py.js file into keymap in memory
 import os
 
-def parse():
-	f = open(os.path.join('keymaps', 'current.py.js'))
+def get_available():
+	dir = os.listdir('./keymaps')
+	keymaps = [filename for filename in dir if filename.endswith('.py.js')]
+	return keymaps
+
+def parse(mapfilename = 'default.py.js'):
+	f = open(os.path.join('keymaps', mapfilename))
 	alltext = f.read()
 	f.close()
 	
 	alltext = alltext.replace('\n//', '\n#') #Convert // to #
 	exec alltext
-	# Now, the local variables modes and keys will be created.
+	# Now, the local variables modes, keys, and mapname will be created.
 	
 	dict_hotkeys = {}
 	dict_modes = {}
@@ -25,13 +30,16 @@ def parse():
 	for key in keys:
 		key = key.replace('\t\t','\t').replace('\t\t','\t').replace('\t\t','\t').split('\t')
 		hotkey = key[0]
-		hotvalue = int(key[1])
+		hotvalue = int(key[1],16) if key[1].startswith('0x') else int(key[1])
 		hotdescription = key[2] if len(key)>2 else ''
+		if hotkey in dict_hotkeys:
+			print 'Warning: duplicate entry for hotkey '+str(hotkey)
+		
 		dict_hotkeys[hotkey] = ('char',hotvalue, hotdescription)
 	
-	return dict_modes, dict_hotkeys
+	return dict_modes, dict_hotkeys, mapname
 
 if __name__ == '__main__':
-	dict_modes, dict_hotkeys = parse()
+	dict_modes, dict_hotkeys, mapname = parse()
 	print dict_hotkeys
 

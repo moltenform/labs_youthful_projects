@@ -5,23 +5,26 @@
 
 // The number of tabs can be from 1 to 8, so add tabs as you like.
 
+mapname = 'european (latin-1)'
 
 // ModeChar=Mode Name	Hotkey
 modes = [
+'=Normal		Control+ ' ,
 'U=Upper mode	Control+Up',
 'H=Hat		Control+6',
 'L=Grave Accent	Control+L',
 'R=Acute Accent	Control+R',
 'D=Diaeresis	Control+D',
-'T=Tilde		Control+T' ,
-'=Normal		Control+ ' ]
+'T=Tilde		Control+T' 
+]
 
 //Hotkey	Unicode value		Description (optional)
 keys = [
+'Control+Alt+T	0x307E	Testing unicode',
+
 'Alt+Shift+4	128		Euro',
 'Alt+,			130		Low curved quote',
 'Alt+F		131		Script f (function)',
-'Alt+Shift+,		132		Low double curved quotes',
 'Alt+Shift+.		133		Ellipsis',
 'Alt+T		134		Dagger (typography)',
 'Alt+Shift+T	135		Double Dagger (typography)',
@@ -54,14 +57,14 @@ keys = [
 'Alt+Shift+P	163		Pound Sign',
 'U/Shift+8		164		Currency Sign',
 'Alt+=		165		Yen Sign',
-'Alt+Shift+\		166		Broken Bar (',
+'Alt+Shift+\\	166		Broken Bar (',
 'Alt+S		167		Section Sign',
 'U/Shift+;		168		Diaeresis',
 'Alt+Shift+2	169		Copyright Sign',
 'U/Shift+C		169		Copyright Sign',
 'U/A			170		Feminine Ordinal Indicator',
 'Alt+Shift+[		171		Left double quote (European)',
-'Alt+Enter		172		Logical not',
+'Alt+\\		172		Logical not',
 'U/-			173		Soft Hyphen (SHY)',
 'U/Shift+R		174		Registered Trade Mark Sign',
 'U/Shift+-		175		Macron (diacritic)',
@@ -114,7 +117,7 @@ keys = [
 'D/Shift+U		220		U, Diaeresis',
 'Alt+Shift+Y	221		Y, Acute accent',
 'R/Shift+Y		221		Y, Acute accent',
-'Alt+Shift+B	222		Old/english/Icelandic letter thorn',
+'Alt+B		222		Old/english/Icelandic letter thorn',
 'Alt+Shift+S	223		German Sharp S',
 'Alt+Shift+A	224		a, Grave accent',
 'L/A			224		a, Grave accent',
