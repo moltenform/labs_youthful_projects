@@ -87,7 +87,7 @@ class App:
 		menuBindings.add_command(label="Selected Text...", command=self.analyzeText)
 		menuBindings.add_command(label="Insert Character...", command=self.insertCharacter)
 		menuBindings.add_separator()
-		menuBindings.add_command(label="Visualize Bindings!", command=self.viz_bindings)
+		menuBindings.add_command(label="Visualize Bindings", command=self.viz_bindings)
 		menuBindings.add_command(label="Edit Key Bindings", command=self.edit_bindings)
 		menuBindings.add_separator()
 		for filename in keymaps.get_available():
@@ -97,6 +97,8 @@ class App:
 		menuHelp = Menu(menubar, tearoff=0)
 		menuHelp.add_command(label='About', command=(lambda: tkMessageBox.showinfo('Unicode Pad','Unicode Pad, by Ben Fisher 2007')))
 		menuHelp.add_command(label='Help', command=self.showDocs)
+		menuHelp.add_separator()
+		menuHelp.add_command(label="Visualize Bindings", command=self.viz_bindings)
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		self.manualbindings.update({'Alt+F4':root.quit, 'Control+O':self.open_file,'Control+N':self.new_file, 'Control+A':self.selectAll, 'Control+S':self.save_file, 'Control+Shift+S':Callable(self.save_file,True),
@@ -112,7 +114,10 @@ class App:
 		self.txtContent.delete('1.0', END)
 		self.txtContent.insert(END, strText)
 	def _updatefilename(self):
-		strName = self.currentFilename if self.currentFilename!='' else 'Untitled'
+		if self.currentFilename!='':
+			strName = self.currentFilename  
+		else:
+			strName ='Untitled'
 		if not self.currentSaved: strName += ' *'
 		self.txtFilename.config(text=strName)
 	def selectAll(self):

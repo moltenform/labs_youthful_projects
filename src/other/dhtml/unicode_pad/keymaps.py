@@ -11,7 +11,7 @@ def parse(mapfilename = 'default.py.js'):
 	alltext = f.read()
 	f.close()
 	
-	alltext = alltext.replace('\n//', '\n#') #Convert // to #
+	alltext = alltext.replace('\r\n','\n').replace('\n//', '\n#') #Convert // to #
 	exec alltext
 	# Now, the local variables modes, keys, and mapname will be created.
 	
@@ -30,8 +30,14 @@ def parse(mapfilename = 'default.py.js'):
 	for key in keys:
 		key = key.replace('\t\t','\t').replace('\t\t','\t').replace('\t\t','\t').split('\t')
 		hotkey = key[0]
-		hotvalue = int(key[1],16) if key[1].startswith('0x') else int(key[1])
-		hotdescription = key[2] if len(key)>2 else ''
+		if key[1].startswith('0x'):
+			hotvalue = int(key[1],16)
+		else:
+			hotvalue = int(key[1])
+		if len(key)>2:
+			hotdescription = key[2]  
+		else:
+			hotdescription = ''
 		if hotkey in dict_hotkeys:
 			print 'Warning: duplicate entry for hotkey '+str(hotkey)
 		
