@@ -1,7 +1,8 @@
 """
-MiniMath
+UnicodePad
 Ben Fisher, 2007
 License: GPL
+
 """
 from Tkinter import *
 import tkFileDialog
@@ -290,7 +291,7 @@ class App:
 		self.currentMode = ''
 		self.currentMap = filename
 		self._updateMode()
-		
+			
 	def check_undo_event(self, evt):
 		if self.enableUndo and (len(self.undoStack)==0 or evt.time - self.undoStack[0][0] > 5000):
 			self.undoStack.insert(0,(evt.time, self._gettext()))
@@ -325,7 +326,10 @@ class App:
 		self.txtContent.insert(INSERT, ''.join([unichr(int(char)) for char in chars.replace(' ','').split(',')]))
 	
 	def showDocs(self):
-		strDocs = """
+		ret = self.new_file()
+		if ret==False: return
+		self._settext(
+		"""
 Unicode Pad, By Ben Fisher
 
 This program is a lightweight text editor intended for writing text in other languages. Most word processors have a "Insert Symbol" option for inserting a character, but this process is too slow. If you do all of your typing in another language, one can set the system language, but this will be a system-wide change and is not very customizeable. In this program, on the other hand, it is simple to set up your own keymaps and choose what keys create which characters. One can also conveniently visualize these bindings.
@@ -336,12 +340,7 @@ When you enter a mode, you stay in that mode until you press the key combination
 
 Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take place when the mode is selected from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
 		"""
-		self._displayContent(strDocs)
-		
-	def _displayContent(self, strText):
-		ret = self.new_file()
-		if ret==False: return
-		self._settext(strText)
+		)
 	
 root = Tk()
 app = App(root)
