@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Keyshort 0.1</title>
+<title>Keyshort</title>
 <link rel="stylesheet" type="text/css" href="keyshort/keyboard.css" />
 <script language="JavaScript">
 //Global variables holding the shortcut data
@@ -8,15 +8,14 @@ keys = {};
 gk = {};
 Modes = {};
 Modes.current = 1;
-
 Layout = {};
-
 </script>
 <script language="JavaScript" src="_current.js"></script>
 
 <script language="JavaScript" src="keyshort/render.js"></script>
 <script language="JavaScript">
 function strcontains(str, needle){ return str.indexOf(needle)!=-1;}
+function $(stro) {return document.getElementById(stro);}
 function parseShortcut( str )
 {
 	var keyinfo = str.replace(/\t\t/g, '\t').replace(/\t\t/g, '\t').replace(/\t\t/g, '\t').split('\t');
@@ -37,7 +36,7 @@ function parseShortcut( str )
 	res = parseShortcutKey(hotkey);
 	hotkey = res[0]; strMods=res[1];
 	if (! gk[modeId][hotkey]) gk[modeId][hotkey] = {};
-	gk[modeId][hotkey][strMods] = {brev: '&#'+hotvalue+';', name:'U'+hotvalue, doc:hotdescription};
+	gk[modeId][hotkey][strMods] = {brev: '&#'+hotvalue+';', name:'&#'+hotvalue+'; ('+hotvalue+')', doc:hotdescription};
 }
 function parseShortcutKey(hotkey)
 {
@@ -183,12 +182,8 @@ function dochtmltable(name,shortcut,imp,doc)
 	'<div  class="docimp">'+replacenull(imp)+'</div>'+
 	'<div  class="docdoc">'+replacenull(doc)+'</div>';
 }
-//~ function docrenderedhtml(name,shortcut,imp,doc)
-//~ {
-	//~ var replacenull = function(str) { if (str) return str.replace('\\','\\\\').replace("'","\\'").replace('"',''); else return '&nbsp;' };
-	//~ return '<div class="docname" style="font-size:100%" onclick="divdoc.innerHTML=dochtml('+"'" +replacenull(name)+"','"+replacenull(shortcut)+ "','"+replacenull(imp)+"','"+replacenull(doc)+"')" +  '" >'+replacenull(name)+'</div>'+
-	//~ '<div class="docshortcut" style="margin-left:300px">'+replacenull(shortcut)+'</div>';
-//~ }
+
+
 function renderDocumentation(strModifiers, cellid)
 {
 	//Get an array with doc information. [name, imp, doc]
@@ -197,6 +192,10 @@ function renderDocumentation(strModifiers, cellid)
 	if (! ar) return '';
 	else
 	{
+		// Add to "history"
+		if  ((ar[0].split(' ')[0]) != 'Mode')
+			$('divClipboard').innerHTML += ar[0].split(' ')[0];
+	
 		var rendershortcut = getModifierStringRendered(strModifiers) + Layout.cellLayout[cellid][0];
 		return dochtml(  ar[0], rendershortcut, ar[1],  ar[2]);
 	}
@@ -216,10 +215,8 @@ function search(keyword)
 	{
 		for (keycmd in o[key])
 		{
-			//res[res.length]= dochtml;
-			
+			if (keyword == '*' || strcontains(o[key][keycmd].name, keyword) || strcontains(o[key][keycmd].doc, keyword)|| strcontains(o[key][keycmd].brev, keyword))
 			res[res.length]= dochtml( o[key][keycmd].name ,getModifierStringRendered(keycmd) + key ,o[key][keycmd].imp ,o[key][keycmd].doc );
-			//docrenderedhtml(o[key][keycmd].name, getModifierStringRendered(keycmd) + key, o[key][keycmd].imp, o[key][keycmd].doc);
 		}
 	}
 	res = res.sort();
@@ -251,13 +248,14 @@ function setfocus() { document.getElementById('keycapture').focus(); }
 </head>
 <body onload="setfocus();">
 <span id="notify">Press Keys =&gt;</span><input onkeydown="return recordkey(event);" onkeyup="return recordkeyup(event);" id="keycapture" style="color:white;" />
-<button onclick="onbtnsearch();">Search</button>
-<button onclick="displayall();">Display All</button>
-<button onclick="test();">Debug</button>
-<textarea id="debug"></textarea>
+<span style="width:200px">&nbsp;</span>
+<button onclick="displayall();">Display All</button><button onclick="onbtnsearch();">Search</button>
+<span style="width:50px">&nbsp;</span>
+Recent: <span id="divClipboard" rows="1" cols="30"></span>
 
 <div id="divout"><!--Keyboard here--></div> 
 <br/><br/>
+<p align="left" style="font-size:10px">Keyshort 0.1, Ben Fisher 2006<br />Press Control, Alt, or Shift to see key combinations.</p>
 
 <div id="divcontaindoc" style="float:right">
 <br />
@@ -274,7 +272,7 @@ function rendermodes()
 {
 	if (! Modes.modes) return;
 	var m = Modes.modes;
-	document.write('<table border="0">');
+	document.write('<table border="0"><tr>');
 	for (var i=0; i<m.length; i++)
 	{
 		document.write('</tr><tr>');
@@ -289,9 +287,10 @@ function rendermodes()
 }
 rendermodes();
 </script>
+
 </div>
 
-<p align="right">Keyshort 0.1, Ben Fisher 2006</p>
+
 
 </body>
 </html>

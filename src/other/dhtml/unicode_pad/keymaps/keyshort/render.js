@@ -13,7 +13,15 @@ function entity(charin)
 	else if (charin=='&') return "&amp;";
 	else if (charin=='<') return "&lt;";
 	else if (charin=='>') return "&gt;";
-	else return charin.replace('&','&amp;').replace('<',"&lt;").replace('>',"&gt;");
+	
+	charin = charin.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+	if (charin.indexOf('&') != -1 && charin.indexOf(';') == -1)
+	{
+		// & without ; is most likely a mistake, so fix it.
+		return charin.replace('&','&amp;');
+	}
+	// otherwise, let the entity through.
+	return charin;
 }
 function drawKeyboard(scale, height, type)
 {
