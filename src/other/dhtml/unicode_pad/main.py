@@ -283,6 +283,7 @@ class App:
 		import os
 		self.dictModes, self.dictHotkeys, self.currentMapname = keymaps.parse(filename)
 		self.currentMode = ''
+		self.currentMap = filename
 		self._updateMode()
 			
 	def check_undo_event(self, evt):
