@@ -1,14 +1,14 @@
-"""
-UnicodePad
-Ben Fisher, 2007
-License: GPL
+# UnicodePad,
+# 2007 Ben Fisher, released under the GPLv2 license.
+# Requires Python 2.5
+# linux is not yet supported
 
-"""
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import ScrolledText
 import codecs
+import sys
 
 from wrappers import *
 import layouts
@@ -54,6 +54,9 @@ class App:
 		self._create_menubar(root)
 		
 		self.txtContent['font'] = self.textFormat #Update font
+		if not sys.platform.startswith('win'):
+			tkMessageBox.showinfo('Warning', 'This platform is not yet supported... ' +
+				'please use Windows XP or later.')
 		
 	def _create_menubar(self,root):
 		#~ root.bind('<Control-Key-o>', wrappers.Callable(self.open_shape))
@@ -82,7 +85,6 @@ class App:
 		
 		menuBindings = Menu(menubar, tearoff=0)
 		menuBindings.add_command(label="List modes", command=Callable(self.show_bindings,'modes'))
-		menuBindings.add_command(label="List bindings", command=Callable(self.show_bindings,'bindings'), underline=0)
 		menuBindings.add_command(label="List ASCII", command=Callable(self.show_bindings,'ascii'))
 		menuBindings.add_command(label="Selected Text...", command=self.analyzeText)
 		menuBindings.add_command(label="Insert Character...", command=self.insertCharacter)
@@ -93,6 +95,10 @@ class App:
 		for filename in keymaps.get_available():
 			menuBindings.add_command(label=filename.replace('.py.js',''), command=Callable(self.change_keymap,filename))
 		menubar.add_cascade(label="Characters", menu=menuBindings, underline=0)
+		
+		if False:
+			# user can use Edit Bindings if they want to see this info
+			menuBindings.add_command(label="List bindings", command=Callable(self.show_bindings,'bindings'), underline=0)
 		
 		menuHelp = Menu(menubar, tearoff=0)
 		menuHelp.add_command(label='About', command=(lambda: tkMessageBox.showinfo('Unicode Pad','Unicode Pad, by Ben Fisher 2007')))
@@ -263,7 +269,7 @@ class App:
 			strShow = ''
 			for hotkey in modekeys:
 				strShow += hotkey[0].replace(' ','Space') + ' (' + self.dictModes[hotkey[1][1]] + ') \n'
-			self.txtContent.insert(INSERT,strShow)
+			tkMessageBox.showinfo('Modes', message=strShow)
 		elif strParam == 'bindings':
 			self.txtContent.insert(INSERT, str(self.dictHotkeys).replace("'),","'),\n"))
 	
@@ -328,17 +334,15 @@ class App:
 	def showDocs(self):
 		ret = self.new_file()
 		if ret==False: return
-		self._settext(
+		tkMessageBox.showinfo('',
 		"""
-Unicode Pad, By Ben Fisher
+This program is a lightweight text editor intended for writing text in other languages. Most word processors have a "Insert Symbol" option for inserting a foreign character, but this process is too slow. If you do all of your typing in another language, one can set the system language, but this will be a system-wide change and is not very customizable. In this program, on the other hand, it is simple to set up your own keyboard bindings and choose what keys create which characters.
 
-This program is a lightweight text editor intended for writing text in other languages. Most word processors have a "Insert Symbol" option for inserting a character, but this process is too slow. If you do all of your typing in another language, one can set the system language, but this will be a system-wide change and is not very customizeable. In this program, on the other hand, it is simple to set up your own keymaps and choose what keys create which characters. One can also conveniently visualize these bindings.
+One can also see these bindings shown visually (Characters menu -> Visualize Bindings).
 
-Because some languages require access to more than 26 symbols, this program uses the concept of "modes." For example, the default keymap has a mode called Grave Accent. In this mode, typing a vowel like o will produce o with a grave accent. The program begins in Normal Mode, but you can press Control+L to enter Grave Accent mode. View the available modes for the current keymap by choosing List Modes from the Characters menu.
+The program begins in Normal Mode, but you can press Control+L to enter Grave Accent mode. In this mode, typing a vowel like o will produce o with a grave accent. Press Control+Space to return to Normal mode. View the available modes for the current keymap by choosing List Modes from the Characters menu.
 
-When you enter a mode, you stay in that mode until you press the key combination, typically Control+Space, to return to Normal mode.
-
-Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take place when the mode is selected from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
+Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take effect when the mode is chosen again from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
 		"""
 		)
 	

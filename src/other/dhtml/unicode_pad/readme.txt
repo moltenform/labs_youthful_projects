@@ -3,20 +3,14 @@ Unicode pad
 By Ben Fisher
 GPL v2
 
-Requires Python 2.5, Windows XP (untested on osx, possibly buggy in linux)
+Requires Python 2.5, Windows XP (linux is not yet supported)
 
-Here are things you might want to do:
-To run,
-Install Python 2.5
-Open "main.py"
+This program is a lightweight text editor intended for writing text in other languages. Most word processors have a "Insert Symbol" option for inserting a foreign character, but this process is too slow. If you do all of your typing in another language, one can set the system language, but this will be a system-wide change and is not very customizable. In this program, on the other hand, it is simple to set up your own keyboard bindings and choose what keys create which characters.
 
-To see key bindings,
-Choose "visualize bindings" from the characters menu
+One can also see these bindings shown visually (Characters menu -> Visualize Bindings).
 
-To create a key map (to set up a new language / customize a language):
-Open the "keymaps" folder and create a .py.js file. Follow the format of the existing files.
-Then, after closing and reopening "main.py", you should be able to choose the language from the "Characters" menu
+The program begins in Normal Mode, but you can press Control+L to enter Grave Accent mode. In this mode, typing a vowel like o will produce o with a grave accent. Press Control+Space to return to Normal mode. View the available modes for the current keymap by choosing List Modes from the Characters menu.
 
-Further documentation is available from the Help menu.
+Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take effect when the mode is chosen again from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
 
-See also /2007/10/quick-unicode-entry.html
+Read more at /2007/10/quick-unicode-entry.html
