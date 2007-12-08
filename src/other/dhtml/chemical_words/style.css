@@ -1,7 +1,15 @@
 BODY { margin: 0; background-color: white; color: black; font-family: Arial, Arial Unicode MS, sans-serif; }
 
  .rightup	{ background-color: #FA0; }
- .upsidedown	{filter: FlipV() FlipH();background-color: #FA0; }
+ .upsidedown	{
+	 
+-webkit-transform: rotate(180deg);	
+-moz-transform: rotate(180deg);
+-ms-transform: rotate(180deg);
+-o-transform: rotate(180deg);
+transform: rotate(180deg);
+	 filter: FlipV() FlipH();
+	 background-color: #FA0; }
 
  div.chemLetter	{ font-size: 1.5em; font-weight: bold; width: 2.5em; }
 

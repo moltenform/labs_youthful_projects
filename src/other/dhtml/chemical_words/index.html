@@ -50,7 +50,7 @@ function Go()
 		var nElement = ans[i];
 		
 		if (nElement==0)
-			strHtml += '<td><span style="width:30px"> </span></td>';
+			strHtml += '<td><span style="width:30px">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>';
 		else if (nElement<0)
 			strHtml += '<td class="upsidedown">' + RenderLetterInnerText(nElement*-1) + '</td>';
 		else
@@ -144,17 +144,15 @@ function loadsample()
 	var strs = ["pwned", "pwned", "hello world","Half Hour Hacks","Half Hour Hacks","Half Hour Hacks",  "hello world","yuck", "hellao world", "chem", "fringe elements", "great chemistry", "coolness", "you be nerd", "yuck", "i hated chemistry", "i love you", "i destroy you", "it's periodic baby", "my atomic weight","scary chemicals","scary chemicals", "scary chemicals", "stupidium",'i can has chemistry','cheesburger','cheesburger','microsoft chem plus', 'chem errors','wikipedia', "what's up my homies",'i am you','stand back fools','i has computer'];
 	$('fldinput').value= strs[Math.floor(Math.random()*strs.length)];
 	Go();
-	if (! isIE())
-		$('divNeedIE').style.display = '';
 }
 
-function isIE() { return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent); }
 </script>
 </head>
 <body link="#000000"  vlink="#000000" onload="loadsample();">
 The Periodic Table of DHTML Elements<span style="width:30em">&nbsp; </span>By <a href="javascript:myname();">Ben Fisher</a><br/><br/>
 <input name="fldinput" id="fldinput" onkeyup="keyup();">
 <button onmouseup="Go();">Go</button> <font size="1"><a href="javascript:loadsample();">(Sample)</a></font>
+
 <br><br><br><br>
 
 <div id="divHere"></div>
@@ -163,9 +161,8 @@ The Periodic Table of DHTML Elements<span style="width:30em">&nbsp; </span>By <a
 <i>...Perfect for your lame chemistry joke needs.</i>
 <br /><br />
 <br /><br />
-<p align="left">Coded up on a whim by Ben Fisher in 2005<br /><a href="/">Half Hour Hacks</a></p>
-
-<div style="display:none" id="divNeedIE">Sorry, needs IE for letters to be rotated, because of the FlipV filter.</div>
+<p align="left">Coded up on a whim by Ben Fisher, 2005<br /><a href="/">Half Hour Hacks</a></p>
 
 </body>
+
 </html>
