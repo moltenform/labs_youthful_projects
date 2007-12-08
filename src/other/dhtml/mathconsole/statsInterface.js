@@ -3,7 +3,7 @@ function clr()
 {
 	g_InputHistory = [];
 	g_OutputHistory = [];
-	document.getElementById("txtConsole").innerText = '';
+	document.getElementById("txtConsole").value = '';
 }
 clr.doc = function() { return ShowDoc("0.0.0"); }
 AvailFunctions["0.0.0"] = "clr";
@@ -41,18 +41,6 @@ function echo( strIn )
 	o.scrollTop = 1000;
 }
 echo.doc = function() { return ShowDoc("0.0.3"); }
-AvailFunctions["0.0.3"] = "ans";
-Docs.Prototypes["0.0.3"] = 'ans( [x] )';
-Docs.ProtoExplain["0.0.3"] = "Where x is integer (optional).";
-Docs.Description["0.0.3"] = "Interface:Returns the result of a previous command.";
-
-
-
-
-
-
-
-
 
 
 

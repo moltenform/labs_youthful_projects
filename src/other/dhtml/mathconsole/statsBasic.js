@@ -2,7 +2,7 @@
 function factorial( n )
 {
 	if (n==0) return 1;
-	else if (n==Math.floor(n) && n>0) return Permutation( n,n);
+	else if (n==Math.floor(n) && n>0) return permutation( n,n);
 	else if (gamma) return gamma(n+1);
 	else return NaN;
 }

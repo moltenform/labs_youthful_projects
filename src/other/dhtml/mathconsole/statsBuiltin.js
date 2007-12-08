@@ -22,6 +22,10 @@ deg2rad.doc = function() { return ShowDoc("0.2.8");}
 AvailFunctions["0.2.8"] = "rad2deg";
 Docs.Description["0.2.8"] = "Converts angle in radians to degrees.";
 
+sind=function(x) { return Math.sin(deg2rad(x)) }
+cosd=function(x) { return Math.cos(deg2rad(x)) }
+tand=function(x) { return Math.tan(deg2rad(x)) }
+
 function sinh(x) { return (Math.exp(x)-Math.exp(-x))/2;}
 sinh.doc = function() { return ShowDoc("0.2.9"); }
 AvailFunctions["0.2.9"] = "sinh";
