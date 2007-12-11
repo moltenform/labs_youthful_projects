@@ -2,78 +2,142 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<title>Statcurve</title>
+<title>Improbability - Normal Distribution</title>
 
 <style type="text/css">
-
+a:link { color: #000000;}
+a:visited { color: #000000;}
+a:active { color: #000000;}
+a:hover { color: #000000;}
+body {font-family: Verdana, Arial, Helvetica; font-size:0.8em}
 </style>
 
-
+<script type="text/javascript" src="normal.js"></script>
 <script type="text/javascript">
+// Ben Fisher, 12/11/07
 W = 376;
 function $(strO) { return document.getElementById(strO);}
+function keyupN2P(e) { if (!event) key=e.which; else key=event.keyCode; if (key == 13) goN2P(); }
+function keyupP2N(e) { if (!event) key=e.which; else key=event.keyCode; if (key == 13) goP2N('right'); }
+function modeN2P() { $('divN2Pform').style.display='';$('divP2Nform').style.display='none';spanN2P.style.border='1px solid black';spanP2N.style.border=''; clear();}
+function modeP2N() { $('divN2Pform').style.display='none';$('divP2Nform').style.display=''; spanN2P.style.border='';spanP2N.style.border='1px solid black';clear();}
+function setValues(fShade, strEndpoints)
+{
+	strShade = RoundDP(fShade, 4);
+	strWhite = RoundDP(1-fShade, 4); 
+	$('spanResultShaded').innerHTML = strShade;
+	$('spanResultWhite').innerHTML = strWhite;
+	$('spanResultEndpoints').innerHTML = strEndpoints;
+}
+
 function setCurve(xmin, xmax)
 {
-var pxmin = Math.max(Math.round(xmin * 24)+(W/2), 0);
-var pxmax = Math.min(Math.round(xmax * 24)+(W/2), W);
-$('imgShade').style.left = pxmin + 'px';
-$('imgWhite').style.left = pxmax + 'px';
-
+	var stretch = 24.0; //24.0 is technically too big, but this helps for visualization
+	if (isNaN(xmin) || isNaN(xmax)) {setCurve(0,40); return;}
+	var pxmin = Math.max(Math.round(xmin * stretch)+(W/2), 0);
+	var pxmax = Math.min(Math.round(xmax * stretch)+(W/2), W);
+	$('imgShade').style.left = pxmin + 'px';
+	$('imgWhite').style.left = pxmax + 'px';
 }
-function go()
-{
-var fMean = parseFloat($('inMean').value);
-var fVar =parseFloat( $('inVar').value);
-var fLeft = $('inLeft').value;
-var fRight = $('inRight').value;
-fLeft = (fLeft=='I')?999:(fLeft=='-I')?-999:parseFloat(fLeft);
-fRight = (fRight=='I')?999:(fRight=='-I')?-999:parseFloat(fRight);
 
-}
-function evtOnload()
+function goN2P()
 {
-go();
+	var fMean = parseFloat($('inMean').value);
+	var fStddev =Math.sqrt(parseFloat( $('inVar').value));
+	var fLeft = $('inLeft').value;
+	var fRight = $('inRight').value;
+	fLeft = (fLeft=='I')?999:(fLeft=='-I')?-999:parseFloat(fLeft);
+	fRight = (fRight=='I')?999:(fRight=='-I')?-999:parseFloat(fRight);
+	var zvalueLeft = (fLeft-fMean)/fStddev;
+	var zvalueRight = (fRight-fMean)/fStddev;
+	setCurve(zvalueLeft, zvalueRight);
+	
+	var p = forwardNormal2(zvalueLeft) - forwardNormal2(zvalueRight);
+	setValues(p, $('inLeft').value+' to '+$('inRight').value);
+}
+function goP2N(strMode)
+{
+	var p = parseFloat($('inP').value);
+	if (p>1 || p<0) return;
+	var z = backwardNormal2(p);
+	if (strMode=='right')
+	{
+		setCurve(z, 999);
+		setValues(p, RoundSF(z,4)+' to I');
+	}
+	else if (strMode=='left')
+	{
+		z = -z;
+		setCurve(-999,z);
+		setValues(p, '-I to '+RoundSF(z,4));
+	}
+	else if (strMode=='tails')
+	{
+		z = backwardNormal2(p/2);
+		setCurve(-z,z);
+		setValues(1-p, RoundSF(-z,4)+' to '+RoundSF(z,4));
+	}
+	else if (strMode=='middle')
+	{
+		z = backwardNormal2((1-p)/2);
+		setCurve(-z,z);
+		setValues(p, RoundSF(-z,4)+' to '+RoundSF(z,4));
+	}
+}
+function clear()
+{
+	setCurve(0,40);
+	$('spanResultShaded').innerHTML = '0.500';
+	$('spanResultWhite').innerHTML = '0.500';
+	$('spanResultEndpoints').innerHTML = '0 to Infinity';
 }
 </script>
 
 
 </head>
-<body onload="evtOnload()">
+<body>
 
-<img id="imgShade" src="outgr.gif" style="position:absolute; left:150px; top:100px"/>
-<img id="imgWhite" src="outwh.gif" style="position:absolute; left:180px; top:100px"/>
-<img id="imgCurve" src="out.gif" style="position:absolute; left:0px; top:100px"/>
-
-<div id="divForm" style="position:absolute; left:0px; top:0px">
-<table>
-<tr>
-<td>Mean </td><td><input id="inMean" size="4" value="0"/></td>
-<td>Variance </td><td><input id="inVar" size="4" value="1"/></td>
-<td>&nbsp;</td>
-</tr>
-<tr>
-<td>Left Bound </td><td><input id="inLeft" size="4" value="-I"/></td>
-<td>Right Bound </td><td><input id="inRight" size="4" value="I"/></td>
-</tr>
-<tr>
-<td><img src="mark1.png" /> </td><td><input id="inProb" size="4" value="0"/></td>
-<td><img src="mark2.png" /> </td><td><input id="inProbWhite" size="4" value="0" readonly="readonly"/></td>
-<td><button onclick="go()">N to p</button></td>
-</tr>
-</table>
-
+<!-- header -->
+<div id="divHeader" style="position:absolute; left:5px; top:0px">
+<span style="border:1px solid black" id="spanN2P"><a href="javascript:modeN2P();void(0);">N to p</a></span> 
+<span style="" id="spanP2N"><a href="javascript:modeP2N();void(0);">p to N</a></span>
+<span style="margin-left:200px">By Ben Fisher</span>
 <br />
-
-
-
 <br />
-
-
-
-<button onclick="go()">Go</button>
+Mean <input id="inMean" size="3" value="0"/> Variance <input id="inVar" size="3" value="1"/>
 </div>
 
+<!-- plots -->
+<img id="imgShade" src="outgr.gif" style="position:absolute; left:188px; top:100px"/>
+<img id="imgWhite" src="outwh.gif" style="position:absolute; left:376px; top:100px"/>
+<img id="imgCurve" src="out.gif" style="position:absolute; left:0px; top:100px"/>
 
+<div id="divData" style="position:absolute; left:5px; top:300px">
+<div id="divN2Pform">
+L <input id="inLeft" size="4" value="0" onkeyup="keyupN2P();" onfocus="this.select()"/>
+R <input id="inRight" size="4" value="I" onkeyup="keyupN2P();"onfocus="this.select()"/>
+  <button onclick="goN2P()" style="margin-left:8px">Go</button>
+
+
+</div>
+<div id="divP2Nform" style="display:none">
+P <input id="inP" size="4" value="0.75" onkeyup="keyupP2N();" onfocus="this.select()"/>
+From the
+<button onclick="goP2N('right')" style="margin-left:8px">Right</button> 
+<button onclick="goP2N('left')" style="margin-left:8px">Left</button> 
+<button onclick="goP2N('tails')" style="margin-left:8px">Tails</button> 
+<button onclick="goP2N('middle')" style="margin-left:8px">Middle</button> 
+
+</div>
+
+<!-- results -->
+<br /><br /><br />
+<b>Results:</b>
+<table>
+<tr><td width="200"><img src="mark1.png" /> <span id="spanResultShaded">0.500</span></td><td rowspan="2"><span id="spanResultEndpoints">0 to Infinity</span></td></tr>
+<tr><td width="200"><img src="mark2.png" /> <span id="spanResultWhite">0.500</span></td></tr>
+</table>
+</div>
 
 </body>
 </html>
