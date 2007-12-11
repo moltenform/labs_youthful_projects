@@ -17,10 +17,10 @@ body {font-family: Verdana, Arial, Helvetica; font-size:0.8em}
 // Ben Fisher, 12/11/07
 W = 376;
 function $(strO) { return document.getElementById(strO);}
-function keyupN2P(e) { if (!event) key=e.which; else key=event.keyCode; if (key == 13) goN2P(); }
-function keyupP2N(e) { if (!event) key=e.which; else key=event.keyCode; if (key == 13) goP2N('right'); }
-function modeN2P() { $('divN2Pform').style.display='';$('divP2Nform').style.display='none';spanN2P.style.border='1px solid black';spanP2N.style.border=''; clear();}
-function modeP2N() { $('divN2Pform').style.display='none';$('divP2Nform').style.display=''; spanN2P.style.border='';spanP2N.style.border='1px solid black';clear();}
+function keyupN2P(e) { if (!window.event) key=e.which; else key=event.keyCode; if (key == 13) goN2P(); }
+function keyupP2N(e) { if (!window.event) key=e.which; else key=event.keyCode; if (key == 13) goP2N('right'); }
+function modeN2P() { $('divN2Pform').style.display='';$('divP2Nform').style.display='none';$('spanN2P').style.border='1px solid black';$('spanP2N').style.border=''; clear();}
+function modeP2N() { $('divN2Pform').style.display='none';$('divP2Nform').style.display=''; $('spanN2P').style.border='';$('spanP2N').style.border='1px solid black';clear();}
 function setValues(fShade, strEndpoints)
 {
 	strShade = RoundDP(fShade, 4);
@@ -91,11 +91,17 @@ function clear()
 	$('spanResultWhite').innerHTML = '0.500';
 	$('spanResultEndpoints').innerHTML = '0 to Infinity';
 }
+function onloadf()
+{
+$('inLeft').onkeyup=keyupN2P;
+$('inRight').onkeyup=keyupN2P;
+$('inP').onkeyup=keyupP2N;
+}
 </script>
 
 
 </head>
-<body>
+<body onload="onloadf();">
 
 <!-- header -->
 <div id="divHeader" style="position:absolute; left:5px; top:0px">
@@ -114,14 +120,14 @@ Mean <input id="inMean" size="3" value="0"/> Variance <input id="inVar" size="3"
 
 <div id="divData" style="position:absolute; left:5px; top:300px">
 <div id="divN2Pform">
-L <input id="inLeft" size="4" value="0" onkeyup="keyupN2P();" onfocus="this.select()"/>
-R <input id="inRight" size="4" value="I" onkeyup="keyupN2P();"onfocus="this.select()"/>
+L <input id="inLeft" size="4" value="0" onfocus="this.select()"/>
+R <input id="inRight" size="4" value="I" onfocus="this.select()"/>
   <button onclick="goN2P()" style="margin-left:8px">Go</button>
 
 
 </div>
 <div id="divP2Nform" style="display:none">
-P <input id="inP" size="4" value="0.75" onkeyup="keyupP2N();" onfocus="this.select()"/>
+P <input id="inP" size="4" value="0.75"  onfocus="this.select()"/>
 From the
 <button onclick="goP2N('right')" style="margin-left:8px">Right</button> 
 <button onclick="goP2N('left')" style="margin-left:8px">Left</button> 
