@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Statcurve</title>
+
+<style type="text/css">
+
+</style>
+
+
+<script type="text/javascript">
+W = 376;
+function $(strO) { return document.getElementById(strO);}
+function setCurve(xmin, xmax)
+{
+var pxmin = Math.max(Math.round(xmin * 24)+(W/2), 0);
+var pxmax = Math.min(Math.round(xmax * 24)+(W/2), W);
+$('imgShade').style.left = pxmin + 'px';
+$('imgWhite').style.left = pxmax + 'px';
+
+}
+function go()
+{
+var fMean = parseFloat($('inMean').value);
+var fVar =parseFloat( $('inVar').value);
+var fLeft = $('inLeft').value;
+var fRight = $('inRight').value;
+fLeft = (fLeft=='I')?999:(fLeft=='-I')?-999:parseFloat(fLeft);
+fRight = (fRight=='I')?999:(fRight=='-I')?-999:parseFloat(fRight);
+
+}
+function evtOnload()
+{
+go();
+}
+</script>
+
+
+</head>
+<body onload="evtOnload()">
+
+<img id="imgShade" src="outgr.gif" style="position:absolute; left:150px; top:100px"/>
+<img id="imgWhite" src="outwh.gif" style="position:absolute; left:180px; top:100px"/>
+<img id="imgCurve" src="out.gif" style="position:absolute; left:0px; top:100px"/>
+
+<div id="divForm" style="position:absolute; left:0px; top:0px">
+<table>
+<tr>
+<td>Mean </td><td><input id="inMean" size="4" value="0"/></td>
+<td>Variance </td><td><input id="inVar" size="4" value="1"/></td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>Left Bound </td><td><input id="inLeft" size="4" value="-I"/></td>
+<td>Right Bound </td><td><input id="inRight" size="4" value="I"/></td>
+</tr>
+<tr>
+<td><img src="mark1.png" /> </td><td><input id="inProb" size="4" value="0"/></td>
+<td><img src="mark2.png" /> </td><td><input id="inProbWhite" size="4" value="0" readonly="readonly"/></td>
+<td><button onclick="go()">N to p</button></td>
+</tr>
+</table>
+
+<br />
+
+
+
+<br />
+
+
+
+<button onclick="go()">Go</button>
+</div>
+
+
+
+</body>
+</html>
