@@ -26,7 +26,7 @@ class App:
 		import shutil
 		print s
 		os.remove('./currentmap.js')
-		shutil.move('./maps/'+s, './currentmap.js')
+		shutil.copy('./maps/'+s, './currentmap.js')
 
 		
 		
