@@ -49,6 +49,7 @@ function parseShortcut( modeId, str )
 }
 function parseShortcutKey(hotkey)
 {
+	// Use the order Control Alt Shift
 	var strMods = '';
 	if (strcontains(hotkey, 'Control+')) { strMods+= 'control'; hotkey = hotkey.replace('Control+', ''); }
 	if (strcontains(hotkey, 'Ctrl+')) { strMods+= 'control'; hotkey = hotkey.replace('Ctrl+', ''); }

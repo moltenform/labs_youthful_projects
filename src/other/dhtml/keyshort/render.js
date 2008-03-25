@@ -1,3 +1,4 @@
+// Use the order Control Alt Shift
 function stripPercent(charin)
 {
 	if (charin.indexOf('%')!= -1)
@@ -98,8 +99,8 @@ function getModifierString(bCtrl, bShift, bAlt)
 {
 	var strstyle = '';
 	if (bCtrl) strstyle += 'control';
-	if (bShift) strstyle += 'shift';
 	if (bAlt) strstyle += 'alt';
+	if (bShift) strstyle += 'shift';
 	if (strstyle == '') strstyle = 'normal';
 	return strstyle;
 }
