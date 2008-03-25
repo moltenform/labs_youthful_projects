@@ -1,35 +1,95 @@
 <html>
 <head>
-<title>Keyshort 0.1</title>
-<link rel="stylesheet" type="text/css" href="keyboard.css" />
+<title>Keyshort</title>
+<link rel="stylesheet" type="text/css" href="keyshort/keyboard.css" />
 <script language="JavaScript">
 //Global variables holding the shortcut data
+mapname = 'none loaded';
 keys = {};
+modes = [];
+
+// New variables that will be filled with parsed data
 gk = {};
 Modes = {};
 Modes.current = 1;
-
 Layout = {};
 
 </script>
-<script language="JavaScript" src="modules/winxputil.js"></script>
-<script language="JavaScript" src="layouts/en-us.js"></script>
-<script language="JavaScript" src="render.js"></script>
+<script language="JavaScript" src="currentmap.js"></script>
+
+<script language="JavaScript" src="keyshort/render.js"></script>
 <script language="JavaScript">
+function strcontains(str, needle){ return str.indexOf(needle)!=-1;}
+function $(stro) {return document.getElementById(stro);}
+function parseShortcut( modeId, str )
+{
+	var keyinfo = str.replace(/\t\t/g, '\t').replace(/\t\t/g, '\t').replace(/\t\t/g, '\t').split('\t');
+	var hotkey = keyinfo[0];
+	var hotnamebrev = keyinfo[1]; 
+	var hotname, hotbrev, hotdoc;
+	if (keyinfo.length>2) hotdoc = keyinfo[2]; 
+	else hotdoc = '';
+	
+	if (hotnamebrev.indexOf('||')!=-1  )
+	{
+		spl = hotnamebrev.split('||');
+		hotname = spl[0] ;
+		hotbrev = spl[1] ;
+	}
+	else
+	{
+		hotname = hotbrev = hotnamebrev;
+	}
+	
+	// Parse the shortcut key
+	res = parseShortcutKey(hotkey);
+	hotkey = res[0]; strMods=res[1];
+	if (! gk[modeId][hotkey]) gk[modeId][hotkey] = {};
+	gk[modeId][hotkey][strMods] = {brev: hotbrev, name:hotname, doc:hotdoc};
+}
+function parseShortcutKey(hotkey)
+{
+	var strMods = '';
+	if (strcontains(hotkey, 'Control+')) { strMods+= 'control'; hotkey = hotkey.replace('Control+', ''); }
+	if (strcontains(hotkey, 'Ctrl+')) { strMods+= 'control'; hotkey = hotkey.replace('Ctrl+', ''); }
+	
+	if (strcontains(hotkey, 'Alt+')) { strMods+= 'alt'; hotkey = hotkey.replace('Alt+', ''); }
+	if (strcontains(hotkey, 'Shift+')) { strMods+= 'shift'; hotkey = hotkey.replace('Shift+', ''); }
+	if (strMods=='') {strMods = 'normal';}
+	return [hotkey, strMods];
+}
+
+// Parse the input file into the old KeyShort format.
+inkeys = keys;
+keys = {};
+Modes.modes = [];
+for (var i=0; i<modes.length; i++)
+{
+	if (!modes[i]) continue; //the length can be incorrect
+	
+	var modeId = i+1;
+	var modeName = modes[i];
+	Modes.modes.push([modeName, modeId]);
+	
+	//Add hotkey object
+	gk[modeId] = {};
+	
+	// Add the keys
+	for (var j=0; j<inkeys[modeName].length; j++)
+	{
+		if (inkeys[modeName][j]) //the length can be incorrect
+			parseShortcut(modeId, inkeys[modeName][j]);
+	}
+}
+
 //Global variable with current style
 modifierstyle = 'normal';
 
 function Debug(str) { debug.value= str; }
 function test()
 {
-//alert('here i am  ' + keys.a.control.doc);
-//populate("control");
-//alert(divmode.innerHTML);
-Debug(divdoc.innerHTML)//.substring(0,3000));
-//alert(keys[);
+Debug(divdoc.innerHTML)
 }
-
-
 
 
 //Function is called after keydown event
@@ -120,12 +180,8 @@ function dochtmltable(name,shortcut,imp,doc)
 	'<div  class="docimp">'+replacenull(imp)+'</div>'+
 	'<div  class="docdoc">'+replacenull(doc)+'</div>';
 }
-//~ function docrenderedhtml(name,shortcut,imp,doc)
-//~ {
-	//~ var replacenull = function(str) { if (str) return str.replace('\\','\\\\').replace("'","\\'").replace('"',''); else return '&nbsp;' };
-	//~ return '<div class="docname" style="font-size:100%" onclick="divdoc.innerHTML=dochtml('+"'" +replacenull(name)+"','"+replacenull(shortcut)+ "','"+replacenull(imp)+"','"+replacenull(doc)+"')" +  '" >'+replacenull(name)+'</div>'+
-	//~ '<div class="docshortcut" style="margin-left:300px">'+replacenull(shortcut)+'</div>';
-//~ }
+
+
 function renderDocumentation(strModifiers, cellid)
 {
 	//Get an array with doc information. [name, imp, doc]
@@ -153,10 +209,8 @@ function search(keyword)
 	{
 		for (keycmd in o[key])
 		{
-			//res[res.length]= dochtml;
-			
+			if (keyword == '*' || strcontains(o[key][keycmd].name, keyword) || strcontains(o[key][keycmd].doc, keyword)|| strcontains(o[key][keycmd].brev, keyword))
 			res[res.length]= dochtml( o[key][keycmd].name ,getModifierStringRendered(keycmd) + key ,o[key][keycmd].imp ,o[key][keycmd].doc );
-			//docrenderedhtml(o[key][keycmd].name, getModifierStringRendered(keycmd) + key, o[key][keycmd].imp, o[key][keycmd].doc);
 		}
 	}
 	res = res.sort();
@@ -184,19 +238,17 @@ document.onclick = setfocus;
 function setfocus() { document.getElementById('keycapture').focus(); }
 
 </script>
-
+<script language="JavaScript" src="../layouts/en-us.js"></script>
 </head>
 <body onload="setfocus();">
 <span id="notify">Press Keys =&gt;</span><input onkeydown="return recordkey(event);" onkeyup="return recordkeyup(event);" id="keycapture" style="color:white;" />
-<!--<span id="notify">Search:</span><input onkeydown="search();" />-->
-<!--<input type="checkbox" checked="checked" id="chkallmodes"><label for="chkallmodes">All Modes</label>-->
-<button onclick="onbtnsearch();">Search</button>
-<button onclick="displayall();">Display All</button>
-<button onclick="test();">Debug</button>
-<textarea id="debug"></textarea>
+<span style="width:200px">&nbsp;</span>
+<button onclick="displayall();">Display All</button><button onclick="onbtnsearch();">Search</button>
+<span style="width:50px">&nbsp;</span>
 
 <div id="divout"><!--Keyboard here--></div> 
 <br/><br/>
+<p align="left" style="font-size:10px">Keyshort 0.2, Ben Fisher 2006-2008<br />Press Control, Alt, or Shift to see key combinations.</p>
 
 <div id="divcontaindoc" style="float:right">
 <br />
@@ -213,10 +265,10 @@ function rendermodes()
 {
 	if (! Modes.modes) return;
 	var m = Modes.modes;
-	document.write('<table border="0">');
+	document.write('<table border="0"><tr>');
 	for (var i=0; i<m.length; i++)
 	{
-		if (true)/*(i%3==0)*/ document.write('</tr><tr>');
+		document.write('</tr><tr>');
 		var id = 'rad' + m[i][1];
 		var cmd = ' onclick = "loadmode('+m[i][1] + ')" ';
 		document.write('<td class="mode"><input type="radio" value="' + m[i][1] + '" name="mode" id="' + id + '" '+cmd+ (i==0?' checked="checked" ': '') + ' ><label for="' + id + '" style="padding-left:0px" '+cmd+' >'+m[i][0] + '</label></td>');
@@ -228,7 +280,9 @@ function rendermodes()
 }
 rendermodes();
 </script>
+
 </div>
+
 
 
 </body>
