@@ -1,325 +1,202 @@
-Modes.modes = [["Windows Help",1],["Windows Media Player",2],["Calculator, Scientific Mode",3],["Windows Movie Maker",4],["Microsoft Management Console",5],["Remote desktop connection navigation",6],["Character Map",7]];gk[1] = {};gk[2] = {};gk[3] = {};gk[4] = {};gk[5] = {};gk[6] = {};gk[7] = {};gk[1]["C"] = {};
-gk[1]["C"].alt = { brev:"ContentsTab", name:"Contents", doc:" Display the Contents tab."};
-gk[1]["Bkspce"] = {};
-gk[1]["Bkspce"].normal = { brev:"Back", name:"Back", doc:" Return to the previous open book."};
-gk[1]["N"] = {};
-gk[1]["N"].alt = { brev:"IndexTab", name:"Index", doc:" Display the Index tab."};
-gk[1]["D"] = {};
-gk[1]["D"].alt = { brev:"DisplayTab", name:"Display", doc:"Display the associated topic."};
-gk[1]["S"] = {};
-gk[1]["S"].alt = { brev:"SearchTab", name:"Search", doc:" Display the Search tab."};
-gk[1]["L"] = {};
-gk[1]["L"].alt = { brev:"StartSearch", name:"Search", doc:" Start a search."};
-gk[2]["P"] = {};
-gk[2]["P"].control = { brev:"Play", name:"Play", doc:"Play or pause a file"};
-gk[2]["S"] = {};
-gk[2]["S"].control = { brev:"Stop", name:"Stop", doc:"Stop playback"};
-gk[2]["F8"] = {};
-gk[2]["F8"].normal = { brev:"Mute", name:"Mute", doc:"Mute volume F8"};
-gk[2]["F10"] = {};
-gk[2]["F10"].normal = { brev:"Vol+", name:"Vol+", doc:"Increase volume  F10"};
-gk[2]["F9"] = {};
-gk[2]["F9"].normal = { brev:"Vol-", name:"Vol-", doc:"Decrease volume  F9"};
-gk[2]["B"] = {};
-gk[2]["B"].control = { brev:"Prev", name:"Prev", doc:"Play previous item CTRL+B ", flag:"!"};
-gk[2]["F"] = {};
-gk[2]["F"].control = { brev:"Next", name:"Next", doc:"Play next item ", flag:"!"};
-gk[2]["B"].controlshift = { brev:"Rewind", name:"Rewind", doc:"Rewind ", flag:"!"};
-gk[2]["F"].controlshift = { brev:"Fastforward", name:"Ffwd", doc:"Fast-forward ", flag:"!"};
-gk[2]["G"] = {};
-gk[2]["G"].controlshift = { brev:"FasterSpeed", name:"Fast", doc:"Play faster than normal speed ", flag:"!"};
-gk[2]["N"] = {};
-gk[2]["N"].controlshift = { brev:"NormalSpeed", name:"Normal", doc:"Play at normal speed ", flag:"!"};
-gk[2]["S"].controlshift = { brev:"SlowSpeed", name:"Slow", doc:"Play slower than normal speed ", flag:"!"};
-gk[2]["O"] = {};
-gk[2]["O"].control = { brev:"Open", name:"Open", doc:"Open File"};
-gk[2]["U"] = {};
-gk[2]["U"].control = { brev:"URL", name:"URL", doc:"Open URL", flag:"!"};
-gk[2]["W"] = {};
-gk[2]["W"].control = { brev:"Close", name:"Close", doc:"Close/stop file"};
-gk[2]["N"].control = { brev:"New", name:"New", doc:"New playlist"};
-gk[2]["D"] = {};
-gk[2]["D"].control = { brev:"Edit", name:"Edit", doc:"Edit playlist"};
-gk[2]["F3"] = {};
-gk[2]["F3"].normal = { brev:"Search", name:"Search", doc:"Search", flag:"!"};
-gk[2]["1"] = {};
-gk[2]["1"].control = { brev:"Full", name:"Full", doc:"Full mode", flag:"!"};
-gk[2]["2"] = {};
-gk[2]["2"].control = { brev:"Skin", name:"Skin", doc:"Skin mode"};
-gk[2]["M"] = {};
-gk[2]["M"].control = { brev:"ToggleMenubar", name:"Toggle", doc:"Toggle menu bar"};
-gk[2]["M"].controlshift = { brev:"Autohide", name:"Autohide", doc:"Autohide menu"};
-gk[2]["I"] = {};
-gk[2]["I"].control = { brev:"Image", name:"Image", doc:"Capture dvd Image", flag:"!"};
-gk[2]["Enter"] = {};
-gk[2]["Enter"].alt = { brev:"Full", name:"Full", doc:"Full screen", flag:"!"};
-gk[2]["1"].alt = { brev:"View 50%", name:"50%", doc:"View 50%", flag:"!"};
-gk[2]["2"].alt = { brev:"View 100%", name:"100%", doc:"View 100%", flag:"!"};
-gk[2]["3"] = {};
-gk[2]["3"].alt = { brev:"View 200%", name:"200%", doc:"View 200%", flag:"!"};
-gk[2]["H"] = {};
-gk[2]["H"].control = { brev:"Shuffle", name:"Shuffle", doc:"Shuffle"};
-gk[2]["T"] = {};
-gk[2]["T"].control = { brev:"Loop", name:"Loop", doc:"Loop playlst"};
-gk[2]["C"] = {};
-gk[2]["C"].controlshift = { brev:"Caption", name:"Caption", doc:"Turn on or off captions and subtitles"};
-gk[2]["E"] = {};
-gk[2]["E"].control = { brev:"Eject", name:"Eject", doc:"Eject CD or DVD"};
-gk[3]["9"] = {};
-gk[3]["9"].shift = { brev:"(", name:"(", doc:"("};
-gk[3]["0"] = {};
-gk[3]["0"].shift = { brev:")", name:")", doc:")"};
-gk[3]["*"] = {};
-gk[3]["*"].normal = { brev:"*", name:"*", doc:"Multiply"};
-gk[3]["%Num%+"] = {};
-gk[3]["%Num%+"].normal = { brev:"+", name:"+", doc:"Add"};
-gk[3]["F9"] = {};
-gk[3]["F9"].normal = { brev:"+/-", name:"+/-", doc:"Inverse"};
-gk[3]["-"] = {};
-gk[3]["-"].normal = { brev:"-", name:"-", doc:"Minus"};
-gk[3]["."] = {};
-gk[3]["."].normal = { brev:".", name:".", doc:"Point"};
-gk[3]["/"] = {};
-gk[3]["/"].normal = { brev:"/", name:"/", doc:"Divide"};
-gk[3]["0"].normal = { brev:"Enter 0", name:"0"};
-gk[3]["1"] = {};
-gk[3]["1"].normal = { brev:"Enter 1", name:"1"};
-gk[3]["2"] = {};
-gk[3]["2"].normal = { brev:"Enter 2", name:"2"};
-gk[3]["3"] = {};
-gk[3]["3"].normal = { brev:"Enter 3", name:"3"};
-gk[3]["4"] = {};
-gk[3]["4"].normal = { brev:"Enter 4", name:"4"};
-gk[3]["5"] = {};
-gk[3]["5"].normal = { brev:"Enter 5", name:"5"};
-gk[3]["6"] = {};
-gk[3]["6"].normal = { brev:"Enter 6", name:"6"};
-gk[3]["7"] = {};
-gk[3]["7"].normal = { brev:"Enter 7", name:"7"};
-gk[3]["8"] = {};
-gk[3]["8"].normal = { brev:"Enter 8", name:"8"};
-gk[3]["9"].normal = { brev:"Enter 9", name:"9"};
-gk[3]["R"] = {};
-gk[3]["R"].normal = { brev:"1/x", name:"1/x", doc:"Reciprocal"};
-gk[3]["Enter"] = {};
-gk[3]["Enter"].normal = { brev:"=", name:"=", doc:"Evaluate"};
-gk[3]["A"] = {};
-gk[3]["A"].normal = { brev:"Enter A", name:"A"};
-gk[3]["B"] = {};
-gk[3]["B"].normal = { brev:"Enter B", name:"B"};
-gk[3]["C"] = {};
-gk[3]["C"].normal = { brev:"Enter C", name:"C"};
-gk[3]["D"] = {};
-gk[3]["D"].normal = { brev:"Enter D", name:"D"};
-gk[3]["E"] = {};
-gk[3]["E"].normal = { brev:"Enter E", name:"E"};
-gk[3]["F"] = {};
-gk[3]["F"].normal = { brev:"Enter F", name:"F"};
-gk[3]["7"].shift = { brev:"And", name:"And", doc:"BitwiseAnd"};
-gk[3]["A"].control = { brev:"Ave", name:"Ave", doc:"Find Mean", flag:"!"};
-gk[3]["Bkspce"] = {};
-gk[3]["Bkspce"].normal = { brev:"Del", name:"Del", doc:"Backspace"};
-gk[3]["F8"] = {};
-gk[3]["F8"].normal = { brev:"Bin", name:"Bin", doc:"Binary"};
-gk[3]["F4"] = {};
-gk[3]["F4"].normal = { brev:"Byte", name:"Byte", doc:"Byte"};
-gk[3]["Esc"] = {};
-gk[3]["Esc"].normal = { brev:"Clr", name:"Clr", doc:"Clear the Current Calculation"};
-gk[3]["Del"] = {};
-gk[3]["Del"].normal = { brev:"CE", name:"CE", doc:"Clear the Displayed Number"};
-gk[3]["O"] = {};
-gk[3]["O"].normal = { brev:"cos", name:"cos", doc:"cos"};
-gk[3]["Ins"] = {};
-gk[3]["Ins"].normal = { brev:"Dat", name:"Dat", doc:"Add number to Stat box", flag:"!"};
-gk[3]["F6"] = {};
-gk[3]["F6"].normal = { brev:"Dec", name:"Dec", doc:"Decimal"};
-gk[3]["F2"] = {};
-gk[3]["F2"].normal = { brev:"Degrees", name:"Degrees", doc:"Degrees"};
-gk[3]["M"] = {};
-gk[3]["M"].normal = { brev:"dms", name:"dms", doc:"Convert to degree-minutes-seconds", flag:"!"};
-gk[3]["F2"].normal = { brev:"Dword", name:"Dword", doc:"Dword"};
-gk[3]["X"] = {};
-gk[3]["X"].normal = { brev:"Exp", name:"Exp", doc:"Exponentiation"};
-gk[3]["V"] = {};
-gk[3]["V"].normal = { brev:"F-E", name:"F-E", doc:"Toggle Scientific Notation"};
-gk[3]["F4"].normal = { brev:"Grads", name:"Grads", doc:"Grads (400)"};
-gk[3]["F5"] = {};
-gk[3]["F5"].normal = { brev:"Hex", name:"Hex", doc:"Hexadecimal"};
-gk[3]["H"] = {};
-gk[3]["H"].normal = { brev:"Hyp", name:"Hyp", doc:"Hyperbolic Mode", flag:"!"};
-gk[3][";"] = {};
-gk[3][";"].normal = { brev:"Int", name:"Int", doc:"Truncate Integer"};
-gk[3]["I"] = {};
-gk[3]["I"].normal = { brev:"Inv", name:"Inv", doc:"Sets the inverse function for sin,cos,tan,pi,x^y,x^2,x^3,ln,log,Ave,Sum, and s", flag:"!"};
-gk[3]["N"] = {};
-gk[3]["N"].normal = { brev:"ln", name:"ln", doc:"Natural log"};
-gk[3]["L"] = {};
-gk[3]["L"].normal = { brev:"log", name:"log", doc:"Base 10 log"};
-gk[3][","] = {};
-gk[3][","].shift = { brev:"Lsh", name:"Lsh", doc:"Left Shift"};
-gk[3]["P"] = {};
-gk[3]["P"].control = { brev:"M+", name:"M+", doc:"Add to Memory"};
-gk[3]["L"].control = { brev:"MC", name:"MC", doc:"Clear Memory"};
-gk[3]["5"].shift = { brev:"Mod", name:"Mod", doc:"Modulus"};
-gk[3]["R"].control = { brev:"MR", name:"MR", doc:"Memory Recall"};
-gk[3]["M"].control = { brev:"MS", name:"MS", doc:"Store in Memory"};
-gk[3]["1"].shift = { brev:"n!", name:"n!", doc:"Factorial"};
-gk[3]["`"] = {};
-gk[3]["`"].shift = { brev:"Not", name:"Not", doc:"Bitwise not"};
-gk[3]["F7"] = {};
-gk[3]["F7"].normal = { brev:"Oct", name:"Oct", doc:"Octal"};
-gk[3]["\\"] = {};
-gk[3]["\\"].shift = { brev:"Or", name:"Or", doc:"Bitwise or"};
-gk[3]["P"].normal = { brev:"pi", name:"pi", doc:"pi"};
-gk[3]["F12"] = {};
-gk[3]["F12"].normal = { brev:"Qword", name:"Qword", doc:"Qword"};
-gk[3]["F3"] = {};
-gk[3]["F3"].normal = { brev:"Radians", name:"Radians", doc:"Radians"};
-gk[3]["D"].control = { brev:"stddev", name:"s", doc:"Calculate standard deviation with population parameter of n-1. To use population parameter of n, use Inv+s", flag:"!"};
-gk[3]["S"] = {};
-gk[3]["S"].normal = { brev:"sin", name:"sin", doc:"sin"};
-gk[3]["S"].control = { brev:"Sta", name:"Sta", doc:"Activate statistics box"};
-gk[3]["T"] = {};
-gk[3]["T"].control = { brev:"Sum", name:"Sum", doc:"Sum"};
-gk[3]["T"].normal = { brev:"tan", name:"tan", doc:"tan"};
-gk[3]["F3"].normal = { brev:"Word", name:"Word", doc:"Word"};
-gk[3]["6"].shift = { brev:"Xor", name:"Xor", doc:"Bitwise Xor"};
-gk[3]["2"].shift = { brev:"x^2", name:"x^2", doc:"x^2", flag:"!"};
-gk[3]["3"].shift = { brev:"x^3", name:"x^3", doc:"x^3"};
-gk[3]["Y"] = {};
-gk[3]["Y"].normal = { brev:"x^y", name:"x^y", doc:"x^y"};
-gk[4]["N"] = {};
-gk[4]["N"].control = { brev:"New", name:"New", doc:"Create a new project"};
-gk[4]["O"] = {};
-gk[4]["O"].control = { brev:"Open", name:"Open", doc:"Open an existing project"};
-gk[4]["S"] = {};
-gk[4]["S"].control = { brev:"Save", name:"Save", doc:"Save a project"};
-gk[4]["F12"] = {};
-gk[4]["F12"].normal = { brev:"Saveas", name:"Saveas", doc:"Save a project as"};
-gk[4]["P"] = {};
-gk[4]["P"].control = { brev:"Export", name:"Export", doc:"Save a movie"};
-gk[4]["R"] = {};
-gk[4]["R"].control = { brev:"Record", name:"Record", doc:"Capture video"};
-gk[4]["I"] = {};
-gk[4]["I"].control = { brev:"Import", name:"Import", doc:"Import an existing digital media file"};
-gk[4]["Z"] = {};
-gk[4]["Z"].control = { brev:"Undo", name:"Undo", doc:"Undo the last action"};
-gk[4]["Y"] = {};
-gk[4]["Y"].control = { brev:"Redo", name:"Redo", doc:"Redo the last undone action"};
-gk[4]["X"] = {};
-gk[4]["X"].control = { brev:"Cut", name:"Cut", doc:"Cut"};
-gk[4]["C"] = {};
-gk[4]["C"].control = { brev:"Copy", name:"Copy", doc:"Copy"};
-gk[4]["V"] = {};
-gk[4]["V"].control = { brev:"Paste", name:"Paste", doc:"Paste"};
-gk[4]["Del"] = {};
-gk[4]["Del"].normal = { brev:"Delete", name:"Delete", doc:"Delete"};
-gk[4]["A"] = {};
-gk[4]["A"].control = { brev:"SelectAll", name:"SelectAll", doc:"Select all clips"};
-gk[4]["F2"] = {};
-gk[4]["F2"].normal = { brev:"Rename", name:"Rename", doc:"Rename a collection or clip"};
-gk[4]["Del"].control = { brev:"Clear", name:"Clear", doc:"Clear the storyboard/timeline"};
-gk[4]["T"] = {};
-gk[4]["T"].control = { brev:"Timeline", name:"Timeline", doc:"Show or hide the storyboard/timeline"};
-gk[4]["PgDn"] = {};
-gk[4]["PgDn"].normal = { brev:"ZoomIn", name:"ZoomIn", doc:"Zoom in on the timeline"};
-gk[4]["PgUp"] = {};
-gk[4]["PgUp"].normal = { brev:"ZoomOut", name:"ZoomOut", doc:"Zoom out on the timeline"};
-gk[4]["D"] = {};
-gk[4]["D"].control = { brev:"Add", name:"Add", doc:"Add selected clips to the storyboard/timeline"};
-gk[4]["Enter"] = {};
-gk[4]["Enter"].alt = { brev:"FullScreen", name:"FullScreen", doc:"Play video in full screen"};
-gk[4]["I"].controlshift = { brev:"TrimStart", name:"Trim", doc:"Set start trim point"};
-gk[4]["O"].controlshift = { brev:"TrimEnd", name:"Trim", doc:"Set end trim point"};
-gk[4]["Del"].controlshift = { brev:"TrimClear", name:"ClrTrim", doc:"Clear trim points"};
-gk[4]["L"] = {};
-gk[4]["L"].control = { brev:"Split", name:"Split", doc:"Split a clip"};
-gk[4]["M"] = {};
-gk[4]["M"].control = { brev:"Combine", name:"Combine", doc:"Combine contiguous clips"};
-gk[4]["B"] = {};
-gk[4]["B"].controlshift = { brev:"NudgeLeft", name:"NudgeL", doc:"Nudges clip to the left"};
-gk[4]["N"].controlshift = { brev:"NudgeRight", name:"NudgeR", doc:"Nudges clip to the right"};
-gk[4][" "] = {};
-gk[4][" "].normal = { brev:"Play", name:"Play", doc:"Play or pause clip"};
-gk[4]["K"] = {};
-gk[4]["K"].control = { brev:"Stop", name:"Stop", doc:"Stop playback on the storyboard/timeline"};
-gk[4]["W"] = {};
-gk[4]["W"].control = { brev:"Play", name:"Play", doc:"Play content on the storyboard/timeline"};
-gk[4]["Q"] = {};
-gk[4]["Q"].control = { brev:"Rewind", name:"Rewind", doc:"Rewind content on the storyboard/timeline"};
-gk[4]["Left"] = {};
-gk[4]["Left"].controlalt = { brev:"Back", name:"Back", doc:"Back"};
-gk[4]["Right"] = {};
-gk[4]["Right"].controlalt = { brev:"Forward", name:"Forward", doc:"Forward"};
-gk[4]["Left"].alt = { brev:"Prev", name:"Prev", doc:"Previous frame"};
-gk[4]["Right"].alt = { brev:"Next", name:"Next", doc:"Next frame"};
-gk[5]["O"] = {};
-gk[5]["O"].control = { brev:"Open", name:"Open", doc:"Open a saved console"};
-gk[5]["N"] = {};
-gk[5]["N"].control = { brev:"New", name:"New", doc:"Open a new console"};
-gk[5]["S"] = {};
-gk[5]["S"].control = { brev:"Save", name:"Save", doc:"Save the open console"};
-gk[5]["M"] = {};
-gk[5]["M"].control = { brev:"Add", name:"Add", doc:"Add or remove a console item"};
-gk[5]["W"] = {};
-gk[5]["W"].control = { brev:"Window", name:"Window", doc:"Open a new window"};
-gk[5]["F5"] = {};
-gk[5]["F5"].normal = { brev:"Refresh", name:"Refresh", doc:"Update the content of all console windows"};
-gk[5]["P"] = {};
-gk[5]["P"].control = { brev:"Print", name:"Print", doc:"Print the current page or active pane"};
-gk[5]["%Num%-"] = {};
-gk[5]["%Num%-"].alt = { brev:"Menu", name:"Menu", doc:"Display the window menu for the active console window"};
-gk[5]["F5"].normal = { brev:"Refresh", name:"Refresh", doc:"Update the content of all console windows"};
-gk[5]["F10"] = {};
-gk[5]["F10"].control = { brev:"Maximize", name:"Maximize", doc:"Maximize the active console window"};
-gk[5]["F5"].control = { brev:"Restore", name:"Restore", doc:"Restore the active console window"};
-gk[5]["Enter"] = {};
-gk[5]["Enter"].alt = { brev:"Props", name:"Props", doc:"Display the Properties dialog box, if any, for the selected item"};
-gk[5]["F2"] = {};
-gk[5]["F2"].normal = { brev:"Rename", name:"Rename", doc:"Rename the selected item"};
-gk[5]["F4"] = {};
-gk[5]["F4"].control = { brev:"Close", name:"Close", doc:"Close the active console window. When a console has only one console window, this shortcut closes the console"};
-gk[6]["End"] = {};
-gk[6]["End"].controlalt = { brev:"Security", name:"Security", doc:"Open the Microsoft Windows NT Security dialog box"};
-gk[6]["PgUp"] = {};
-gk[6]["PgUp"].alt = { brev:"SwitchForward", name:"Switch", doc:"Switch between programs from left to right"};
-gk[6]["PgDn"] = {};
-gk[6]["PgDn"].alt = { brev:"SwitchBack", name:"Switch", doc:"Switch between programs from right to left"};
-gk[6]["Ins"] = {};
-gk[6]["Ins"].alt = { brev:"Cycle", name:"Cycle", doc:"Cycle through the programs in most recently used order"};
-gk[6]["Home"] = {};
-gk[6]["Home"].alt = { brev:"Start", name:"Start", doc:"Display the Start menu"};
-gk[6]["Break"] = {};
-gk[6]["Break"].controlalt = { brev:"SwitchClient", name:"Switch", doc:"Switch the client computer between a window and a full screen"};
-gk[6]["Del"] = {};
-gk[6]["Del"].alt = { brev:"Win", name:"Win", doc:"Display the Windows menu"};
-gk[6]["%Num%."] = {};
-gk[6]["%Num%."].controlalt = { brev:"SnapshotEntire", name:"Snapshot", doc:"Place a snapshot of the entire client window area on the Terminal server clipboard and provide the same functionality as pressing ALT+PRINT SCREEN on a local computer."};
-gk[6]["%Num%+"] = {};
-gk[6]["%Num%+"].controlalt = { brev:"SnapshotClient", name:"Snapshot", doc:"Place a snapshot of the active window in the client on the Terminal server clipboard and provide the same functionality as pressing PRINT SCREEN on a local computer."};
-gk[6]["Enter"] = {};
-gk[6]["Enter"].alt = { brev:"Props", name:"Props", doc:"Display the Properties dialog box, if any, for the selected item"};
-gk[6]["F2"] = {};
-gk[6]["F2"].normal = { brev:"Rename", name:"Ren", doc:"Rename the selected item"};
-gk[6]["F4"] = {};
-gk[6]["F4"].control = { brev:"Close", name:"Close", doc:"Close the active console window"};
-gk[7]["Right"] = {};
-gk[7]["Right"].normal = { brev:"Right", name:"Right", doc:"Move to the right or to the beginning of the next line"};
-gk[7]["Left"] = {};
-gk[7]["Left"].normal = { brev:"Left", name:"Left", doc:"Move to the left or to the end of the previous line"};
-gk[7]["Up"] = {};
-gk[7]["Up"].normal = { brev:"Up", name:"Up", doc:"Move up one row"};
-gk[7]["Down"] = {};
-gk[7]["Down"].normal = { brev:"Down", name:"Down", doc:"Move down one row"};
-gk[7]["PgUp"] = {};
-gk[7]["PgUp"].normal = { brev:"Up", name:"Up", doc:"Move up one screen at a time"};
-gk[7]["PgDn"] = {};
-gk[7]["PgDn"].normal = { brev:"Dwn", name:"Dwn", doc:"Move down one screen at a time"};
-gk[7]["Home"] = {};
-gk[7]["Home"].normal = { brev:"Begin", name:"Begin", doc:"Move to the beginning of the line"};
-gk[7]["End"] = {};
-gk[7]["End"].normal = { brev:"End", name:"End", doc:"Move to the end of the line"};
-gk[7]["Home"].control = { brev:"FirstChar", name:"FirstChar", doc:"Move to the first character"};
-gk[7]["End"].control = { brev:"LastChar", name:"LastChar", doc:"Move to the last character"};
-gk[7][" "] = {};
-gk[7][" "].normal = { brev:"Enlarge", name:"Enlarge", doc:"Switch between Enlarged and Normal mode when a character is selected"};
+mapname = 'visual studio 2003';
+
+modes = ['Windows Help','Windows Media Player','Calculator, Scientific Mode','Windows Movie Maker','Microsoft Management Console','Remote desktop connection navigation','Character Map',];
+
+keys['Windows Help']=[
+'Alt+C	ContentsTab||Contents	 Display the Contents tab.',
+'Alt+D	DisplayTab||Display	Display the associated topic.',
+'Alt+L	StartSearch||Search	 Start a search.',
+'Alt+N	IndexTab||Index	 Display the Index tab.',
+'Alt+S	SearchTab||Search	 Display the Search tab.',
+'Bkspce	Back	 Return to the previous open book.',
+];
+
+keys['Windows Media Player']=[
+'Ctrl+1	Full	Full mode',
+'Alt+1	View 50%||50%	View 50%',
+'Alt+3	View 200%||200%	View 200%',
+'Ctrl+2	Skin	Skin mode',
+'Alt+2	View 100%||100%	View 100%',
+'Ctrl+Shift+C	Caption	Turn on or off captions and subtitles',
+'Ctrl+B	Prev	Play previous item CTRL+B ',
+'Ctrl+Shift+B	Rewind	Rewind ',
+'Ctrl+E	Eject	Eject CD or DVD',
+'Ctrl+D	Edit	Edit playlist',
+'Ctrl+Shift+G	FasterSpeed||Fast	Play faster than normal speed ',
+'Ctrl+F	Next	Play next item ',
+'Ctrl+Shift+F	Fastforward||Ffwd	Fast-forward ',
+'Ctrl+I	Image	Capture dvd Image',
+'Ctrl+H	Shuffle	Shuffle',
+'Ctrl+M	ToggleMenubar||Toggle	Toggle menu bar',
+'Ctrl+Shift+M	Autohide	Autohide menu',
+'Ctrl+O	Open	Open File',
+'Ctrl+N	New	New playlist',
+'Ctrl+Shift+N	NormalSpeed||Normal	Play at normal speed ',
+'Ctrl+P	Play	Play or pause a file',
+'Ctrl+S	Stop	Stop playback',
+'Ctrl+Shift+S	SlowSpeed||Slow	Play slower than normal speed ',
+'Ctrl+U	URL	Open URL',
+'Ctrl+T	Loop	Loop playlst',
+'Ctrl+W	Close	Close/stop file',
+'Alt+Enter	Full	Full screen',
+'F10	Vol+	Increase volume  F10',
+'F3	Search	Search',
+'F8	Mute	Mute volume F8',
+'F9	Vol-	Decrease volume  F9',
+];
+
+keys['Calculator, Scientific Mode']=[
+'V	F-E	Toggle Scientific Notation',
+'Y	x^y	x^y',
+'Esc	Clr	Clear the Current Calculation',
+'%Num%+	+	Add',
+'*	*	Multiply',
+'-	-	Minus',
+'Shift+,	Lsh	Left Shift',
+'/	/	Divide',
+'.	.	Point',
+'Shift+1	n!	Factorial',
+'1	Enter 1||1	',
+'Shift+0	)	)',
+'0	Enter 0||0	',
+'Shift+3	x^3	x^3',
+'3	Enter 3||3	',
+'Shift+2	x^2	x^2',
+'2	Enter 2||2	',
+'Shift+5	Mod	Modulus',
+'5	Enter 5||5	',
+'4	Enter 4||4	',
+'Shift+7	And	BitwiseAnd',
+'7	Enter 7||7	',
+'Shift+6	Xor	Bitwise Xor',
+'6	Enter 6||6	',
+'Shift+9	(	(',
+'9	Enter 9||9	',
+'8	Enter 8||8	',
+';	Int	Truncate Integer',
+'Ctrl+A	Ave	Find Mean',
+'A	Enter A||A	',
+'C	Enter C||C	',
+'B	Enter B||B	',
+'E	Enter E||E	',
+'Ctrl+D	stddev||s	Calculate standard deviation with population parameter of n-1. To use population parameter of n, use Inv+s',
+'D	Enter D||D	',
+'F	Enter F||F	',
+'I	Inv	Sets the inverse function for sin,cos,tan,pi,x^y,x^2,x^3,ln,log,Ave,Sum, and s',
+'H	Hyp	Hyperbolic Mode',
+'Ctrl+M	MS	Store in Memory',
+'M	dms	Convert to degree-minutes-seconds',
+'Ctrl+L	MC	Clear Memory',
+'L	log	Base 10 log',
+'O	cos	cos',
+'N	ln	Natural log',
+'Ctrl+P	M+	Add to Memory',
+'P	pi	pi',
+'Ctrl+S	Sta	Activate statistics box',
+'S	sin	sin',
+'Ctrl+R	MR	Memory Recall',
+'R	1/x	Reciprocal',
+'Del	CE	Clear the Displayed Number',
+'Ctrl+T	Sum	Sum',
+'T	tan	tan',
+'Bkspce	Del	Backspace',
+'Enter	=	Evaluate',
+'F12	Qword	Qword',
+'X	Exp	Exponentiation',
+'Shift+\\	Or	Bitwise or',
+'Shift+`	Not	Bitwise not',
+'F2	Dword	Dword',
+'F3	Word	Word',
+'F4	Grads	Grads (400)',
+'F5	Hex	Hexadecimal',
+'F6	Dec	Decimal',
+'F7	Oct	Octal',
+'F8	Bin	Binary',
+'F9	+/-	Inverse',
+'Ins	Dat	Add number to Stat box',
+];
+
+keys['Windows Movie Maker']=[
+'PgUp	ZoomOut	Zoom out on the timeline',
+'Ctrl+V	Paste	Paste',
+'F12	Saveas	Save a project as',
+' 	Play	Play or pause clip',
+'Ctrl+A	SelectAll	Select all clips',
+'Ctrl+C	Copy	Copy',
+'Ctrl+Shift+B	NudgeLeft||NudgeL	Nudges clip to the left',
+'Ctrl+D	Add	Add selected clips to the storyboard/timeline',
+'Ctrl+I	Import	Import an existing digital media file',
+'Ctrl+Shift+I	TrimStart||Trim	Set start trim point',
+'Ctrl+K	Stop	Stop playback on the storyboard/timeline',
+'Ctrl+M	Combine	Combine contiguous clips',
+'Ctrl+L	Split	Split a clip',
+'Ctrl+O	Open	Open an existing project',
+'Ctrl+Shift+O	TrimEnd||Trim	Set end trim point',
+'Ctrl+N	New	Create a new project',
+'Ctrl+Shift+N	NudgeRight||NudgeR	Nudges clip to the right',
+'Ctrl+Q	Rewind	Rewind content on the storyboard/timeline',
+'Ctrl+P	Export	Save a movie',
+'Ctrl+S	Save	Save a project',
+'Ctrl+R	Record	Capture video',
+'Ctrl+Del	Clear	Clear the storyboard/timeline',
+'Ctrl+Shift+Del	TrimClear||ClrTrim	Clear trim points',
+'Del	Delete	Delete',
+'Ctrl+T	Timeline	Show or hide the storyboard/timeline',
+'Ctrl+W	Play	Play content on the storyboard/timeline',
+'Alt+Enter	FullScreen	Play video in full screen',
+'Ctrl+Y	Redo	Redo the last undone action',
+'Ctrl+X	Cut	Cut',
+'Ctrl+Z	Undo	Undo the last action',
+'Alt+Left	Prev	Previous frame',
+'Ctrl+Alt+Left	Back	Back',
+'F2	Rename	Rename a collection or clip',
+'Alt+Right	Next	Next frame',
+'Ctrl+Alt+Right	Forward	Forward',
+'PgDn	ZoomIn	Zoom in on the timeline',
+];
+
+keys['Microsoft Management Console']=[
+'F2	Rename	Rename the selected item',
+'Ctrl+F4	Close	Close the active console window. When a console has only one console window, this shortcut closes the console',
+'Ctrl+F5	Restore	Restore the active console window',
+'F5	Refresh	Update the content of all console windows',
+'Ctrl+M	Add	Add or remove a console item',
+'Ctrl+O	Open	Open a saved console',
+'Ctrl+N	New	Open a new console',
+'Ctrl+P	Print	Print the current page or active pane',
+'Ctrl+S	Save	Save the open console',
+'Alt+%Num%-	Menu	Display the window menu for the active console window',
+'Ctrl+W	Window	Open a new window',
+'Alt+Enter	Props	Display the Properties dialog box, if any, for the selected item',
+'Ctrl+F10	Maximize	Maximize the active console window',
+];
+
+keys['Remote desktop connection navigation']=[
+'Ctrl+F4	Close	Close the active console window',
+'Ctrl+Alt+%Num%.	SnapshotEntire||Snapshot	Place a snapshot of the entire client window area on the Terminal server clipboard and provide the same functionality as pressing ALT+PRINT SCREEN on a local computer.',
+'F2	Rename||Ren	Rename the selected item',
+'Alt+PgUp	SwitchForward||Switch	Switch between programs from left to right',
+'Alt+PgDn	SwitchBack||Switch	Switch between programs from right to left',
+'Alt+Ins	Cycle	Cycle through the programs in most recently used order',
+'Ctrl+Alt+Break	SwitchClient||Switch	Switch the client computer between a window and a full screen',
+'Ctrl+Alt+End	Security	Open the Microsoft Windows NT Security dialog box',
+'Alt+Del	Win	Display the Windows menu',
+'Ctrl+Alt+%Num%+	SnapshotClient||Snapshot	Place a snapshot of the active window in the client on the Terminal server clipboard and provide the same functionality as pressing PRINT SCREEN on a local computer.',
+'Alt+Enter	Props	Display the Properties dialog box, if any, for the selected item',
+'Alt+Home	Start	Display the Start menu',
+];
+
+keys['Character Map']=[
+' 	Enlarge	Switch between Enlarged and Normal mode when a character is selected',
+'Right	Right	Move to the right or to the beginning of the next line',
+'PgUp	Up	Move up one screen at a time',
+'PgDn	Dwn	Move down one screen at a time',
+'Up	Up	Move up one row',
+'Down	Down	Move down one row',
+'Ctrl+End	LastChar	Move to the last character',
+'End	End	Move to the end of the line',
+'Ctrl+Home	FirstChar	Move to the first character',
+'Home	Begin	Move to the beginning of the line',
+'Left	Left	Move to the left or to the end of the previous line',
+];
+
