@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>Keyshort</title>
-<link rel="stylesheet" type="text/css" href="keyshort/keyboard.css" />
+<link rel="stylesheet" type="text/css" href="keyboard.css" />
 <script language="JavaScript">
 //Global variables holding the shortcut data
 mapname = 'none loaded';
@@ -17,7 +17,7 @@ Layout = {};
 </script>
 <script language="JavaScript" src="currentmap.js"></script>
 
-<script language="JavaScript" src="keyshort/render.js"></script>
+<script language="JavaScript" src="render.js"></script>
 <script language="JavaScript">
 function strcontains(str, needle){ return str.indexOf(needle)!=-1;}
 function $(stro) {return document.getElementById(stro);}
@@ -238,7 +238,7 @@ document.onclick = setfocus;
 function setfocus() { document.getElementById('keycapture').focus(); }
 
 </script>
-<script language="JavaScript" src="../layouts/en-us.js"></script>
+<script language="JavaScript" src="layouts/en-us.js"></script>
 </head>
 <body onload="setfocus();">
 <span id="notify">Press Keys =&gt;</span><input onkeydown="return recordkey(event);" onkeyup="return recordkeyup(event);" id="keycapture" style="color:white;" />
