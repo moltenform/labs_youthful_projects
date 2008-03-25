@@ -13,17 +13,26 @@ function entity(charin)
 	else if (charin=='&') return "&amp;";
 	else if (charin=='<') return "&lt;";
 	else if (charin=='>') return "&gt;";
-	else return charin.replace('&','&amp;').replace('<',"&lt;").replace('>',"&gt;");
+	
+	charin = charin.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+	if (charin.indexOf('&') != -1 && charin.indexOf(';') == -1)
+	{
+		// & without ; is most likely a mistake, so fix it.
+		return charin.replace('&','&amp;');
+	}
+	// otherwise, let the entity through.
+	return charin;
 }
 function drawKeyboard(scale, height, type)
 {
+	//var strNewtable = '<table style="width:500px">'
 	var strNewtable = '<table class="keyboard" cellpadding=0 cellspacing=2><tr>'
 	var strHtml = strNewtable;
 	var ao, nWidth;
 	for (var i=0; i<Layout.cellLayout_length; i++)
 	{
 		ao = Layout.cellLayout[i];
-		if (ao[0]===null && ao[1]==NEW_LINE)
+		if (ao[0]===null && ao[1]==-9999)
 		{
 			strHtml+= '</tr></table>'+strNewtable;
 			
@@ -35,6 +44,7 @@ function drawKeyboard(scale, height, type)
 			strHtml += '<td id="cell' + i + '" '  ;
 			strHtml += (ao[0]===null) ? 'class="spacer" ' : 'onclick="clickkey(' + i + ')" ';
 			strHtml += '>' + ((ao[0]===null) ? '&nbsp;' : entity(stripPercent(ao[0])));
+			//strHtml += '<div class="cmd" id="cmd' + i + '"  style="width:' + (nWidth-30) + 'px">&nbsp;</div></td>\r\n';
 			strHtml += '<div class="cmd" id="cmd' + i + '" style="width:' + nWidth + 'px;" >&nbsp;</div></td>\r\n';
 		}
 	}

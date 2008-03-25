@@ -10,7 +10,7 @@ td
 	word-wrap:break-word;*/
 
 	background-color: rgb(255,240,255);
-	color:rgb(110,100,110);
+	color:rgb(200,200,200);
 	font-size:80%;
 	margin:0px;
 }
@@ -29,7 +29,8 @@ td.pressed
 td.mode
 {
 	border: 0px;
-	font-size:75%
+	font-size:75%;
+	color:rgb(10,10,10);
 }
 div.cmd
 {
