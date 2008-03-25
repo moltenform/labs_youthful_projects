@@ -1,4 +1,4 @@
-mapname = 'visual studio 2003';
+mapname = 'Windows accessories';
 
 modes = ['Windows Help','Windows Media Player','Calculator, Scientific Mode','Windows Movie Maker','Microsoft Management Console','Remote desktop connection navigation','Character Map',];
 

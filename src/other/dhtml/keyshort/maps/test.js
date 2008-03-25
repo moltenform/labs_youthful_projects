@@ -1,4 +1,4 @@
-mapname = 'visual studio 2003';
+mapname = 'Testing';
 
 modes = ['Global',];
 

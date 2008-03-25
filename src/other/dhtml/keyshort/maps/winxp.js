@@ -1,93 +1,62 @@
-Modes.modes = [["Universal",1],["Explorer",2]];gk[1] = {};gk[2] = {};gk[1]["C"] = {};
-gk[1]["C"].control = { brev:"Copy ", name:"Copy ", doc:"Copy"};
-gk[1]["X"] = {};
-gk[1]["X"].control = { brev:"Cut ", name:"Cut ", doc:"Cut"};
-gk[1]["V"] = {};
-gk[1]["V"].control = { brev:"Paste ", name:"Paste ", doc:"Paste"};
-gk[1]["Z"] = {};
-gk[1]["Z"].control = { brev:"Undo ", name:"Undo ", doc:"Undo"};
-gk[1]["F4"] = {};
-gk[1]["F4"].alt = { brev:"Close", name:"Close", doc:"Close Program"};
-gk[1]["F1"] = {};
-gk[1]["F1"].normal = { brev:"Help", name:"Help", doc:"Open Help"};
-gk[1]["Tab"] = {};
-gk[1]["Tab"].shiftalt = { brev:"Switch", name:"Switch", doc:"Switch backwards between programs"};
-gk[1]["Esc"] = {};
-gk[1]["Esc"].control = { brev:"Start", name:"Start", doc:"Display the Start menu"};
-gk[1]["Esc"].controlshift = { brev:"Manager", name:"Manager", doc:"Task Manager", flag:"!"};
-gk[1]["Right"] = {};
-gk[1]["Right"].control = { brev:"WordRght", name:"WordRght", doc:"Move the insertion point to the beginning of the next word"};
-gk[1]["Left"] = {};
-gk[1]["Left"].control = { brev:"WordLft", name:"WordLft", doc:"Move the insertion point to the beginning of the previous word"};
-gk[1]["Down"] = {};
-gk[1]["Down"].control = { brev:"ParaDn", name:"ParaDn", doc:"Move the insertion point to the beginning of the next paragraph"};
-gk[1]["Up"] = {};
-gk[1]["Up"].control = { brev:"ParaUp", name:"ParaUp", doc:"Move the insertion point to the beginning of the previous paragraph"};
-gk[1][" "] = {};
-gk[1][" "].alt = { brev:"Menu", name:"Menu", doc:"Open the shortcut menu for the active window"};
-gk[1]["F4"].control = { brev:"Close", name:"Close", doc:"Close the active document in programs that enable you to have multiple documents open simultaneously"};
-gk[1]["Tab"].alt = { brev:"Switch", name:"Switch", doc:"Switch between the open items  ", flag:"!"};
-gk[1]["Esc"].alt = { brev:"Cycle", name:"Cycle", doc:"Cycle through items in the order that they had been opened"};
-gk[1]["F10"] = {};
-gk[1]["F10"].shift = { brev:"Rightclick", name:"Rightclick", doc:"Display the shortcut menu for the selected item"};
-gk[1]["F10"].normal = { brev:"MenuFocus", name:"MenuFocus", doc:"Activate the menu bar in the active program"};
-gk[1]["Break"] = {};
-gk[1]["Break"].win = { brev:"SysProps", name:"SysProps", doc:"Display the System Properties dialog box ", flag:"!"};
-gk[1]["D"] = {};
-gk[1]["D"].win = { brev:"Desktop", name:"Desktop", doc:"Display the desktop ", flag:"!"};
-gk[1]["M"] = {};
-gk[1]["M"].win = { brev:"Hideall", name:"Hideall", doc:"Win+M Minimize all of the windows ", flag:"!"};
-gk[1]["M"].win = { brev:"Restore", name:"Restore", doc:"Win+Shift+M Restore the minimized windows ", flag:"!"};
-gk[1]["E"] = {};
-gk[1]["E"].win = { brev:"Explorer", name:"Explorer", doc:"Open My Computer ", flag:"!"};
-gk[1]["F"] = {};
-gk[1]["F"].win = { brev:"Search", name:"Search", doc:"Win+F Search for a file or a folder ", flag:"!"};
-gk[1]["F"].win = { brev:"Ctrl+Win+F Search", name:"Search", doc:"Search for computers ", flag:"!"};
-gk[1]["F1"].win = { brev:"Help", name:"Help", doc:"Display Windows Help ", flag:"!"};
-gk[1]["L"] = {};
-gk[1]["L"].win = { brev:"Lock", name:"Lock", doc:"Lock the keyboard ", flag:"!"};
-gk[1]["R"] = {};
-gk[1]["R"].win = { brev:"Run", name:"Run", doc:"Open the Run dialog box ", flag:"!"};
-gk[1]["U"] = {};
-gk[1]["U"].win = { brev:"Utility", name:"Utility", doc:"Open Utility Manager ", flag:"!"};
-gk[1]["PntScr"] = {};
-gk[1]["PntScr"].alt = { brev:"ScrnShot", name:"ScrnShot", doc:"Copies a screenshot of the current program to the clipboard", flag:"!"};
-gk[1]["PntScr"].normal = { brev:"ScrnShot", name:"ScrnShot", doc:"Copies a screenshot of the screen to the clipboard", flag:"!"};
-gk[1]["End"] = {};
-gk[1]["End"].normal = { brev:"Top", name:"Top", doc:"Display the bottom of the active window"};
-gk[1]["Home"] = {};
-gk[1]["Home"].normal = { brev:"End", name:"End", doc:"Display the top of the active window"};
-gk[1]["F4"].normal = { brev:"List", name:"List", doc:"Display the items in the active list"};
-gk[1]["Tab"].control = { brev:"Tab", name:"Tab", doc:"Move through tabs", flag:"!"};
-gk[1]["Tab"].controlshift = { brev:"Tab", name:"Tab", doc:"Move backward through the tabs ", flag:"!"};
-gk[1]["Tab"].normal = { brev:"Focus", name:"Focus", doc:"Move forward through the options"};
-gk[1]["Tab"].shift = { brev:"Focus", name:"Focus", doc:"Move backward through the options"};
-gk[1]["Enter"] = {};
-gk[1]["Enter"].normal = { brev:"Ok", name:"Ok", doc:"Perform the command for the active option or button"};
-gk[1][" "].normal = { brev:"Select", name:"Select", doc:"Select or clear the check box if the active option is a check box"};
-gk[2]["Del"] = {};
-gk[2]["Del"].normal = { brev:"Del", name:"Del", doc:"Delete the selected item"};
-gk[2]["Del"].shift = { brev:"Del", name:"Del", doc:"Delete the selected item permanently without placing the item in the Recycle Bin  ", flag:"!"};
-gk[2]["F2"] = {};
-gk[2]["F2"].normal = { brev:"Ren", name:"Ren", doc:"Rename the selected item"};
-gk[2]["A"] = {};
-gk[2]["A"].control = { brev:"All", name:"All", doc:"Select all"};
-gk[2]["F3"] = {};
-gk[2]["F3"].normal = { brev:"Search", name:"Search", doc:"Search for a file or a folder  ", flag:"!"};
-gk[2]["Enter"] = {};
-gk[2]["Enter"].alt = { brev:"Props", name:"Props", doc:"View the properties for the selected item  ", flag:"!"};
-gk[2]["F6"] = {};
-gk[2]["F6"].normal = { brev:"Cycle", name:"Cycle", doc:"Cycle through the screen elements in a window or on the desktop"};
-gk[2]["F4"] = {};
-gk[2]["F4"].normal = { brev:"Address", name:"Address", doc:"Display the Address bar list in My Computer or Windows Explorer  ", flag:"!"};
-gk[2]["F5"] = {};
-gk[2]["F5"].normal = { brev:"Refresh", name:"Refresh", doc:"Update the active window"};
-gk[2]["%Num%*"] = {};
-gk[2]["%Num%*"].normal = { brev:"Expand", name:"Expand", doc:"Display all of the subfolders that are under the selected folder"};
-gk[2]["%Num%+"] = {};
-gk[2]["%Num%+"].normal = { brev:"Expand", name:"Expand", doc:"Display the contents of the selected folder"};
-gk[2]["%Num%+"].normal = { brev:"Collapse", name:"Collapse", doc:"Collapse the selected folder"};
-gk[2]["Bkspce"] = {};
-gk[2]["Bkspce"].normal = { brev:"Updir", name:"Updir", doc:"View the folder one level up in My Computer or Windows Explorer  ", flag:"!"};
-gk[2]["Esc"] = {};
-gk[2]["Esc"].normal = { brev:"Cancel", name:"Cancel", doc:"Cancel the current task"};
+mapname = 'Windows XP';
+
+modes = ['Universal','Explorer',];
+
+keys['Universal']=[
+'End	Top	Display the bottom of the active window',
+'Enter	Ok	Perform the command for the active option or button',
+'Alt+PntScr	ScrnShot	Copies a screenshot of the current program to the clipboard',
+'PntScr	ScrnShot	Copies a screenshot of the screen to the clipboard',
+'Ctrl+Esc	Start	Display the Start menu',
+'Ctrl+Shift+Esc	Manager	Task Manager',
+'Alt+Esc	Cycle	Cycle through items in the order that they had been opened',
+'Alt+ 	Menu	Open the shortcut menu for the active window',
+' 	Select	Select or clear the check box if the active option is a check box',
+'Win+Break	SysProps	Display the System Properties dialog box ',
+'Ctrl+C	Copy 	Copy',
+'Win+E	Explorer	Open My Computer ',
+'Win+D	Desktop	Display the desktop ',
+'Win+F	Search||Ctrl+Win+F Search	Search for computers ',
+'Win+M	Restore	Win+Shift+M Restore the minimized windows ',
+'Ctrl+Up	ParaUp	Move the insertion point to the beginning of the previous paragraph',
+'Win+L	Lock	Lock the keyboard ',
+'Win+R	Run	Open the Run dialog box ',
+'Win+U	Utility	Open Utility Manager ',
+'Ctrl+V	Paste 	Paste',
+'Ctrl+X	Cut 	Cut',
+'Shift+F10	Rightclick	Display the shortcut menu for the selected item',
+'F10	MenuFocus	Activate the menu bar in the active program',
+'Ctrl+Z	Undo 	Undo',
+'Ctrl+Left	WordLft	Move the insertion point to the beginning of the previous word',
+'Win+F1	Help	Display Windows Help ',
+'F1	Help	Open Help',
+'Ctrl+Right	WordRght	Move the insertion point to the beginning of the next word',
+'Ctrl+F4	Close	Close the active document in programs that enable you to have multiple documents open simultaneously',
+'Alt+F4	Close	Close Program',
+'F4	List	Display the items in the active list',
+'Ctrl+Down	ParaDn	Move the insertion point to the beginning of the next paragraph',
+'Ctrl+Tab	Tab	Move through tabs',
+'Ctrl+Shift+Tab	Tab	Move backward through the tabs ',
+'Tab	Focus	Move forward through the options',
+'Shift+Tab	Focus	Move backward through the options',
+'Alt+Shift+Tab	Switch	Switch backwards between programs',
+'Alt+Tab	Switch	Switch between the open items  ',
+'Home	End	Display the top of the active window',
+];
+
+keys['Explorer']=[
+'Ctrl+A	All	Select all',
+'F2	Ren	Rename the selected item',
+'F3	Search	Search for a file or a folder  ',
+'F4	Address	Display the Address bar list in My Computer or Windows Explorer  ',
+'F5	Refresh	Update the active window',
+'F6	Cycle	Cycle through the screen elements in a window or on the desktop',
+'Shift+Del	Del	Delete the selected item permanently without placing the item in the Recycle Bin  ',
+'Del	Del	Delete the selected item',
+'%Num%+	Collapse	Collapse the selected folder',
+'Bkspce	Updir	View the folder one level up in My Computer or Windows Explorer  ',
+'Alt+Enter	Props	View the properties for the selected item  ',
+'%Num%*	Expand	Display all of the subfolders that are under the selected folder',
+'Esc	Cancel	Cancel the current task',
+];
+

@@ -1,78 +1,51 @@
-Modes.modes  = [ ['Default' , 1]];
- gk[1] = {};
-gk[1][" "] = {};
-gk[1][" "].normal ={brev:'Scroll',name:'Scroll',doc:'Scrolls down a bit.'};
-gk[1][" "].shift ={brev:'Scrollup',name:'Scrollup',doc:'Scrolls up a bit.'};
-gk[1]["F1"] = {};
-gk[1]["F1"].normal = { brev:"Help", name:"Help", doc:"Display Internet Explorer Help, or when in a dialog box, display context Help on an item"};
-gk[1]["F11"] = {};
-gk[1]["F11"].normal = { brev:"Full-screen", name:"Full-screen", doc:"Toggle between full-screen and regular views of the browser window"};
-gk[1]["Tab"] = {};
-gk[1]["Tab"].normal = { brev:"Tab", name:"Tab", doc:"Move forward through the items on a Web page, the Address bar, and the Links bar"};
-gk[1]["Tab"].shift = { brev:"Backtab", name:"Backtab", doc:"Move back through the items on a Web page, the Address bar, and the Links bar"};
-gk[1]["Home"] = {};
-gk[1]["Home"].alt = { brev:"Home", name:"Home", doc:"Go to your Home page"};
-gk[1]["Bkspce"] = {};
-gk[1]["Bkspce"].shift = { brev:"Forward", name:"Forward", doc:"Go to the next page", flag:"!"};
-gk[1]["Right"] = {};
-gk[1]["Right"].alt = { brev:"Forward", name:"Forward", doc:"Go to the next page"};
-gk[1]["Left"] = {};
-gk[1]["Left"].alt = { brev:"Back", name:"Back", doc:"Go to the previous page"};
-gk[1]["Bkspce"].normal = { brev:"Back", name:"Back", doc:"Go to the previous page", flag:"!"};
-gk[1]["F10"] = {};
-gk[1]["F10"].shift = { brev:"Shortcut", name:"Shortcut", doc:"Display a shortcut menu for a link"};
-gk[1]["Tab"].control = { brev:"Url", name:"Url", doc:"Move forward between frames"};
-gk[1]["F6"] = {};
-gk[1]["F6"].normal = { brev:"Url", name:"Url", doc:"Move forward between frames"};
-gk[1]["Tab"].controlshift = { brev:"Frame", name:"Frame", doc:"Move back between frames"};
-gk[1]["Up"] = {};
-gk[1]["Up"].normal = { brev:"ScrUp", name:"ScrUp", doc:"Scroll toward the beginning of a document", flag:"!"};
-gk[1]["Down"] = {};
-gk[1]["Down"].normal = { brev:"ScrDn", name:"ScrDn", doc:"Scroll toward the end of a document", flag:"!"};
-gk[1]["PgUp"] = {};
-gk[1]["PgUp"].normal = { brev:"PgUp", name:"PgUp", doc:"Scroll toward the beginning of a document in larger increments"};
-gk[1]["PgDn"] = {};
-gk[1]["PgDn"].normal = { brev:"PgDn", name:"PgDn", doc:"Scroll toward the end of a document in larger increments"};
-gk[1]["Home"].normal = { brev:"Top", name:"Top", doc:"Move to the beginning of a document"};
-gk[1]["End"] = {};
-gk[1]["End"].normal = { brev:"End", name:"End", doc:"Move to the end of a document"};
-gk[1]["F"] = {};
-gk[1]["F"].control = { brev:"Find", name:"Find", doc:"Find on this page"};
-gk[1]["F5"] = {};
-gk[1]["F5"].normal = { brev:"Refresh", name:"Refresh", doc:"Refresh the current Web page"};
-gk[1]["R"] = {};
-gk[1]["R"].control = { brev:"Refresh", name:"Refresh", doc:"Refresh the current Web page", flag:"!"};
-gk[1]["F5"].control = { brev:"ForceRefresh", name:"ForceRefresh", doc:"Refresh the current Web page, even if the time stamp for the Web version and your locally stored version are the same", flag:"!"};
-gk[1]["Esc"] = {};
-gk[1]["Esc"].normal = { brev:"Stop", name:"Stop", doc:"Stop downloading a page"};
-gk[1]["O"] = {};
-gk[1]["O"].control = { brev:"Open", name:"Open", doc:"Go to a new location"};
-gk[1]["L"] = {};
-gk[1]["L"].control = { brev:"Open", name:"Open", doc:"Go to a new location"};
-gk[1]["N"] = {};
-gk[1]["N"].control = { brev:"New", name:"New", doc:"Open a new window"};
-gk[1]["W"] = {};
-gk[1]["W"].control = { brev:"Close", name:"Close", doc:"Close the current window"};
-gk[1]["S"] = {};
-gk[1]["S"].control = { brev:"Save", name:"Save", doc:"Save the current page"};
-gk[1]["P"] = {};
-gk[1]["P"].control = { brev:"Print", name:"Print", doc:"Print the current page or active frame"};
-gk[1]["E"] = {};
-gk[1]["E"].control = { brev:"Search", name:"Search", doc:"Open the Search bar"};
-gk[1]["I"] = {};
-gk[1]["I"].control = { brev:"Favs", name:"Favs", doc:"Open the Favorites bar"};
-gk[1]["H"] = {};
-gk[1]["H"].control = { brev:"History", name:"History", doc:"Open the History bar"};
-gk[1]["D"] = {};
-gk[1]["D"].alt = { brev:"Url", name:"Url", doc:"Select the text in the Address bar", flag:"!"};
-gk[1]["F4"] = {};
-gk[1]["F4"].normal = { brev:"Dropdown", name:"Dropdown", doc:"Display a list of addresses you've typed"};
-gk[1]["Left"].control = { brev:"UrlLeft", name:"UrlLeft", doc:"When in the Address bar, move the cursor left to the next logical break in the address (period or slash)"};
-gk[1]["Right"].control = { brev:"UrlRight", name:"UrlRight", doc:"When in the Address bar, move the cursor right to the next logical break in the address (period or slash)"};
-gk[1]["Enter"] = {};
-gk[1]["Enter"].control = { brev:"UrlAuto", name:"UrlAuto", doc:"Add \"www and .com", flag:"!"};
-gk[1]["D"].control = { brev:"FavAdd", name:"FavAdd", doc:"Add the current page to your favorites"};
-gk[1]["B"] = {};
-gk[1]["B"].control = { brev:"FavOrg", name:"FavOrg", doc:"Open the Organize Favorites dialog box"};
-gk[1]["Up"].alt = { brev:"FavUp", name:"FavUp", doc:"Move selected item up in the Favorites list in the Organize Favorites dialog box"};
-gk[1]["Down"].alt = { brev:"FavDown", name:"FavDown", doc:"Move selected item down in the Favorites list in the Organize Favorites dialog box"};
+mapname = 'Internet Explorer 6';
+
+modes = ['Default',];
+
+keys['Default']=[
+'PgUp	PgUp	Scroll toward the beginning of a document in larger increments',
+'Ctrl+W	Close	Close the current window',
+'Esc	Stop	Stop downloading a page',
+'End	End	Move to the end of a document',
+'Ctrl+L	Open	Go to a new location',
+'Shift+ 	Scrollup	Scrolls up a bit.',
+' 	Scroll	Scrolls down a bit.',
+'Ctrl+B	FavOrg	Open the Organize Favorites dialog box',
+'Ctrl+E	Search	Open the Search bar',
+'Ctrl+D	FavAdd	Add the current page to your favorites',
+'Alt+D	Url	Select the text in the Address bar',
+'Ctrl+F	Find	Find on this page',
+'Ctrl+I	Favs	Open the Favorites bar',
+'Ctrl+H	History	Open the History bar',
+'Alt+Up	FavUp	Move selected item up in the Favorites list in the Organize Favorites dialog box',
+'Up	ScrUp	Scroll toward the beginning of a document',
+'Ctrl+O	Open	Go to a new location',
+'Ctrl+N	New	Open a new window',
+'Ctrl+P	Print	Print the current page or active frame',
+'Ctrl+S	Save	Save the current page',
+'Ctrl+R	Refresh	Refresh the current Web page',
+'Shift+Bkspce	Forward	Go to the next page',
+'Bkspce	Back	Go to the previous page',
+'Ctrl+Enter	UrlAuto	Add "www and .com',
+'Shift+F10	Shortcut	Display a shortcut menu for a link',
+'F11	Full-screen	Toggle between full-screen and regular views of the browser window',
+'Ctrl+Left	UrlLeft	When in the Address bar, move the cursor left to the next logical break in the address (period or slash)',
+'Alt+Left	Back	Go to the previous page',
+'F1	Help	Display Internet Explorer Help, or when in a dialog box, display context Help on an item',
+'Ctrl+Right	UrlRight	When in the Address bar, move the cursor right to the next logical break in the address (period or slash)',
+'Alt+Right	Forward	Go to the next page',
+'F4	Dropdown	Display a list of addresses you\'ve typed',
+'Ctrl+F5	ForceRefresh	Refresh the current Web page, even if the time stamp for the Web version and your locally stored version are the same',
+'F5	Refresh	Refresh the current Web page',
+'F6	Url	Move forward between frames',
+'PgDn	PgDn	Scroll toward the end of a document in larger increments',
+'Alt+Down	FavDown	Move selected item down in the Favorites list in the Organize Favorites dialog box',
+'Down	ScrDn	Scroll toward the end of a document',
+'Ctrl+Tab	Url	Move forward between frames',
+'Shift+Tab	Backtab	Move back through the items on a Web page, the Address bar, and the Links bar',
+'Ctrl+Shift+Tab	Frame	Move back between frames',
+'Tab	Tab	Move forward through the items on a Web page, the Address bar, and the Links bar',
+'Alt+Home	Home	Go to your Home page',
+'Home	Top	Move to the beginning of a document',
+];
+
