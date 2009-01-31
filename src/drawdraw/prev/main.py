@@ -259,7 +259,7 @@ class App:
 		try:
 			f = open(strFileName,'w')
 		except:
-			print 'Could not open file.'
+			print 'Could not save file.'
 			return
 		f.write(self.txtClass.get(1.0, END))
 		f.write('\n#$$$$$#\n')
