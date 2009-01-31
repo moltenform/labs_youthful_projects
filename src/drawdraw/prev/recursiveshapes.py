@@ -307,17 +307,7 @@ class TopTree(PaintShape):
 #$ ##tr.scale=0.9 watch the cpu...
 #$ ##tr.animate(9,'turn',twopi/6.,twopi-.1,300,4) 
 
-class Wilted(PaintShape):
-	def axiom(self):
-		c = [[0.,-1.], twopi/4., 1.] #In format point, direction, length
-		return [c]
-	def rule(self, parray):
-		nextSites = []
-		for c in parray:
-			turn = twopi/8.
-			#Unfinished
-		return nextSites
-#$example$
+
 
 class SerpTriangleCurved(PaintShape):
 	curve = 0.25
