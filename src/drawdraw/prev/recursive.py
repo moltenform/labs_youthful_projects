@@ -1,5 +1,3 @@
-#Images: http://effbot.org/tkinterbook/photoimage.htm
-#http://www.daniweb.com/code/snippet296.html
 from recursivemath import *
 import math
 import wrappers
@@ -8,6 +6,14 @@ def getglobals(): return globals()
 # See documentation in Help->Engine Notes
 
 class RecShape():
+	"""Base class. Every class will have a "shape" format which is typically a list of points.
+	All classes must provide an initial list of shapes, or "axiom."
+	They also must define a "rule" for transforming the list of shapes into the next list of shapes.
+	
+	Simple recursive figures will only process one shape at a time, but this must still be passed in a list.
+	
+	Note that the draw method in this class specifically will connect all points. Use the PaintShape
+	class to customize what is drawn."""
 	def __init__(self, app):
 		self.app = app
 	def rule(self, parray):
@@ -15,6 +21,7 @@ class RecShape():
 	def axiom(self):
 		pass
 	def draw(self, d, res=-1):
+		"""Draw d iteratons of the figure"""
 		if res==-1: res = self.axiom()
 		
 		# Iterate
@@ -22,10 +29,13 @@ class RecShape():
 			res = self.rule(res)
 		# Draw
 		for activeSite in res:
-			self.app.drawLine(activeSite[0], activeSite[1])
+			self.app.draw_line(activeSite[0], activeSite[1])
 	def animate(self, nIterationsPerFrame, strParameter, fStart, fStop, nFrames,time=400):
+		"""Animate by slowly changing a parameter."""
 		fIncr = (fStop-fStart)/float(nFrames)
 		if nFrames < 0: return
+			
+		# Unfortunately, this inner function doesn't seem to be able to see the outer scope :(
 		def iter(app,objShape,nIterationsPerFrame,timeInc,  fVal, fIncr, n, nMax):
 			if n > nMax:
 				return
@@ -38,12 +48,15 @@ class RecShape():
 		iter(app,self,nIterationsPerFrame, time, fStart, fIncr,0, nFrames)
 	
 class PaintShape(RecShape):
-	# This class has drawing instructions within the rule
+	"""This class has drawing instructions within the rule."""
 	def draw(self, d, res=-1):
 		if res==-1: res = self.axiom()
 		if d<=0: return
 		
 		return self.draw(d-1, self.rule(res))
+# The following code is parsed by main.py, which splits on the string '\nclass' and loads all of the classes into the GUI.
+# Each class can provide an example, if it follows the format below. (These comments actually do something).
+# The #$ string will be later removed when this code is loaded in the GUI.
 
 class SquareSpiralCool(PaintShape):
 	w = 0.5
@@ -54,7 +67,7 @@ class SquareSpiralCool(PaintShape):
 		p = parray[0] #There is only one active site
 		w = self.w
 		newrect = [ midw(p[0], p[1],w),midw(p[1], p[2],w),midw(p[2], p[3],w),midw(p[3], p[0],w) ]
-		self.app.drawLines(newrect)
+		self.app.draw_lines(newrect)
 		return [ newrect ]
 #$example$
 #$sq = SquareSpiralCool(app)
@@ -68,7 +81,7 @@ class SquareSpiral(PaintShape):
 	def rule(self, parray):
 		p = parray[0] #There is only one active site
 		newrect = [ mid(p[0], p[1]),mid(p[1], p[2]),mid(p[2], p[3]),mid(p[3], p[0]) ]
-		self.app.drawLines(newrect)
+		self.app.draw_lines(newrect)
 		return [ newrect ]
 #$example$
 #$sq = SquareSpiral(app)
@@ -80,14 +93,14 @@ class PentaStar(PaintShape):
 	w = 0.5
 	drawdiag = True
 	def axiom(self):
-		self.app.drawLines(polygonpts(5))
+		self.app.draw_lines(polygonpts(5))
 		return [  polygonpts(5) ]
 	def rule(self, parray):
 		p = parray[0] #Only one active site
 		w = self.w
 		starpts = [ midw(p[0], p[1],w),midw(p[1], p[2],w),midw(p[2], p[3],w),midw(p[3], p[4],w), midw(p[4], p[0],w) ]
 		if self.drawdiag: pass
-		self.app.drawLines([ starpts[0],starpts[2], starpts[4], starpts[1], starpts[3]] ) #draw diagonals
+		self.app.draw_lines([ starpts[0],starpts[2], starpts[4], starpts[1], starpts[3]] ) #draw diagonals
 		newpts = []
 		def addpt(d1, d2):
 			angle = getangle(d2, d1)
@@ -98,7 +111,7 @@ class PentaStar(PaintShape):
 		addpt( starpts[2], starpts[4])
 		addpt( starpts[3], starpts[0])
 		addpt( starpts[4], starpts[1])
-		if self.drawdiag: self.app.drawLines(newpts)
+		if self.drawdiag: self.app.draw_lines(newpts)
 		return [ newpts ]
 #$example$
 #$ sqq = PentaStar(app)
@@ -109,7 +122,7 @@ class PentaStar(PaintShape):
 class SerpTriangle(PaintShape):
 	def axiom(self):
 		tri = polygonpts(3)
-		self.app.drawLines(tri)
+		self.app.draw_lines(tri)
 		return [tri]
 		
 	def rule(self, parray):
@@ -119,7 +132,7 @@ class SerpTriangle(PaintShape):
 			p05 = mid(p[0], p[1])
 			p15 = mid(p[1],p[2])
 			p25 = mid(p[2],p[0])
-			self.app.drawLines( [p05, p15, p25] )
+			self.app.draw_lines( [p05, p15, p25] )
 			arrayActive.append( [p[0], p05, p25] )
 			arrayActive.append( [p05, p[1], p15] )
 			arrayActive.append( [p25, p15, p[2]] )
@@ -133,14 +146,14 @@ class SerpTriangle(PaintShape):
 class InnerTriangles(PaintShape):
 	def axiom(self):
 		tri = [[-1.,0.], [0.,0.],[0.,1.]]
-		self.app.drawLines(tri)
+		self.app.draw_lines(tri)
 		return [tri]
 		
 	def rule(self, parray):
 		p = parray[0]
 		corner = midw(p[0], p[2], 0.5)
 		rcorner = midw(p[1], p[2], 0.5)
-		self.app.drawLines([p[1], corner, rcorner])
+		self.app.draw_lines([p[1], corner, rcorner])
 		return [[corner, rcorner, p[2]]]
 #$example$
 #$ t = CurrentShape(app)
@@ -149,7 +162,7 @@ class InnerTriangles(PaintShape):
 #$ tri3 = [[-1,0.], [0.,0.],[0,-1]]
 #$ tri4 = [[1,0], [0.,0.],[0,1]]
 #$ for tri in [tri1, tri2, tri3, tri4]:
-	#$ app.drawLines(tri)
+	#$ app.draw_lines(tri)
 	#$ t.draw(8, [tri])
 
 class RingCircles(PaintShape):
@@ -159,7 +172,7 @@ class RingCircles(PaintShape):
 	def rule(self, parray):
 		nextSites = []
 		for c in parray:
-			self.app.drawCircle( c[0], c[1] )
+			self.app.draw_circle( c[0], c[1] )
 			#Shrink the radius, draw on all corners
 			radius = c[1]/self.scale
 			nextSites.append( [[c[0][0]-c[1],c[0][1]], radius])
@@ -176,14 +189,14 @@ class RingCircles(PaintShape):
 class BigCircles(PaintShape):
 	def axiom(self):
 		#Note that each active site is just one point.
-		#~ self.app.drawCircle([0.,0.],0.25)
+		#~ self.app.draw_circle([0.,0.],0.25)
 		#return [[[0.25,0]],[[0,0.25]],[[-0.25,0.]],[[0,-0.25]]]
 		return [ [pt] for pt in polygonpts(t.order, 0.25) ]
 	def rule(self, parray):
 		nextSites = [] #However, the number of sites will not change.
 		for p in parray:
 			r = distance([0.,0.], p[0])
-			self.app.drawCircle(p[0], r)
+			self.app.draw_circle(p[0], r)
 			nextSites.append([ extendpt(p[0], getangle([0.,0.],p[0]), r) ]) #Extend away from the origin.
 		return nextSites
 #$example$
@@ -200,10 +213,10 @@ class Stars(PaintShape):
 			# Draw inverted circle
 			curve = self.curve
 			#Note: looks cool with just these first lines here, too, and recurse at 6, rad=c[1]/2., w = 1/math.sqrt(2.)
-			self.app.circularLine(   [c[0][0]-c[1],c[0][1]], [c[0][0],c[0][1]-c[1]], curve)
-			self.app.circularLine(   [c[0][0]+c[1],c[0][1]], [c[0][0],c[0][1]+c[1]], curve)
-			self.app.circularLine(   [c[0][0],c[0][1]-c[1]], [c[0][0]+c[1],c[0][1]], curve)
-			self.app.circularLine(   [c[0][0],c[0][1]+c[1]], [c[0][0]-c[1],c[0][1]], curve)
+			self.app.draw_curved_line(   [c[0][0]-c[1],c[0][1]], [c[0][0],c[0][1]-c[1]], curve)
+			self.app.draw_curved_line(   [c[0][0]+c[1],c[0][1]], [c[0][0],c[0][1]+c[1]], curve)
+			self.app.draw_curved_line(   [c[0][0],c[0][1]-c[1]], [c[0][0]+c[1],c[0][1]], curve)
+			self.app.draw_curved_line(   [c[0][0],c[0][1]+c[1]], [c[0][0]-c[1],c[0][1]], curve)
 			radius = c[1]/self.radiusM
 			w = 1/math.sqrt(2.) +.2 #pull towards a corner of the square
 			nextSites.append( [midw( c[0], [c[0][0]+c[1],c[0][1]+c[1]] ,w) , radius] )
@@ -227,7 +240,7 @@ class Tree(PaintShape):
 		for c in parray:
 			currentPt = c[0]
 			nextPt = extendpt(c[0], c[1], c[2])
-			self.app.drawLine(currentPt, nextPt)
+			self.app.draw_line(currentPt, nextPt)
 			lengthScale = 0.5
 			theta1 = c[1] + self.theta1
 			theta2 = c[1] - self.theta2
@@ -250,7 +263,7 @@ class TreeBalanced(PaintShape):
 		for c in parray:
 			currentPt = c[0]
 			nextPt = extendpt(c[0], c[1], c[2])
-			self.app.drawLine(currentPt, nextPt)
+			self.app.draw_line(currentPt, nextPt)
 			lengthScale = 0.5
 			theta1 = c[1] + self.theta
 			theta2 = c[1] - self.theta
@@ -273,15 +286,15 @@ class TopTree(PaintShape):
 		for c in parray:
 			currentPt = c[0]
 			nextPt = extendpt(c[0], c[1], c[2])
-			self.app.drawLine(currentPt, nextPt)
+			self.app.draw_line(currentPt, nextPt)
 			lengthScale = self.scale
 			turn = self.turn
 			theta1 = c[1] + turn
 			theta2 = c[1] - turn
 			pt1 = extendpt(nextPt, theta1, c[2] * 1.5)
 			pt2 = extendpt(nextPt, theta2, c[2] * 1.5)
-			self.app.drawLine(nextPt, pt1)
-			self.app.drawLine(nextPt, pt2)
+			self.app.draw_line(nextPt, pt1)
+			self.app.draw_line(nextPt, pt2)
 			nextSites.append([ pt1, theta1 + turn/2., c[2]*lengthScale])
 			nextSites.append([ pt2, theta2 - turn/2., c[2]*lengthScale])
 		return nextSites
@@ -310,7 +323,7 @@ class SerpTriangleCurved(PaintShape):
 	curve = 0.25
 	def axiom(self):
 		tri = polygonpts(3)
-		self.app.drawCurvedLines(tri, self.curve)
+		self.app.draw_curved_lines(tri, self.curve)
 		return [tri]
 		
 	def rule(self, parray):
@@ -323,7 +336,7 @@ class SerpTriangleCurved(PaintShape):
 			p15 = mid(p[1],p[2])
 			p25 = mid(p[2],p[0])
 			
-			self.app.drawCurvedLines( [p05, p15, p25] , curve)
+			self.app.draw_curved_lines( [p05, p15, p25] , curve)
 			
 			# New points are towards the center more
 			w = self.w
@@ -348,7 +361,7 @@ class TriCurved(PaintShape):
 	curve = 0.4
 	def axiom(self):
 		tri = polygonpts(3)
-		self.app.drawCurvedLines(tri, self.curve)
+		self.app.draw_curved_lines(tri, self.curve)
 		return [tri]
 		
 	def rule(self, parray):
@@ -366,7 +379,7 @@ class TriCurved(PaintShape):
 		p15 = midw(p15, center, w)
 		p25 = midw(p25, center, w)
 		
-		self.app.drawCurvedLines( [p05, p15, p25] , curve, 1, False)
+		self.app.draw_curved_lines( [p05, p15, p25] , curve, 1, False)
 
 		return [ [p05, p15, p25]]
 #$example$
@@ -434,8 +447,8 @@ class BoxyCurve(RecShape):
 			l = distance(p[0], mid1)
 			mid1up = extendpt(mid1, getangle(p[0], mid1) + angle, l)
 			mid2up = extendpt(mid2, getangle(p[0], mid1) + angle, l)
-			self.app.drawLine(mid1, mid1up) #These lines aren't active sites, so they'll have to be drawn
-			self.app.drawLine(mid2, mid2up)
+			self.app.draw_line(mid1, mid1up) #These lines aren't active sites, so they'll have to be drawn
+			self.app.draw_line(mid2, mid2up)
 			arrayActive.append([p[0], mid1])
 			arrayActive.append([mid2, p[1]])
 			arrayActive.append([mid1up, mid2up])
@@ -462,7 +475,7 @@ class Boxes(PaintShape):
 			mid1down = extendpt(mid1, getangle(p[0], mid1) + angle, -l/2.)
 			mid2down = extendpt(mid2, getangle(p[0], mid1) + angle, -l/2.)
 			
-			self.app.drawLines([mid1down, mid1up, mid2up, mid2down])
+			self.app.draw_lines([mid1down, mid1up, mid2up, mid2down])
 			
 			arrayActive.append([p[0], mid1])
 			arrayActive.append([mid2, p[1]])
@@ -478,7 +491,7 @@ class TheCircleSpiral(PaintShape):
 		return [[[-1,0],[1,0]]]
 	def rule(self, parray):
 		p = parray[0]
-		self.app.circularLine(p[1], addpt( p[0], [0,.00001]), 0.8)
+		self.app.draw_curved_line(p[1], addpt( p[0], [0,.00001]), 0.8)
 		return [[ p[1], mid(p[0], p[1]) ]] #Note that reversing the order, flips the circle
 #$example$
 #$ sp = TheCircleSpiral(app)
@@ -492,7 +505,7 @@ class TheNestedCircles(PaintShape):
 		return [[[-1.333333,0],[0.666666,0]]]
 	def rule(self, parray):
 		p = parray[0]
-		self.app.circularLine(p[1], p[0], 1., True) #Changing the parameter here won't change curvature.
+		self.app.draw_curved_line(p[1], p[0], 1., True) #Changing the parameter here won't change curvature.
 		return [[ p[1], mid(p[0], p[1]) ]]
 #$example$
 #$ sp = TheNestedCircles(app)
@@ -511,7 +524,7 @@ class SSquare(PaintShape):
 				for y in (0,1,2):
 					corner = addpt(start, [l*x, l*y])
 					if x==1 and y==1:
-						app.drawLines([corner, addpt(corner,[l,0]),addpt(corner,[l,l]),addpt(corner,[0,l])])
+						app.draw_lines([corner, addpt(corner,[l,0]),addpt(corner,[l,l]),addpt(corner,[0,l])])
 					else:
 						nextsites.append([corner,l])
 		return nextsites
@@ -526,10 +539,10 @@ class SSquareSharp(PaintShape):
 		for p in parray:
 			l = p[1]/3.
 			start = p[0]
-			app.drawLine(addpt(start, [l*1, l*0]),addpt(start, [l*1, l*3]))
-			app.drawLine(addpt(start, [l*2, l*0]),addpt(start, [l*2, l*3]))
-			app.drawLine(addpt(start, [l*0, l*1]),addpt(start, [l*3, l*1]))
-			app.drawLine(addpt(start, [l*0, l*2]),addpt(start, [l*3, l*2]))
+			app.draw_line(addpt(start, [l*1, l*0]),addpt(start, [l*1, l*3]))
+			app.draw_line(addpt(start, [l*2, l*0]),addpt(start, [l*2, l*3]))
+			app.draw_line(addpt(start, [l*0, l*1]),addpt(start, [l*3, l*1]))
+			app.draw_line(addpt(start, [l*0, l*2]),addpt(start, [l*3, l*2]))
 			for x in (0,2):
 				for y in (0,2):
 					corner = addpt(start, [l*x, l*y])
@@ -541,7 +554,7 @@ class SSquareSharp(PaintShape):
 class Ruler(PaintShape):
 	def axiom(self):
 		line = [[-1,0],[1,0]]
-		app.drawLine(line[0], line[1])
+		app.draw_line(line[0], line[1])
 		return [line]
 	def rule(self, parray):
 		nextsites=[]
@@ -549,7 +562,7 @@ class Ruler(PaintShape):
 			angle = getangle(p[0], p[1])+twopi/4.
 			l = distance(p[0], p[1])/2.
 			midpt = midw(p[0], p[1],0.5)
-			app.drawLine(midpt, extendpt(midpt,angle,l))
+			app.draw_line(midpt, extendpt(midpt,angle,l))
 			if True: #Flip
 				nextsites.append([p[0], midpt])
 				nextsites.append([p[1], midpt])
@@ -564,7 +577,7 @@ class Parens(PaintShape):
 	curve = 0.2
 	def axiom(self):
 		line = [[-1,0],[1,0]]
-		app.drawLine(line[0], line[1])
+		app.draw_line(line[0], line[1])
 		return [line]
 	def rule(self, parray):
 		nextsites=[]
@@ -573,8 +586,8 @@ class Parens(PaintShape):
 			mid2 = midw(p[0], p[1], 3/5.)
 			l = (distance(p[0], p[1]) * 3/5.) / 2.
 			angle = getangle(p[0], p[1])
-			app.circularLine( extendpt(mid1, angle+twopi/4.,l), extendpt(mid1, angle-twopi/4.,l),self.curve)
-			app.circularLine( extendpt(mid2, angle-twopi/4.,l), extendpt(mid2, angle+twopi/4.,l),self.curve)
+			app.draw_curved_line( extendpt(mid1, angle+twopi/4.,l), extendpt(mid1, angle-twopi/4.,l),self.curve)
+			app.draw_curved_line( extendpt(mid2, angle-twopi/4.,l), extendpt(mid2, angle+twopi/4.,l),self.curve)
 			nextsites.append([p[0], mid1])
 			nextsites.append([mid2, p[1]])
 		return nextsites

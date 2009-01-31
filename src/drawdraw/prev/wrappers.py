@@ -1,7 +1,7 @@
 """
 Copyright 2005 Allen B. Downey
 
-    This file contains wrapper classes I use with tkinter.  It is
+    This file contains wrapper classes.  It is
     mostly for my own use; I don't support it, and it is not very
     well documented.
 
@@ -22,13 +22,13 @@ Copyright 2005 Allen B. Downey
     02110-1301 USA
     
 """
-import recursive
+import recursiveshapes
 class Interpreter:
     """this object encapsulates the environment where user-provided
     code will execute
     """
     def __init__(self, app):
-	self.locals = recursive.getglobals()
+	self.locals = recursiveshapes.getglobals()
         # make sure the environment contains a reference to the app
         self.locals['app'] = app
 
