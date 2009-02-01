@@ -5,7 +5,7 @@ import wrappers
 def getglobals(): return globals()
 # See documentation in Help->Engine Notes
 
-class RecShape():
+class RecShape(object):
 	"""Base class. Every class will have a "shape" format which is typically a list of points.
 	All classes must provide an initial list of shapes, or "axiom."
 	They also must define a "rule" for transforming the list of shapes into the next list of shapes.

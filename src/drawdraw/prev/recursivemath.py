@@ -56,4 +56,4 @@ def frange(start, stop, n):
 
 
 if __name__ == '__main__':
-	print getangle([0,0],[1,1])
+	print(getangle([0,0],[1,1]))

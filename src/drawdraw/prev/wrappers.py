@@ -23,12 +23,12 @@ Copyright 2005 Allen B. Downey
     
 """
 import recursiveshapes
-class Interpreter:
+class Interpreter(object):
     """this object encapsulates the environment where user-provided
     code will execute
     """
     def __init__(self, app):
-	self.locals = recursiveshapes.getglobals()
+        self.locals = recursiveshapes.getglobals()
         # make sure the environment contains a reference to the app
         self.locals['app'] = app
 
@@ -40,25 +40,18 @@ class Interpreter:
         """run the given code in the saved environment"""
         code = compile(source, filename, 'exec')
         try:
-            exec code in self.locals
+            exec(code, self.locals)
         except KeyboardInterrupt:
             self.world.quit()
 
-class Callable:
+class Callable(object):
 	def __init__(self, func, *args, **kwds):
 		self.func = func
 		self.args = args
 		self.kwds = kwds
+		self.__name__ = func.__name__
 	def __call__(self, event=None):
-		return apply(self.func, self.args, self.kwds)
+		return self.func(*self.args, **self.kwds)
 	def __str__(self):
 		return self.func.__name__
 
-if False:
-	class MyThread(threading.Thread):
-	    """this is a wrapper for threading.Thread that improves
-	    the syntax for creating and starting threads.
-	    """
-	    def __init__(self, target, *args):
-		threading.Thread.__init__(self, target=target, args=args)
-		self.start()

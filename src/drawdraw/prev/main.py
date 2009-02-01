@@ -22,16 +22,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 02110-1301 USA
 """
 
-from Tkinter import *
+try:
+	from Tkinter import *
+	import tkFileDialog
+	import tkMessageBox
+	import tkSimpleDialog
+	import ScrolledText
+except ImportError:
+	from tkinter import *
+	import tkinter.filedialog as tkFileDialog
+	import tkinter.messagebox as tkMessageBox
+	import tkinter.simpledialog as tkSimpleDialog
+	import tkinter.scrolledtext as ScrolledText
+
 from recursivemath import *
 from recursiveshapes import *
 import math
 import wrappers
 
-import ScrolledText
-import tkFileDialog
-
-class App:
+class App(object):
 	strLastSearch = None
 	pxHeight = 400.
 	pxWidth = 400.
@@ -259,7 +268,7 @@ class App:
 		try:
 			f = open(strFileName,'w')
 		except:
-			print 'Could not save file.'
+			print('Could not save file.')
 			return
 		f.write(self.txtClass.get(1.0, END))
 		f.write('\n#$$$$$#\n')
@@ -272,7 +281,7 @@ class App:
 		try:
 			f = open(strFileName,'r')
 		except:
-			print 'Could not open file.'
+			print('Could not open file.')
 			return
 		astr = f.read().split('\n#$$$$$#\n')
 		f.close()
