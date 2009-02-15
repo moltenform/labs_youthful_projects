@@ -4,6 +4,7 @@ bmidilib.py , code for reading/creating midi files in Python
 Ben Fisher, 2008
 Based on midi.py, placed into the public domain in December 2001 by Will Ware
 But has a different class structure, and a different way of representing note events
+Tested on a good variety of files. The midi events output are identical, although sometimes the file size is slightly larger. Maybe this has to do with time deltas.
 
 Class Hierarchy:
 BMidiFile
@@ -296,37 +297,13 @@ def main(argv):
     m.read()
     m.close()
     
-    print m.tracks[2].notelist
+    #~ print m.tracks[2].notelist
+    #~ print m
     
-    m.open('..\\midis\\bossaActOutBen.mid', "wb")
+    m.open('..\\midis\\bossa_ben_out.mid', "wb")
     m.write()
     m.close()
     
-    #~ print m
-    #~ import getopt
-    #~ infile = None
-    #~ outfile = None
-    #~ printflag = 0
-    #~ optlist, args = getopt.getopt(argv[1:], "i:o:p")
-    #~ for (option, value) in optlist:
-        #~ if option == '-i':
-            #~ infile = value
-        #~ elif option == '-o':
-            #~ outfile = value
-        #~ elif option == '-p':
-            #~ printflag = 1
-
-    #~ m = MidiFile()
-    #~ m.open(infile)
-    #~ m.read()
-    #~ m.close()
-
-    #~ if printflag:
-        #~ print m
-    #~ else:
-        #~ m.open(outfile, "wb")
-        #~ m.write()
-        #~ m.close()
 
 if __name__ == "__main__":
     main(sys.argv)
