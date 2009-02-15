@@ -1,0 +1,95 @@
+
+from Tkinter import *
+
+
+#use djoser scroll-list
+
+class ListViewWindow():
+	def __init__(self, top, tracknumber, trackdata):
+		top.title('Track %d Events'%tracknumber)
+		frameTop = Frame(top, padx='0m' )
+		frameTop.pack(expand=YES, fill=BOTH)
+		
+		#use a monospace font, and then creative printfs to format it...
+		self.lb = ScrolledListbox(frameTop, selectmode=SINGLE, width=100, height=20)
+		self.lb.pack(expand=YES, fill=BOTH)
+		
+		self.lb.insert(END, ' ')
+		
+		Button(frameTop, text='test', command=self.test).pack()
+		
+		#Insert the actual data. Actually, just use Notelist, a lot easier
+		superlist = [evt for evt in trackdata.events if evt.type!='NOTE_ON' and evt.type!='NOTE_OFF']
+		#~ superlist.extend( trackdata.notelist )
+		#~ superlist.sort(key=lambda item: item.time)
+		
+		for item in superlist:
+			#~ if hasattr(item, dur): #then it is a BNote object
+			#~ else: #then it is a normal BMidiEvent object
+			self.lb.insert(END, item.__repr__().replace('\r','').replace('\n','').replace('\t','    '))
+		
+	
+	
+	
+	def test(self):
+		print 'l'
+
+
+class ScrolledListbox(Listbox): #an imitation of ScrolledText
+    def __init__(self, master=None, cnf=None, **kw):
+        if cnf is None:
+            cnf = {}
+        if kw:
+            from Tkinter import _cnfmerge
+            cnf = _cnfmerge((cnf, kw))
+        fcnf = {}
+        for k in cnf.keys():
+            if type(k) == ClassType or k == 'name':
+                fcnf[k] = cnf[k]
+                del cnf[k]
+        self.frame = Frame(master, **fcnf)
+        self.vbar = Scrollbar(self.frame, name='vbar')
+        self.vbar.pack(side=RIGHT, fill=Y)
+        cnf['name'] = 'lbox'
+        Listbox.__init__(self, self.frame, **cnf)
+        self.pack(side=LEFT, fill=BOTH, expand=1)
+        self['yscrollcommand'] = self.vbar.set
+        self.vbar['command'] = self.yview
+
+        # Copy geometry methods of self.frame -- hack!
+        methods = Pack.__dict__.keys()
+        methods = methods + Grid.__dict__.keys()
+        methods = methods + Place.__dict__.keys()
+
+        for m in methods:
+            if m[0] != '_' and m != 'config' and m != 'configure':
+                setattr(self, m, getattr(self.frame, m))
+
+
+if __name__=='__main__':
+	import sys
+	sys.path.append('..\\bmidilib')
+	import bmidilib
+	
+	class TestApp():
+		def __init__(self, root):
+			root.title('Testing list view')
+			Button(root, text='open', command=self.openit).pack()
+		
+		def openit(self):
+			file = bmidilib.BMidiFile()
+			file.open('..\\midis\\bossa.mid')
+			file.read()
+			file.close()
+			trackfile = file.tracks[3]
+			
+			top = Toplevel()
+			window = ListViewWindow(top, 5, trackfile)
+
+	
+	root = Tk()
+	app = TestApp(root)
+	root.mainloop()
+	
+	
+	

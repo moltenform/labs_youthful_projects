@@ -163,7 +163,7 @@ class ScoreViewCanvasTk(ScoreViewCanvasAbstract):
 			
 
 if __name__=='__main__':
-	class TestApp:
+	class TestApp():
 		def __init__(self, root):
 			root.title('Testing score view')
 			frameTop = Frame(root, padx='0m' , height=400)
