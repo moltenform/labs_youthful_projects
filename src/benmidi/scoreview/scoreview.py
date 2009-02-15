@@ -11,12 +11,13 @@ class ScoreViewCanvasAbstract(Frame):
 	#abstract scoreview methods
 	def drawBackground(self):
 		#draw the clefs
-		self.draw_clef(-20, 4, 'treble')
-		self.draw_clef(-20, -4, 'bass')
+		self.draw_clef(-20, 7.5, 'treble')
+		self.draw_clef(-20, -8.0, 'bass')
 		
 		#draw staff lines
 		def drawstaffline(y): 
 			self.draw_line(0, y, self.getwidth(), y)
+			self.draw_clef_staffline(y)
 		for i in range(1,6): drawstaffline(i*2 + 2); drawstaffline(-2 * i - 2)
 			
 		#test notes
@@ -122,35 +123,55 @@ class ScoreViewCanvasAbstract(Frame):
 class ScoreViewCanvasTk(ScoreViewCanvasAbstract):
 	def __init__(self, master, xscale, yscale):
 		Frame.__init__(self, master)
-		self.cv = Canvas(self, bd=1, relief=SUNKEN, background='white')
-		self.cv.pack(expand=YES,fill=BOTH)
+		
+		assert yscale >= 2 and yscale <= 5
+		
+		self.config(background='white')
+		self.cvClefs = Canvas(self, bd=1, background='white', width=30)
+		self.cvClefs.pack(side=LEFT, fill=Y)
+		
+		self.cv = Canvas(self, bd=1, background='white')
+		self.cv.pack(side=LEFT, expand=YES,fill=BOTH, padx=0, pady=0)
 		
 		self.xscale = xscale
 		self.yscale = yscale
 		#self.ybasis will be set in redraw
 		
-		self.imgbassclef = PhotoImage(file='bassclef.gif')
-		self.imgtrebleclef = PhotoImage(file='trebleclef.gif')
+		self.clefimgs = {}
+		
 		#Do not redraw right when creating, because we might not know our dimensions
 		
+		
+	
+	def zoomInY(self):
+		if self.yscale < 5: 
+			self.yscale+=1
+			self.redraw()
+	def zoomOutY(self):
+		if self.yscale > 2: 
+			self.yscale-=1
+			self.redraw()
+	def shiftOctaveUp(self): self.shiftnotes+=12; self.redraw()
+	def shiftOctaveDown(self): self.shiftnotes-=12; self.redraw()
 	def redraw(self): #To do after every resize/ rescale
 		self.clear()
 		self.ybasis = int(self.getheight()/2)
 		self.drawBackground()
 	
 	def coord(self, x,y):
-		x2 = x*self.xscale + 20 #gives room for the clefs
+		x2 = x*self.xscale + 0# 20 #gives room for the clefs
 		y2 = self.ybasis - y*self.yscale
 		return (x2, y2)
 	def coordrect(self, x0, y0, x1, y1): x0, y0 = self.coord(x0, y0); x1, y1 = self.coord(x1, y1); return (x0,y0, x1,y1)
-	def clear(self): self.cv.delete(ALL)
+	def clear(self): self.cvClefs.delete(ALL); self.cv.delete(ALL)
 	def getwidth(self): return self.cv.winfo_width()
 	def getheight(self): return self.cv.winfo_height()
 	def draw_line(self, x0, y0, x1, y1):
 		self.cv.create_line(self.coordrect(x0, y0, x1, y1)  )
 	def draw_faintline(self, x0, y0, x1, y1):
 		self.cv.create_line(self.coordrect(x0, y0, x1, y1),fill="gray", dash=(4, 4)  )
-		
+	def draw_clef_staffline(self, y):
+		self.cvClefs.create_line(self.coordrect(0, y, self.cvClefs.winfo_width(), y)  )
 	def draw_text(self, x, y, s):
 		textFormat = ('Times New Roman', 9, 'normal')
 		self.cv.create_text(self.coord(x,y),text=s, anchor='w', font=textFormat )
@@ -158,18 +179,44 @@ class ScoreViewCanvasTk(ScoreViewCanvasAbstract):
 	def draw_oval(self,x0, y0, x1, y1): 
 		self.cv.create_oval(self.coordrect(x0, y0, x1, y1), fill='black' )
 	def draw_clef(self, x,y, bass_treb):
-		if bass_treb=='bass': self.cv.create_image(self.coord(x,y),image=self.imgbassclef)
-		else: self.cv.create_image(self.coord(x,y),image=self.imgtrebleclef)
+		
+		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
+		desiredImageName = bass_treb + map[self.yscale]
+		if desiredImageName not in self.clefimgs:
+			self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
+		
+		
+		#disregard x 
+		xposition = self.cvClefs.winfo_width()/2
+		yposition = self.coord(x,y)[1]
+		if bass_treb=='bass': xposition -= 0.5
+		self.cvClefs.create_image((xposition,yposition),image=self.clefimgs[desiredImageName])
+		#~ if bass_treb=='bass': self.cvClefs.create_image((xposition,yposition),image=self.imgbassclef)
+		#~ else: self.cvClefs.create_image((xposition,yposition),image=self.imgtrebleclef)
 			
 
 if __name__=='__main__':
 	class TestApp():
 		def __init__(self, root):
-			root.title('Testing score view')
-			frameTop = Frame(root, padx='0m' , height=400)
+			root.title('Testing score view') #padx='0m'
+			frameTop = Frame(root, height=400)
 			frameTop.pack(expand=YES, fill=BOTH)
-			self.score = ScoreViewCanvasTk(frameTop, 1,4 )
+			self.score = ScoreViewCanvasTk(frameTop, 1,3 )
 			self.score.pack(expand=YES, fill=BOTH)
+			
+			frbtns = Frame(frameTop)
+			frbtns.pack()
+			Label(frbtns, text='x zoom:').pack(side=LEFT)
+			Button(frbtns, text='+', command=self.score.redraw).pack(side=LEFT)
+			Button(frbtns, text=' - ', command=self.score.redraw).pack(side=LEFT)
+			Label(frbtns, text='  y zoom:').pack(side=LEFT)
+			Button(frbtns, text='+', command=self.score.zoomInY).pack(side=LEFT)
+			Button(frbtns, text=' - ', command=self.score.zoomOutY).pack(side=LEFT)
+			
+			Label(frbtns, text='  change octave:').pack(side=LEFT)
+			Button(frbtns, text='^', command=self.score.shiftOctaveUp).pack(side=LEFT)
+			Button(frbtns, text='v', command=self.score.shiftOctaveDown).pack(side=LEFT)
+			
 			Button(frameTop, text='draw', command=self.score.redraw).pack()
 			Button(frameTop, text='test', command=self.test).pack()
 			
