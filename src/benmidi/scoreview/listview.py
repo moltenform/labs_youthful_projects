@@ -23,7 +23,16 @@ class ListViewWindow():
 		
 		for item in superlist:
 			self.lb.insert(END, item.__repr__().replace('\r','').replace('\n','').replace('\t','    '))
-	
+		
+		
+		top.bind('<MouseWheel>',self.scroll) #binding for Windows
+		top.bind('<Button-4>',self.scroll) #binding for Linux
+		top.bind('<Button-5>',self.scroll)
+	def scroll(self, event):
+		if event.num == 5 or event.delta == -120:
+			self.lb.yview_scroll(5, 'units')
+		if event.num == 4 or event.delta == 120:
+			self.lb.yview_scroll(-5, 'units')
 
 
 
@@ -47,7 +56,6 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
 		self.pack(side=LEFT, fill=BOTH, expand=1)
 		self['yscrollcommand'] = self.vbar.set
 		self.vbar['command'] = self.yview
-
 
 		# Copy geometry methods of self.frame -- hack!
 		methods = Pack.__dict__.keys()
