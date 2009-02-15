@@ -60,6 +60,23 @@ advanced (2 tracks)
 	tr1.note('a4',2)
 	
 	bbuilder.joinTracks( [tr1, tr2], 'out.mid') #tempo of first track used.
+
+Documentation
+=================
+All Functions
+	bbuilder.joinTracks(listTracks, outFilename)
+
+All Public Settings
+	b.tempo
+	b.volume
+	b.pan
+
+All Public Methods
+	b.note(pitch, duration)
+	b.rest(duration)
+	b.rewind(duration)
+	b.save(outFilename)
+	
 '''
 import bmidilib
 import exceptions
@@ -67,10 +84,12 @@ import exceptions
 
 class BuilderException(exceptions.Exception): pass
 class BMidiBuilder():
+	tempo = 120 #ticksPerQuarterNote
 	volume=None
 	pan=None
 	currentTime=0 #in units of qtr notes
 	notes= None
+	
 	def __init__(self):
 		self.notes = []
 		self.currentTime = 0
@@ -95,22 +114,85 @@ class BMidiBuilder():
 		assert self.currentTime > 0
 	def rest(self, timestep):
 		self.currentTime += timestep
-	def build(self, strFilename):
+	def save(self, strFilename):
 		if len(self.notes)==0: raise BuilderException('Cannot save empty file, has to contain some notes.')
-	def buildtrack(self):
-		#the first order of business is to sort all of the events.
+		fout=open(strFilename, 'wb')
+		trdata = self.buildtrack(1)
+		fout.close()
+		
+	def buildsong(self, builderObjects):
+		
+		
+		
+		
+		
+	def build_note_events(self, channel): #returns a list of events, not yet a track
+		
 		evtlist = []
+		for simplenote in self.notes:
+			startevt = bmidilib.BMidiEvent()
+			startevt.type = 'NOTE_ON'
+			startevt.time = simplenote.time
+			startevt.channel = channel
+			startevt.pitch = simplenote.pitch
+			startevt.velocity = simplenote.velocity
+			
+			endevt = bmidilib.BMidiEvent()
+			endevt.type = 'NOTE_ON'
+			endevt.time = simplenote.time + simplenote.dur
+			endevt.channel = channel
+			endevt.pitch = simplenote.pitch
+			endevt.velocity = 0
+			
+			
+		#important to sort all of the events. ("rewind" could have made these be out of order)
+		evtlist.sort()
 		
 		
+
+# actually make the MIDI file. returns BMidiFile object
+def build_midi(builderObjects):
+	assert len(builderObjects) > 0
+	file = bmidilib.BMidiFile()
+	file.ticksPerQuarterNote = self.tempo
+	
+	def makeTracknameEvent():
+		evt = bmidilib.BMidiEvent()
+		evt.type = 'SEQUENCE_TRACK_NAME'
+		evt.time = 0
+		evt.data = 'bbuilder,BenFisher,2009'
+		return evt
+	def makeEndTrackEvent(time):
+		evt = bmidilib.BMidiEvent()
+		evt.type='END_OF_TRACK'
+		evt.time = time
+		evt.data = ''
+		return evt
+	
+	#create conductor track
+	cnd = bmidilib.BMidiTrack()
+	file.tracks.append(cnd)
+	cnd.events.append( makeTracknameEvent())
+	#create tempo event? SET_TEMPO???????????????/
+	cnd.events.append( makeEndTrackEvent())
+	
+	for i in range(len(builderObjects)):
+		channel = i+1
+		noteEventList = builderObjects[i].build_note_events(channel) #returns a list of events, not yet a track
+		noteEventList.insert(0, makeTracknameEvent())
+		noteEventList.append(makeEndTrackEvent(noteEventList[-1].time))
+		newtrack = bmidilib.BMidiTrack()
+		file.tracks.append(newtrack)
+	return file
+
+# could be a class method of BMidiBuilder, but whatever
+def joinTracks(builderObjects):
+	
+
 class SimpleNote():
 	def __init__(self, pitch, time, dur, velocity):
 		self.pitch=pitch; self.time=time; self.dur=dur; self.velocity = velocity
 
-
-
-# could be a class method of BMidiBuilder, but whatever
-def joinTracks():
-	pass
 
 #~ <MidiFile 4 tracks
   #~ <MidiTrack  -- 7 events
