@@ -67,7 +67,7 @@ All Functions
 	bbuilder.joinTracks(listTracks, outFilename)
 
 All Public Settings
-	b.tempo
+	b.tempo (note that tempos other than 120bpm will not be precise)
 	b.volume
 	b.pan
 
@@ -155,8 +155,8 @@ class BMidiBuilder():
 		
 		#120 ticks/qtr note -> tickscale=120
 		#240 ticks/qtr note ->tickscale=60
-		factor = tempo/120.0
-		tickscale = int(round(120.0/factor))
+		factor = self.tempo/120.0
+		tickscale = int(round(120.0/factor)) #what we call a qtr note is this many ticks
 		
 		
 		#create track settings
@@ -251,7 +251,7 @@ def build_midi(builderObjects):
 
 # could be a class method of BMidiBuilder, but whatever
 def joinTracks(builderObjects, strFilename):
-	midifileobject = build_midi([builderObjects])
+	midifileobject = build_midi(builderObjects)
 	midifileobject.open(strFilename, 'wb')
 	midifileobject.write()
 	midifileobject.close()
@@ -261,33 +261,39 @@ class SimpleNote():
 		self.pitch=pitch; self.time=time; self.dur=dur; self.velocity = velocity
 
 
-#~ <MidiFile 4 tracks
-  #~ <MidiTrack  -- 7 events
-    #~ <MidiEvent SEQUENCER_SPECIFIC_META_EVENT, t=0, channel=None, data='\x00\x00[#\x02\x00\x03\x003\x00'>
-    #~ <MidiEvent SEQUENCE_TRACK_NAME, t=0, channel=None, data='WinJammer Demo'>
-    #~ <MidiEvent INSTRUMENT_NAME, t=0, channel=None, data='Conductor Track'>
-    #~ <MidiEvent MIDI_PORT, t=0, channel=None, data='\x00'>
-    #~ <MidiEvent SET_TEMPO, t=0, channel=None, data='\x06\x1a\x80'>
-    #~ <MidiEvent TIME_SIGNATURE, t=0, channel=None, data='\x04\x02\x18\x08'>
-    #~ <MidiEvent END_OF_TRACK, t=0, channel=None, data=''>
-  #~ >
-  #~ <MidiTrack  -- 1017 events
-    #~ <MidiEvent SEQUENCE_TRACK_NAME, t=0, channel=None, data='WinJammer Demo'>
-    #~ <MidiEvent MIDI_PORT, t=0, channel=None, data='\x00'>
-    #~ <MidiEvent NOTE_ON, t=480, channel=1, pitch=57, velocity=44>
-    #~ <MidiEvent NOTE_ON, t=480, channel=1, pitch=62, velocity=44>
-    #~ <MidiEvent NOTE_ON, t=480, channel=1, pitch=65, velocity=44>
-    #~ <MidiEvent NOTE_ON, t=564, channel=1, pitch=65, velocity=0>
-    #~ <MidiEvent NOTE_ON, t=568, channel=1, pitch=62, velocity=0>
-    #~ <MidiEvent NOTE_ON, t=574, channel=1, pitch=57, velocity=0>
-    #~ <MidiEvent NOTE_ON, t=600, channel=1, pitch=57, velocity=44>
+
 if __name__=='__main__':
 	b = BMidiBuilder()
-	b.note('c', 1) #pitch 60, duration 1 qtr note
-	b.note('d', 1)
-	b.note('e', 1)
-	b.note('f', 1)
-	b.note('g', 4)
-	b.save('out.mid')
+	b.tempo = 60
+	b.volume = 127
+	b.pan = 127 #out of right speaker
+	b.setInstrument('Star Theme') #looks up in list, until first match. b.setInstrument(73) also works
+	b.note('c', 1, velocity=127) #velocity is the loudness of a particular note, 1-127
 	
+	#ways to type same note:
+	b.note(61, 1)
+	b.note('c#', 1) #use sharps, not flats.
+	b.note('c#4', 1)
 	
+	#octaves
+	b.note('c#5', 1)
+	b.note('c#6', 1)
+	b.save('outweird.mid')
+	###############
+	tr1 = BMidiBuilder()
+	tr1.setInstrument('fretless bass')
+	tr1.note('c3', 2)
+	tr1.note('d3', 2)
+	tr1.note('e3', 2)
+	tr1.rest(2)
+	tr1.note('f3',2)
+	
+	tr2 = BMidiBuilder()
+	tr2.setInstrument('ocarina')
+	tr2.note('e4', 2)
+	tr2.note('f4', 2)
+	tr2.note('g4', 2)
+	tr2.rest(2)
+	tr2.note('a4',2)
+	
+	joinTracks( [tr1, tr2], 'outharm.mid')
