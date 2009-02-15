@@ -71,13 +71,7 @@ controllerTypes = Enumeration([
 		('DATA_INCREMENT',0x60, 'Data Increment'),
 		('DATA_DECREMENT',0x61, 'Data Decrement')])
 		
-#formatting script:
-#~ for item in tmp:
-	#~ print item[0].lower().replace('_',' ').title().replace(' ','___')
-#~ for item in tmp:
-	#~ constform = item[0].upper().replace(' ','_')
-	#~ print "('%s',0x%02X, '%s'),"%(constform, item[1],item[0])
-	#~ print item[0].lower().replace('_',' ').title().replace(' ','___')
+
 	
 #others, not included
 #~ (0x10-0x13) 	General-Purpose Controllers 1-4
