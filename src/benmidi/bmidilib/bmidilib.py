@@ -295,8 +295,8 @@ def delta_time_write(deltatime):
 
 def main(argv):
     m = BMidiFile()
-    #~ m.open('..\\midis\\bossa.mid')
-    m.open('..\\midis\\16keys.mid')
+    m.open('..\\midis\\bossa.mid')
+    #~ m.open('..\\midis\\16keys.mid')
     m.read()
     m.close()
     
@@ -304,9 +304,9 @@ def main(argv):
     #~ print m.tracks[2].notelist
     print m
     
-    #~ m.open('..\\midis\\bossa_ben_out.mid', "wb")
-    #~ m.write()
-    #~ m.close()
+    m.open('..\\midis\\bossa_ben_out.mid', "wb")
+    m.write()
+    m.close()
     
 
 if __name__ == "__main__":
