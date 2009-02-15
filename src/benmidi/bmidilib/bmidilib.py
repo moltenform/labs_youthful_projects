@@ -215,6 +215,7 @@ class BMidiEvent():
                 self.data = z
                 return str[2:]
             else:
+                # Most likely adding a new note-on or note-off!
                 self.pitch = z
                 self.velocity = ord(str[2])
                 
@@ -299,6 +300,7 @@ def main(argv):
     m.read()
     m.close()
     
+    #~ print m.ticksPerQuarterNote
     #~ print m.tracks[2].notelist
     print m
     

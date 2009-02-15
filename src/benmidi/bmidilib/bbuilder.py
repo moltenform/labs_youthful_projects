@@ -59,7 +59,7 @@ advanced (2 tracks)
 	tr1.rest(2)
 	tr1.note('a4',2)
 	
-	bbuilder.joinTracks( [tr1, tr2], 'out.mid') #tempo of first track used.
+	bbuilder.joinTracks( [tr1, tr2], 'out.mid') #(uses tempo of first track)
 
 Documentation
 =================
@@ -115,46 +115,67 @@ class BMidiBuilder():
 	def rest(self, timestep):
 		self.currentTime += timestep
 	def save(self, strFilename):
-		if len(self.notes)==0: raise BuilderException('Cannot save empty file, has to contain some notes.')
-		fout=open(strFilename, 'wb')
-		trdata = self.buildtrack(1)
-		fout.close()
 		
-	def buildsong(self, builderObjects):
+		midifileobject = build_midi([self])
+		midifileobject.open(strFilename, 'wb')
+		midifileobject.write()
+		midifileobject.close()
 		
-		
-		
+		print midifileobject
 		
 		
 	def build_note_events(self, channel): #returns a list of events, not yet a track
-		
+		if len(self.notes)==0: raise BuilderException('Cannot save empty file, has to contain some notes.')
 		evtlist = []
+		
+		#create track settings
+		if self.volume != None:
+			assert self.volume >= 0 and self.volume < 128
+			evt = bmidilib.BMidiEvent()
+			evt.type='CONTROLLER_CHANGE'
+			evt.time = 0
+			evt.channel=channel
+			evt.pitch = 0x07 #main volume
+			evt.velocity = self.volume
+			evtlist.append(evt)
+		elif self.pan != None:
+			assert self.pan >= 0 and self.pan < 128
+			evt = bmidilib.BMidiEvent()
+			evt.type='CONTROLLER_CHANGE'
+			evt.time = 0
+			evt.channel=channel
+			evt.pitch = 0x0A #pan
+			evt.velocity = self.pan
+			evtlist.append(evt)
+		
 		for simplenote in self.notes:
 			startevt = bmidilib.BMidiEvent()
 			startevt.type = 'NOTE_ON'
-			startevt.time = simplenote.time
+			startevt.time = simplenote.time * 120 #needs thinking
 			startevt.channel = channel
 			startevt.pitch = simplenote.pitch
 			startevt.velocity = simplenote.velocity
+			evtlist.append(startevt)
 			
 			endevt = bmidilib.BMidiEvent()
 			endevt.type = 'NOTE_ON'
-			endevt.time = simplenote.time + simplenote.dur
+			endevt.time = (simplenote.time + simplenote.dur) * 120 #needs thinking
 			endevt.channel = channel
 			endevt.pitch = simplenote.pitch
 			endevt.velocity = 0
+			evtlist.append(endevt)
 			
 			
 		#important to sort all of the events. ("rewind" could have made these be out of order)
 		evtlist.sort()
-		
+		return evtlist
 		
 
 # actually make the MIDI file. returns BMidiFile object
 def build_midi(builderObjects):
 	assert len(builderObjects) > 0
 	file = bmidilib.BMidiFile()
-	file.ticksPerQuarterNote = self.tempo
+	file.ticksPerQuarterNote = builderObjects[0].tempo #note: uses the tempo of the first track provided
 	
 	def makeTracknameEvent():
 		evt = bmidilib.BMidiEvent()
@@ -174,20 +195,25 @@ def build_midi(builderObjects):
 	file.tracks.append(cnd)
 	cnd.events.append( makeTracknameEvent())
 	#create tempo event? SET_TEMPO???????????????/
-	cnd.events.append( makeEndTrackEvent())
+	cnd.events.append( makeEndTrackEvent(0))
 	
 	for i in range(len(builderObjects)):
 		channel = i+1
 		noteEventList = builderObjects[i].build_note_events(channel) #returns a list of events, not yet a track
 		noteEventList.insert(0, makeTracknameEvent())
 		noteEventList.append(makeEndTrackEvent(noteEventList[-1].time))
+		
 		newtrack = bmidilib.BMidiTrack()
+		newtrack.events = noteEventList
 		file.tracks.append(newtrack)
 	return file
 
 # could be a class method of BMidiBuilder, but whatever
-def joinTracks(builderObjects):
-	
+def joinTracks(builderObjects, strFilename):
+	midifileobject = build_midi([builderObjects])
+	midifileobject.open(strFilename, 'wb')
+	midifileobject.write()
+	midifileobject.close()
 
 class SimpleNote():
 	def __init__(self, pitch, time, dur, velocity):
@@ -215,6 +241,12 @@ class SimpleNote():
     #~ <MidiEvent NOTE_ON, t=574, channel=1, pitch=57, velocity=0>
     #~ <MidiEvent NOTE_ON, t=600, channel=1, pitch=57, velocity=44>
 if __name__=='__main__':
-	pass
+	b = BMidiBuilder()
+	b.note('c', 1) #pitch 60, duration 1 qtr note
+	b.note('d', 1)
+	b.note('e', 1)
+	b.note('f', 1)
+	b.note('g', 4)
+	b.save('out.mid')
 	
 	
