@@ -38,6 +38,8 @@ class App:
 		self.objMidi = None
 		self.oldWidgets = []
 		self.frameGrid = frameGrid
+		
+		
 				
 		self.create_menubar(root)
 		
@@ -92,16 +94,19 @@ class App:
 		for w in self.oldWidgets:
 			w.grid_forget()
 			del w
-		
+		del self.oldWidgets
+		self.oldWidgets = []
 		
 		def addLabel(text, y, x):
-			#~ smallFrame = Frame(self.frameGrid,background='white', borderwidth=1, relief=RIDGE)
-			#~ smallFrame.grid(row=y+1, column=x, sticky='nsew')
-			#~ lbl = Label(smallFrame, text=text,background='white'); lbl.pack(anchor='w')
-			
-			lbl = Label(self.frameGrid, text=text, background='white', borderwidth=1, relief=GROOVE)
-			lbl.grid(row=y+1, column=x, sticky='nsew') #sticky? why not call it anchor
+			smallFrame = Frame(self.frameGrid,background='white', borderwidth=1, relief=RIDGE)
+			smallFrame.grid(row=y+1, column=x, sticky='nsew')
+			lbl = Label(smallFrame, text=text,background='white'); lbl.pack(anchor='w')
+			self.oldWidgets.append(smallFrame)
 			self.oldWidgets.append(lbl)
+			
+			#~ lbl = Label(self.frameGrid, text=text, background='white', borderwidth=1, relief=GROOVE)
+			#~ lbl.grid(row=y+1, column=x, sticky='nsew') #sticky? why not call it anchor
+			#~ self.oldWidgets.append(lbl)
 		
 		for rownum in range(len(self.objMidi.tracks)):
 			trackobj = self.objMidi.tracks[rownum]
@@ -135,10 +140,10 @@ class App:
 			
 			
 			#Buttons
-			self.oldWidgets.append(Button(self.frameGrid, text='Score', command=scoreview_util.Callable(self.openScoreView, rownum)))
-			self.oldWidgets[-1].grid(row=rownum+1, column=5)
-			self.oldWidgets.append(Button(self.frameGrid, text='List', command=scoreview_util.Callable(self.openListView, rownum)))
-			self.oldWidgets[-1].grid(row=rownum+1, column=6)
+			#~ self.oldWidgets.append(Button(self.frameGrid, text='Score', command=scoreview_util.Callable(self.openScoreView, rownum)))
+			#~ self.oldWidgets[-1].grid(row=rownum+1, column=5)
+			#~ self.oldWidgets.append(Button(self.frameGrid, text='List', command=scoreview_util.Callable(self.openListView, rownum)))
+			#~ self.oldWidgets[-1].grid(row=rownum+1, column=6)
 			
 			#~ self.oldWidgets.append(Label(text=str(rownum)))
 			#~ self.oldWidgets[-1].grid(row=rownum+1, column=0)
