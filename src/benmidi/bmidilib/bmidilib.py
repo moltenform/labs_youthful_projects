@@ -165,16 +165,16 @@ class BNote():
 	#NOTE: Modifying instances of this class won't change the midi! To actually, say, change the pitch and duration, the startEvt and endEvts should be modified.
 	channel=None
 	pitch=None
-	timeStart=None
+	time=None
 	duration=None
 	startEvt = None
 	endEvt = None
 	def __init__(self, channel, pitch, timeStart,duration,startEvt, endEvt):
 		self.channel = channel
-		self.pitch= pitch; self.timeStart=timeStart; self.duration=duration; self.startEvt=startEvt; self.endEvt= endEvt
+		self.pitch= pitch; self.time=timeStart; self.duration=duration; self.startEvt=startEvt; self.endEvt= endEvt
 	def __repr__(self):
-		return ("<Midi Note ch=%d,time=%d,duration=%d>\n" %
-			 (self.channel, self.timeStart, self.duration))
+		return ("ch=%d %6d Note pitch=%d v=%d duration=%d\n" %
+			 (self.channel, self.time, self.pitch, self.startEvt.velocity, self.duration))
 
 
 # runningStatus appears to want to be an attribute of a MidiTrack. But
@@ -211,7 +211,7 @@ class BMidiEvent():
 				s+='%d %s'%(self.data, iname)
 			
 			elif self.type=='PITCH_BEND':
-				yy = (self.velocity>>0) & 0x7F #took a lot of trial and error to get this, seems right now.
+				yy = (self.velocity>>0) & 0x7F #took a lot of trial and error to get this, seems right now, except for sign.
 				xx = (self.pitch>>0) & 0x7F
 				bendamt = -1 * (8192 - ((yy<<7) + xx))
 				
@@ -323,7 +323,7 @@ def delta_time_write(deltatime):
 
 def main(argv):
 	m = BMidiFile()
-	m.open('..\\midis\\testbend.mid')
+	m.open('..\\midis\\bossa.mid')
 	#~ m.open('..\\midis\\16keys.mid')
 	m.read()
 	m.close()

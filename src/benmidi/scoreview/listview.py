@@ -11,24 +11,20 @@ class ListViewWindow():
 		frameTop.pack(expand=YES, fill=BOTH)
 		
 		#use a monospace font, and then creative printfs to format it...
-		self.lb = ScrolledListbox(frameTop, selectmode=SINGLE, width=100, height=20)
+		self.lb = ScrolledListbox(frameTop, selectmode=SINGLE, width=60, height=30)
 		self.lb.pack(expand=YES, fill=BOTH)
-		
-		self.lb.insert(END, ' ')
 		
 		Button(frameTop, text='test', command=self.test).pack()
 		
 		#Insert the actual data. Actually, just use Notelist, a lot easier
 		superlist = [evt for evt in trackdata.events if evt.type!='NOTE_ON' and evt.type!='NOTE_OFF']
-		#~ superlist.extend( trackdata.notelist )
-		#~ superlist.sort(key=lambda item: item.time)
+		superlist.extend( trackdata.notelist )
+		superlist.sort(key=lambda item: item.time)
 		
 		for item in superlist:
 			#~ if hasattr(item, dur): #then it is a BNote object
 			#~ else: #then it is a normal BMidiEvent object
 			self.lb.insert(END, item.__repr__().replace('\r','').replace('\n','').replace('\t','    '))
-		
-	
 	
 	
 	def test(self):
