@@ -204,11 +204,19 @@ class BMidiEvent():
 			if self.type=='NOTE_ON' or self.type=='NOTE_OFF':
 				s+='pitch=%d, v=%d'%(self.pitch, self.velocity)
 			elif self.type=='CONTROLLER_CHANGE':
-				cname = bmidiconstants.controllerTypes.whatis(self.pitch) if bmidiconstants.controllerTypes.has_value(self.pitch) else 'Unknown'
-				s+='%d - %s v=%d'%(self.pitch, cname, self.velocity)
+				cname = bmidiconstants.controllerTypes.whatis(self.pitch).lower().replace('_',' ').title() if bmidiconstants.controllerTypes.has_value(self.pitch) else 'Unknown'
+				s+='%d %s v=%d'%(self.pitch, cname, self.velocity)
 			elif self.type=='PROGRAM_CHANGE':
 				iname = bmidiconstants.GM_instruments[self.data] if (self.data < len(bmidiconstants.GM_instruments)) else 'Unknown'
-				s+='%d - %s'%(self.data, iname)
+				s+='%d %s'%(self.data, iname)
+			
+			elif self.type=='PITCH_BEND':
+				yy = (self.velocity>>0) & 0x7F #took a lot of trial and error to get this, seems right now.
+				xx = (self.pitch>>0) & 0x7F
+				bendamt = -1 * (8192 - ((yy<<7) + xx))
+				
+				if bendamt>=0: s+=' +%d'%bendamt
+				else: s+=' %d'%bendamt
 				
 			else:
 				if self.data!=None: s+=', data='+repr(self.data)
@@ -235,7 +243,7 @@ class BMidiEvent():
 				self.data = z
 				return str[2:]
 			else:
-				# Most likely adding a new note-on or note-off!
+				# Most likely adding a new note-on or note-off
 				self.pitch = z
 				self.velocity = ord(str[2])
 				
@@ -315,7 +323,7 @@ def delta_time_write(deltatime):
 
 def main(argv):
 	m = BMidiFile()
-	m.open('..\\midis\\bossa.mid')
+	m.open('..\\midis\\testbend.mid')
 	#~ m.open('..\\midis\\16keys.mid')
 	m.read()
 	m.close()
@@ -324,9 +332,9 @@ def main(argv):
 	#~ print m.tracks[2].notelist
 	print m
 	
-	m.open('..\\midis\\bossa_ben_out.mid', "wb")
-	m.write()
-	m.close()
+	#~ m.open('..\\midis\\bossa_ben_out.mid', "wb")
+	#~ m.write()
+	#~ m.close()
 	
 
 if __name__ == "__main__":
