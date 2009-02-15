@@ -5,20 +5,32 @@ halfhourhacks.blogspot.com
 
 """
 from Tkinter import *
-import tkFileDialog
 
+import scoreview_util
+
+sys.path.append('..\\bmidilib')
 import bmidilib
 
 class App:
 	def __init__(self, root):
-		root.title('Minimath')
+		root.title('Midi Scoreview')
 		
-		frameMain = Frame(width=400, height=100)
+		frameMain = Frame(root, width=600, height=200)
 		frameMain.pack(side=TOP,fill=BOTH, expand=True)
 		
+		self.lblFilename = Label(frameMain, text='No file opened.')
+		self.lblFilename.pack(side=TOP, anchor='w')
 		
-		frameRightCol = Frame(frameMain, padx=5)
-		self.txtContent = ScrolledText.ScrolledText(frameRightCol, wrap=NONE)
+		frameGrid = Frame(frameMain)
+		frameGrid.pack(side=TOP,fill=BOTH, expand=True, anchor='w')
+		
+		
+		Label(frameGrid, text="First").grid(row=0)
+		Label(frameGrid, text="Second").grid(row=1)
+		e1 = Entry(frameGrid)
+		e2 = Entry(frameGrid)
+		e1.grid(row=0, column=1)
+		e2.grid(row=1, column=1)
 		
 		
 		self._create_menubar(root)
@@ -40,30 +52,21 @@ class App:
 		#~ menubar.add_cascade(label="Edit", menu=menuEdit, underline=0)
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', command=(lambda: tkMessageBox.showinfo('benmidi ScoreView','ScoreView, by Ben Fisher 2009\n\nhalfhourhacks.blogspot.com')))
-		menuHelp.add_command(label='Help', command=self.showDocs)
+		menuHelp.add_command(label='About', command=(lambda: scoreview_util.alert('ScoreView, by Ben Fisher 2009\n\nhalfhourhacks.blogspot.com','benmidi ScoreView')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)
 		
 		
 	def menu_openMidi(self):
-		filename = ask_openfile(title="Open Midi File")
+		filename = scoreview_util.ask_openfile(title="Open Midi File", types=['.mid|Mid file'])
 		if not filename: return
-		try:
-			im = Image.open(filename)
-		except:
-			print 'Error: Could not open image.'
-			return
-		if im.mode != 'RGB':
-			print 'Error: For now, only RGB mode images are supported.'
-			return
-		self.imgInput = im
-		self.updateInput()
+		
+		self.loadMidi(filename)
 
 
 	
 root = Tk()
 app = App(root)
-
 root.mainloop()
+
