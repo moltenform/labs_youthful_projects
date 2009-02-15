@@ -83,12 +83,17 @@ class Enumeration:
     def __init__(self, enumList):
         lookup = { }
         reverseLookup = { }
+        displayValues = { }
         i = 0
+        displayValue = ''
         uniqueNames = [ ]
         uniqueValues = [ ]
         for x in enumList:
             if type(x) == types.TupleType:
-                x, i = x
+                if len(x)==3:
+                    x, i, displayValue = x
+                else:
+                    x, i = x; displayValue = ''
             if type(x) != types.StringType:
                 raise EnumException, "enum name is not a string: " + x
             if type(i) != types.IntType:
@@ -101,9 +106,11 @@ class Enumeration:
             uniqueValues.append(i)
             lookup[x] = i
             reverseLookup[i] = x
+            displayValues[x] = displayValue
             i = i + 1
         self.lookup = lookup
         self.reverseLookup = reverseLookup
+        self.displayValues = displayValues
     def __add__(self, other):
         lst = [ ]
         for k in self.lookup.keys():
