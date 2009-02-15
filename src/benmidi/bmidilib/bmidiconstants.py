@@ -35,6 +35,50 @@ metaEvents = Enumeration([("SEQUENCE_NUMBER", 0x00),
                           ("KEY_SIGNATURE", 0x59),
                           ("SEQUENCER_SPECIFIC_META_EVENT", 0x7F)])
 
+
+controllerTypes = Enumeration([
+		('Bank Select', 0x00),
+		('Modulation', 0x01),
+		('Breath Controller', 0x02),
+		('Foot Controller', 0x04),
+		('Portamento Time', 0x05),
+		('Data Entry (MSB)', 0x06),
+		('Main Volume', 0x07),
+		('Balance', 0x08),
+		('Pan', 0x0A),
+		('Expression Controller', 0x0B),
+		('Effect Control 1', 0x0C),
+		('Effect Control 2', 0x0D),
+		('Damper pedal (Sustain)', 0x40),
+		('Portamento', 0x41),
+		('Sostenuto', 0x42),
+		('Soft Pedal', 0x43),
+		('Legato Footswitch', 0x44),
+		('Hold 2', 0x45),
+		('Sound Controller 1 (Timber Variation)', 0x46),
+		('Sound Controller 2 (Timber/Harmonic Content)', 0x47),
+		('Sound Controller 3 (Release Time)', 0x48),
+		('Sound Controller 4 (Attack Time)', 0x49),
+		('Portamento Control', 0x54),
+		('Effects 1 Depth (External Effects Depth)', 0x5B),
+		('Effects 2 Depth (Tremolo Depth)', 0x5C),
+		('Effects 3 Depth (Chorus Depth)', 0x5D),
+		('Effects 4 Depth (Celeste Detune)', 0x5E),
+		('Effects 5 Depth (Phaser Depth)', 0x5F),
+		('Data Increment', 0x60),
+		('Data Decrement', 0x61)])
+
+#others, not included
+#~ (0x10-0x13) 	General-Purpose Controllers 1-4
+#~ (0x20-0x3F) 	LSB for controllers 0-31
+#~ (0x4A-0x4F) 	Sound Controller 6-10
+#~ (0x50-0x53) 	General-Purpose Controllers 5-8
+#~ (0x79-0x7F) 	Mode Messages
+#~ (0x62) 	Non-Registered Parameter Number (LSB)
+#~ (0x63) 	Non-Registered Parameter Number (MSB)
+#~ (0x64) 	Registered Parameter Number (LSB)
+#~ (0x65) 	Registered Parameter Number (MSB)
+
 GM_instruments = ['Acoustic Grand Piano',
 'Bright Piano',
 'Electric Grand Piano',

@@ -11,26 +11,29 @@ BMidiFile
 	
 BMidiTrack
 	BMidiEvent[] events
-	[BNotes] (A simplified view of BMidiEvents)
+	BNote[] notelist
+		Notes in a mid file consist of two events, a "NoteOn" and a later "NoteOff"
+		The "notelist" provides a simpler view, as a single BNote object that has duration.
+		(If you are creating a BMidiTrack yourself, you do not need to add to the notelist)
 
 BMidiEvent
 	Raw information about the midi event.
-	Includes NoteOn and NoteOff events
+	Includes raw NoteOn and NoteOff events.
+	Does not include "delta times" which are created automatically.
 	
 BNote
-	note
-	duration
-	link to Start midiEvent
-	link to End midiEvent
-
+	Information including note, duration
+	- Modifying these instances will not actually modify the midi -
+	This is just an alternate view of information elsewhere
+		So to change the pitch of a note, say, you have to have both
+		note.startEvt.pitch = 60
+		note.endEvt.pitch = 60
+		note.pitch = 60
 """
 
 import sys, string, types, exceptions
 from midiutil import *
 import bmidiconstants
-
-
-
 
 
 class BMidiFile():
