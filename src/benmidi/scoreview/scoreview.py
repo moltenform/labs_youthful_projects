@@ -24,8 +24,8 @@ class ScoreViewCanvasAbstract(Frame):
 		#~ self.renderNote(61, 30, 30+10)
 		#~ self.renderNote(62, 40, 40+10)
 		for i in range(14):
-			self.renderNote(60 + 19+ i, 10+i*9, 10+i*9+ 10)
-			#~ self.renderNote(60 - i, 10+i*9, 10+i*9+ 10)
+			#~ self.renderNote(60 + 19+ i, 10+i*9, 10+i*9+ 10)
+			self.renderNote(60- 19 - i, 10+i*9, 10+i*9+ 10)
 			
 		
 		
@@ -35,6 +35,7 @@ class ScoreViewCanvasAbstract(Frame):
 			return
 		scale = float(self.timeend - self.timestart)/float(self.getwidth()-self.coord(0,0)[0])
 		posx = starttimecode / scale
+		endx = min(self.timeend,endtimecode) /scale
 		
 		o = self.getnoteposition(notenumber, self.shiftnotes, self.prefersharpflat)
 		posy = o.posy
@@ -44,10 +45,10 @@ class ScoreViewCanvasAbstract(Frame):
 		#draw note head
 		fy = posy  #because each line is 2 notes
 		if fy >= 0: #treble clef, move up
-			fy += 1
+			fy += 2
 		else: #bass clef, move down
-			fy -= 1
-		self.draw_oval(posx, fy+0.3, posx+3, fy-0.3)
+			fy -= 2
+		self.draw_oval(posx, fy+0.6, posx+3, fy-0.6)
 		
 		#draw sharp or flat
 		if sharpflat == '#':
@@ -60,11 +61,25 @@ class ScoreViewCanvasAbstract(Frame):
 			self.draw_line(x-4,y,x+7,y)
 			
 		if posy==0: drawledger(posx, fy)
-		elif posy >= 10:
-			tempy = posy - posy%2 #round posy down to nearest even #
-			while tempy > 10: drawledger(posx, float(tempy)/2); tempy-=2
-			#~ while 
+		elif posy >= 12:
+			tempy = posy - posy%2 #round posy down to nearest even number
+			while tempy >= 12: 
+				drawledger(posx, tempy + 2); #add two because treble clef, move up
+				tempy-=2
+		elif posy <= -12:
+			tempy = posy + posy%2 #round posy down to nearest even number
+			while tempy <= -12: 
+				drawledger(posx, tempy - 2); # two because bass clef, move down
+				tempy+=2
+			
+		#draw stem
+		def drawstem(x,y, mult): #mult is 1: upwards stem, mult is -1: downwards stem
+			self.draw_line(x, y, x, y+mult*7)
+		if posy>=0: drawstem(posx + 3, fy, 1) #treble clef, stem up
+		else: drawstem(posx, fy, -1)
 		
+		#draw duration mark
+		self.draw_faintline(posx+6, fy, endx, fy)
 	
 	def getnoteposition(self,note, shift, prefersharpflat): #middle C is note 60, returns a position of 0
 		note += shift
@@ -101,7 +116,7 @@ class ScoreViewCanvasAbstract(Frame):
 		return util.NoteRenderInfo(posy, sharpflat)
 		
 
-#Coord system: 0 is at middle C, each unit is one staff ledger line height.
+#Coord system: 0 is at middle C, each unit is one-half staff ledger line height (one note height).
 #Xcoord system: 1 is the spacing 
 
 class ScoreViewCanvasTk(ScoreViewCanvasAbstract):
