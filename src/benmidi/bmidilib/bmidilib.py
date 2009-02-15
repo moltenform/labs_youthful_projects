@@ -5,6 +5,7 @@ Ben Fisher, 2008
 Based on midi.py, placed into the public domain in December 2001 by Will Ware
 But has a different class structure, and a different way of representing note events
 Tested on a good variety of files. The midi events output are identical, although sometimes the file size is slightly larger. Maybe this has to do with time deltas.
+See bbuilder for an example of how to make midi files with these classes.
 
 Class Hierarchy:
 BMidiFile
@@ -293,16 +294,17 @@ def delta_time_write(deltatime):
 
 def main(argv):
     m = BMidiFile()
-    m.open('..\\midis\\bossa.mid')
+    #~ m.open('..\\midis\\bossa.mid')
+    m.open('..\\midis\\16keys.mid')
     m.read()
     m.close()
     
     #~ print m.tracks[2].notelist
-    #~ print m
+    print m
     
-    m.open('..\\midis\\bossa_ben_out.mid', "wb")
-    m.write()
-    m.close()
+    #~ m.open('..\\midis\\bossa_ben_out.mid', "wb")
+    #~ m.write()
+    #~ m.close()
     
 
 if __name__ == "__main__":

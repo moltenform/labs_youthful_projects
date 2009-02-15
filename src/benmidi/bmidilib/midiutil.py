@@ -15,7 +15,7 @@ def pitchToName(nPitch):
 	return (map[nNote], nOctave)
 
 def nameToPitch(s):
-	# a very simple way to do this. I've written better ways.
+	# a very simple way to do this. I've written better ways elsewhere.
 	#requires format c4 or c#4. doesn't accept flats.
 	s = s.upper()
 	map = {'C':0,'C#':1,'DB':1,'D':2,'D#':3,'EB':3,'E':4,'F':5,'F#':6,'GB':6,'G':7,'G#':8,'AB':8,'A':9,'A#':10,'BB':10,'B':11}
