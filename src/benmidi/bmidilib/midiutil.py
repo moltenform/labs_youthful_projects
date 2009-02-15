@@ -3,6 +3,10 @@ import sys, string, types, exceptions
 
 def midiToFrequency(n):
 	return 8.1758 * (2** (n/12.0))
+def frequencyToMidi(f):
+	import math
+	return int(round(69 + 12*math.log(f/440.0)/math.log(2.0)))
+
 
 def pitchToName(nPitch):
 	nOctave = int(nPitch / 12)-1

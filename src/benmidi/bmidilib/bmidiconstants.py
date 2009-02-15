@@ -35,7 +35,7 @@ metaEvents = Enumeration([("SEQUENCE_NUMBER", 0x00),
                           ("KEY_SIGNATURE", 0x59),
                           ("SEQUENCER_SPECIFIC_META_EVENT", 0x7F)])
 
-
+#Don't make further changes of these names.
 controllerTypes = Enumeration([
 		('Bank Select', 0x00),
 		('Modulation', 0x01),
@@ -43,7 +43,7 @@ controllerTypes = Enumeration([
 		('Foot Controller', 0x04),
 		('Portamento Time', 0x05),
 		('Data Entry (MSB)', 0x06),
-		('Main Volume', 0x07),
+		('Volume', 0x07),
 		('Balance', 0x08),
 		('Pan', 0x0A),
 		('Expression Controller', 0x0B),
