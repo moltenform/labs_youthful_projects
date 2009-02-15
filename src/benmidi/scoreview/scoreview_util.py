@@ -42,5 +42,14 @@ def ask_savefile(initialfolder='.',title='Save As',types=None):
 	else:
 		strFiles = tkFileDialog.asksaveasfilename(initialdir=initialfolder,title=title)
 	return strFiles
-	
+
+def alert(message, title=None, icon='info'):
+	""" Show dialog with information. Icon can be one of 'info','warning','error', defaulting to 'info'."""
+	import tkMessageBox
+	if icon=='info':
+		return tkMessageBox.showinfo(title=title, message=message)
+	elif icon=='warning':
+		return tkMessageBox.showwarning(title=title, message=message)
+	elif icon=='error':
+		return tkMessageBox.showerror(title=title, message=message)
 	

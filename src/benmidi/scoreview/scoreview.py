@@ -1,5 +1,5 @@
 from Tkinter import *
-import util
+import scoreview_util
 
 class ScoreViewCanvasAbstract(Frame):
 	##SETTINGS
@@ -113,7 +113,7 @@ class ScoreViewCanvasAbstract(Frame):
 		else:
 			posy += sharps[scaledegree][1]
 			sharpflat = ''
-		return util.NoteRenderInfo(posy, sharpflat)
+		return scoreview_util.NoteRenderInfo(posy, sharpflat)
 		
 
 #Coord system: 0 is at middle C, each unit is one-half staff ledger line height (one note height).
