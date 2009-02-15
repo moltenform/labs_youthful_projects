@@ -12,5 +12,5 @@ class Callable:
 class NoteRenderInfo():
 	def __init__(self, posy, sharpflat):
 		self.posy = posy
-		self.sharpflat = sharpflats
+		self.sharpflat = sharpflat
 		
