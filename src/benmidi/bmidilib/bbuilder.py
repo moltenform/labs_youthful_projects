@@ -59,7 +59,7 @@ advanced (2 tracks)
 	tr1.rest(2)
 	tr1.note('a4',2)
 	
-	bbuilder.joinTracks( [tr1, tr2], 'out.mid') #(uses tempo of first track)
+	bbuilder.joinTracks( [tr1, tr2], 'out.mid')
 
 Documentation
 =================
@@ -75,6 +75,7 @@ All Public Methods
 	b.note(pitch, duration)
 	b.rest(duration)
 	b.rewind(duration)
+	b.setInstrument(instrument)
 	b.save(outFilename)
 	
 '''
@@ -84,7 +85,8 @@ import exceptions
 
 class BuilderException(exceptions.Exception): pass
 class BMidiBuilder():
-	tempo = 120 #ticksPerQuarterNote
+	tempo = 120
+	instrument = None
 	volume=None
 	pan=None
 	currentTime=0 #in units of qtr notes
@@ -111,9 +113,26 @@ class BMidiBuilder():
 		self.currentTime += duration
 	def rewind(self, timestep):
 		self.currentTime -= timestep
-		assert self.currentTime > 0
+		assert self.currentTime >= 0
 	def rest(self, timestep):
 		self.currentTime += timestep
+	def setInstrument(self, instrument):
+		allinstruments = bmidilib.bmidiconstants.GM_instruments
+		try:
+			found = int(instrument)
+		except ValueError:
+			instrument = instrument.lower()
+			
+			found = None
+			for i in xrange(len(allinstruments)):
+				if instrument in allinstruments[i].lower(): #inefficient to .lower every setInstrument call, but whatever
+					found = i; break
+			if found==None:
+				raise BuilderException('Unable to find instrument %s, look at the end of "bmidiconstants.py" to see list of instruments, or find an online chart of midi instrument numbers.')
+		
+		self.instrument = found
+		return allinstruments[found] #returns string representation of instrument name
+			
 	def save(self, strFilename):
 		
 		midifileobject = build_midi([self])
@@ -128,6 +147,18 @@ class BMidiBuilder():
 		if len(self.notes)==0: raise BuilderException('Cannot save empty file, has to contain some notes.')
 		evtlist = []
 		
+		#If actual tempo were important, would use a TEMPO event.
+		#However, we just use default tempo, and change the TICKS per what _we_ call a "qtr note" (the actual ticksPerQuarterNote is unchanged)
+		#For MIDI files the default tempo is apparently 120.
+		#Also, the default bmidilib ticksPerQuarterNote is 120.
+		#I think that explains why the following works (I made it up, but am not sure where the numbers come from)
+		
+		#120 ticks/qtr note -> tickscale=120
+		#240 ticks/qtr note ->tickscale=60
+		factor = tempo/120.0
+		tickscale = int(round(120.0/factor))
+		
+		
 		#create track settings
 		if self.volume != None:
 			assert self.volume >= 0 and self.volume < 128
@@ -138,7 +169,8 @@ class BMidiBuilder():
 			evt.pitch = 0x07 #main volume
 			evt.velocity = self.volume
 			evtlist.append(evt)
-		elif self.pan != None:
+		
+		if self.pan != None:
 			assert self.pan >= 0 and self.pan < 128
 			evt = bmidilib.BMidiEvent()
 			evt.type='CONTROLLER_CHANGE'
@@ -148,10 +180,19 @@ class BMidiBuilder():
 			evt.velocity = self.pan
 			evtlist.append(evt)
 		
+		if self.instrument != None:
+			assert self.instrument >= 0
+			evt = bmidilib.BMidiEvent()
+			evt.type='PROGRAM_CHANGE'
+			evt.time = 0
+			evt.channel=channel
+			evt.data = self.instrument
+			evtlist.append(evt)
+		
 		for simplenote in self.notes:
 			startevt = bmidilib.BMidiEvent()
 			startevt.type = 'NOTE_ON'
-			startevt.time = simplenote.time * 120 #needs thinking
+			startevt.time = simplenote.time * tickscale 
 			startevt.channel = channel
 			startevt.pitch = simplenote.pitch
 			startevt.velocity = simplenote.velocity
@@ -159,7 +200,7 @@ class BMidiBuilder():
 			
 			endevt = bmidilib.BMidiEvent()
 			endevt.type = 'NOTE_ON'
-			endevt.time = (simplenote.time + simplenote.dur) * 120 #needs thinking
+			endevt.time = (simplenote.time + simplenote.dur) * tickscale 
 			endevt.channel = channel
 			endevt.pitch = simplenote.pitch
 			endevt.velocity = 0
@@ -175,7 +216,7 @@ class BMidiBuilder():
 def build_midi(builderObjects):
 	assert len(builderObjects) > 0
 	file = bmidilib.BMidiFile()
-	file.ticksPerQuarterNote = builderObjects[0].tempo #note: uses the tempo of the first track provided
+	file.ticksPerQuarterNote = 120
 	
 	def makeTracknameEvent():
 		evt = bmidilib.BMidiEvent()
@@ -194,7 +235,7 @@ def build_midi(builderObjects):
 	cnd = bmidilib.BMidiTrack()
 	file.tracks.append(cnd)
 	cnd.events.append( makeTracknameEvent())
-	#create tempo event? SET_TEMPO???????????????/
+	#Here is where the tempo event would go, if we cared about precise timing
 	cnd.events.append( makeEndTrackEvent(0))
 	
 	for i in range(len(builderObjects)):
