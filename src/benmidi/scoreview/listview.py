@@ -2,21 +2,18 @@
 from Tkinter import *
 
 
-#use djoser scroll-list
-
 class ListViewWindow():
 	def __init__(self, top, tracknumber, trackdata, opts):
 		top.title('Track %d Events'%tracknumber)
 		frameTop = Frame(top, padx='0m' )
 		frameTop.pack(expand=YES, fill=BOTH)
 		
-		#use a monospace font, and then printfs to format it...
+		#perhaps use a monospace font
 		self.lb = ScrolledListbox(frameTop, selectmode=SINGLE, width=60, height=30)
 		self.lb.pack(expand=YES, fill=BOTH)
 		
-		#~ Button(frameTop, text='test', command=self.test).pack()
 		
-		#Insert the actual data. Actually, just use Notelist, a lot easier
+		#Insert the data. Actually, just use Notelist, a lot easier
 		superlist = [evt for evt in trackdata.events if evt.type!='NOTE_ON' and evt.type!='NOTE_OFF']
 		superlist.extend( trackdata.notelist )
 		superlist.sort(key=lambda item: item.time)
@@ -28,6 +25,7 @@ class ListViewWindow():
 		top.bind('<MouseWheel>',self.scroll) #binding for Windows
 		top.bind('<Button-4>',self.scroll) #binding for Linux
 		top.bind('<Button-5>',self.scroll)
+		
 	def scroll(self, event):
 		if event.num == 5 or event.delta == -120:
 			self.lb.yview_scroll(5, 'units')
@@ -87,7 +85,7 @@ if __name__=='__main__':
 			trackfile = file.tracks[3]
 			
 			opts = {}
-			opts['showonlynotes'] = True
+			#~ opts['showonlynotes'] = False
 			
 			top = Toplevel()
 			window = ListViewWindow(top, 5, trackfile, opts)

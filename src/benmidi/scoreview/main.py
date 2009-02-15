@@ -40,7 +40,7 @@ class App:
 		#~ menubar.add_cascade(label="Edit", menu=menuEdit, underline=0)
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', command=(lambda: tkMessageBox.showinfo('MiniMath','MiniMath, by Ben Fisher 2007')))
+		menuHelp.add_command(label='About', command=(lambda: tkMessageBox.showinfo('benmidi ScoreView','ScoreView, by Ben Fisher 2009\n\nhalfhourhacks.blogspot.com')))
 		menuHelp.add_command(label='Help', command=self.showDocs)
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
