@@ -188,14 +188,34 @@ class BMidiEvent():
 		# assert self.time != None and other.time != None
 		return cmp(self.time, other.time)
 	def __repr__(self):
-		r = ("<MidiEvent %s, t=%s, channel=%s" %
-			 (self.type,
-			  repr(self.time),
-			  repr(self.channel)))
-		for attrib in ["pitch", "data", "velocity"]:
-			if getattr(self, attrib) != None:
-				r = r + ", " + attrib + "=" + repr(getattr(self, attrib))
-		return r + ">"
+		if False: #old text representation
+			r = ("<MidiEvent %s, t=%s, channel=%s" %
+				 (self.type,
+				  repr(self.time),
+				  repr(self.channel)))
+			for attrib in ["pitch", "data", "velocity"]:
+				if getattr(self, attrib) != None:
+					r = r + ", " + attrib + "=" + repr(getattr(self, attrib))
+			return r + ">"
+		else:
+			schannel = '' if (self.channel==None) else 'ch='+str(self.channel)
+			strType = self.type.lower().replace('_',' ').title()
+			s = '%s %6d %s '%(schannel, self.time, strType)
+			if self.type=='NOTE_ON' or self.type=='NOTE_OFF':
+				s+='pitch=%d, v=%d'%(self.pitch, self.velocity)
+			elif self.type=='CONTROLLER_CHANGE':
+				cname = bmidiconstants.controllerTypes.whatis(self.pitch) if bmidiconstants.controllerTypes.has_value(self.pitch) else 'Unknown'
+				s+='%d - %s v=%d'%(self.pitch, cname, self.velocity)
+			elif self.type=='PROGRAM_CHANGE':
+				iname = bmidiconstants.GM_instruments[self.data] if (self.data < len(bmidiconstants.GM_instruments)) else 'Unknown'
+				s+='%d - %s'%(self.data, iname)
+				
+			else:
+				if self.data!=None: s+=', data='+repr(self.data)
+				if self.pitch!=None: s+=', controller='+repr(self.pitch)
+				if self.velocity!=None: s+=', v='+repr(self.velocity)
+			return s
+			
 	def read(self, time, str):
 		global runningStatus
 		self.time = time
