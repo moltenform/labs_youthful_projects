@@ -7,13 +7,14 @@ halfhourhacks.blogspot.com
 from Tkinter import *
 
 import scoreview_util
+import listview
+import scoreview
 
 sys.path.append('..\\bmidilib')
 import bmidilib
 import bmiditools
 
 class App:
-	
 	def __init__(self, root):
 		root.title('Midi Scoreview')
 		
@@ -36,11 +37,16 @@ class App:
 		Label(frameGrid, text=' ', **opts).grid(row=0, column=6)
 		
 		self.objMidi = None
-		self.oldWidgets = []
 		self.frameGrid = frameGrid
 		
+		#had a memory leak problem before, even though used del on all of the widgets. dang tk.
+		self.gridwidgets = {} #index is tuple (row, column)
+		self.gridbuttons = {} #index is tuple (row, column)
 		
-				
+		#These are 
+		self.listviews = {} #index is track number. 
+		self.scoreviews = {}
+		
 		self.create_menubar(root)
 		
 	def create_menubar(self,root):
@@ -86,27 +92,35 @@ class App:
 		except e:
 			scoreview_util.alert('Could not load midi: exception %s'%str(e), title='Could not load midi',icon='error')
 			return
-		
+
 		self.objMidi = newmidi
 		self.lblFilename['text'] = filename
 		
-		#clear all of the old widgets
-		for w in self.oldWidgets:
-			w.grid_forget()
-			del w
-		del self.oldWidgets
-		self.oldWidgets = []
+		#close any open views
+		for key in self.listviews: self.listviews[key].destroy()
+		for key in self.scoreviews: self.listviews[key].destroy()
+		self.listviews = {}; self.scoreviews = {}
+		
+		#hide all of the old widgets
+		for key in self.gridwidgets:
+			w= self.gridwidgets[key]
+			if w.master.is_smallframe==1:
+				w.master.grid_forget()
+		for key in self.gridbuttons:
+			self.gridbuttons[key].grid_forget()
 		
 		def addLabel(text, y, x):
-			smallFrame = Frame(self.frameGrid,background='white', borderwidth=1, relief=RIDGE)
-			smallFrame.grid(row=y+1, column=x, sticky='nsew')
-			lbl = Label(smallFrame, text=text,background='white'); lbl.pack(anchor='w')
-			self.oldWidgets.append(smallFrame)
-			self.oldWidgets.append(lbl)
+			#Only create a new widget when necessary. This way, don't need to allocate every time a file is opened.
+			if (x,y+1) not in self.gridwidgets:
+				smallFrame = Frame(self.frameGrid,background='white', borderwidth=1, relief=RIDGE) #GROOVE
+				smallFrame.is_smallframe=1
+				lbl = Label(smallFrame, text=text,background='white')
+				lbl.pack(anchor='w')
+				self.gridwidgets[(x,y+1)] = lbl
 			
-			#~ lbl = Label(self.frameGrid, text=text, background='white', borderwidth=1, relief=GROOVE)
-			#~ lbl.grid(row=y+1, column=x, sticky='nsew') #sticky? why not call it anchor
-			#~ self.oldWidgets.append(lbl)
+			self.gridwidgets[(x,y+1)]['text'] = text
+			self.gridwidgets[(x,y+1)].master.grid(row=y+1, column=x, sticky='nsew')
+			
 		
 		for rownum in range(len(self.objMidi.tracks)):
 			trackobj = self.objMidi.tracks[rownum]
@@ -138,18 +152,17 @@ class App:
 			# Track Notes
 			addLabel( str(self.countNoteEvents(trackobj)), rownum, 4)
 			
-			
 			#Buttons
-			#~ self.oldWidgets.append(Button(self.frameGrid, text='Score', command=scoreview_util.Callable(self.openScoreView, rownum)))
-			#~ self.oldWidgets[-1].grid(row=rownum+1, column=5)
-			#~ self.oldWidgets.append(Button(self.frameGrid, text='List', command=scoreview_util.Callable(self.openListView, rownum)))
-			#~ self.oldWidgets[-1].grid(row=rownum+1, column=6)
+			if (rownum, 0) not in self.gridbuttons:
+				btn = Button(self.frameGrid, text='Score', command=scoreview_util.Callable(self.openScoreView, rownum))
+				self.gridbuttons[(rownum, 0)] = btn
+			self.gridbuttons[(rownum, 0)].grid(row=rownum+1, column=5)
 			
-			#~ self.oldWidgets.append(Label(text=str(rownum)))
-			#~ self.oldWidgets[-1].grid(row=rownum+1, column=0)
+			if (rownum, 1) not in self.gridbuttons:
+				btn = Button(self.frameGrid, text='List', command=scoreview_util.Callable(self.openListView, rownum))
+				self.gridbuttons[(rownum, 1)] = btn
+			self.gridbuttons[(rownum, 1)].grid(row=rownum+1, column=6)
 			
-			
-		
 	
 	
 	# These aren't in bmiditools for now
@@ -164,9 +177,26 @@ class App:
 		return channelsSeen.keys()
 	
 	def openScoreView(self, n):
-		print 'score view %d'%n
+		if n in self.scoreviews:
+			pass #already open
+		else:
+			opts = {}
+			opts['show_durations'] = self.objOptionsDuration.get()
+			opts['show_stems'] = self.objOptionsStems.get()
+			opts['show_barlines'] = self.objOptionsBarlines.get()
+			
+			top = Toplevel()
+			window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n], opts)
+			self.scoreviews[n] = top
+			
 	def openListView(self, n):
-		print 'list view %d'%n
+		if n in self.listviews:
+			pass #already open
+		else:
+			opts = {}
+			top = Toplevel()
+			window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
+			self.listviews[n] = top
 	
 root = Tk()
 app = App(root)
