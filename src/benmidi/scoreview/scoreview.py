@@ -24,7 +24,7 @@ class ScoreViewCanvasAbstract(Frame):
 		#~ self.renderNote(61, 30, 30+10)
 		#~ self.renderNote(62, 40, 40+10)
 		for i in range(14):
-			#~ self.renderNote(60 + 19+ i, 10+i*9, 10+i*9+ 10)
+			self.renderNote(60 + 19+ i, 10+i*9, 10+i*9+ 10)
 			self.renderNote(60- 19 - i, 10+i*9, 10+i*9+ 10)
 			
 		
