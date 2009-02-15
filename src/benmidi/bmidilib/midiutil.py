@@ -36,97 +36,97 @@ def nameToPitch(s):
 #############
 
 def showstr(str, n=16):
-    for x in str[:n]:
-        print ('%02x' % ord(x)),
-    print
+	for x in str[:n]:
+		print ('%02x' % ord(x)),
+	print
 
 def getNumber(str, length):
-    # MIDI uses big-endian for everything
-    sum = 0
-    for i in range(length):
-        sum = (sum << 8) + ord(str[i])
-    return sum, str[length:]
+	# MIDI uses big-endian for everything
+	sum = 0
+	for i in range(length):
+		sum = (sum << 8) + ord(str[i])
+	return sum, str[length:]
 
 def getVariableLengthNumber(str):
-    sum = 0
-    i = 0
-    while 1:
-        x = ord(str[i])
-        i = i + 1
-        sum = (sum << 7) + (x & 0x7F)
-        if not (x & 0x80):
-            return sum, str[i:]
+	sum = 0
+	i = 0
+	while 1:
+		x = ord(str[i])
+		i = i + 1
+		sum = (sum << 7) + (x & 0x7F)
+		if not (x & 0x80):
+			return sum, str[i:]
 
 def putNumber(num, length):
-    # MIDI uses big-endian for everything
-    lst = [ ]
-    for i in range(length):
-        n = 8 * (length - 1 - i)
-        lst.append(chr((num >> n) & 0xFF))
-    return string.join(lst, "")
+	# MIDI uses big-endian for everything
+	lst = [ ]
+	for i in range(length):
+		n = 8 * (length - 1 - i)
+		lst.append(chr((num >> n) & 0xFF))
+	return string.join(lst, "")
 
 def putVariableLengthNumber(x):
-    lst = [ ]
-    while 1:
-        y, x = x & 0x7F, x >> 7
-        lst.append(chr(y + 0x80))
-        if x == 0:
-            break
-    lst.reverse()
-    lst[-1] = chr(ord(lst[-1]) & 0x7f)
-    return string.join(lst, "")
+	lst = [ ]
+	while 1:
+		y, x = x & 0x7F, x >> 7
+		lst.append(chr(y + 0x80))
+		if x == 0:
+			break
+	lst.reverse()
+	lst[-1] = chr(ord(lst[-1]) & 0x7f)
+	return string.join(lst, "")
 
 class EnumException(exceptions.Exception):
-    pass
+	pass
 
 class Enumeration:
-    def __init__(self, enumList):
-        lookup = { }
-        reverseLookup = { }
-        displayValues = { }
-        i = 0
-        displayValue = ''
-        uniqueNames = [ ]
-        uniqueValues = [ ]
-        for x in enumList:
-            if type(x) == types.TupleType:
-                if len(x)==3:
-                    x, i, displayValue = x
-                else:
-                    x, i = x; displayValue = ''
-            if type(x) != types.StringType:
-                raise EnumException, "enum name is not a string: " + x
-            if type(i) != types.IntType:
-                raise EnumException, "enum value is not an integer: " + i
-            if x in uniqueNames:
-                raise EnumException, "enum name is not unique: " + x
-            if i in uniqueValues:
-                raise EnumException, "enum value is not unique for " + x
-            uniqueNames.append(x)
-            uniqueValues.append(i)
-            lookup[x] = i
-            reverseLookup[i] = x
-            displayValues[x] = displayValue
-            i = i + 1
-        self.lookup = lookup
-        self.reverseLookup = reverseLookup
-        self.displayValues = displayValues
-    def __add__(self, other):
-        lst = [ ]
-        for k in self.lookup.keys():
-            lst.append((k, self.lookup[k]))
-        for k in other.lookup.keys():
-            lst.append((k, other.lookup[k]))
-        return Enumeration(lst)
-    def hasattr(self, attr):
-        return self.lookup.has_key(attr)
-    def has_value(self, attr):
-        return self.reverseLookup.has_key(attr)
-    def __getattr__(self, attr):
-        if not self.lookup.has_key(attr):
-            raise AttributeError
-        return self.lookup[attr]
-    def whatis(self, value):
-        return self.reverseLookup[value]
+	def __init__(self, enumList):
+		lookup = { }
+		reverseLookup = { }
+		displayValues = { }
+		i = 0
+		displayValue = ''
+		uniqueNames = [ ]
+		uniqueValues = [ ]
+		for x in enumList:
+			if type(x) == types.TupleType:
+				if len(x)==3:
+					x, i, displayValue = x
+				else:
+					x, i = x; displayValue = ''
+			if type(x) != types.StringType:
+				raise EnumException, "enum name is not a string: " + x
+			if type(i) != types.IntType:
+				raise EnumException, "enum value is not an integer: " + i
+			if x in uniqueNames:
+				raise EnumException, "enum name is not unique: " + x
+			if i in uniqueValues:
+				raise EnumException, "enum value is not unique for " + x
+			uniqueNames.append(x)
+			uniqueValues.append(i)
+			lookup[x] = i
+			reverseLookup[i] = x
+			displayValues[x] = displayValue
+			i = i + 1
+		self.lookup = lookup
+		self.reverseLookup = reverseLookup
+		self.displayValues = displayValues
+	def __add__(self, other):
+		lst = [ ]
+		for k in self.lookup.keys():
+			lst.append((k, self.lookup[k]))
+		for k in other.lookup.keys():
+			lst.append((k, other.lookup[k]))
+		return Enumeration(lst)
+	def hasattr(self, attr):
+		return self.lookup.has_key(attr)
+	def has_value(self, attr):
+		return self.reverseLookup.has_key(attr)
+	def __getattr__(self, attr):
+		if not self.lookup.has_key(attr):
+			raise AttributeError
+		return self.lookup[attr]
+	def whatis(self, value):
+		return self.reverseLookup[value]
 
 
