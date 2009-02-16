@@ -60,6 +60,20 @@ advanced (2 tracks)
 	tr1.note('a4',2)
 	
 	bbuilder.joinTracks( [tr1, tr2], 'out.mid')
+	
+advanced (inserting raw events)
+	b = bbuilder.BMidiBuilder()
+	b.tempo = 400
+	for i in range(127):
+		#insert a raw instrument change event
+		evt = bmidilib.BMidiEvent() #event time will be set when inserted
+		evt.type='PROGRAM_CHANGE'
+		evt.channel=1
+		evt.data = i
+		b.insertMidiEvent(evt)
+		b.note('c3',0.4)
+	b.save('!2.mid')
+	
 
 Documentation
 =================
@@ -116,6 +130,10 @@ class BMidiBuilder():
 		assert self.currentTime >= 0
 	def rest(self, timestep):
 		self.currentTime += timestep
+	def insertMidiEvent(self, evt, bUseCurrentTime=True):
+		if bUseCurrentTime: evt.time=self.ourTimingToTicks(self.currentTime)
+		if not isinstance(evt, bmidilib.BMidiEvent): raise BuilderException("Must be a BMidiEvent instance.")
+		self.notes.append(evt)
 	def setInstrument(self, instrument):
 		allinstruments = bmidilib.bmidiconstants.GM_instruments
 		try:
@@ -140,13 +158,9 @@ class BMidiBuilder():
 		midifileobject.write()
 		midifileobject.close()
 		
-		print midifileobject
 		
 		
-	def build_note_events(self, channel): #returns a list of events, not yet a track
-		if len(self.notes)==0: raise BuilderException('Cannot save empty file, has to contain some notes.')
-		evtlist = []
-		
+	def ourTimingToTicks(self, n):
 		#If actual tempo were important, would use a TEMPO event.
 		#However, we just use default tempo, and change the TICKS per what _we_ call a "qtr note" (the actual ticksPerQuarterNote is unchanged)
 		#For MIDI files the default tempo is apparently 120.
@@ -157,7 +171,11 @@ class BMidiBuilder():
 		#240 ticks/qtr note ->tickscale=60
 		factor = self.tempo/120.0
 		tickscale = int(round(120.0/factor)) #what we call a qtr note is this many ticks
+		return int(round(n * tickscale))
 		
+	def build_note_events(self, channel): #returns a list of events, not yet a track
+		if len(self.notes)==0: raise BuilderException('Cannot save empty file, has to contain some notes.')
+		evtlist = []
 		
 		#create track settings
 		if self.volume != None:
@@ -190,9 +208,13 @@ class BMidiBuilder():
 			evtlist.append(evt)
 		
 		for simplenote in self.notes:
+			if isinstance(simplenote, bmidilib.BMidiEvent):
+				evtlist.append(simplenote)
+				continue
+				
 			startevt = bmidilib.BMidiEvent()
 			startevt.type = 'NOTE_ON'
-			startevt.time = int(round(simplenote.time * tickscale ))
+			startevt.time = self.ourTimingToTicks(simplenote.time)
 			startevt.channel = channel
 			startevt.pitch = simplenote.pitch
 			startevt.velocity = simplenote.velocity
@@ -200,7 +222,7 @@ class BMidiBuilder():
 			
 			endevt = bmidilib.BMidiEvent()
 			endevt.type = 'NOTE_ON'
-			endevt.time = int(round((simplenote.time + simplenote.dur) * tickscale ))
+			endevt.time = self.ourTimingToTicks(simplenote.time + simplenote.dur)
 			endevt.channel = channel
 			endevt.pitch = simplenote.pitch
 			endevt.velocity = 0
@@ -264,36 +286,18 @@ class SimpleNote():
 
 if __name__=='__main__':
 	b = BMidiBuilder()
-	b.tempo = 60
-	b.volume = 127
-	b.pan = 127 #out of right speaker
-	b.setInstrument('Star Theme') #looks up in list, until first match. b.setInstrument(73) also works
-	b.note('c', 1, velocity=127) #velocity is the loudness of a particular note, 1-127
+	b.tempo = 400
+	b.note('c3',1)
+	for j in range(5):
+		for i in range(127):
+			evt = bmidilib.BMidiEvent() #event time will be set when inserted
+			evt.type='PROGRAM_CHANGE'
+			evt.channel=1
+			evt.data = i
+			b.insertMidiEvent(evt)
+			b.note('c7',0.4)
+			b.rewind(0.3)
+			b.note('g6',0.3)
 	
-	#ways to type same note:
-	b.note(61, 1)
-	b.note('c#', 1) #use sharps, not flats.
-	b.note('c#4', 1)
-	
-	#octaves
-	b.note('c#5', 1)
-	b.note('c#6', 1)
-	b.save('outweird.mid')
-	###############
-	tr1 = BMidiBuilder()
-	tr1.setInstrument('fretless bass')
-	tr1.note('c3', 2)
-	tr1.note('d3', 2)
-	tr1.note('e3', 2)
-	tr1.rest(2)
-	tr1.note('f3',2)
-	
-	tr2 = BMidiBuilder()
-	tr2.setInstrument('ocarina')
-	tr2.note('e4', 2)
-	tr2.note('f4', 2)
-	tr2.note('g4', 2)
-	tr2.rest(2)
-	tr2.note('a4',2)
-	
-	joinTracks( [tr1, tr2], 'outharm.mid')
+	b.save('!.mid')
+	print b
