@@ -21,6 +21,7 @@ Note [.|c] is illegal
 
 
 '''
+Debug=True
 
 import exceptions
 class InterpException(exceptions.Exception): pass
@@ -49,7 +50,7 @@ def eatChars(s, n=1):
 Maxtracks = 16
 class Interp():
 	normalNoteDuration = 4
-	def go(s):
+	def go(self, s):
 		
 		s = s.replace('\r\n','\n')
 		s = stripComments(s)
@@ -87,7 +88,7 @@ class Interp():
 				for i in range(Maxtracks): self.trackObjs[i].currentTime = longestTimeSeen
 			else:
 				self.haveSeenNotes = True
-				self.interpretControlString( line, 0 )
+				self.interpretMusicString( line, 0 )
 				
 				# keep track sync for all of the tracks.
 				longestTimeSeen = self.trackObjs[0].currentTime
@@ -98,10 +99,13 @@ class Interp():
 		for trackobj in actualtracks:
 			trackobj.notes = [note for note in trackobj.notes if (hasattr(note,'pitch') and note.pitch!=0)]
 		
-		#join all of the tracks
+		#join all of the tracks, returning a midifile
+		mfile = bbuilder.buildMidi(actualtracks)
+		print mfile
+		return mfile
 		
 		
-	def interpretControlString(s):
+	def interpretControlString(self,s):
 		assert s.startsWith('(')
 		if not s.endsWith(')'): raise InterpException('No closing ) for opening (, line %s'%s)
 		# parse this lisp-like expression.
@@ -111,11 +115,11 @@ class Interp():
 		#~ if setting=='tempo' and self.haveSeenNotes:
 			#~ can't set the tempo after having notes. stop it.
 
-	def interpretMusicString(s, track):
+	def interpretMusicString(self,s, track):
 		s = s.replace(' ','').replace('\t','')
 		
 		while s!='':
-			
+			if Debug: print 'mainloop:::'+s
 			result, s = self.pullFullNote(s, track) #a rest counts
 			if result: continue #found something, moving on to next entry
 			result, s = self.pullFullNotePerc(s, track)
@@ -129,7 +133,8 @@ class Interp():
 		
 		return True
 	
-	def pullFullShortenedNote(s, track):
+	def pullFullShortenedNote(self,s, track):
+		if Debug: print 'pullFullShortenedNote:::'+s
 		if not s or s[0] not in '/':
 			return False, s
 			
@@ -161,7 +166,8 @@ class Interp():
 		
 		return True, remaining
 		
-	def pullFullNotePerc(s, track):
+	def pullFullNotePerc(self,s, track):
+		if Debug: print 'pullFullNotePerc:::'+s
 		if not s: return False, s
 			
 		percmap = {'o':36 ,'s':38 ,'*':39 ,'=':42 ,'O':43 ,'+':46 ,'0':47 ,'x':49 ,'{}':52,'@':56 ,'X':57 ,'M':67 ,'m':68 ,'w':71 ,'W':72 }
@@ -184,11 +190,14 @@ class Interp():
 		
 		
 	
-	def pullFullNote(s, track):
+	def pullFullNote(self,s, track):
+		if Debug: print 'fullnote:::'+s
 		if not s or s[0] not in '.abcdefgABCDEFG':
 			return False,s
-		first, remaining = eatChars(s, 1)
-		if first=='.':
+			
+		remaining = s
+		if remaining[0]=='.':
+			_, remaining = eatChars(s, 1)
 			# a rest. doesn't allow duration or anything afterwards, so special-case it.
 			# rests are notes with pitch 0. this is so that anything like // trying to modify the last note has something to work with
 			self.trackObjs[track].note(0, self.normalNoteDuration)
@@ -206,7 +215,8 @@ class Interp():
 		
 		return True, remaining
 		
-	def pullFullNoteSet(s, track):
+	def pullFullNoteSet(self,s, track):
+		if Debug: print 'pullFullNoteSet:::'+s
 		if not s or s[0] not in '[':
 			return False, s
 		first, remaining = eatChars(s, 1)
@@ -240,7 +250,8 @@ class Interp():
 		return True, remaining
 		
 	
-	def pullPiecesVolumeDurationOptional(s, track, nNotesMultiple=False): #optional, so never 'fails' and returns False
+	def pullPiecesVolumeDurationOptional(self,s, track, nNotesMultiple=False): #optional, so never 'fails' and returns False
+		if Debug: print 'pullPiecesVolumeDurationOptional:::'+s
 		remaining= s
 		def changeLastVolume(n):
 			if not nNotesMultiple:
@@ -279,7 +290,8 @@ class Interp():
 	
 	
 	
-	def pullPiecesPitchBendOptional(s, track):
+	def pullPiecesPitchBendOptional(self,s, track):
+		if Debug: print 'pullPiecesPitchBendOptional:::'+s
 		remaining= s
 		if not remaining.startswith('~>'): return False, remaining
 		_, remaining = eatChars(remaining, 2)
@@ -316,7 +328,8 @@ class Interp():
 		return True, remaining
 		
 	
-	def pullPitch(s, track):
+	def pullPitch(self,s, track):
+		if Debug: print 'pullPitch:::'+s
 		if not s or s[0] not in 'abcdefgABCDEFG':
 			return False,s
 			
@@ -375,7 +388,7 @@ class Interp():
 			octave = int(remaining[0])
 			_, remaining = eatChars(remaining, 1)
 			hasOctave = True
-			 self.state_octave[track] = octave #store the octave we've seen
+			self.state_octave[track] = octave #store the octave we've seen
 			
 		finalpitch = pitchnumber + octave*12
 		self.trackObjs[track].note(finalpitch, self.normalNoteDuration)
@@ -387,43 +400,8 @@ class Interp():
 
 		
 	
+if __name__=='__main__':
+	inter = Interp()
+	inter.go('\na b c\n')
 
-
-'''(split by newlines)
-
-The following must be mutually exclusive!
-They mark what to interpret the next as.
-(kill all whitespace first- no, don't do this.)
-
-whitespace
-	(tab, space)
-control
-	(newline),paren(,paren), >>
-
-pitch
-	abcdefg and ABCDEFG
-pitch_perc
-	all percussion ones
-pitch_rest
-	.
-pitch_dur
-	,
-	
-pitchset
-	[
-pitchshort
-	/
-
-
-
-
-like a state machine.
-
-
-
-
-
-result, remaining = pullPitch(remaining)
-pullLine-> creates builderObject from one line.
-'''
 
