@@ -33,7 +33,7 @@ def playMidiObject(objMidiFile):
 	objMidiFile.open(tempfilename, 'wb')
 	objMidiFile.write()
 	objMidiFile.close()
-	print tempfilename
+	#~ print tempfilename
 	
 	time.sleep(1.0)
 	playMidiFile(tempfilename)
