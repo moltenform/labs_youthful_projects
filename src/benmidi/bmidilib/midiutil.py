@@ -31,7 +31,27 @@ def nameToPitch(s):
 		return octave*12 + note
 	else:
 		return None
-		
+
+def dataToPitchBend(pitch, velocity):
+	#took a lot of trial and error to get this, seems right now, except for sign.
+	yy = (velocity) & 0x7F 
+	xx = (pitch) & 0x7F
+	return -1 * (8192 - ((yy<<7) + xx))
+	
+def pitchBendToData(n):
+	#turn 00cccccccfffffff into 0ccccccc0fffffff
+	n= -1*(8192-n)
+	assert n < 2**16
+	mask1 = int('0000000001111111',2)
+	mask2 = int('0011111110000000',2)
+	datalo = n&mask1
+	datahi = (n&mask2) >> 7
+	return datalo, datahi
+
+#~ v = -400
+#~ d1, d2 = pitchBendToData(v)
+#~ print dataToPitchBend(d1, d2)
+
 		
 #############
 

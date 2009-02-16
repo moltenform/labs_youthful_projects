@@ -17,9 +17,9 @@ making a simple melody
 making a chord
 	b = bbuilder.BMidiBuilder()
 	b.note('c', 1)
-	b.rewind(1)
+	b.rewind() #automatically rewinds to start of last note
 	b.note('e', 1)
-	b.rewind(1)
+	b.rewind()
 	b.note('g', 1)
 	b.save('out.mid') #doesn't "sort" the events until the end.
 
@@ -110,7 +110,7 @@ class BMidiBuilder():
 		self.notes = []
 		self.currentTime = 0
 		
-	def note(self, pitch, duration, velocity=60):
+	def note(self, pitch, duration, velocity=60, percussion=False):
 		try:
 			n = int(pitch)
 		except ValueError:
@@ -123,9 +123,10 @@ class BMidiBuilder():
 		assert duration>0
 		assert n>0
 		assert velocity>0 and velocity<=127
-		self.notes.append( SimpleNote(n, self.currentTime, duration, velocity) )
+		self.notes.append( SimpleNote(n, self.currentTime, duration, velocity, percussion=percussion) )
 		self.currentTime += duration
-	def rewind(self, timestep):
+	def rewind(self, timestep=None):
+		if timestep==None: timestep = self.notes[-1].duration #if given with no args, goes back
 		self.currentTime -= timestep
 		assert self.currentTime >= 0
 	def rest(self, timestep):
@@ -133,6 +134,26 @@ class BMidiBuilder():
 	def insertMidiEvent(self, evt, bUseCurrentTime=True):
 		if bUseCurrentTime: evt.time=self.ourTimingToTicks(self.currentTime)
 		if not isinstance(evt, bmidilib.BMidiEvent): raise BuilderException("Must be a BMidiEvent instance.")
+		if evt.channel != None: raise BuilderException("Must leave channel blank, it will be assigned correctly upon build time.")
+		self.notes.append(evt)
+	def insertMidiEventInstrumentChange(self, n):
+		evt = bmidilib.BMidiEvent()
+		evt.type='PROGRAM_CHANGE'
+		evt.time=self.ourTimingToTicks(self.currentTime)
+		evt.channel=None #it will be assigned correctly at build time
+		evt.data = n
+		self.notes.append(evt)
+	def insertPitchBendEvent(self, number): #pitch bend, from -100 to 100, accepts floats.
+		if number <-100 or number > 100: raise BuilderException('Pitch bend: Out of range, -100 to 100')
+		number = int(round((number/100.0)*8100.0))
+		import midiutil
+		evt = bmidilib.BMidiEvent()
+		evt.type='PITCH_BEND'
+		evt.time=self.ourTimingToTicks(self.currentTime)
+		data1,data2 = midiutil.pitchBendToData(number) #bit grinding
+		evt.pitch = data1
+		evt.velocity = data2
+		evt.channel=None #it will be assigned correctly at build time
 		self.notes.append(evt)
 	def setInstrument(self, instrument):
 		allinstruments = bmidilib.bmidiconstants.GM_instruments
@@ -209,21 +230,22 @@ class BMidiBuilder():
 		
 		for simplenote in self.notes:
 			if isinstance(simplenote, bmidilib.BMidiEvent):
+				simplenote.channel = channel #correct channel events at build time.
 				evtlist.append(simplenote)
 				continue
-				
+			
 			startevt = bmidilib.BMidiEvent()
 			startevt.type = 'NOTE_ON'
 			startevt.time = self.ourTimingToTicks(simplenote.time)
-			startevt.channel = channel
+			startevt.channel = channel if not simplenote.percussion else 10
 			startevt.pitch = simplenote.pitch
 			startevt.velocity = simplenote.velocity
 			evtlist.append(startevt)
 			
 			endevt = bmidilib.BMidiEvent()
 			endevt.type = 'NOTE_ON'
-			endevt.time = self.ourTimingToTicks(simplenote.time + simplenote.dur)
-			endevt.channel = channel
+			endevt.time = self.ourTimingToTicks(simplenote.time + simplenote.duration)
+			endevt.channel = channel if not simplenote.percussion else 10
 			endevt.pitch = simplenote.pitch
 			endevt.velocity = 0
 			evtlist.append(endevt)
@@ -279,25 +301,55 @@ def joinTracks(builderObjects, strFilename):
 	midifileobject.close()
 
 class SimpleNote():
-	def __init__(self, pitch, time, dur, velocity):
-		self.pitch=pitch; self.time=time; self.dur=dur; self.velocity = velocity
+	def __init__(self, pitch, time, duration, velocity,percussion=False):
+		self.pitch=pitch; self.time=time; self.duration=duration; self.velocity = velocity
+		self.percussion = percussion
 
 
 
 if __name__=='__main__':
-	b = BMidiBuilder()
-	b.tempo = 400
-	b.note('c3',1)
-	for j in range(5):
-		for i in range(127):
-			evt = bmidilib.BMidiEvent() #event time will be set when inserted
-			evt.type='PROGRAM_CHANGE'
-			evt.channel=1
-			evt.data = i
-			b.insertMidiEvent(evt)
-			b.note('c7',0.4)
-			b.rewind(0.3)
-			b.note('g6',0.3)
+	t1 = BMidiBuilder()
+	t1.tempo = 400
+	t1.setInstrument('star theme')
+	thelen= 20
+	t1.note(60, thelen)
 	
-	b.save('!.mid')
-	print b
+	
+	t1.rewind(); steps = 100
+	for i in range(0,99,1):
+		t1.insertPitchBendEvent(i)
+		t1.rest(0.05)
+	
+	t1.insertPitchBendEvent(0)
+	
+	t1.save('out.mid')
+	
+	
+	#~ t1 = BMidiBuilder()
+	#~ t1.tempo = 40
+	#~ for i in range(4):
+		#~ t1.note('c', 0.25)
+	
+	#~ t2 = BMidiBuilder()
+	#~ t2.tempo = 40
+	#~ for i in range(5):
+		#~ t2.note('g', 0.2)
+	
+	#~ joinTracks([t1, t2], 'o.mid')
+	
+	#~ b = BMidiBuilder()
+	#~ b.tempo = 400
+	#~ b.note('c3',1)
+	#~ for j in range(5):
+		#~ for i in range(127):
+			#~ evt = bmidilib.BMidiEvent() #event time will be set when inserted
+			#~ evt.type='PROGRAM_CHANGE'
+			#~ evt.channel=1
+			#~ evt.data = i
+			#~ b.insertMidiEvent(evt)
+			#~ b.note('c7',0.4)
+			#~ b.rewind(0.3)
+			#~ b.note('g6',0.3)
+	
+	#~ b.save('!.mid')
+	#~ print b
