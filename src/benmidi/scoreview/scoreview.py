@@ -11,8 +11,8 @@ class ScoreViewCanvasAbstract(Frame):
 	#abstract scoreview methods
 	def drawBackground(self):
 		#draw the clefs
-		self.draw_clef(-20, 7.5, 'treble')
-		self.draw_clef(-20, -8.0, 'bass')
+		self.draw_clef( 'treble')
+		self.draw_clef( 'bass')
 		
 		#draw staff lines
 		def drawstaffline(y): 
@@ -28,7 +28,27 @@ class ScoreViewCanvasAbstract(Frame):
 			self.renderNote(60 + 19+ i, 10+i*9, 10+i*9+ 10)
 			self.renderNote(60- 19 - i, 10+i*9, 10+i*9+ 10)
 			
+	def renderMidiTrack(self, trackobj, ticksPerQtrNote):
+		if len(trackobj.notelist)==0:
+			self.drawBackground()
+			return
 		
+		firstx = 0
+		# get time of last note-off event, when it stops playing
+		lastx = trackobj.notelist[-1].endEvt.time
+		
+		span = lastx - firstx
+		if span==0: span = 1 #prevent division by 0.
+		
+		#default is to show 1 qtr note = 25 pixels.
+		#~ 120 ticksPerQtr means 120 ticks are 25pixels
+		#~ 200 ticksPerQtr means 200 ticks are 25pixels
+		
+		#~ self.xticksToPixels = 25.0/float(ticksPerQtrNote)
+		
+		#~ ticksPerQtrNote * 25
+			
+			
 		
 	def renderNote(self, notenumber, starttimecode, endtimecode):
 		#find x position for drawing note
@@ -126,12 +146,25 @@ class ScoreViewCanvasTk(ScoreViewCanvasAbstract):
 		
 		assert yscale >= 2 and yscale <= 5
 		
-		self.config(background='white')
-		self.cvClefs = Canvas(self, bd=1, background='white', width=30)
-		self.cvClefs.pack(side=LEFT, fill=Y)
 		
-		self.cv = Canvas(self, bd=1, background='white')
-		self.cv.pack(side=LEFT, expand=YES,fill=BOTH, padx=0, pady=0)
+		frameGrid = Frame(self)
+		frameGrid.pack(expand=YES, fill=BOTH)
+		
+		self.cvClefs = Canvas(frameGrid, bd=1, background='white', width=30)
+		self.cv = Canvas(frameGrid, bd=1, background='white')
+		hScroll = Scrollbar(frameGrid, orient=HORIZONTAL, command=self.shiftOctaveUp)
+		vScroll = Scrollbar(frameGrid, orient=VERTICAL, command=self.shiftOctaveUp)
+		
+		
+		self.cvClefs.grid(row = 0, column=0, sticky='wns', ipadx=0)
+		self.cv.grid(row = 0, column=1, sticky='nsew', ipadx=0)
+		vScroll.grid(row=0, column=2, sticky='ns')
+		hScroll.grid(row=1, column=0, columnspan=2, sticky='we')
+		
+		frameGrid.grid_rowconfigure(0, weight=1)
+		frameGrid.grid_columnconfigure(1, weight=1)
+		#~ root.grid_rowconfigure(0, weight=1)
+#~ root.grid_columnconfigure(0, weight=1)
 		
 		self.xscale = xscale
 		self.yscale = yscale
@@ -178,28 +211,27 @@ class ScoreViewCanvasTk(ScoreViewCanvasAbstract):
 		
 	def draw_oval(self,x0, y0, x1, y1): 
 		self.cv.create_oval(self.coordrect(x0, y0, x1, y1), fill='black' )
-	def draw_clef(self, x,y, bass_treb):
-		
+	def draw_clef(self, bass_treb):
 		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
 		desiredImageName = bass_treb + map[self.yscale]
 		if desiredImageName not in self.clefimgs:
 			self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
 		
-		
-		#disregard x 
-		xposition = self.cvClefs.winfo_width()/2
-		yposition = self.coord(x,y)[1]
-		if bass_treb=='bass': xposition -= 0.5
+		if bass_treb=='bass': 
+			xposition = (self.cvClefs.winfo_width()/2) - 0.5
+			yposition = self.coord(0, -8.0)[1]
+		else:
+			xposition = (self.cvClefs.winfo_width()/2)
+			yposition = self.coord(0, 7.5)[1]
 		self.cvClefs.create_image((xposition,yposition),image=self.clefimgs[desiredImageName])
-		#~ if bass_treb=='bass': self.cvClefs.create_image((xposition,yposition),image=self.imgbassclef)
-		#~ else: self.cvClefs.create_image((xposition,yposition),image=self.imgtrebleclef)
 			
 
 if __name__=='__main__':
 	class TestApp():
 		def __init__(self, root):
 			root.title('Testing score view') #padx='0m'
-			frameTop = Frame(root, height=400)
+			
+			frameTop = Frame(root, height=400) ;frameTop['background']='white'
 			frameTop.pack(expand=YES, fill=BOTH)
 			self.score = ScoreViewCanvasTk(frameTop, 1,3 )
 			self.score.pack(expand=YES, fill=BOTH)

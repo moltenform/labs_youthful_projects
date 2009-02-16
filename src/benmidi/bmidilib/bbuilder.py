@@ -192,7 +192,7 @@ class BMidiBuilder():
 		for simplenote in self.notes:
 			startevt = bmidilib.BMidiEvent()
 			startevt.type = 'NOTE_ON'
-			startevt.time = simplenote.time * tickscale 
+			startevt.time = int(round(simplenote.time * tickscale ))
 			startevt.channel = channel
 			startevt.pitch = simplenote.pitch
 			startevt.velocity = simplenote.velocity
@@ -200,7 +200,7 @@ class BMidiBuilder():
 			
 			endevt = bmidilib.BMidiEvent()
 			endevt.type = 'NOTE_ON'
-			endevt.time = (simplenote.time + simplenote.dur) * tickscale 
+			endevt.time = int(round((simplenote.time + simplenote.dur) * tickscale ))
 			endevt.channel = channel
 			endevt.pitch = simplenote.pitch
 			endevt.velocity = 0

@@ -3,9 +3,9 @@
 bmidilib.py , code for reading/creating midi files in Python
 Ben Fisher, 2008
 Based on midi.py, placed into the public domain in December 2001 by Will Ware
-But has a different class structure, and a different way of representing note events
+
 Tested on a good variety of files. The midi events output are identical, although sometimes the file size is slightly larger. Maybe this has to do with time deltas.
-See bbuilder for an example of how to make midi files with these classes.
+See bbuilder.py for an example of how to make midi files with these classes.
 
 Class Hierarchy:
 BMidiFile
