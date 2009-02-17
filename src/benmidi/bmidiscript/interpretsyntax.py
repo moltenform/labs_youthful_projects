@@ -1,5 +1,5 @@
 '''
-Actual schematic of accepted syntax for a part of a note
+Make an actual schematic of accepted syntax for a part of a note
 
 
 
@@ -9,17 +9,32 @@ FullNote = ('.') | (
 Pitch = 
 
 
+*test pitch bend
+*test tracks
+*add directives
+
 lowernotes = one of 'abcdefg' 
 uppernotes = one of 'ABCDEFG'
 
+(tempo 120) --multiplied by 4, because we do 8th notes and such
+
+(voice "flute")
+(voice 74)
+(voice 1 "flute") //track 0
+(voice 2 "flute") //track 1
+
+(volume 
 
 
-
-Note that /c/ can't have accent information. /c/! is not allowed. also chords like /[c|e]/ aren't allowed. and no /o/ percusision. maybe sometime else.
+Note that /c/ can't have accent information. /c/! is not allowed. also chords like /[c|e]/ aren't allowed. maybe sometime else.
+/o/ percussion now allowed
 you can set volume events though, maybe
 Note [.|c] is illegal
 
-
+I use [0:1] so often because [0] fails if string is empty, [0:1] is same but returns empty string if string is empty
+Careful: 
+'' in 'abc' -> true, empty string matches inside. 
+test[0:1] in 'abc' -> true. this is NOT WANTED.
 '''
 Debug=True
 
@@ -64,8 +79,8 @@ class Interp():
 		
 		#create tracks
 		self.trackObjs = [bbuilder.BMidiBuilder() for i in range(Maxtracks)] #eventually, will be assigned different channels, but not yet.
-		self.state_octave = [5 for i in range(Maxtracks)] #keeps track of current octave for each track
-		for trackobj in self.trackObjs: trackobj.currentBend = 0
+		self.state_octave = [4 for i in range(Maxtracks)] #keeps track of current octave for each track
+		for trackobj in self.trackObjs: trackobj.currentBend = 0; trackobj.tempo = 400;  trackobj.addFasterTempo = True #secret undocumented un-understood event
 		self.haveSeenNotes = False #have we seen any notes yet?
 		for line in lines:
 			line = line.strip()
@@ -100,7 +115,7 @@ class Interp():
 			trackobj.notes = [note for note in trackobj.notes if (hasattr(note,'pitch') and note.pitch!=0)]
 		
 		#join all of the tracks, returning a midifile
-		mfile = bbuilder.buildMidi(actualtracks)
+		mfile = bbuilder.build_midi(actualtracks)
 		print mfile
 		return mfile
 		
@@ -129,6 +144,7 @@ class Interp():
 			result, s = self.pullFullNoteSet(s, track)
 			if result: continue
 			
+			if s and s[0]=='(': raise InterpException('Directives like (voice "flute") can only appear on their own line.')
 			raise InterpException('Cannot parse beginning at string %s'%s)
 		
 		return True
@@ -156,6 +172,11 @@ class Interp():
 		
 		#now, inside should be a valid pitch. (can't have any duration/accent information, though).
 		result, leftover = self.pullPitch(inside, track)
+		
+		if not result:
+			#perhaps it is a percussion event.
+			result, leftover = self.pullPitchPercussion(inside, track)
+		
 		if not result: raise InterpException('Invalid note inside shortnote-set %s'%s)
 		if leftover != '': raise InterpException('Invalid note, something after note inside shortnote-set %s'%s)
 		
@@ -170,6 +191,16 @@ class Interp():
 		if Debug: print 'pullFullNotePerc:::'+s
 		if not s: return False, s
 			
+		res, remaining = self.pullPitchPercussion(s,track)
+		if not res:
+			return False, remaining
+		
+		#now, modify the pitch that was created, optionally. allow for duration.
+		_, remaining = self.pullPiecesVolumeDurationOptional(remaining, track, False)
+		
+		return True, remaining
+		
+	def pullPitchPercussion(self, s, track):
 		percmap = {'o':36 ,'s':38 ,'*':39 ,'=':42 ,'O':43 ,'+':46 ,'0':47 ,'x':49 ,'{}':52,'@':56 ,'X':57 ,'M':67 ,'m':68 ,'w':71 ,'W':72 }
 		found = None
 		for key in percmap:
@@ -179,15 +210,10 @@ class Interp():
 		if found==None:
 			return False, s
 			
-		_, remaining = eatChars(s, key)
+		_, remaining = eatChars(s, len(key))
 		notenumber = percmap[key]
 		self.trackObjs[track].note(notenumber, self.normalNoteDuration, percussion=True) #will go into channel 10, percussion
-		
-		#now, modify the pitch that was created, optionally. allow for duration.
-		_, remaining = self.pullPiecesVolumeDurationOptional(remaining, track, False)
-		
 		return True, remaining
-		
 		
 	
 	def pullFullNote(self,s, track):
@@ -196,7 +222,7 @@ class Interp():
 			return False,s
 			
 		remaining = s
-		if remaining[0]=='.':
+		if remaining and remaining[0]=='.':
 			_, remaining = eatChars(s, 1)
 			# a rest. doesn't allow duration or anything afterwards, so special-case it.
 			# rests are notes with pitch 0. this is so that anything like // trying to modify the last note has something to work with
@@ -225,7 +251,7 @@ class Interp():
 		if otherIndex==-1: raise InterpException('Could not find closing ] for expression %s'%s)
 		
 		inside, remaining = eatChars(remaining, otherIndex)
-		remaining = eatChars(remaining, 1) #eat the closing ]
+		_,remaining = eatChars(remaining, 1) #eat the closing ]
 		
 		#now process the inside.
 		insideParts = inside.split('|') #each part should be a note
@@ -234,12 +260,17 @@ class Interp():
 		for part in insideParts:
 			#we must have a pitch
 			result, leftover = self.pullPitch(part, track)
+			
+			if not result:
+				#perhaps it is a percussion event.
+				result, leftover = self.pullPitchPercussion(part, track)
+			
 			if not result: raise InterpException('Invalid note inside note-set %s'%s)
 			if leftover != '': raise InterpException('Invalid note, something after note inside note-set %s'%s)
 			
-			self.objTracks[track].rewind() #rewind, so that next note is placed on top.
+			self.trackObjs[track].rewind() #rewind, so that next note is placed on top.
 		#go forward to compensate for last rewind
-		self.objTracks[track].rest( self.objTracks[track].notes[-1].duration )
+		self.trackObjs[track].rest( self.trackObjs[track].notes[-1].duration )
 		
 		#now, modify the pitches that were created, optionally
 		_, remaining = self.pullPiecesVolumeDurationOptional(remaining, track, len(insideParts))
@@ -266,7 +297,7 @@ class Interp():
 				self.trackObjs[track].rest( n*self.normalNoteDuration)  #advance time to end of note
 			else:
 				self.trackObjs[track].rewind() #go back to start of notes (assumes last nNotes are same length which should be case)
-				for index in range(nNotes):
+				for index in range(nNotesMultiple):
 					self.trackObjs[track].notes[-1 - index].duration = n*self.normalNoteDuration
 				self.trackObjs[track].rest( n*self.normalNoteDuration)  #advance time to end of note
 		
@@ -276,14 +307,14 @@ class Interp():
 		elif remaining.startswith('!'): changeLastVolume(100); _, remaining = eatChars(remaining, 1)
 		elif remaining.startswith('??'): changeLastVolume(20); _, remaining = eatChars(remaining, 2)
 		elif remaining.startswith('?'): changeLastVolume(40); _, remaining = eatChars(remaining, 1)
-		if remaining[0] in '!?': raise InterpException('Too many volume modifiers, c!! allowed but not c!!!')
+		if remaining and remaining[0] in '!?': raise InterpException('Too many volume modifiers, c!! allowed but not c!!!')
 		
 		# modify duration of note c,,		
 		duration = 1
-		while remaining[0]==',':
+		while remaining and remaining[0]==',':
 			_, remaining = eatChars(remaining, 1)
 			duration += 1
-		if duration!=1: changeLastDuration(addToDuration)
+		if duration!=1: changeLastDuration(duration)
 		
 		return True, remaining
 	
@@ -297,7 +328,7 @@ class Interp():
 		_, remaining = eatChars(remaining, 2)
 		
 		snumber = ''
-		while remaining[0] in '0123456789':
+		while remaining and remaining[0] in '0123456789':
 			c, remaining = eatChars(remaining, 1)
 			snumber += c
 		if snumber=='': raise InterpException('Pitch bend: Expected a number, as in c~>25')
@@ -305,7 +336,7 @@ class Interp():
 		if targetBend <-100 or targetBend > 100: raise InterpException('Pitch bend: Out of range, -100 to 100')
 		
 		bStaydetuned = False
-		if remaining[0]=='~': bStaydetuned=True; _, remaining = eatChars(remaining, 1)
+		if remaining and remaining[0]=='~': bStaydetuned=True; _, remaining = eatChars(remaining, 1)
 			
 		#now make some pitch bends
 		savedTime= self.trackObjs[track].currentTime
@@ -316,13 +347,13 @@ class Interp():
 		timeInc = float(dur) / float(steps)
 		bendInc = (targetBend-prevBend) / float(steps)
 		for _ in range(steps):
-			self.trackObjs[track].insertPitchBendEvent(prevBend)
+			self.trackObjs[track].insertPitchBendEvent(0) #prevBend
 			self.trackObjs[track].rest(timeInc)
 			prevBend += bendInc
 			
 		#restore time and, by default, restore pitch
 		self.trackObjs[track].currentTime = savedTime
-		if not bStaydetuned: self.trackObjs[track].insertPitchBendEvent(0); self.trackObjs[track].currentBend = 0
+		if not bStaydetuned: self.trackObjs[track].insertPitchBendEvent(1); self.trackObjs[track].currentBend = 0
 		else: self.trackObjs[track].currentBend = targetBend
 		
 		return True, remaining
@@ -340,15 +371,15 @@ class Interp():
 		# Parse accidentals, like c# , c+, c-, and so on
 		hasAccidental = False #don't allow multiple accidentals like Ab#
 		if noteletter in 'ABCDEFG':
-			if remaining[0] == 'b' and not hasAccidental:  #we allow Ab to mean a flat, but not ab to mean a flat. kind of a special case.
+			if remaining and remaining[0] == 'b' and not hasAccidental:  #we allow Ab to mean a flat, but not ab to mean a flat. kind of a special case.
 				pitchnumber -= 1
 				_, remaining = eatChars(remaining, 1)
 				hasAccidental = True
-		if (remaining[0] == '#' or remaining[0]=='+') and not hasAccidental:
+		if remaining and (remaining[0] == '#' or remaining[0]=='+') and not hasAccidental:
 			pitchnumber += 1
 			_, remaining = eatChars(remaining, 1)
 			hasAccidental = True
-		if (remaining[0] == '-' ) and not hasAccidental:
+		if (remaining and remaining[0] == '-' ) and not hasAccidental:
 			pitchnumber -= 1
 			_, remaining = eatChars(remaining, 1)
 			hasAccidental = True
@@ -384,13 +415,13 @@ class Interp():
 			hasOctave = True
 		if remaining.startswith("_"): raise InterpException("Limit of 3 octave tics, c___ is allowed but not c____.")
 		
-		if remaining[0] in '123456789' and not hasOctave:
+		if remaining and remaining[0] in '123456789' and not hasOctave:
 			octave = int(remaining[0])
 			_, remaining = eatChars(remaining, 1)
 			hasOctave = True
 			self.state_octave[track] = octave #store the octave we've seen
 			
-		finalpitch = pitchnumber + octave*12
+		finalpitch = pitchnumber + (octave+1)*12
 		self.trackObjs[track].note(finalpitch, self.normalNoteDuration)
 		return True, remaining
 		
@@ -402,6 +433,7 @@ class Interp():
 	
 if __name__=='__main__':
 	inter = Interp()
-	inter.go('\na b c\n')
+	#~ inter.go('\ncdefg\n')
+	inter.go('c,d,e,')
 
 
