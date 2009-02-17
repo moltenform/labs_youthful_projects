@@ -33,6 +33,7 @@ class ScoreViewFrame(Frame):
 	defaultHeight=200
 	completeWidth = None #not known yet
 	completeHeight = 200
+	clefWidth = 30
 	
 	pixelsPerTick = None #not known yet
 	
@@ -43,6 +44,7 @@ class ScoreViewFrame(Frame):
 		
 		self.opts = opts
 		self.trackdata = trackdata
+		if 'prefer_flats' in opts and opts['prefer_flats']: self.prefersharpflat = 'b'
 		
 		# Calculate scaling factors
 		assert self.yScale >= 2 and self.yScale <= 5
@@ -55,11 +57,7 @@ class ScoreViewFrame(Frame):
 		measureWidth = visibleWidth/desiredMeasuresVisible
 		self.pixelsPerTick = float(measureWidth)/float(measureInTicks)
 		
-		# get time of last note-off event, when song stops playing
-		if len(trackdata.notelist)==0: self.lastTick = 100
-		else: self.lastTick = trackdata.notelist[-1].endEvt.time 
-		self.completeWidth = int(round(self.pixelsPerTick * self.lastTick))
-		print self.completeWidth
+		self.calculateCompleteWidth()
 		
 		# So the visible boundaries of the canvas are defaultWidth by defaultHeight 
 		# but the actual boundaries are completeWidth by completeHeight
@@ -68,7 +66,7 @@ class ScoreViewFrame(Frame):
 		self.redraw()
 
 	def scaleTicksToPixels(self, x): #This is only used when finding where to place a note, but not used when placing sharp symbols /relative measurements
-		return self.pixelsPerTick * x
+		return self.pixelsPerTick * x + self.clefWidth
 	def scaleYPositionToPixels(self, y):  #These coordinates are centered around the middle between the staffs. each unit is half of distance between two staff lines.
 		return (self.completeHeight/2.0) - y*self.yScale
 	def zoomInY(self):
@@ -76,25 +74,25 @@ class ScoreViewFrame(Frame):
 	def zoomOutY(self):
 		if self.yScale > 2:  self.yScale-=1;    self.redraw()
 	def zoomInX(self):
-		self.pixelsPerTick *= 2.0;   self.redraw()
+		self.pixelsPerTick *= 1.25;   self.redraw()
 	def zoomOutX(self):
-		self.pixelsPerTick *= 0.5;   self.redraw()
+		self.pixelsPerTick /= 1.25;   self.redraw()
 	
 	def shiftOctaveUp(self): self.shiftnotes+=12; self.redraw()
-	def shiftOctaveDown(self): self.shiftnotes-=12; self.redraw(); print (self.cv.xview()); print (self.cv.xview('moveto'))
-
-	def redraw(self):
-		
+	def shiftOctaveDown(self): self.shiftnotes-=12; self.redraw()
+	def calculateCompleteWidth(self):
 		# get time of last note-off event, when song stops playing
 		if len(self.trackdata.notelist)==0: self.lastTick = 100
 		else: self.lastTick = self.trackdata.notelist[-1].endEvt.time  + 100
-		self.completeWidth = int(round(self.pixelsPerTick * self.lastTick))
+		self.completeWidth = int(round(self.pixelsPerTick * self.lastTick)) + self.clefWidth
+		
+	def redraw(self):
+		#update complete size of canvas (the pixelsPerTick could have changed)
+		self.calculateCompleteWidth()
 		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
-		print self.completeWidth
 		
 		self.clear()
 		self.drawBackground(self.opts)
-		self.myRect = self.cv.create_rectangle((0, 0, 20, self.completeHeight), fill='red')
 		
 		for note in self.trackdata.notelist:
 			self.drawNote( note.pitch, note.time, note.time+note.duration)
@@ -107,7 +105,6 @@ class ScoreViewFrame(Frame):
 		#draw staff lines
 		def drawstaffline(y): 
 			self.draw_line(0, y, self.completeWidth, y)
-			self.draw_clef_staffline(y)
 		for i in range(1,6): 
 			drawstaffline(i*2 + 2)
 			drawstaffline(-i*2 - 2)
@@ -119,7 +116,7 @@ class ScoreViewFrame(Frame):
 			#~ self.draw_faintline(xPixels, 10, xPixels, -10)
 			self.draw_line(xPixels, 12, xPixels, -12)
 		if 'show_barlines' in self.opts and self.opts['show_barlines']:
-			for xTicks in range(0, self.lastTick, 4 * self.ticksPerQtrNote):
+			for xTicks in range(4 * self.ticksPerQtrNote, self.lastTick, 4 * self.ticksPerQtrNote): #doesn't start at 0, to not draw first line
 				drawbarline(xTicks)
 		
 
@@ -205,13 +202,6 @@ class ScoreViewFrame(Frame):
 			sharpflat = ''
 		return (posy, sharpflat)
 		
-	def myxview(self, *args):
-		#~ print args
-		
-		self.cv.xview(*args)
-		scoreview_util.makeThread(self.threadEvents,tuple())
-	def myyview(self, *args):
-		self.cv.yview(*args)
 		
 	def threadEvents(self, g=None):
 		if self.ripe!=True: return
@@ -228,28 +218,24 @@ class ScoreViewFrame(Frame):
 		frameGrid = Frame(self)
 		frameGrid.pack(expand=YES, fill=BOTH)
 		
-		self.cvClefs = Canvas(frameGrid, bd=1, background='white', width=1, height=self.defaultHeight)
 		self.cv = Canvas(frameGrid, bd=1, background='white', width=self.defaultWidth, height=self.defaultHeight)
-		hScroll = Scrollbar(frameGrid, orient=HORIZONTAL, command=self.myxview)
-		vScroll = Scrollbar(frameGrid, orient=VERTICAL, command=self.myyview)
+		hScroll = Scrollbar(frameGrid, orient=HORIZONTAL, command=self.cv.xview)
+		vScroll = Scrollbar(frameGrid, orient=VERTICAL, command=self.cv.yview)
 		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
 		self.cv.configure(xscrollcommand=hScroll.set, yscrollcommand=vScroll.set)
 		
-		self.cvClefs.grid(row = 0, column=0, sticky='wns', ipadx=0)
-		self.cv.grid(row = 0, column=1, sticky='nsew', ipadx=0)
-		vScroll.grid(row=0, column=2, sticky='ns')
-		hScroll.grid(row=1, column=0, columnspan=2, sticky='we')
+		self.cv.grid(row = 0, column=0, sticky='nsew', ipadx=0)
+		vScroll.grid(row=0, column=1, sticky='ns')
+		hScroll.grid(row=1, column=0, sticky='we')
 		
 		frameGrid.grid_rowconfigure(0, weight=1)
-		frameGrid.grid_columnconfigure(1, weight=1)
-		
-		
+		frameGrid.grid_columnconfigure(0, weight=1)
 		
 		
 		self.clefimgs = {}
 		
 	
-	def clear(self): self.cvClefs.delete(ALL); self.cv.delete(ALL)
+	def clear(self): self.cv.delete(ALL)
 	#The following are unusual: The Y coordinates are scaled, since they are not in pixels. The X coordinates are not scaled, they are already in pixels
 	def coord(self, x,y):
 		return x, self.scaleYPositionToPixels(y)
@@ -259,8 +245,6 @@ class ScoreViewFrame(Frame):
 		self.cv.create_line(self.coordrect(x0, y0, x1, y1)  )
 	def draw_faintline(self, x0, y0, x1, y1):
 		self.cv.create_line(self.coordrect(x0, y0, x1, y1),fill="gray", dash=(4, 4)  )
-	def draw_clef_staffline(self, y):
-		self.cvClefs.create_line(self.coordrect(0, y, self.cvClefs.winfo_width(), y)  )
 	def draw_text(self, x, y, s):
 		textFormat = ('Times New Roman', 9, 'normal')
 		self.cv.create_text(self.coord(x,y),text=s, anchor='w', font=textFormat )
@@ -268,24 +252,21 @@ class ScoreViewFrame(Frame):
 	def draw_oval(self,x0, y0, x1, y1): 
 		self.cv.create_oval(self.coordrect(x0, y0, x1, y1), fill='black' )
 	def draw_clef(self, bass_treb):
-		pass
-		#~ map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
-		#~ desiredImageName = bass_treb + map[self.yScale]
-		#~ if desiredImageName not in self.clefimgs:
-			#~ self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
+		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
+		desiredImageName = bass_treb + map[self.yScale]
+		if desiredImageName not in self.clefimgs:
+			self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
 		
-		#~ if bass_treb=='bass': 
-			#~ xposition = (self.cvClefs.winfo_width()/2) - 0.5 + 20
-			#~ yposition = self.coord(0, -8.0)[1]
-		#~ else:
-			#~ xposition = (self.cvClefs.winfo_width()/2) + 20
-			#~ yposition = self.coord(0, 7.5)[1]
-		#~ self.cv.create_image((xposition,yposition),image=self.clefimgs[desiredImageName])
-	
+		if bass_treb=='bass': 
+			xposition = 12
+			yposition = self.scaleYPositionToPixels(-8.0)
+		else:
+			xposition = 12
+			yposition = self.scaleYPositionToPixels(7.5)
+		self.cv.create_image((xposition,yposition),image=self.clefimgs[desiredImageName])
 	
 	#~ def getwidth(self): return self.cv.winfo_width()
 	#~ def getheight(self): return self.cv.winfo_height()
-			
 			
 		
 	
@@ -307,8 +288,8 @@ if __name__=='__main__':
 	import bmidilib
 	
 	newmidi = bmidilib.BMidiFile()
-	#~ newmidi.open('simple.mid', 'rb')
-	newmidi.open('..\\midis\\16keys.mid', 'rb')
+	newmidi.open('simple.mid', 'rb')
+	#~ newmidi.open('..\\midis\\16keys.mid', 'rb')
 	newmidi.read()
 	newmidi.close()
 	

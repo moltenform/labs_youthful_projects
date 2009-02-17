@@ -1,7 +1,3 @@
-class NoteRenderInfo():
-	def __init__(self, posy, sharpflat):
-		self.posy = posy
-		self.sharpflat = sharpflat
 		
 		
 class Callable():
@@ -14,7 +10,14 @@ class Callable():
 	def __str__(self):
 		return self.func.__name__
 
-
+def makeThread(fn, args):
+	import threading
+	class MyThread(threading.Thread):
+		"""this is a wrapper for threading.Thread that improves the syntax for creating and starting threads - Allen Downey"""
+		def __init__(self, target, *args):
+			threading.Thread.__init__(self, target=target, args=args)
+			self.start()
+	MyThread(fn, args)
 
 def ask_openfile(initialfolder='.',title='Open',types=None):
 	"""Open a native file dialog that asks the user to choose a file. The path is returned as a string.

@@ -60,14 +60,16 @@ class App:
 		menuFile.add_separator()
 		menuFile.add_command(label="Exit", command=root.quit, underline=1)
 		
-		self.objOptionsDuration = IntVar(); self.objOptionsDuration.set(1)
+		self.objOptionsDuration = IntVar(); self.objOptionsDuration.set(0)
 		self.objOptionsStems = IntVar(); self.objOptionsStems.set(1)
-		self.objOptionsBarlines = IntVar(); self.objOptionsBarlines.set(0)
+		self.objOptionsBarlines = IntVar(); self.objOptionsBarlines.set(1)
+		self.objOptionsFlats = IntVar(); self.objOptionsFlats.set(0)
 		menuOptions = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="Options", menu=menuOptions, underline=0)
 		menuOptions.add_checkbutton(label="Show Durations", variable=self.objOptionsDuration, underline=0, onvalue=1, offvalue=0)
 		menuOptions.add_checkbutton(label="Show Stems", variable=self.objOptionsStems, underline=5, onvalue=1, offvalue=0)
 		menuOptions.add_checkbutton(label="Show Barlines", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
+		menuOptions.add_checkbutton(label="Prefer flats", variable=self.objOptionsFlats, underline=7, onvalue=1, offvalue=0)
 		
 		
 		menuHelp = Menu(menubar, tearoff=0)
@@ -98,7 +100,7 @@ class App:
 		
 		#close any open views
 		for key in self.listviews: self.listviews[key].destroy()
-		for key in self.scoreviews: self.listviews[key].destroy()
+		for key in self.scoreviews: self.scoreviews[key].destroy()
 		self.listviews = {}; self.scoreviews = {}
 		
 		#hide all of the old widgets
@@ -180,10 +182,14 @@ class App:
 		if n in self.scoreviews:
 			pass #already open
 		else:
+			if len(self.objMidi.tracks[n].notelist)==0:
+				scoreview_util.alert('No notes to show in this track.')
+				return
 			opts = {}
 			opts['show_durations'] = self.objOptionsDuration.get()
 			opts['show_stems'] = self.objOptionsStems.get()
 			opts['show_barlines'] = self.objOptionsBarlines.get()
+			opts['prefer_flats'] = self.objOptionsFlats.get()
 			
 			top = Toplevel()
 			window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n],self.objMidi.ticksPerQuarterNote, opts)
