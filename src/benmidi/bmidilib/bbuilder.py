@@ -121,7 +121,7 @@ class BMidiBuilder():
 			if n==None: 
 				raise BuilderException('Unable to interpret note name , use the format "c#" or "c#4".')
 		assert duration>0
-		assert n>0
+		assert n>=0
 		assert velocity>0 and velocity<=127
 		self.notes.append( SimpleNote(n, self.currentTime, duration, velocity, percussion=percussion) )
 		self.currentTime += duration
@@ -160,15 +160,9 @@ class BMidiBuilder():
 		try:
 			found = int(instrument)
 		except ValueError:
-			instrument = instrument.lower()
+			found = bmidilib.bmidiconstants.GM_instruments_lookup(instrument)
+			if found==None: raise BuilderException('Unable to find instrument %s, look at the end of "bmidiconstants.py" to see list of instruments, or find an online chart of midi instrument numbers.')
 			
-			found = None
-			for i in xrange(len(allinstruments)):
-				if instrument in allinstruments[i].lower(): #inefficient to .lower every setInstrument call, but whatever
-					found = i; break
-			if found==None:
-				raise BuilderException('Unable to find instrument %s, look at the end of "bmidiconstants.py" to see list of instruments, or find an online chart of midi instrument numbers.')
-		
 		self.instrument = found
 		return allinstruments[found] #returns string representation of instrument name
 			
@@ -228,6 +222,7 @@ class BMidiBuilder():
 			evt.data = self.instrument
 			evtlist.append(evt)
 		
+		
 		for simplenote in self.notes:
 			if isinstance(simplenote, bmidilib.BMidiEvent):
 				simplenote.channel = channel #correct channel events at build time.
@@ -280,6 +275,13 @@ def build_midi(builderObjects):
 	file.tracks.append(cnd)
 	cnd.events.append( makeTracknameEvent())
 	#Here is where the tempo event would go, if we cared about precise timing
+	if hasattr(builderObjects[0],'addFasterTempo') and builderObjects[0].addFasterTempo:
+		evt = bmidilib.BMidiEvent()
+		evt.type = 'SET_TEMPO'
+		evt.time = 0
+		evt.data = '\x02\x9d\xa4'
+		cnd.events.append(evt)
+	
 	cnd.events.append( makeEndTrackEvent(0))
 	
 	for i in range(len(builderObjects)):
@@ -308,21 +310,30 @@ class SimpleNote():
 
 
 if __name__=='__main__':
-	t1 = BMidiBuilder()
-	t1.tempo = 400
-	t1.setInstrument('star theme')
-	thelen= 20
-	t1.note(60, thelen)
+	b= BMidiBuilder()
+	#~ b.addFasterTempo = True
+	b.setInstrument('star theme')
+	b.note('c',1)
+	b.note('d',1)
+	b.note('e',1)
+	b.note('f',1)
+	b.save('out.mid')
+	
+	#~ t1 = BMidiBuilder()
+	#~ t1.tempo = 400
+	#~ t1.setInstrument('star theme')
+	#~ thelen= 20
+	#~ t1.note(60, thelen)
 	
 	
-	t1.rewind(); steps = 100
-	for i in range(0,99,1):
-		t1.insertPitchBendEvent(i)
-		t1.rest(0.05)
+	#~ t1.rewind(); steps = 100
+	#~ for i in range(0,99,1):
+		#~ t1.insertPitchBendEvent(i)
+		#~ t1.rest(0.05)
 	
-	t1.insertPitchBendEvent(0)
+	#~ t1.insertPitchBendEvent(0)
 	
-	t1.save('out.mid')
+	#~ t1.save('out.mid')
 	
 	
 	#~ t1 = BMidiBuilder()

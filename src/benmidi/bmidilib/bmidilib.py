@@ -211,7 +211,7 @@ class BMidiEvent():
 				s+='%d %s'%(self.data, iname)
 			
 			elif self.type=='PITCH_BEND':
-				bendamt = midiutil.dataToPitchBend(self.pitch,self.velocity)
+				bendamt = dataToPitchBend(self.pitch,self.velocity)
 				if bendamt>=0: s+=' +%d'%bendamt
 				else: s+=' %d'%bendamt
 				
