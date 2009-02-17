@@ -8,23 +8,40 @@ FullNote = ('.') | (
 
 Pitch = 
 
+bad input:
+c d e 
 
-*test pitch bend
-*test tracks
-*add directives
+>> c d e 
+
+c d e 
+>> c d e 
+
+*fix pitch bend
 
 lowernotes = one of 'abcdefg' 
 uppernotes = one of 'ABCDEFG'
 
-(tempo 120) --multiplied by 4, because we do 8th notes and such
+(tempo 120) --roughly tempo of qtr notes, notes are by default 8th notes and such
 
 (voice "flute")
 (voice 74)
 (voice 1 "flute") //track 0
 (voice 2 "flute") //track 1
 
-(volume 
+(volume 1 100) #out of 100
 
+(balance 1 right 50)
+(balance 1 left 50)
+
+
+(balance right 100)
+cde
+(balance left 100)
+cde
+(balance left 0)
+cde
+(balance right 0)
+cde
 
 Note that /c/ can't have accent information. /c/! is not allowed. also chords like /[c|e]/ aren't allowed. maybe sometime else.
 /o/ percussion now allowed
@@ -73,9 +90,10 @@ class Interp():
 		#check for misplaced >>. they can only occur at the beginning of a line.
 		found = re.findall(r'[^\n]>>', s)
 		if found:  raise InterpException('The characters >> can only be at start of line. This was not the case: "%s"'%found[0])
-		s = s.replace('\n>>','>>') #combine them onto one line.
+		s = s.replace('\n>>','>>') #combine them onto one line. NOTE though that the first should be treated normally.
 		
 		lines=s.split('\n')
+		if Debug: print lines
 		
 		#create tracks
 		self.trackObjs = [bbuilder.BMidiBuilder() for i in range(Maxtracks)] #eventually, will be assigned different channels, but not yet.
@@ -87,7 +105,7 @@ class Interp():
 			if not line:
 				continue
 			elif line.startswith('('):
-				interpretControlString(line)
+				self.interpretControlString(line)
 			elif line.startswith('>>'):
 				self.haveSeenNotes = True
 				parts = line.split('>>')
@@ -96,20 +114,25 @@ class Interp():
 				#each track keeps track of its own currentTime. At the end, though, we have to sync them all back up.
 				longestTimeSeen = -1
 				for i in range(len(parts)):
+					if Debug: print 'TRACK %d'%i
 					self.interpretMusicString(parts[i], i)
 					if self.trackObjs[i].currentTime > longestTimeSeen: longestTimeSeen = self.trackObjs[i].currentTime
 				
 				# restore track sync for all of the tracks.
-				for i in range(Maxtracks): self.trackObjs[i].currentTime = longestTimeSeen
+				for trackobj in self.trackObjs: trackobj.currentTime = longestTimeSeen
 			else:
 				self.haveSeenNotes = True
 				self.interpretMusicString( line, 0 )
 				
 				# keep track sync for all of the tracks.
-				longestTimeSeen = self.trackObjs[0].currentTime
-				for i in range(Maxtracks): self.trackObjs[i].currentTime = longestTimeSeen
+				lastTimeSeen = self.trackObjs[0].currentTime
+				for trackobj in self.trackObjs: trackobj.currentTime = lastTimeSeen
 				
 		actualtracks = [trackobj for trackobj in self.trackObjs if len(trackobj.notes) > 0]
+		if len(actualtracks) == 0:
+			#no notes found, so just stop
+			return None
+			
 		# convert notes of pitch 0 to rests.
 		for trackobj in actualtracks:
 			trackobj.notes = [note for note in trackobj.notes if (hasattr(note,'pitch') and note.pitch!=0)]
@@ -121,14 +144,88 @@ class Interp():
 		
 		
 	def interpretControlString(self,s):
-		assert s.startsWith('(')
-		if not s.endsWith(')'): raise InterpException('No closing ) for opening (, line %s'%s)
+		assert s.startswith('(')
+		if not s.endswith(')'): raise InterpException('No closing ) for opening (, line %s'%s)
 		# parse this lisp-like expression.
-		# use class state,
-		self.insertChangeInstrumentEvent(self.currentTime)
-		
-		#~ if setting=='tempo' and self.haveSeenNotes:
-			#~ can't set the tempo after having notes. stop it.
+		inside = s[1:-1] #strips ( and )
+		parts = inside.split()
+		if parts[0]=='tempo':
+			if self.haveSeenNotes: raise InterpException('Setting tempo must come before notes %s'%s)
+			tempo = int(parts[1])
+			newtempo = int(round(tempo * 2.6666))
+			for trackobj in self.trackObjs: trackobj.tempo = newtempo
+		elif parts[0] in ('voice','volume'):
+			#note that we subtract 1 from the given track
+			if len(parts)==3: track=int(parts[1])-1; value = parts[2]
+			elif len(parts)==2: track = 0; value = parts[1]
+			else: raise InterpException('wrong # of args')
+			if parts[0]=='voice':
+				
+				try:
+					found = int(value)
+				except ValueError:
+					import bmidilib
+					#get the string, even if "acoustic bass", the space throws off parsing
+					if "'" in inside:
+						spl = inside.split("'")
+						if len(spl)!=3: raise InterpException('Apparently no closing quote in %s'%s)
+						instrument = spl[1]
+					elif '"' in inside:
+						spl = inside.split('"')
+						if len(spl)!=3: raise InterpException('Apparently no closing quote in %s'%s)
+						instrument = spl[1]	
+					else:
+						raise InterpException('Could not understand voice, maybe forgot to quote it. use syntax (voice "flute"), not %s'%s)
+					
+					instrument = instrument.lower()
+					
+					found = bmidilib.bmidiconstants.GM_instruments_lookup(instrument)
+					if found==None:
+						raise InterpException('Unable to find instrument %s, look at the end of "bmidiconstants.py" to see list of instruments, or find an online chart of midi instrument numbers.')
+				self.trackObjs[track].insertMidiEventInstrumentChange(found)
+			elif parts[0]=='volume':
+				import bmidilib
+				found = int(value)
+				if found<0 or found>100: raise InterpException('Volume out of range: 0-100')
+				v = int( (float(found)/100.0) * 127)
+				
+				evt = bmidilib.BMidiEvent()
+				evt.type='CONTROLLER_CHANGE'
+				evt.time = self.trackObjs[track].ourTimingToTicks(self.trackObjs[track].currentTime)
+				evt.channel=None #to be set later
+				evt.pitch = 0x07 #main volume
+				evt.velocity = v
+				self.trackObjs[track].notes.append(evt)
+			else:
+				raise InterpException("shouldn't be here.")
+				
+		elif parts[0]=='balance':
+			import bmidilib
+			if len(parts)==4: track=int(parts[1] - 1); side = parts[2]; value = parts[3]
+			elif len(parts)==3: track = 0; side = parts[1]; value = parts[2]
+			else: raise InterpException('wrong # of args')
+			
+			if side not in ('left','right'): raise InterpException('side must be either left or right.')
+			mult = -1 if side=='left' else 1
+			
+			value = int(value)
+			if value<0 or value>100: raise InterpException('Value out of range: 0-100')
+			
+			v = 64 + mult * int( (float(value)/100.0) * 63)
+			#~ v *=  #pos or neg
+			
+			evt = bmidilib.BMidiEvent()
+			evt.type='CONTROLLER_CHANGE'
+			evt.time = self.trackObjs[track].ourTimingToTicks(self.trackObjs[track].currentTime)
+			evt.channel=None #to be set later
+			evt.pitch = 0x0A #panpot
+			evt.velocity = v
+			self.trackObjs[track].notes.append(evt)
+			
+			
+		else:
+			raise InterpException('Unrecognized directive %s'%s)
+			
 
 	def interpretMusicString(self,s, track):
 		s = s.replace(' ','').replace('\t','')
