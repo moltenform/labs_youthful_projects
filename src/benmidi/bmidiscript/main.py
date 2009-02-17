@@ -7,6 +7,7 @@ halfhourhacks.blogspot.com
 from Tkinter import *
 
 import midiscript_util
+import interpretsyntax
 
 sys.path.append('..\\bmidilib')
 import bmidilib
@@ -23,7 +24,9 @@ class App:
 		self.lblStatus = Label(frameMain, text='Welcome.', background='white')
 		self.lblStatus.pack(side=TOP, anchor='n')
 		
-		tupfont = ('Verdana', 20, 'normal')
+		#~ tupfont = ('Verdana', 20, 'normal')
+		#~ tupfont = ('Lucida Console', 20, 'normal')
+		tupfont = ('Monaco', 20, 'normal')
 		self.txtMain = Text(frameMain, font=tupfont, width=30, height=10)
 		self.txtMain.pack(side=TOP,fill=BOTH, expand=True)
 		
@@ -47,9 +50,22 @@ class App:
 			return 'break'
 		
 		self.txtMain.bind('<Control-a>',lambda event: selectAll(self.txtMain), '+')
+		self.txtMain['wrap'] = NONE
 		
 		self.mode = 'tune' #as opposed to 'code'.
 		self.loadExample(0)
+		''' have a cached of stripped examples. then, when changing, check against this dict. if dict[alltext] thten:
+		also, place examples in a separate file that is read. 
+		example_name,code
+		---------------------
+		text of example here
+		====================
+		example_2
+		-----------
+		all of example here
+		===============
+							it assumes tunescript unless characters 'code'
+		'''
 		
 		
 	def create_menubar(self,root):
@@ -85,13 +101,15 @@ class App:
 		if not filename: return
 		
 		mfile = self.createMidiFile()
-		mfile.open(filename,'wb')
-		mfile.write()
-		mfile.close()
+		if mfile:
+			mfile.open(filename,'wb')
+			mfile.write()
+			mfile.close()
 	
 	def playMidi(self, evt=None):
 		mfile = self.createMidiFile()
-		bmidiplay.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
+		if mfile:
+			bmidiplay.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
 	
 		
 	def createMidiFile(self):
@@ -125,10 +143,12 @@ class App:
 			mfileobject = bbuilder.build_midi(res)
 		return mfileobject
 		
-		
-		
+
 	def createMidiFileTunescript(self, txt):
-		pass
+		inter = interpretsyntax.Interp()
+		mfile = inter.go(txt)
+		if mfile==None: return None
+		return mfile
 		
 	def getText(self):
 		return self.txtMain.get(1.0, END)

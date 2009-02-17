@@ -2,24 +2,10 @@
 Make an actual schematic of accepted syntax for a part of a note
 
 
-
 FullNote = ('.') | (   
-
-
 Pitch = 
 
-bad input:
-c d e 
 
->> c d e 
-
-c d e 
->> c d e 
-
-*fix pitch bend
-
-lowernotes = one of 'abcdefg' 
-uppernotes = one of 'ABCDEFG'
 
 (tempo 120) --roughly tempo of qtr notes, notes are by default 8th notes and such
 
@@ -48,10 +34,8 @@ Note that /c/ can't have accent information. /c/! is not allowed. also chords li
 you can set volume events though, maybe
 Note [.|c] is illegal
 
-I use [0:1] so often because [0] fails if string is empty, [0:1] is same but returns empty string if string is empty
 Careful: 
 '' in 'abc' -> true, empty string matches inside. 
-test[0:1] in 'abc' -> true. this is NOT WANTED.
 '''
 Debug=True
 
@@ -90,31 +74,38 @@ class Interp():
 		#check for misplaced >>. they can only occur at the beginning of a line.
 		found = re.findall(r'[^\n]>>', s)
 		if found:  raise InterpException('The characters >> can only be at start of line. This was not the case: "%s"'%found[0])
-		s = s.replace('\n>>','>>') #combine them onto one line. NOTE though that the first should be treated normally.
+		
 		
 		lines=s.split('\n')
-		if Debug: print lines
 		
 		#create tracks
 		self.trackObjs = [bbuilder.BMidiBuilder() for i in range(Maxtracks)] #eventually, will be assigned different channels, but not yet.
 		self.state_octave = [4 for i in range(Maxtracks)] #keeps track of current octave for each track
 		for trackobj in self.trackObjs: trackobj.currentBend = 0; trackobj.tempo = 400;  trackobj.addFasterTempo = True #secret undocumented un-understood event
 		self.haveSeenNotes = False #have we seen any notes yet?
-		for line in lines:
-			line = line.strip()
+		for nline in range(len(lines)):
+			line = lines[nline].strip()
 			if not line:
 				continue
 			elif line.startswith('('):
 				self.interpretControlString(line)
 			elif line.startswith('>>'):
 				self.haveSeenNotes = True
-				parts = line.split('>>')
+				
+				parts = [line]
+				nindex = nline
+				while lines[nindex+1].startswith('>>'): 
+					parts.append(lines[nindex+1])
+					lines[nindex+1] = '' #erase that one
+					nindex += 1
+				
 				if len(parts)>Maxtracks: raise InterpException("Exceeded maximum of %d tracks."%Maxtracks)
 				
 				#each track keeps track of its own currentTime. At the end, though, we have to sync them all back up.
 				longestTimeSeen = -1
 				for i in range(len(parts)):
 					if Debug: print 'TRACK %d'%i
+					_, parts[i] = eatChars(parts[i], 2) #remove the >> characters
 					self.interpretMusicString(parts[i], i)
 					if self.trackObjs[i].currentTime > longestTimeSeen: longestTimeSeen = self.trackObjs[i].currentTime
 				
@@ -135,7 +126,7 @@ class Interp():
 			
 		# convert notes of pitch 0 to rests.
 		for trackobj in actualtracks:
-			trackobj.notes = [note for note in trackobj.notes if (hasattr(note,'pitch') and note.pitch!=0)]
+			trackobj.notes = [note for note in trackobj.notes if not (isinstance(note,bbuilder.SimpleNote) and note.pitch==0)]
 		
 		#join all of the tracks, returning a midifile
 		mfile = bbuilder.build_midi(actualtracks)
@@ -201,7 +192,7 @@ class Interp():
 				
 		elif parts[0]=='balance':
 			import bmidilib
-			if len(parts)==4: track=int(parts[1] - 1); side = parts[2]; value = parts[3]
+			if len(parts)==4: track=int(parts[1])-1; side = parts[2]; value = parts[3]
 			elif len(parts)==3: track = 0; side = parts[1]; value = parts[2]
 			else: raise InterpException('wrong # of args')
 			
@@ -425,7 +416,7 @@ class Interp():
 		_, remaining = eatChars(remaining, 2)
 		
 		snumber = ''
-		while remaining and remaining[0] in '0123456789':
+		while remaining and remaining[0] in '-0123456789':
 			c, remaining = eatChars(remaining, 1)
 			snumber += c
 		if snumber=='': raise InterpException('Pitch bend: Expected a number, as in c~>25')
@@ -444,13 +435,13 @@ class Interp():
 		timeInc = float(dur) / float(steps)
 		bendInc = (targetBend-prevBend) / float(steps)
 		for _ in range(steps):
-			self.trackObjs[track].insertPitchBendEvent(0) #prevBend
+			self.trackObjs[track].insertPitchBendEvent(prevBend)
 			self.trackObjs[track].rest(timeInc)
 			prevBend += bendInc
 			
 		#restore time and, by default, restore pitch
 		self.trackObjs[track].currentTime = savedTime
-		if not bStaydetuned: self.trackObjs[track].insertPitchBendEvent(1); self.trackObjs[track].currentBend = 0
+		if not bStaydetuned: self.trackObjs[track].insertPitchBendEvent(0); self.trackObjs[track].currentBend = 0
 		else: self.trackObjs[track].currentBend = targetBend
 		
 		return True, remaining
