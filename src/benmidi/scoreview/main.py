@@ -179,30 +179,30 @@ class App:
 		return channelsSeen.keys()
 	
 	def openScoreView(self, n):
-		if n in self.scoreviews:
-			pass #already open
-		else:
-			if len(self.objMidi.tracks[n].notelist)==0:
-				scoreview_util.alert('No notes to show in this track.')
-				return
-			opts = {}
-			opts['show_durations'] = self.objOptionsDuration.get()
-			opts['show_stems'] = self.objOptionsStems.get()
-			opts['show_barlines'] = self.objOptionsBarlines.get()
-			opts['prefer_flats'] = self.objOptionsFlats.get()
-			
-			top = Toplevel()
-			window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n],self.objMidi.ticksPerQuarterNote, opts)
-			self.scoreviews[n] = top
+		#~ if n in self.scoreviews:
+			#~ pass #already open
+		#~ else:
+		if len(self.objMidi.tracks[n].notelist)==0:
+			scoreview_util.alert('No notes to show in this track.')
+			return
+		opts = {}
+		opts['show_durations'] = self.objOptionsDuration.get()
+		opts['show_stems'] = self.objOptionsStems.get()
+		opts['show_barlines'] = self.objOptionsBarlines.get()
+		opts['prefer_flats'] = self.objOptionsFlats.get()
+		
+		top = Toplevel()
+		window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n],self.objMidi.ticksPerQuarterNote, opts)
+		self.scoreviews[n] = top
 			
 	def openListView(self, n):
-		if n in self.listviews:
-			pass #already open
-		else:
-			opts = {}
-			top = Toplevel()
-			window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
-			self.listviews[n] = top
+		#~ if n in self.listviews:
+			#~ pass #already open
+		#~ else:
+		opts = {}
+		top = Toplevel()
+		window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
+		self.listviews[n] = top
 	
 root = Tk()
 app = App(root)

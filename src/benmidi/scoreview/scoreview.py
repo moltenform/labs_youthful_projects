@@ -6,7 +6,6 @@ class ScoreViewWindow():
 		top.title('Track %d Score'%tracknumber)
 		
 		frameTop = Frame(top, height=400)
-		frameTop['background']='white'
 		frameTop.pack(expand=YES, fill=BOTH)
 		
 		self.score = ScoreViewFrame(frameTop, trackdata, ticksPerQtrNote, opts)
@@ -64,6 +63,12 @@ class ScoreViewFrame(Frame):
 		
 		self.createWidgets()
 		self.redraw()
+		
+		# if the first note is off screen, scroll until it is in view. (half the screen)
+		if len(self.trackdata.notelist) and self.scaleTicksToPixels(self.trackdata.notelist[0].time) > self.defaultWidth+700 :
+			percentage = (self.scaleTicksToPixels(self.trackdata.notelist[0].time)- (self.defaultWidth/2)) / float(self.completeWidth)
+			self.cv.xview_moveto(percentage)
+			
 
 	def scaleTicksToPixels(self, x): #This is only used when finding where to place a note, but not used when placing sharp symbols /relative measurements
 		return self.pixelsPerTick * x + self.clefWidth
@@ -280,16 +285,13 @@ class ScoreViewFrame(Frame):
 
 if __name__=='__main__':
 			
-	def test(self):
-		print 'l'
-
 	
 	sys.path.append('..\\bmidilib')
 	import bmidilib
 	
 	newmidi = bmidilib.BMidiFile()
-	newmidi.open('simple.mid', 'rb')
-	#~ newmidi.open('..\\midis\\16keys.mid', 'rb')
+	#~ newmidi.open('simple.mid', 'rb')
+	newmidi.open('..\\midis\\16keys.mid', 'rb')
 	newmidi.read()
 	newmidi.close()
 	
@@ -301,8 +303,6 @@ if __name__=='__main__':
 	
 	app = ScoreViewWindow(root, 1, newmidi.tracks[1],newmidi.ticksPerQuarterNote, opts)
 	
-	#~ Button(app.frameTop, text='draw', command=app.score.redraw).pack()
-	#~ Button(app.frameTop, text='test', command=test).pack()
 	
 	root.mainloop()
 	
