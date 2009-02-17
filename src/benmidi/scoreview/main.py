@@ -186,7 +186,7 @@ class App:
 			opts['show_barlines'] = self.objOptionsBarlines.get()
 			
 			top = Toplevel()
-			window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n], opts)
+			window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n],self.objMidi.ticksPerQuarterNote, opts)
 			self.scoreviews[n] = top
 			
 	def openListView(self, n):
