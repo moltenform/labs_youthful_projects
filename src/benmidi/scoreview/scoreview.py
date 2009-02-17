@@ -31,10 +31,10 @@ class ScoreViewFrame(Frame):
 	yScale = 3 # scale, half of distance between two staff lines.
 	defaultWidth=600
 	defaultHeight=200
-	completeWidth = -1 #not known yet
+	completeWidth = None #not known yet
 	completeHeight = 200
 	
-	pixelsPerTick = -1 #not known yet
+	pixelsPerTick = None #not known yet
 	
 	prefersharpflat = '#'
 	shiftnotes = 0
@@ -81,19 +81,21 @@ class ScoreViewFrame(Frame):
 		self.pixelsPerTick *= 0.5;   self.redraw()
 	
 	def shiftOctaveUp(self): self.shiftnotes+=12; self.redraw()
-	def shiftOctaveDown(self): self.shiftnotes-=12; self.redraw()
+	def shiftOctaveDown(self): self.shiftnotes-=12; self.redraw(); print (self.cv.xview()); print (self.cv.xview('moveto'))
 
 	def redraw(self):
 		
 		# get time of last note-off event, when song stops playing
 		if len(self.trackdata.notelist)==0: self.lastTick = 100
-		else: self.lastTick = self.trackdata.notelist[-1].endEvt.time 
+		else: self.lastTick = self.trackdata.notelist[-1].endEvt.time  + 100
 		self.completeWidth = int(round(self.pixelsPerTick * self.lastTick))
 		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
 		print self.completeWidth
 		
 		self.clear()
-		self.drawBackground(opts)
+		self.drawBackground(self.opts)
+		self.myRect = self.cv.create_rectangle((0, 0, 20, self.completeHeight), fill='red')
+		
 		for note in self.trackdata.notelist:
 			self.drawNote( note.pitch, note.time, note.time+note.duration)
 		
@@ -203,16 +205,33 @@ class ScoreViewFrame(Frame):
 			sharpflat = ''
 		return (posy, sharpflat)
 		
-			
+	def myxview(self, *args):
+		#~ print args
+		
+		self.cv.xview(*args)
+		scoreview_util.makeThread(self.threadEvents,tuple())
+	def myyview(self, *args):
+		self.cv.yview(*args)
+		
+	def threadEvents(self, g=None):
+		if self.ripe!=True: return
+		self.ripe= False
+		import time
+		time.sleep(1)
+		
+		pos = self.cv.xview()[0] * self.completeWidth
+		self.cv.coords(self.myRect, (pos, 0, pos+20, self.completeHeight))
+		self.ripe= True
 		
 	def createWidgets(self):
+		self.ripe = True
 		frameGrid = Frame(self)
 		frameGrid.pack(expand=YES, fill=BOTH)
 		
-		self.cvClefs = Canvas(frameGrid, bd=1, background='white', width=30, height=self.defaultHeight)
+		self.cvClefs = Canvas(frameGrid, bd=1, background='white', width=1, height=self.defaultHeight)
 		self.cv = Canvas(frameGrid, bd=1, background='white', width=self.defaultWidth, height=self.defaultHeight)
-		hScroll = Scrollbar(frameGrid, orient=HORIZONTAL, command=self.cv.xview)
-		vScroll = Scrollbar(frameGrid, orient=VERTICAL, command=self.cv.yview)
+		hScroll = Scrollbar(frameGrid, orient=HORIZONTAL, command=self.myxview)
+		vScroll = Scrollbar(frameGrid, orient=VERTICAL, command=self.myyview)
 		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
 		self.cv.configure(xscrollcommand=hScroll.set, yscrollcommand=vScroll.set)
 		
@@ -223,6 +242,9 @@ class ScoreViewFrame(Frame):
 		
 		frameGrid.grid_rowconfigure(0, weight=1)
 		frameGrid.grid_columnconfigure(1, weight=1)
+		
+		
+		
 		
 		self.clefimgs = {}
 		
@@ -246,18 +268,19 @@ class ScoreViewFrame(Frame):
 	def draw_oval(self,x0, y0, x1, y1): 
 		self.cv.create_oval(self.coordrect(x0, y0, x1, y1), fill='black' )
 	def draw_clef(self, bass_treb):
-		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
-		desiredImageName = bass_treb + map[self.yScale]
-		if desiredImageName not in self.clefimgs:
-			self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
+		pass
+		#~ map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
+		#~ desiredImageName = bass_treb + map[self.yScale]
+		#~ if desiredImageName not in self.clefimgs:
+			#~ self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
 		
-		if bass_treb=='bass': 
-			xposition = (self.cvClefs.winfo_width()/2) - 0.5
-			yposition = self.coord(0, -8.0)[1]
-		else:
-			xposition = (self.cvClefs.winfo_width()/2)
-			yposition = self.coord(0, 7.5)[1]
-		self.cvClefs.create_image((xposition,yposition),image=self.clefimgs[desiredImageName])
+		#~ if bass_treb=='bass': 
+			#~ xposition = (self.cvClefs.winfo_width()/2) - 0.5 + 20
+			#~ yposition = self.coord(0, -8.0)[1]
+		#~ else:
+			#~ xposition = (self.cvClefs.winfo_width()/2) + 20
+			#~ yposition = self.coord(0, 7.5)[1]
+		#~ self.cv.create_image((xposition,yposition),image=self.clefimgs[desiredImageName])
 	
 	
 	#~ def getwidth(self): return self.cv.winfo_width()
