@@ -1,6 +1,8 @@
 '''
 Make an actual schematic of accepted syntax for a part of a note
 
+considering: 
+
 
 FullNote = ('.') | (   
 Pitch = 
@@ -231,6 +233,8 @@ class Interp():
 			if result: continue
 			result, s = self.pullFullNoteSet(s, track)
 			if result: continue
+			result, s = self.pullFullModOctave(s, track)
+			if result: continue
 			
 			if s and s[0]=='(': raise InterpException('Directives like (voice "flute") can only appear on their own line.')
 			raise InterpException('Cannot parse beginning at string %s'%s)
@@ -274,6 +278,16 @@ class Interp():
 		self.trackObjs[track].rest( self.trackObjs[track].notes[-1].duration )  #advance time to end of note
 		
 		return True, remaining
+	
+	def pullFullModOctave(self, s, track):
+		if not s or s[0] not in 'v^':
+			return False,s
+		
+		c, remaining = eatChars(s, 1)
+		if c=='^': self.state_octave[track] += 1
+		elif c=='v': self.state_octave[track] -= 1
+		
+		return True, remaining
 		
 	def pullFullNotePerc(self,s, track):
 		if Debug: print 'pullFullNotePerc:::'+s
@@ -289,7 +303,7 @@ class Interp():
 		return True, remaining
 		
 	def pullPitchPercussion(self, s, track):
-		percmap = {'o':36 ,'s':38 ,'*':39 ,'=':42 ,'O':43 ,'+':46 ,'0':47 ,'x':49 ,'{}':52,'@':56 ,'X':57 ,'M':67 ,'m':68 ,'w':71 ,'W':72 }
+		percmap = {'o':36 ,'s':38 ,'*':39 ,'=':42 ,'O':43 ,'+':46 ,'0':47 ,'x':49 ,'{}':52,'@':56 ,'X':57 ,'M':67 ,'m':68 ,'W':71 ,'w':72 }
 		found = None
 		for key in percmap:
 			if s.startswith(key):

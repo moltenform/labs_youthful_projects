@@ -14,7 +14,7 @@ import bmidilib
 import bbuilder
 import bmidiplay
 
-class App:
+class App():
 	def __init__(self, root):
 		root.title('tunescript')
 		
