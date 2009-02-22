@@ -22,7 +22,7 @@ import exceptions
 class InterpException(exceptions.Exception): pass
 import re
 
-
+import sys; sys.path.append('..\\bmidilib')
 import bbuilder
 
 def stripComments(s):
@@ -111,6 +111,7 @@ class Interp():
 		
 		
 	def interpretControlString(self,s):
+		import bmidilib
 		assert s.startswith('(')
 		if not s.endswith(')'): raise InterpException('No closing ) for opening (, line %s'%s)
 		# parse this lisp-like expression.
@@ -121,53 +122,45 @@ class Interp():
 			tempo = int(parts[1])
 			newtempo = int(round(tempo * 2.6666))
 			for trackobj in self.trackObjs: trackobj.tempo = newtempo
-		elif parts[0] in ('voice','volume'):
-			#note that we subtract 1 from the given track
+		elif parts[0] == 'voice':
+			#normalize type of quote
+			inside = inside.replace("'",'"')
+			count = inside.count('"')
+			if count!=2: raise InterpException('wrong number of quotes. expected a string like "flute" or "73".')
+			
+			beforeQuote, insideQuote, afterQuote = inside.split('"')
+			bparts = beforeQuote.split()
+			if len(bparts)==2: track=int(bparts[1])-1 
+			elif len(bparts)==1: track = 0;
+			else: raise InterpException('wrong # of args')
+				
+			try:
+				found = int(insideQuote)
+			except ValueError:
+				instrument = insideQuote.lower()
+				found = bmidilib.bmidiconstants.GM_instruments_lookup(instrument)
+				if found==None:
+					raise InterpException('Unable to find instrument called %s, look at the end of "bmidiconstants.py" to see list of instruments, or find an online chart of midi instrument numbers.'%instrument)
+			
+			self.trackObjs[track].insertMidiEventInstrumentChange(found)
+		
+		elif parts[0] == 'volume':
 			if len(parts)==3: track=int(parts[1])-1; value = parts[2]
 			elif len(parts)==2: track = 0; value = parts[1]
 			else: raise InterpException('wrong # of args')
-			if parts[0]=='voice':
-				
-				try:
-					found = int(value)
-				except ValueError:
-					import bmidilib
-					#get the string, even if "acoustic bass", the space throws off parsing
-					if "'" in inside:
-						spl = inside.split("'")
-						if len(spl)!=3: raise InterpException('Apparently no closing quote in %s'%s)
-						instrument = spl[1]
-					elif '"' in inside:
-						spl = inside.split('"')
-						if len(spl)!=3: raise InterpException('Apparently no closing quote in %s'%s)
-						instrument = spl[1]	
-					else:
-						raise InterpException('Could not understand voice, maybe forgot to quote it. use syntax (voice "flute"), not %s'%s)
-					
-					instrument = instrument.lower()
-					
-					found = bmidilib.bmidiconstants.GM_instruments_lookup(instrument)
-					if found==None:
-						raise InterpException('Unable to find instrument %s, look at the end of "bmidiconstants.py" to see list of instruments, or find an online chart of midi instrument numbers.')
-				self.trackObjs[track].insertMidiEventInstrumentChange(found)
-			elif parts[0]=='volume':
-				import bmidilib
-				found = int(value)
-				if found<0 or found>100: raise InterpException('Volume out of range: 0-100')
-				v = int( (float(found)/100.0) * 127)
-				
-				evt = bmidilib.BMidiEvent()
-				evt.type='CONTROLLER_CHANGE'
-				evt.time = self.trackObjs[track].ourTimingToTicks(self.trackObjs[track].currentTime)
-				evt.channel=None #to be set later
-				evt.pitch = 0x07 #main volume
-				evt.velocity = v
-				self.trackObjs[track].notes.append(evt)
-			else:
-				raise InterpException("shouldn't be here.")
-				
+			
+			found = int(value)
+			if found<0 or found>100: raise InterpException('Volume out of range: 0-100')
+			v = int( (float(found)/100.0) * 127)
+			
+			evt = bmidilib.BMidiEvent()
+			evt.type='CONTROLLER_CHANGE'
+			evt.time = self.trackObjs[track].ourTimingToTicks(self.trackObjs[track].currentTime)
+			evt.channel=None #to be set later
+			evt.pitch = 0x07 #main volume
+			evt.velocity = v
+			self.trackObjs[track].notes.append(evt)
 		elif parts[0]=='balance':
-			import bmidilib
 			if len(parts)==4: track=int(parts[1])-1; side = parts[2]; value = parts[3]
 			elif len(parts)==3: track = 0; side = parts[1]; value = parts[2]
 			else: raise InterpException('wrong # of args')
@@ -509,7 +502,7 @@ Debug=False
 
 	
 if __name__=='__main__':
-	import sys; sys.path.append('..\\bmidilib')
+	
 	Debug=True
 	inter = Interp()
 	inter.go('c,d,e,')

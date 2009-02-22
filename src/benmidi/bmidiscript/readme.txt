@@ -22,7 +22,7 @@ Directives. These must occur on their own line.
 (tempo 300)		Sets tempo. Must occur before any notes.
 (voice "flute")		Set instrument
 (voice 'flute')
-(voice 73)			Set instrument by number
+(voice "73")			Set instrument by number
 (voice 2 "flute")		Set instrument of a certain track
 
 (volume 100)		Set volume, from 0 to 100.
