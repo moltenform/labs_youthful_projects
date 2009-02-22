@@ -56,8 +56,8 @@ advanced (2 tracks)
 	tr2.note('e4', 2)
 	tr2.note('f4', 2)
 	tr2.note('g4', 2)
-	tr1.rest(2)
-	tr1.note('a4',2)
+	tr2.rest(2)
+	tr2.note('a4',2)
 	
 	bbuilder.joinTracks( [tr1, tr2], 'out.mid')
 	
