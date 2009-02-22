@@ -14,7 +14,10 @@ import bmidilib
 import bbuilder
 import bmidiplay
 
+
+
 class App():
+	isPlaying = False
 	def __init__(self, root):
 		root.title('tunescript')
 		
@@ -39,7 +42,8 @@ class App():
 		self.btnSaveMid.pack(side=LEFT, padx=15)
 		
 		
-		
+		self.cachedExamples = {} #have a cached of stripped examples. then, when changing, check against this dict.
+		self.exampleText = []
 		self.create_menubar(root)
 		
 		def selectAll(fld):
@@ -53,19 +57,8 @@ class App():
 		self.txtMain['wrap'] = NONE
 		
 		self.mode = 'tune' #as opposed to 'code'.
-		self.loadExample(0)
-		''' have a cached of stripped examples. then, when changing, check against this dict. if dict[alltext] thten:
-		also, place examples in a separate file that is read. 
-		example_name,code
-		---------------------
-		text of example here
-		====================
-		example_2
-		-----------
-		all of example here
-		===============
-							it assumes tunescript unless characters 'code'
-		'''
+		if len(self.exampleText) > 0:
+			self.loadExample(0, 'tune')
 		
 		
 	def create_menubar(self,root):
@@ -86,7 +79,39 @@ class App():
 		
 		menuExamples = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="Examples", menu=menuExamples, underline=0)
-		menuExamples.add_command(label="Hello", command=midiscript_util.Callable(self.loadExample,1))
+		
+		# get the examples
+		txt = None
+		try:  txt = open('examples.cfg','r').read()
+		except: pass
+		nExample = 0
+		if txt:
+			def addExample(nExample, exampleName, exampleCode, sType):
+				exampleName= exampleName.strip()
+				exampleCode= exampleCode.strip()
+				menuExamples.add_command(label=exampleName, command=midiscript_util.Callable(self.loadExample,nExample, sType))
+				self.cachedExamples[ exampleCode.strip()] = 1
+				self.exampleText.append(exampleCode)
+				
+			txtScript, txtBuilder = txt.split('~'*16)
+			txtScript = txtScript.split('='*16)
+			txtBuilder = txtBuilder.split('='*16)
+			self.firstExampleTune = nExample
+			for item in txtScript:
+				if not item.strip(): continue
+				title, code = item.split('-'*16)
+				addExample(nExample, title, code, 'tune')
+				
+				nExample+=1
+				
+			menuExamples.add_separator()
+			self.firstExampleCode = nExample
+			for item in txtBuilder:
+				if not item.strip(): continue
+				title, code = item.split('-'*16)
+				addExample(nExample, title, code, 'code')
+				nExample+=1
+		
 		
 		menuHelp = Menu(menubar, tearoff=0)
 		menuHelp.add_command(label='About', command=(lambda: midiscript_util.alert('tunescript, by Ben Fisher 2009\n\nhalfhourhacks.blogspot.com','benmidi tunescript')))
@@ -107,14 +132,22 @@ class App():
 			mfile.close()
 	
 	def playMidi(self, evt=None):
+		#~ print 'hi', self.isPlaying
+		#~ if self.isPlaying:  return
+		#~ self.isPlaying = True
+		#~ self.btnPlay['state']=DISABLED
+		#~ self.btnPlay.update()
 		mfile = self.createMidiFile()
 		if mfile:
 			bmidiplay.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
+		#~ self.btnPlay['state']=NORMAL
+		#~ self.isPlaying = False
 	
 		
 	def createMidiFile(self):
 		if self.mode=='tune': return self.createMidiFileTunescript(self.getText())
-		else: return self.createMidiFileBuilder(self.getText())
+		elif self.mode=='code': return self.createMidiFileBuilder(self.getText())
+		else: raise 'Bad mode'+self.mode
 	
 	def createMidiFileBuilder(self, txt):
 		provided = {}
@@ -156,37 +189,21 @@ class App():
 		self.txtMain.delete('1.0', END)
 		self.txtMain.insert(END, s)
 	
-	def loadExample(self, exnum):
-		print 'loading example '+str(exnum)
-		#ask for confirmation if it is non-empty and not equal to a default example
-		if self.getText().strip()!='' and self.getText().strip()!=self.getExample(0, 'tune').strip() and \
-				self.getText().strip()!=self.getExample(0, 'code').strip():
+	def loadExample(self, nExample, sType):
+		# if it is non-empty and not equal to a default example, ask for confirmation
+		stripped = self.getText().strip()
+		if stripped!='' and stripped not in self.cachedExamples:
 			confirm = midiscript_util.ask_yesno('Replace existing text?','Replace')
 			if not confirm: return
-				
-		s = self.getExample(exnum, self.mode)
+		
+		s = self.exampleText[nExample]
 		self.setText(s)
 		
+		self.mode = sType
+		
 	
-	def getExample(self, exnum, mode):
-		if mode=='tune':
-			s=''
-			if exnum==0:
-				s='''abc'''.replace('\t','')
-		else:
-			s=''
-			if exnum==0:
-				s='''b = Builder()
-				b.note('c', 1)
-				b.note('d', 1)
-				b.note('e', 1)
-				b.note('f', 1)
-				result = b'''.replace('\t','')
-			# other example: result = [tr1, tr2]. and that gets created. cool.
-		return s
-	
-	def setModeTune(self): self.mode = 'tune'; self.status('Switched to tunescript mode'); self.loadExample(0)
-	def setModeCode(self): self.mode = 'code'; self.status('Switched to code mode'); self.loadExample(0)
+	def setModeTune(self): self.mode = 'tune'; self.status('Switched to tunescript mode'); self.loadExample(self.firstExampleTune ,'tune')
+	def setModeCode(self): self.mode = 'code'; self.status('Switched to code mode'); self.loadExample(self.firstExampleCode,'code')
 		
 	
 

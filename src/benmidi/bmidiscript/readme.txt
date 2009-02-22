@@ -1,9 +1,7 @@
-
-"""
 BMidiScript
 Ben Fisher, 2009, GPL
 halfhourhacks.blogspot.com
-'''
+
 
 How to do it:
 Open "main.py". (Tested in Python 2.5, not likely to work in Python 3)
