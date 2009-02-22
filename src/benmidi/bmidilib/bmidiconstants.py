@@ -95,7 +95,8 @@ def GM_instruments_lookup(strInstrument):
 	return found
 		
 
-GM_instruments = ['Acoustic Grand Piano',
+GM_instruments = [
+'Acoustic Grand Piano',
 'Bright Piano',
 'Electric Grand Piano',
 'Honky-Tonk Piano',
@@ -127,7 +128,7 @@ GM_instruments = ['Acoustic Grand Piano',
 'Overdrive Guitar',
 'Distortion Guitar',
 'Guitar Harmonics',
-'Accoustic Bass',
+'Acoustic Bass',
 'Fingered Bass',
 'Picked Bass',
 'Fretless Bass',
