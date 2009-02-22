@@ -1,51 +1,28 @@
 '''
-Make an actual schematic of accepted syntax for a part of a note
+Tunescript, by Ben Fisher 2009
+See readme.txt for capabilities.
+The first half of examples.cfg contains examples.
+Only tested with Python 2.5...
 
-considering: 
+Currently unsupported:
+	/c/!
+	chords like /[c|e]/ 
+	[.|c] is illegal
+	
+Newly supported:
+	/o/ percussion 
 
-
-FullNote = ('.') | (   
-Pitch = 
-
-
-
-(tempo 120) --roughly tempo of qtr notes, notes are by default 8th notes and such
-
-(voice "flute")
-(voice 74)
-(voice 1 "flute") //track 0
-(voice 2 "flute") //track 1
-
-(volume 1 100) #out of 100
-
-(balance 1 right 50)
-(balance 1 left 50)
-
-
-(balance right 100)
-cde
-(balance left 100)
-cde
-(balance left 0)
-cde
-(balance right 0)
-cde
-
-Note that /c/ can't have accent information. /c/! is not allowed. also chords like /[c|e]/ aren't allowed. maybe sometime else.
-/o/ percussion now allowed
-you can set volume events though, maybe
-Note [.|c] is illegal
 
 Careful: 
 '' in 'abc' -> true, empty string matches inside. 
 '''
-Debug=True
+
 
 import exceptions
 class InterpException(exceptions.Exception): pass
 import re
 
-import sys; sys.path.append('..\\bmidilib')
+
 import bbuilder
 
 def stripComments(s):
@@ -55,11 +32,7 @@ def stripComments(s):
 			lines[i] = lines[i].split('--')[0]
 			
 	return '\n'.join(lines)
-def maxvalue(arr):
-	maxfound = -1*sys.maxint
-	for v in arr: 
-		if v>maxfound: maxfound = v
-	return maxfound
+
 
 def eatChars(s, n=1):
 	return (s[0:n], s[n:])
@@ -83,7 +56,8 @@ class Interp():
 		#create tracks
 		self.trackObjs = [bbuilder.BMidiBuilder() for i in range(Maxtracks)] #eventually, will be assigned different channels, but not yet.
 		self.state_octave = [4 for i in range(Maxtracks)] #keeps track of current octave for each track
-		for trackobj in self.trackObjs: trackobj.currentBend = 0; trackobj.tempo = 400;  trackobj.addFasterTempo = True #secret undocumented un-understood event
+		self.state_currentBend = [0 for i in range(Maxtracks)] #keeps track of current pitch-bend state for each track
+		for trackobj in self.trackObjs: trackobj.tempo = 400;  trackobj.addFasterTempo = True #secret undocumented un-understood event
 		self.haveSeenNotes = False #have we seen any notes yet?
 		for nline in range(len(lines)):
 			line = lines[nline].strip()
@@ -132,7 +106,7 @@ class Interp():
 		
 		#join all of the tracks, returning a midifile
 		mfile = bbuilder.build_midi(actualtracks)
-		print mfile
+		if Debug: print mfile
 		return mfile
 		
 		
@@ -445,7 +419,7 @@ class Interp():
 		self.trackObjs[track].rewind() #go back to start of note
 		dur = self.trackObjs[track].notes[-1].duration
 		steps = 100
-		prevBend = self.trackObjs[track].currentBend
+		prevBend = self.state_currentBend[track]
 		timeInc = float(dur) / float(steps)
 		bendInc = (targetBend-prevBend) / float(steps)
 		for _ in range(steps):
@@ -455,8 +429,8 @@ class Interp():
 			
 		#restore time and, by default, restore pitch
 		self.trackObjs[track].currentTime = savedTime
-		if not bStaydetuned: self.trackObjs[track].insertPitchBendEvent(0); self.trackObjs[track].currentBend = 0
-		else: self.trackObjs[track].currentBend = targetBend
+		if not bStaydetuned: self.trackObjs[track].insertPitchBendEvent(0); self.state_currentBend[track] = 0
+		else: self.state_currentBend[track]  = targetBend
 		
 		return True, remaining
 		
@@ -531,11 +505,13 @@ class Interp():
 		
 	
 
-		
+Debug=False
+
 	
 if __name__=='__main__':
+	import sys; sys.path.append('..\\bmidilib')
+	Debug=True
 	inter = Interp()
-	#~ inter.go('\ncdefg\n')
 	inter.go('c,d,e,')
 
 

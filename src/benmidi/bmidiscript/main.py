@@ -132,18 +132,11 @@ class App():
 			mfile.close()
 	
 	def playMidi(self, evt=None):
-		#~ print 'hi', self.isPlaying
-		#~ if self.isPlaying:  return
-		#~ self.isPlaying = True
-		#~ self.btnPlay['state']=DISABLED
-		#~ self.btnPlay.update()
 		mfile = self.createMidiFile()
 		if mfile:
 			bmidiplay.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
-		#~ self.btnPlay['state']=NORMAL
-		#~ self.isPlaying = False
+
 	
-		
 	def createMidiFile(self):
 		if self.mode=='tune': return self.createMidiFileTunescript(self.getText())
 		elif self.mode=='code': return self.createMidiFileBuilder(self.getText())
@@ -179,7 +172,12 @@ class App():
 
 	def createMidiFileTunescript(self, txt):
 		inter = interpretsyntax.Interp()
-		mfile = inter.go(txt)
+		try:
+			mfile = inter.go(txt)
+		except interpretsyntax.InterpException, e:
+			midiscript_util.alert(str(e))
+			return None
+			
 		if mfile==None: return None
 		return mfile
 		

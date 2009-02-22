@@ -59,7 +59,8 @@ Rhythm
 =================
 ,		increases the length of the note, by one unit. "c,," is 3 times longer than "c"
 .		rest for one unit
-/c/		a pitch within forward slashes is played twice as quickly. These can't have other modifications; /c/! or /c/, are not allowed. 
+/c/		a pitch within forward slashes is played twice as quickly. 
+		These can't have other modifications; /c/! or /c/, are not allowed. 
 		Percussion, like /o/ is supported.
 //c//		played 4 times as quickly
 
