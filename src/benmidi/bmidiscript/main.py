@@ -30,7 +30,7 @@ class App():
 		#~ tupfont = ('Verdana', 20, 'normal')
 		#~ tupfont = ('Lucida Console', 20, 'normal')
 		tupfont = ('Monaco', 20, 'normal')
-		self.txtMain = Text(frameMain, font=tupfont, width=30, height=10)
+		self.txtMain = Text(frameMain, font=tupfont, width=40, height=15)
 		self.txtMain.pack(side=TOP,fill=BOTH, expand=True)
 		
 		tupfontbtn = ('Verdana', 14, 'normal')
