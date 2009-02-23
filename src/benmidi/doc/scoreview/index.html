@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Scoreview.py - Visualizing midi songs</title>
+
+
+<style type="text/css">
+body {
+  font-family: helvetica, arial, sans-serif
+}
+a.mainlink { color:black; text-align:center; font-size:1.25em; margin:3px }
+
+a.otherlink {color:black;}
+</style>
+</head>
+<body>
+<a name="top"></a><h2>Scoreview.py - Visualizing midi songs</h2> 
+ <a href="../scoreview_0_9.zip">Download</a> (Requires an installation of Python 2.5 or newer)<br />
+ <!--A Windows executable may be coming--><br /><br />
+ <img src="../thm_score.png" border="0" /><br />
+ 
+ <h4>Sections:</h4>
+ <ul>
+	<li><a href="#overview">Overview</a></li>
+	<li><a href="#screenshots">Screenshots</a></li>
+	<li><a href="#options">Options</a></li>
+	<li><a href="#notes">Notes</a></li>
+ </ul>
+
+<h4><a name="overview"></a>Overview</h4>
+<p>
+scoreview.py , code for visualizing midi files in Python<br />
+Copyright (C) Ben Fisher, 2009. GPL.<br /><br />
+
+This program can explore the contents of a midi song, and also display the notes in a score view. The "scoreview" component can also be used in your program if you are writing a Python/Tkinter app.
+<br /><br />
+To use,<br />
+Run main.py<br />
+Choose Open from the File menu to open a midi file. (Example midi files are given in the folder example_midis).<br />
+Click one of the "Score" or "List" buttons to view events for a particular track.<br />
+
+</p>
+<h4><a name="overview"></a>Screenshots</h4>
+This tool can be a useful way to explore the contents of a midi song. Besides showing the score for a track, it 
+can also get channel information:<br />
+<img src="viewm.png" /><br />
+
+Also, one can view all of the midi events in a track, in a human-readable format.<br />
+<img src="viewlist.png" /><br />
+
+
+<h4><a name="options"></a>Options</h4>
+<p>
+From the options menu one can also configure:
+<pre>
+Show Durations
+	A gray dashed line in the score view indicates the duration of notes.
+Show Stems
+	To show note stems.
+Show Barlines
+	At times, the midi song doesn't line up with the measures, and so the barlines are not meaningful. This provides a way to hide them.
+Prefer Flats
+	Because this program doesn't know about key signatures, it displays all accidentals as either sharps or flats.
+</pre>
+</p>
+<h4><a name="notes"></a>Notes</h4>
+<p>
+Note that at this time, all notes are shown as "quarter notes". To add different symbols for different durations would not add much benefit.<br />
+Using the Scoreview component in your own program is also possible.<br />
+It derives from Tkinter's frame, and behaves as such.
+</p>
+
+
+
+<br />
+<a href="#top">Top</a>
+
+<br /><br />
+<a href="../index.html" class="otherlink">Back</a>
+<br /><br />
+Ben Fisher, 2009<br />
+GPLv3.
+
+</body>
+</html>

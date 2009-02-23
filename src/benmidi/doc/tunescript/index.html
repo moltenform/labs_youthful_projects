@@ -1,0 +1,523 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Tunescript - A music toy</title>
+
+<style type="text/css">
+body {
+  font-family: helvetica, arial, sans-serif
+}
+a.mainlink { color:black; text-align:center; font-size:1.25em; margin:3px }
+
+a.otherlink {color:black;}
+</style>
+</head>
+<body>
+<a name="top"></a><h2>Tunescript - A music toy</h2> 
+ <a href="../tunescript_0_9.zip">Download</a> (Requires an installation of Python 2.5 or newer)<br />
+ <!--A Windows executable may be coming--><br /><br />
+ <img src="../thm_tunesc.png" border="0" /><br />
+ 
+ <h4>Sections:</h4>
+ <ul>
+	<li><a href="#overview">Overview</a></li>
+	<li><a href="#start">Getting Started</a></li>
+	<li><a href="#examples">Many Examples</a></li>
+	<li><a href="#inst">Instrument List</a></li>
+	<li><a href="#syn">Syntax</a></li>
+	
+ </ul>
+
+<h4><a name="overview"></a>Overview</h4>
+<p>
+tunescript, a music toy<br />
+Copyright (C) Ben Fisher, 2009. GPL.<br />
+halfhourhacks.blogspot.com<br /><br />
+
+
+	Tunescript is a musical toy, and a fun way to enter in some music.<br />
+	It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.<br /><br />
+
+The syntax is a small domain specific language I came up with. It is nice that there is no concept of 8th note or 16th note. 
+If you make something cool, send it to me at boinjyboing ((at)) hotmail ((dot)) com.
+
+
+
+	
+</p>
+
+<h4><a name="start"></a>Getting Started</h4>
+<p>
+
+Open "main.py". (Requires an installation of Python 2.5 or Python 2.6)<br />
+An example song will be automatically loaded.<br />
+Press "Play". You should hear some music. (Provided you are in Windows).<br /><br />
+
+If you don't hear anything, <br />
+	check your volume settings, in particular the volume for "<b><i>SW Synth</i></b>." <br />
+	Make sure that it is turned up and try again.<br /><br />
+
+In Linux, you will have to click "Save mid" to save the file, and then play it manually.<br /><br />
+
+There are two modes, "tunescript" mode and "Code" mode. <br />
+	The tunescript mode is the interesting and fun one<br />
+	Code mode simply evaluates the Python code you provide as a way to quickly make scripts using bbuilder.py.<br />
+	In the Examples menu, the second set of examples are in Code mode.<br />
+	<br />
+	Follow the examples! Play around with them, and make your own songs!
+</p>
+<h4><a name="examples"></a>Many Examples</h4>
+<pre>
+================
+simple
+----------------
+c d e f g ...
+g f e d c ...
+
+================
+tune
+----------------
+--this is a comment. it won't affect the music
+--use comments to make notes to yourself
+
+c,cde,efg,age,..
+g,fed,,,f,edc,..
+c,cde,efg,age,..
+g,fed,edc,,
+
+================
+pitches
+----------------
+c d e f g a b c'
+
+c__ c_ c c' c'' ...
+c'' c' c c_ c__ ...
+
+c c# d d# e f f# g g# a a# b c'
+================
+rhythms
+----------------
+c c c c
+--make it slower
+c, c, c, c, 
+c,, c,, c,, c,,
+c,,, c,,, c,,, c,,,
+--make it faster
+c c c c 
+/c/ /c/ /c/ /c/ /c/ /c/ /c/ /c/ 
+
+--put a funky rhythm together
+g,,g..gg..g..g..
+g,,g..gg..g..g..
+
+================
+note mods
+----------------
+--legato (more smooth)
+c, c, c, c,
+
+--staccatto (short silence in-between notes)
+c. c. c. c.
+
+-- accents
+g!! e! c e? g??
+================
+instruments
+----------------
+(voice 'bass')
+c2,, d2,, e2,, f2,,
+(voice 'flute')
+c5,, b4,, a4,, g4,,
+================
+percussion
+----------------
+o. o. o. o.
+o = s = o = s =
+o = s = o = s =
+
+@O0oXxMmWw
+
+================
+chords
+----------------
+c, e, g,
+[c|e|g],
+d, f, a,
+[d|f|a],
+
+g,,g,,
+[c#|d|e|f],,
+
+================
+chord&perc
+----------------
+
+[c|e|g|o] [d|f|a] [o|*]
+X,,,.
+[c|e|g|o] [d|f|a] [o|*]
+X,,,.
+================
+tracks!
+----------------
+--they play at the same time
+&gt;&gt; c, d, e, f, g,
+&gt;&gt; e, f, g, a, b,
+
+================
+track voices
+----------------
+(voice 1 'fretless bass')
+(voice 2 'ocarina')
+(balance 1 left 100)
+(balance 2 right 100)
+
+&gt;&gt; v c, d, e, f, g,,,,
+&gt;&gt; ^ e, f, g, a, b,
+================
+drum break
+----------------
+(tempo 240)
+&gt;&gt; +.+.+.+. +.+.+.+. +.+.+.+.+.+.+.+.
+&gt;&gt; ....*... ....*... o.o.s..s.soos...
+
+&gt;&gt; +.+.+.+.+.+.+.+. +.+.+.+.+.+.+.+.
+&gt;&gt; o.o.s..s.soos..s o...s..Ooos..s.s
+
+&gt;&gt; +.+.+.+.+.+.+.+. +.+.+.+.+.+.+.+.
+&gt;&gt; X...s..s.s..s... o.o.s..s.soos...
+
+================
+swing
+----------------
+
+c,c e,e f,f f#,f# g,Eb e, c,,
+
+&gt;&gt; {},,,,,,,,
+&gt;&gt; [Bb_|c|e],,,,,,,,,,,
+
+================
+row
+----------------
+--here are the parts:
+--c,   ,c,,c,de,,
+--e,   de,fg,,,,,
+--c'c'c'gggeeeccc
+--g,   fe,dc,,,,,
+
+&gt;&gt; c,   ,c,,c,de,,e,   de,fg,,,,,c'c'c'gggeeecccg,   fe,dc,,,,,
+&gt;&gt; ..   ..........c,   ,c,,c,de,,e,   de,fg,,,,,c'c'c'gggeeecccg,   fe,dc,,,,,
+
+-- try adding more voices!
+================
+bend
+----------------
+(voice "sitar")
+--bend up:
+c3,,,,,~&gt;100~ c3,,,, ...
+
+--bend down:
+c5,,,,,~&gt;-100~ c5,,,, ...
+
+--bend chord:
+[c3|g3],,,~&gt;100~ [c3|g3]!,,,, ...
+================
+mary
+----------------
+edcdeee,ddd,egg,
+edcdeeeeddedc,,,
+
+--now make it off tune
+&gt;&gt;c~&gt;60~
+&gt;&gt;
+
+--one track is tuned upwards...
+&gt;&gt;edcdeee,ddd,egg,edcdeeeeddedc,,,
+&gt;&gt;edcdeee,ddd,egg,edcdeeeeddedc,,,
+
+================
+still rock
+----------------
+(voice 1 'rock organ')
+(voice 2 "bass")
+(tempo 210)
+
+&gt;&gt; ^
+&gt;&gt; v c,c c,c c,c c,c c,c c,c c,c c,c
+
+&gt;&gt; ... c,c c,c c,dvb,, a,, a,g g,g
+&gt;&gt; c,c c,c c,c c,cve,e e,e e,e e,e
+
+&gt;&gt; a#,,  a#,a# a#,,  c', /a//g/f,, 
+&gt;&gt; a#,a# a#,a# a#,a# a#,a# f,f f,f f,f f,f
+
+&gt;&gt; ^... c,c c,c c,dvb,, a,, a,g g,g
+&gt;&gt; ^c,c c,c c,c c,cve,e e,e e,e e,e
+
+&gt;&gt; a#,,  a#,a# a#,,  c', /a//g/f,, 
+&gt;&gt; a#,a# a#,a# a#,a# a#,a# f,f f,f f,f f,f
+
+&gt;&gt; ... e,e g,g b,b c',, a,e g,a ,,e
+&gt;&gt; e,e e,e e,e e,e a,a  a,a a,a a,a
+
+&gt;&gt; e,, e,e g,g b,b c',g a,e g,a,
+&gt;&gt; e,e e,e e,e e,e d,d d,d g,g g,g
+</pre>
+<h4><a name="inst"></a>Instrument List</h4>
+To set an instrument, use code like (voice "piano") or, equivalently (voice "Acoustic Grand Piano"). The search is not case-sensitive. The following instruments are available:
+<br />
+<pre>
+Acoustic Grand Piano
+Bright Piano
+Electric Grand Piano
+Honky-Tonk Piano
+Electric piano 1
+Electric Piano 2
+Harpsichord
+Clavinet
+Celesta
+Glockenspiel
+Music Box
+Vibraphone
+Marimba
+Xylophone
+Tubular bells
+Dulcimer
+Drawbar Organ
+Percussive Organ
+Rock Organ
+Church Organ
+Reed Organ
+Accordion
+Harmonica
+Tango Accordion
+Nylon String Guitar
+Steel String Guitar
+Jazz Guitar
+Clean Electric Guitar
+Muted Electric Guitar
+Overdrive Guitar
+Distortion Guitar
+Guitar Harmonics
+Acoustic Bass
+Fingered Bass
+Picked Bass
+Fretless Bass
+Slap Bass 1
+Slap Bass 2
+Synth Bass 1
+Synth Bass 2
+Violin
+Viola
+Cello
+Contrabass
+Tremolo Strings
+Pizzicato Strings
+Orchestral Harp
+Timpani
+String Ensemble 1
+String Ensemble 2
+Synth Strings 1
+Synth Strings 2
+Choir Ahh
+Choir Oohh
+Synth Voice
+Orchestral Hit
+Trumpet
+Trombone
+Tuba
+Muted Trumpet
+French Horn
+Brass Section
+Synth Brass 1
+Synth Brass 2
+Soprano Sax
+Alto Sax
+Tenor Sax
+Baritone Sax
+Oboe
+English Horn
+Bassoon
+Clarinet
+Piccolo
+Flute
+Recorder
+Pan flute
+Blown Bottle
+Shakuhachi
+Whistle
+Ocarina
+Square Wave
+Sawtooth Wave
+Caliope
+Chiff
+Charang
+Voice
+Fifths
+Bass & Lead
+New Age
+Warm
+PolySynth
+Choir
+Bowed
+Metallic
+Halo
+Sweep
+FX: Rain
+FX: Soundtrack
+FX: Crystal
+FX: Atmosphere
+FX: Brightness
+FX: Goblins
+FX: Echo Drops
+FX: Star Theme
+Sitar
+Banjo
+Shamisen
+Koto
+Kalimba
+Bagpipe
+Fiddle
+Shanai
+Tinkle bell
+Agogo
+Steel Drums
+Woodblock
+Taiko Drum
+Melodic Tom
+Synth Drum
+Reverse Cymbal
+Guitar Fret Noise
+Breath Noise
+Seashore
+Bird Tweet
+Telephone Ring
+Helicopter
+Applause
+Gunshot
+</pre>
+
+
+<h4><a name="syn"></a>Syntax</h4>
+Looking at this list is like cheating. You should explore on your own!
+<pre>
+Directives. These must occur on their own line.
+================
+(tempo 300)		Sets tempo. Must occur before any notes.
+(voice "flute")		Set instrument
+(voice 'flute')
+(voice "73")			Set instrument by number
+(voice 2 "flute")		Set instrument of a certain track
+
+(volume 100)		Set volume, from 0 to 100.
+(volume 2 100)		Set volume of a certain track
+
+(balance right 100)	Make all of the way to the right speaker (0-100)
+(balance left 100)	Make all of the way to the left speaker
+(balance right 0)		Centered
+(balance 2 right 100)	Set balance of a certain track
+
+
+Pitches
+================
+
+c			The pitch c. uses the last octave specified.
+c#
+A
+Ab			Note that "Ab" means "a flat". "ab" means "pitch a, then pitch b".
+
+c3			Use a specific octave.
+
+c'			An octave higher
+c''			
+c'''
+c_			An octave lower
+c__
+c___
+
+^ 			raises current octave
+v			lowers current octave
+
+
+Rhythm
+=================
+,		increases the length of the note, by one unit. "c,," is 3 times longer than "c"
+.		rest for one unit
+/c/		a pitch within forward slashes is played twice as quickly. 
+		These can't have other modifications; /c/! or /c/, are not allowed. 
+		Percussion, like /o/ is supported.
+//c//		played 4 times as quickly
+
+Currently unsupported:
+	/c/!
+	chords like /[c|e]/ 
+	[.|c] is illegal
+
+Note modifications
+=================
+c!		accented
+c!!
+c?		quieter
+c??
+
+c~&gt;100		pitch bend all of the way. typically this bends up 2 semitones.
+			bending occurs from the previous "bend amount" to the new amount. 
+c,,,~&gt;100		same as previous, but slower bending
+
+a!,,		example of multiple modifications
+
+Harmony
+================
+[c|e|g]	play the notes c e and g at the same time.
+		can be modified with duration, accent and pitch bend
+
+&gt;&gt; e f g
+&gt;&gt; c d e
+The above lines will set up two tracks to play simultaneously. 
+Each "track" is separate, and settings like the last octave used are distinct.
+The instruments set with (voice 2 'flute') 
+
+The longest of the two lines will be used, in other words
+&gt;&gt; c d e f g f e d c d e
+&gt;&gt; c_
+will become like
+&gt;&gt; c  d e f g f e d c d e
+&gt;&gt; c_.  . . . . . . . . . 
+so that the lengths are even.
+
+Percussion
+===============
+Also, certain notes are percussion and sound like percussion regardless of track/voice setting. These are:
+o		Bass Drum 1
+s		Snare Drum 1
+*		Hand Clap
+=		Closed Hi-hat
+O		Low Tom 1
++		Open Hi-hat
+0		Mid Tom 1
+x		Crash Cymbal 1
+{}		Chinese Cymbal
+@		Cowbell
+X		Crash Cymbal 2
+M		High Agogo
+m		Low Agogo
+W		Short Whistle
+w		Long Whistle
+
+For cymbals that may be long, duration can be used, as in
+{},,,
+s!
+</pre>
+
+
+<br />
+<a href="#top">Top</a>
+
+<br /><br />
+<a href="../index.html" class="otherlink">Back</a>
+<br /><br />
+Ben Fisher, 2009<br />
+GPLv3.
+
+</body>
+</html>

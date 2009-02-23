@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Bmidilib - Python midi code</title>
+
+
+<style type="text/css">
+body {
+  font-family: helvetica, arial, sans-serif
+}
+a.mainlink { color:black; text-align:center; font-size:1.25em; margin:3px }
+
+a.otherlink {color:black;}
+</style>
+</head>
+<body>
+<a name="top"></a><h2>Bmidilib - Python midi code</h2> 
+ <a href="../bmidilib_0_9.zip">Download</a><br /><br />
+ <img src="../thm_code.png" border="0" /><br />
+ 
+ <h4>Sections:</h4>
+ <ul>
+	<li><a href="#overview">Overview</a></li>
+	<li><a href="#exread">Example reading</a></li>
+	<li><a href="#exwrite">Example writing</a></li>
+	<li><a href="#exwriteraw">Example writing (raw event)</a></li>
+	<li><a href="#class">Class Hierarchy</a></li>
+	<li><a href="#bbuilder">Several Bbuilder Examples</a></li>
+	<li><a href="#bbuilderdoc">Bbuilder Documentation</a></li>
+ </ul>
+
+
+<h4><a name="overview"></a>Overview</h4>
+<p>
+bmidilib.py , code for reading/creating midi files in Python <br />
+Ben Fisher, 2008. GPL.<br />
+Based originally on midi.py, placed into the public domain in December 2001 by Will Ware<br /><br />
+To make a midi song, create a Builder object, and use its .note() method to add notes. By default, notes are added to the end of the song. However, the Builder object's current time can be moved backwards with the rewind() method. This is how to play many notes at once, as in a chord.
+</p>
+
+<h4><a name="exread"></a>Example reading</h4>
+First, place the bmidilib directory in the directory containing the script.
+<pre>
+from bmidilib import bmidilib
+
+m = bmidilib.BMidiFile()
+m.open('mymidi.mid')
+m.read()
+m.close()
+print m #lists all of the events in a human-readable way
+
+#loop through only the note events in 2nd track, and print out pitches and durations
+for note in m.tracks[1].notelist:
+	print note.pitch, note.duration
+</pre>
+
+<h4><a name="exwrite"></a>Example writing</h4>
+<pre>
+from bmidilib import bbuilder
+b = bbuilder.BMidiBuilder()
+b.note('c', 1)
+b.note('d', 1)
+b.note('e', 1)
+b.note('f', 1)
+b.note('g', 4)
+b.save('out.mid')
+</pre>
+<h4><a name="exwriteraw"></a>Example writing (raw events)</h4>
+<pre>
+# For creating midi files, bbuilder.py should be enough for everyday usage.
+# this is an example in case you are trying to do something beyond bbuilder.
+
+from bmidilib import bmidilib
+
+file = bmidilib.BMidiFile()
+file.ticksPerQuarterNote = 120
+
+tr = bmidilib.BMidiTrack()
+file.tracks.append(tr)
+
+#note on event
+startevt = bmidilib.BMidiEvent()
+startevt.type = 'NOTE_ON'
+startevt.time = 0
+startevt.channel = 1
+startevt.pitch = 60
+startevt.velocity = 80
+tr.events.append(startevt)
+
+#note off event (which is note_on with velocity 0)
+endevt = bmidilib.BMidiEvent()
+endevt.type = 'NOTE_ON'
+endevt.time = 120
+endevt.channel = 1
+endevt.pitch = 60
+endevt.velocity = 0
+tr.events.append(endevt)
+
+evt = bmidilib.BMidiEvent()
+evt.type='END_OF_TRACK'
+evt.time = 500
+evt.data = ''
+tr.events.append(evt)
+
+file.open('out.mid', 'wb')
+file.write()
+file.close()
+
+</pre>
+<h4><a name="class"></a>Class Hierarchy</h4>
+<pre>
+BMidiFile
+	BMidiTrack[] tracks
+	
+BMidiTrack
+	BMidiEvent[] events
+	BNote[] notelist
+		Notes in a mid file consist of two events, a "NoteOn" and a later "NoteOff"
+		The "notelist" provides a simpler view, as a single BNote object that has duration.
+		(If you are creating a BMidiTrack yourself, you do not need to add to the notelist)
+
+BMidiEvent
+	Raw information about the midi event.
+	Includes raw NoteOn and NoteOff events.
+	Does not include "delta times" which are created automatically.
+	
+BNote
+	Information including note, duration
+	- Modifying these instances will not actually modify the midi -
+	This is just an alternate view of information elsewhere
+		So to change the pitch of a note, say, you have to have both
+		note.startEvt.pitch = 60
+		note.endEvt.pitch = 60
+		note.pitch = 60
+</pre>
+<h4><a name="bbuilder"></a>Several Bbuilder Examples</h4>
+Bbuilder.py is a high-level interface for making Midi songs. Here are some demonstrations.
+<pre>
+making a simple melody
+	from bmidilib import bbuilder
+	b = bbuilder.BMidiBuilder()
+	b.note('c', 1) #pitch 60, duration 1 qtr note
+	b.note('d', 1)
+	b.note('e', 1)
+	b.note('f', 1)
+	b.note('g', 4)
+	b.save('out.mid')
+
+making a chord
+	b = bbuilder.BMidiBuilder()
+	b.note('c', 1)
+	b.rewind() #automatically rewinds to start of last note
+	b.note('e', 1)
+	b.rewind()
+	b.note('g', 1)
+	b.save('out.mid') #doesn't "sort" the events until the end.
+
+
+more options
+	b = bbuilder.BMidiBuilder()
+	b.tempo = 60
+	b.volume = 20
+	b.pan = 127 #out of right speaker
+	b.setInstrument('flute') #looks up in list, until first match. b.setInstrument(73) also works
+	b.note('c', 1, velocity=127) #velocity is the loudness of a particular note, 1-127
+	
+	#ways to type same note:
+	b.note(61, 1)
+	b.note('c#', 1) #use sharps, not flats.
+	b.note('c#4', 1)
+	
+	#octaves
+	b.note('c#5', 1)
+	b.note('c#6', 1)
+	b.save('out.mid')
+
+advanced (2 tracks)
+	tr1 = bbuilder.BMidiBuilder()
+	tr1.setInstrument('fretless bass')
+	tr1.note('c3', 2)
+	tr1.note('d3', 2)
+	tr1.note('e3', 2)
+	tr1.rest(2)
+	tr1.note('f3',2)
+	
+	tr2 = bbuilder.BMidiBuilder()
+	tr2.setInstrument('ocarina')
+	tr2.note('e4', 2)
+	tr2.note('f4', 2)
+	tr2.note('g4', 2)
+	tr2.rest(2)
+	tr2.note('a4',2)
+	
+	bbuilder.joinTracks( [tr1, tr2], 'out.mid')
+	
+advanced (inserting raw events)
+	b = bbuilder.BMidiBuilder()
+	b.tempo = 400
+	for i in range(127):
+		#insert a raw instrument change event
+		evt = bmidilib.BMidiEvent() #event time will be set when inserted
+		evt.type='PROGRAM_CHANGE'
+		evt.channel=1
+		evt.data = i
+		b.insertMidiEvent(evt)
+		b.note('c3',0.4)
+	b.save('!2.mid')
+</pre>
+
+<h4><a name="bbuilderdoc"></a>Bbuilder Documentation</h4>
+<pre>
+Functions
+	bbuilder.joinTracks(listTracks, outFilename)
+
+Public Settings
+	b.tempo
+	b.volume
+	b.pan
+
+Public Methods
+	b.note(pitch, duration)
+	b.rest(duration)
+	b.rewind(duration)
+	b.setInstrument(instrument)
+	b.save(outFilename)
+
+You may also happen upon some undocumented methods, but these are subject to change.
+</pre>
+<br />
+<a href="#top">Top</a>
+
+<br /><br />
+<a href="../index.html" class="otherlink">Back</a>
+<br /><br />
+Ben Fisher, 2009<br />
+GPLv3.
+
+</body>
+</html>
