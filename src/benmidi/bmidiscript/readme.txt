@@ -1,21 +1,35 @@
-BMidiScript
-Ben Fisher, 2009, GPL
+tunescript, a music toy
+Copyright (C) Ben Fisher, 2009. GPL.
 halfhourhacks.blogspot.com
 
+Why:
+	It's a musical toy, and a fun way to enter in some music.
+	It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.
 
-How to do it:
-Open "main.py". (Tested in Python 2.5, not likely to work in Python 3)
-Type in something, like 'c d e f g'.
-Press "play". You should hear some sounds. (Provided you are in Windows. in Linux, you will probably have to click "Save mid" to save the file, and then play it manually).
-If you don't hear anything, check your audio settings, in particular the volume for "SW Synth." Make sure that it is turned up and try again.
+Usage:
+	Open "main.py". (Tested in Python 2.5, but not Python3)
+	Type in something, like 'c d e f g'.
+	Press "play". You should hear some sounds. (Provided you are in Windows. in Linux, you will have to click "Save mid" to save the file, and then play it manually).
+	If you don't hear anything, 
+		check your volume settings, in particular the volume for "SW Synth." 
+		Make sure that it is turned up and try again.
+
+	There are two modes, "tunescript" mode and "Code" mode. 
+		The tunescript mode is the interesting and fun one
+		Code mode simply evaluates the Python code you provide as a way to quickly make scripts using bbuilder.py.
+		In the Examples menu, the second set of examples are in Code mode.
+		The examples given should be used for reference.
+
 
 Getting started:
+	Load one of the examples from the Examples menu.
+	Play around with it, and make your own songs.
+	If you come up with something cool, send it to me at boinjyboing@hotmail.com
 
-Use the examples to go through
 
--- is used for comments.
-
-
+Index of "tunescript" syntax: 
+	(Kind of like cheating, you should explore on your own.)
+	See the end of bmidiconstants.py for a list of all instrument names.
 
 Directives. These must occur on their own line.
 ================
@@ -121,5 +135,11 @@ For cymbals that may be long, duration can be used, as in
 s!
 
 
-
+Currently unsupported:
+	/c/!
+	chords like /[c|e]/ 
+	[.|c] is illegal
+	
+Newly supported:
+	/o/ percussion 
 

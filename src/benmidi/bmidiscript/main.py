@@ -1,5 +1,5 @@
 """
-BMidiScript
+tunescript, a music toy
 Ben Fisher, 2009, GPL
 halfhourhacks.blogspot.com
 
