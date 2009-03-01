@@ -48,9 +48,10 @@ def pitchBendToData(n):
 	datahi = (n&mask2) >> 7
 	return datalo, datahi
 
-#~ v = -400
-#~ d1, d2 = pitchBendToData(v)
-#~ print dataToPitchBend(d1, d2)
+
+def dataToTempo(data): #return value is in microseconds per quarter note
+	assert len(data)==3 #midi spec, data is 3 bytes
+	return ord(data[0]) * (16**4) + ord(data[1]) * (16**2) + ord(data[2])
 
 		
 #############

@@ -214,7 +214,8 @@ class BMidiEvent():
 				bendamt = dataToPitchBend(self.pitch,self.velocity)
 				if bendamt>=0: s+=' +%d'%bendamt
 				else: s+=' %d'%bendamt
-				
+			elif self.type=='SET_TEMPO':
+				s+= ' %d'%dataToTempo(self.data) #in units of microseconds per quarter note
 			else:
 				if self.data!=None: s+=', data='+repr(self.data)
 				if self.pitch!=None: s+=', controller='+repr(self.pitch)
@@ -321,7 +322,6 @@ def delta_time_write(deltatime):
 def main(argv):
 	m = BMidiFile()
 	m.open('..\\midis\\bossa.mid')
-	#~ m.open('..\\midis\\16keys.mid')
 	m.read()
 	m.close()
 	
