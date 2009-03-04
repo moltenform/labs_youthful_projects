@@ -19,42 +19,6 @@ class PlayMidiException(exceptions.Exception): pass
 #note that this can be used to play .wav files and even .mp3 files.
 #based on http://mail.python.org/pipermail/python-win32/2008-August/008059.html
 
-#currently, everything is synchronous. It wouldn't be hard to have an asynchronous version- it would just return instead of time.sleep(),
-#and the mci stop command would be 'close cursong' which could be called later.
-
-def playMidiObject(objMidiFile):
-	#save it to a temporary file
-	import tempfile
-	tempfilename = tempfile.gettempdir() + '\\tmpbmidiplay.mid'
-	
-	try: f=open(tempfilename,'wb')
-	except: raise PlayMidiException('Could not create temporary file for midi playback.')
-	f.close()
-	objMidiFile.open(tempfilename, 'wb')
-	objMidiFile.write()
-	objMidiFile.close()
-	#~ print tempfilename
-	
-	time.sleep(1.0)
-	playMidiFile(tempfilename)
-	time.sleep(1.0)
-	
-	#remove the temporary file
-	#~ import os
-	#~ try: os.unlink(tempfilename)
-	#~ except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
-	
-def playMidiFile(strFilename): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
-	mci=Mci()
-	mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
-	mci.send('set cursong time format milliseconds')
-	buflength = mci.send('status cursong length ')
-	#~ print 'Duration : ',buf,' millisecondes'
-	mci.send('play cursong from 0 to '+str(buflength))
-	time.sleep( (int(buflength)/1000.0) + 1)
-	mci.send('close cursong')
-
-
 class Mci():
 	def __init__(self):
 		self.fnMciSendString = windll.winmm.mciSendStringA
@@ -73,6 +37,60 @@ class Mci():
 		buffer = c_buffer(255)
 		self.fnMciGetErrorString(error,buffer,254)
 		return buffer.value
+
+class MciMidiPlayer():
+	def __init__(self):
+		self.mci = Mci()
+	def playMidiObject(self, objMidiFile, bSynchronous=True):
+		#save it to a temporary file
+		import tempfile
+		tempfilename = tempfile.gettempdir() + '\\tmpbmidiplay.mid'
+		
+		try: f=open(tempfilename,'wb')
+		except: raise PlayMidiException('Could not create temporary file for midi playback.')
+		f.close()
+		objMidiFile.open(tempfilename, 'wb')
+		objMidiFile.write()
+		objMidiFile.close()
+		
+		if bSynchronous: 
+			time.sleep(1.0)
+			self.playSynchronous(tempfilename)
+			time.sleep(1.0)
+			#remove the temporary file? right now we just leave it, probably ok since nothing accumulates.
+			#~ import os
+			#~ try: os.unlink(tempfilename)
+			#~ except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
+		else:
+			raise 'not implemented yet'
+		
+		
+	def playSynchronous(self, strFilename): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
+		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
+		self.mci.send('set cursong time format milliseconds')
+		buflength = self.mci.send('status cursong length ')
+		#~ print 'Duration : ',buf,' millisecondes'
+		self.mci.send('play cursong from 0 to '+str(buflength))
+		time.sleep( (int(buflength)/1000.0) + 1)
+		self.mci.send('close cursong')
+	def playAsync(self, strFilename): #should follow with a call to stop.
+		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
+		self.mci.send('set cursong time format milliseconds')
+		self.buflength = self.mci.send('status cursong length ')
+		self.mci.send('play cursong from 0 to '+str(self.buflength))
+		self.hasStopped = False
+		createThread(self.closeThread)
+	def stop(self):
+		self.mci.send('close cursong')
+		self.hasStopped = True
+	def closeThread(self): #make sure it doesn't accidently close a nother, later, song !
+		#stops the song if it hasn't been stopped already.
+		time.sleep( (int(self.buflength)/1000.0) + 1)
+		if not self.hasStopped:
+			self.mci.send('close cursong')
+
+
+
 
 
 #experimental real-time playing. 

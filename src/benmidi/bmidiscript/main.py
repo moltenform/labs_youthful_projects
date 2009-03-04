@@ -132,9 +132,15 @@ class App():
 			mfile.close()
 	
 	def playMidi(self, evt=None):
+		#if self.isPlaying: return
+		#self.isPlaying = True
+		#~ try:
 		mfile = self.createMidiFile()
 		if mfile:
-			bmidiplay.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
+			player = bmidiplay.MciMidiPlayer()
+			player.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
+		#~ finally:
+			#~ self.isPlaying = False
 
 	
 	def createMidiFile(self):

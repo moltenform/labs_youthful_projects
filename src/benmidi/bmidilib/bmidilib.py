@@ -108,13 +108,14 @@ class BMidiFile():
 class BMidiTrack():
 	def __init__(self):
 		self.events = [ ]
-		self.notelist = [ ]
+		self.notelist = None
 		self.length = 0
 
 	def read(self, str):
 		
 		#Keep track of starting/stopping note events.
 		seenNoteStarts = { } #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
+		self.notelist = []
 		
 		time = 0
 		assert str[:4] == "MTrk"
@@ -141,6 +142,18 @@ class BMidiTrack():
 				
 		del seenNoteStarts
 		return remainder
+	def createNotelist(self):
+		self.notelist = []
+		seenNoteStarts = { } #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
+		for evt in self.events:
+			if evt.type == "NOTE_ON" and evt.velocity!=0:
+				seenNoteStarts[(evt.channel, evt.pitch)] = evt
+				
+			elif (evt.type == "NOTE_OFF" or (evt.velocity == 0 and evt.type == "NOTE_ON")):
+				if (evt.channel, evt.pitch) in seenNoteStarts: #otherwise, not much we can do, invalid, but just ignore
+					evtStart = seenNoteStarts[(evt.channel, evt.pitch)]
+					bnote= BNote(evt.channel, evt.pitch, evtStart.time,evt.time - evtStart.time,evtStart, evt)
+					self.notelist.append(bnote)
 
 	def write(self):
 		time = self.events[0].time
@@ -185,7 +198,7 @@ class BMidiEvent():
 		self.time = None
 		self.channel = self.pitch = self.velocity = self.data = None
 	def __cmp__(self, other):
-		# assert self.time != None and other.time != None
+		if other==None: return 1 #allows comparisons like evt==None
 		return cmp(self.time, other.time)
 	def __repr__(self):
 		if False: #old text representation
