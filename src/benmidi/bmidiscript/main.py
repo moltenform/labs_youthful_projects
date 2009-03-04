@@ -38,10 +38,12 @@ class App():
 		frameBtns.pack()
 		self.btnPlay = Button(frameMain, command=self.playMidi, width=20,height=3, text='Play', font=tupfontbtn)
 		self.btnPlay.pack(side=LEFT, padx=15)
+		#~ self.btnStop = Button(frameMain, command=self.stopMidi, width=10,height=3, text='Stop', font=tupfontbtn)
+		#~ self.btnStop.pack(side=LEFT, padx=15)
 		self.btnSaveMid = Button(frameMain,command=self.saveMidi,  width=20,height=3, text='Save mid', font=tupfontbtn)
 		self.btnSaveMid.pack(side=LEFT, padx=15)
 		
-		
+		self.midiPlayer = bmidiplay.MciMidiPlayer()
 		self.cachedExamples = {} #have a cached of stripped examples. then, when changing, check against this dict.
 		self.exampleText = []
 		self.create_menubar(root)
@@ -132,16 +134,15 @@ class App():
 			mfile.close()
 	
 	def playMidi(self, evt=None):
-		#if self.isPlaying: return
-		#self.isPlaying = True
-		#~ try:
 		mfile = self.createMidiFile()
 		if mfile:
-			player = bmidiplay.MciMidiPlayer()
-			player.playMidiObject(mfile) #creates a temporary .mid file, and then uses mci to play it
-		#~ finally:
-			#~ self.isPlaying = False
+			#creates a temporary .mid file, and then uses mci to play it
+			self.midiPlayer.playMidiObject(mfile, False) 
+		#aSynchronous, pretty cool
+		#to test aSynchronous stop, btnStop can be uncommented
 
+	def stopMidi(self):
+		self.midiPlayer.signalStop()
 	
 	def createMidiFile(self):
 		if self.mode=='tune': return self.createMidiFileTunescript(self.getText())

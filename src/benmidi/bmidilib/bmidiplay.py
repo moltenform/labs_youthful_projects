@@ -28,7 +28,8 @@ class Mci():
 		buffer = c_buffer(255)
 		errorcode = self.fnMciSendString(str(command),buffer,254,0)
 		if errorcode:
-			raise PlayMidiException('MCIError:' + str(self.get_error(errorcode)) + ':'+ str(txt)+':'+str(buf))
+			txt=buffer
+			raise PlayMidiException('MCIError:' + str(self.get_error(errorcode)) + ':'+ str(txt)+':'+str(buffer))
 			
 		return buffer.value
 
@@ -38,10 +39,15 @@ class Mci():
 		self.fnMciGetErrorString(error,buffer,254)
 		return buffer.value
 
-class MciMidiPlayer():
+#note that it appears the mci send and mci stop must be from the same thread (!)
+class MciMidiPlayer(): #there should probably be only one instance of this...
+	isPlaying = False #kind of like a mutex. potentially bad in that if an error occurs, isPlaying can be stuck on True, and there is not more audio playback.
+	id=0
 	def __init__(self):
 		self.mci = Mci()
 	def playMidiObject(self, objMidiFile, bSynchronous=True):
+		if self.isPlaying: print 'alreadyplaying'; return
+			
 		#save it to a temporary file
 		import tempfile
 		tempfilename = tempfile.gettempdir() + '\\tmpbmidiplay.mid'
@@ -58,14 +64,14 @@ class MciMidiPlayer():
 			self.playSynchronous(tempfilename)
 			time.sleep(1.0)
 			#remove the temporary file? right now we just leave it, probably ok since nothing accumulates.
-			#~ import os
-			#~ try: os.unlink(tempfilename)
-			#~ except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
+			#~ import os; try: os.unlink(tempfilename); except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
 		else:
-			raise 'not implemented yet'
-		
+			self.playAsync(tempfilename)
 		
 	def playSynchronous(self, strFilename): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
+		if self.isPlaying: print 'alreadyplaying'; return
+			
+		self.isPlaying = True
 		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
 		self.mci.send('set cursong time format milliseconds')
 		buflength = self.mci.send('status cursong length ')
@@ -73,24 +79,52 @@ class MciMidiPlayer():
 		self.mci.send('play cursong from 0 to '+str(buflength))
 		time.sleep( (int(buflength)/1000.0) + 1)
 		self.mci.send('close cursong')
+		self.isPlaying = False
+		
 	def playAsync(self, strFilename): #should follow with a call to stop.
+		if self.isPlaying: print 'alreadyplaying'; return
+		
+		self.isPlaying = True
+		makeThread(self.playInThread, (strFilename,)) #thread to automatically close when done.
+	def _stop(self):
+		print 'actually closin'
+		if self.isPlaying: 
+			self.mci.send('close cursong')
+		self.isPlaying = False
+	def signalStop(self):
+		self.stopsignal=True
+	def playInThread(self, strFilename):
+		self.id += 1
+		
 		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
 		self.mci.send('set cursong time format milliseconds')
 		self.buflength = self.mci.send('status cursong length ')
 		self.mci.send('play cursong from 0 to '+str(self.buflength))
-		self.hasStopped = False
-		createThread(self.closeThread)
-	def stop(self):
-		self.mci.send('close cursong')
-		self.hasStopped = True
-	def closeThread(self): #make sure it doesn't accidently close a nother, later, song !
+		
+		self.stopsignal=False
+		makeThread(self.signalStopper, (self.id,)) #yet another thread...
+		# The idea is that 2 things can stop it - signalStop() or end of track.
+		# I could also have a busy loop that looks if the track is done, but I don't know of a good way to say 
+		# 		while getTime() < timeTarget: (unless I use time.time(), I'll try that next.)
+		while not self.stopsignal:
+			time.sleep(0.1) #don't tie up cpu
+			
 		#stops the song if it hasn't been stopped already.
+		if self.isPlaying:
+			print 'closing now'
+			self._stop()
+	def signalStopper(self, idWhenCalled):
+		#problem-this could stop the next playing song. no nice way to kill a thread, so I should have an i.d.
 		time.sleep( (int(self.buflength)/1000.0) + 1)
-		if not self.hasStopped:
-			self.mci.send('close cursong')
+		if self.id == idWhenCalled:
+			self.signalStop()
 
-
-
+def makeThread(fn, args=None): #fn, args
+	if args==None: args=tuple()
+	import threading
+	t = threading.Thread( target=fn, args=args)
+	t.start()
+	
 
 
 #experimental real-time playing. 
