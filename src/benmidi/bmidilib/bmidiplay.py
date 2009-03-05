@@ -42,7 +42,6 @@ class Mci():
 #note that it appears the mci send and mci stop must be from the same thread (!)
 class MciMidiPlayer(): #there should probably be only one instance of this...
 	isPlaying = False #kind of like a mutex. potentially bad in that if an error occurs, isPlaying can be stuck on True, and there is not more audio playback.
-	id=0
 	def __init__(self):
 		self.mci = Mci()
 	def playMidiObject(self, objMidiFile, bSynchronous=True):
@@ -87,37 +86,26 @@ class MciMidiPlayer(): #there should probably be only one instance of this...
 		self.isPlaying = True
 		makeThread(self.playInThread, (strFilename,)) #thread to automatically close when done.
 	def _stop(self):
-		print 'actually closin'
 		if self.isPlaying: 
 			self.mci.send('close cursong')
 		self.isPlaying = False
 	def signalStop(self):
 		self.stopsignal=True
-	def playInThread(self, strFilename):
-		self.id += 1
-		
+	
+	def playInThread(self, strFilename, fromMs=0):
 		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
 		self.mci.send('set cursong time format milliseconds')
 		self.buflength = self.mci.send('status cursong length ')
-		self.mci.send('play cursong from 0 to '+str(self.buflength))
+		self.mci.send('play cursong from %d to %s'%(fromMs,str(self.buflength)))
 		
 		self.stopsignal=False
-		makeThread(self.signalStopper, (self.id,)) #yet another thread...
-		# The idea is that 2 things can stop it - signalStop() or end of track.
-		# I could also have a busy loop that looks if the track is done, but I don't know of a good way to say 
-		# 		while getTime() < timeTarget: (unless I use time.time(), I'll try that next.)
-		while not self.stopsignal:
+		timetarget = time.time() + (int(self.buflength)/1000.0) + 1
+		while not self.stopsignal and time.time() < timetarget:
 			time.sleep(0.1) #don't tie up cpu
 			
 		#stops the song if it hasn't been stopped already.
 		if self.isPlaying:
-			print 'closing now'
 			self._stop()
-	def signalStopper(self, idWhenCalled):
-		#problem-this could stop the next playing song. no nice way to kill a thread, so I should have an i.d.
-		time.sleep( (int(self.buflength)/1000.0) + 1)
-		if self.id == idWhenCalled:
-			self.signalStop()
 
 def makeThread(fn, args=None): #fn, args
 	if args==None: args=tuple()

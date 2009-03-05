@@ -22,7 +22,7 @@ class BMixerWindow():
 		
 		Label(frameTop, text='Pan:').grid(row=ROW_PAN, column=0)
 		Label(frameTop, text='Volume:').grid(row=ROW_VOL, column=0)
-		Label(frameTop, text='').grid(row=ROW_NAME, column=0)
+		Label(frameTop, text=' ').grid(row=ROW_NAME, column=0)
 		Label(frameTop, text='Enabled:').grid(row=ROW_CHECK, column=0)
 		Label(frameTop, text='Transpose:').grid(row=ROW_TRANSPOSE, column=0)
 		
@@ -104,7 +104,7 @@ class BMixerWindow():
 						note.pitch = nextpitch
 					
 		
-		return midiObject
+		return None #as a signal that this modifies, not returns a copy
 		
 def getFirstVolumeAndPanEvents(trackObject):
 	#return format is (evtpan, evtvol, baremanyPan, barmanyVol)
@@ -142,7 +142,8 @@ if __name__=='__main__':
 	def callback():
 		print 'callback'
 		import copy
-		newmidi = app.createMixedMidi(copy.deepcopy(midiobj))
+		newmidi = copy.deepcopy(midiobj)
+		app.createMixedMidi(newmidi)
 		newmidi.open('out.mid','wb')
 		newmidi.write()
 		newmidi.close()
