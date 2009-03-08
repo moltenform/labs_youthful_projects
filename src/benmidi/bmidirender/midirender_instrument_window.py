@@ -1,67 +1,50 @@
+
 from Tkinter import *
 import midirender_util
 
 sys.path.append('..\\bmidilib')
 import bmidilib
 
-class MixerTrackInfo():
-	def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar):
-		self.trackNumber = trackNumber; self.enableVar = enableVar; self.volWidget = volWidget; self.panWidget = panWidget; self.transposeVar = transposeVar
 
-class BMixerWindow():
+class BInstrumentWindow():
 	def __init__(self, top, midiObject, opts, callbackOnClose=None):
 		#should only display tracks with note events. that way, solves some problems
-		top.title('Mixer')
+		top.title('Instrument')
 		
 		frameTop = Frame(top, height=600)
 		frameTop.pack(expand=YES, fill=BOTH)
 		self.frameTop=frameTop
 		
-		ROW_NAME = 0
-		ROW_CHECK = 1
-		ROW_VOL = 2
-		ROW_PAN = 3
-		ROW_TRANSPOSE = 4
+		frameLeft = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
+		frameLeft.grid(row=0, column=0, sticky='nsew')
+		frameRight = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
+		frameRight.grid(row=0, column=1, sticky='nsew')
+		frameTop.grid_columnconfigure(1, weight=1, minsize=20)
+		frameTop.grid_rowconfigure(0, weight=1, minsize=20)
 		
-		Label(frameTop, text='Pan:').grid(row=ROW_PAN, column=0)
-		Label(frameTop, text='Volume:').grid(row=ROW_VOL, column=0)
-		Label(frameTop, text=' ').grid(row=ROW_NAME, column=0)
-		Label(frameTop, text='Enabled:').grid(row=ROW_CHECK, column=0)
-		Label(frameTop, text='Transpose:').grid(row=ROW_TRANSPOSE, column=0)
+		Label(frameLeft, text='Instruments').pack(side=TOP)
+		self.lbProgChanges = ScrolledListbox(frameLeft, selectmode=SINGLE, width=30, height=7)
+		self.lbProgChanges.pack(side=TOP, expand=YES, fill=BOTH)
 		
-		warnMultiple=[]
-		self.state = []
-		col = 1 #column 0 is the text labels
-		for trackNumber in range(len(midiObject.tracks)):
-			track = midiObject.tracks[trackNumber]
-			if not len(track.notelist): continue #only display tracks with note lists
-			
-			scpan = Scale(frameTop, from_=-63, to=63, orient=HORIZONTAL,length=32*2) #make it possible to set to 0.
-			scpan.grid(row=ROW_PAN, column=col, sticky='EW')
-			scvol = Scale(frameTop, from_=127, to=0, orient=VERTICAL)
-			scvol.grid(row=ROW_VOL, column=col, sticky='NS')
-			Label(frameTop, text='    Track %d    '%trackNumber).grid(row=ROW_NAME, column=col)
-			checkvar = IntVar(); 
-			Checkbutton(frameTop, text='', var=checkvar).grid(row=ROW_CHECK, column=col)
-			transposevar = StringVar(); transposevar.set('0')
-			Entry(frameTop, width=4, textvariable=transposevar).grid(row=ROW_TRANSPOSE, column=col)
-			
-			#defaults
-			(firstpan, firstvol, bMultiplePans, bMultipleVols) = getFirstVolumeAndPanEvents(track)
-			if bMultipleVols or bMultiplePans: warnMultiple.append(trackNumber)
-			scvol.set(100 if (firstvol==None) else firstvol.velocity)
-			scpan.set(0 if (firstpan==None) else (firstpan.velocity-64))
-			checkvar.set(1)
-			
-			self.state.append(MixerTrackInfo(trackNumber, checkvar, scvol, scpan,transposevar))
-			col += 1
+		self.lblTrackSel = Label(frameRight, text='Track 1'); self.lblTrackSel.pack(side=TOP)
+		frInst = Frame(frameRight)
+		Label(frInst, text='001 Acoustic Grand Piano').pack(side=LEFT)
+		Button(frInst, text='Change...').pack(side=LEFT, padx=45)
+		frInst.pack(side=TOP)
 		
 		
-		if len(warnMultiple)!=0:
-			midirender_util.alert('One or more of the tracks (%s) has multiple pan or volume events. You can still use the mixer, but it will only modify the first event.'%','.join(str(n) for n in warnMultiple ))
-			
-		frameTop.grid_rowconfigure(ROW_VOL, weight=1)
-		#~ frameTop.grid_columnconfigure(0, weight=1)
+		self.lblPatchPack = Label(frameRight, text='Patch: eawpats\\piano.pat')
+		self.lblPatchPack.pack(side=TOP, pady=20)
+		frPatch = Frame(frameRight)
+		self.lbPatchChoose = ScrolledListbox(frPatch, selectmode=SINGLE, width=30, height=4)
+		self.lbPatchChoose.pack(side=LEFT)
+		Button(frPatch, text='Set').pack(side=LEFT, anchor='s', padx=5, pady=5)
+		frPatch.pack(side=TOP)
+		
+		Button(frameRight, text='Advanced...').pack(side=TOP)
+		
+		
+		
 		
 		if callbackOnClose!=None:
 			def callCallback():
@@ -120,30 +103,59 @@ class BMixerWindow():
 		
 		return None #as a signal that this modifies, not returns a copy
 		
-def getFirstVolumeAndPanEvents(trackObject):
+def getFirstProgramChangeEvents(midiObject):
 	#return format is (evtpan, evtvol, baremanyPan, barmanyVol)
 	firstpan=None
 	firstvol=None
-	bMultiplePans = False; bMultipleVols = False
-	for evt in trackObject.events:
-		if evt.type=='CONTROLLER_CHANGE':
-			if evt.pitch==0x0A: #pan
-				if firstpan==None:
-					firstpan = evt
-				else:
-					bMultiplePans = True
-			elif evt.pitch==0x07: #vol
-				if firstvol==None:
-					firstvol = evt
-				else:
-					bMultipleVols = True
-	return (firstpan, firstvol, bMultiplePans, bMultipleVols)
+	results = [] #(tracknum, instrument). includes all program changes. 
+	#also, if there are chan10 events, addes EXACTLY one percussion, instrument=-1.
+	haveRecordedPercussion = None
+	for tracknum in range(len(midiObject.tracks)):
+		trackObject = midiObject.tracks[tracknum]
+		for evt in trackObject.events:
+			if evt.type=='PROGRAM_CHANGE':
+				results.append((tracknum, evt.data))
+			elif evt.type=='NOTE_ON' and evt.channel==10 and not haveRecordedPercussion:
+				results.append((tracknum, -1))
+				haveRecordedPercussion = True
+				
+	return (results, firstTrackWithPercussion)
 
+
+class ScrolledListbox(Listbox): #an imitation of ScrolledText
+	def __init__(self, master=None, cnf=None, **kw):
+		if cnf is None:
+			cnf = {}
+		if kw:
+			from Tkinter import _cnfmerge
+			cnf = _cnfmerge((cnf, kw))
+		fcnf = {}
+		for k in cnf.keys():
+			if type(k) == ClassType or k == 'name':
+				fcnf[k] = cnf[k]
+				del cnf[k]
+		self.frame = Frame(master, **fcnf)
+		self.vbar = Scrollbar(self.frame, name='vbar')
+		self.vbar.pack(side=RIGHT, fill=Y)
+		cnf['name'] = 'lbox'
+		Listbox.__init__(self, self.frame, **cnf)
+		self.pack(side=LEFT, fill=BOTH, expand=1)
+		self['yscrollcommand'] = self.vbar.set
+		self.vbar['command'] = self.yview
+
+		# Copy geometry methods of self.frame -- hack!
+		methods = Pack.__dict__.keys()
+		methods = methods + Grid.__dict__.keys()
+		methods = methods + Place.__dict__.keys()
+
+		for m in methods:
+			if m[0] != '_' and m != 'config' and m != 'configure':
+				setattr(self, m, getattr(self.frame, m))
+		
 
 
 if __name__=='__main__':
-	
-	
+		
 	midiobj = bmidilib.BMidiFile()
 	midiobj.open('..\\midis\\16keys.mid', 'rb')
 	midiobj.read()
@@ -154,16 +166,11 @@ if __name__=='__main__':
 	
 	def callback():
 		print 'callback'
-		import copy
-		newmidi = copy.deepcopy(midiobj)
-		app.createMixedMidi(newmidi)
-		newmidi.open('out.mid','wb')
-		newmidi.write()
-		newmidi.close()
 	
-	app = BMixerWindow(root,midiobj, opts)
-	Button(app.frameTop, text='test', command=callback).grid(row=0,column=0)
+	app = BInstrumentWindow(root,midiobj, opts)
+	#~ Button(app.frameTop, text='test', command=callback).grid(row=0,column=0)
 	
 	root.mainloop()
 	
 	
+

@@ -53,7 +53,14 @@ def dataToTempo(data): #return value is in microseconds per quarter note
 	assert len(data)==3 #midi spec, data is 3 bytes
 	return ord(data[0]) * (16**4) + ord(data[1]) * (16**2) + ord(data[2])
 
-		
+def tempoToData(msPerQtrNote):
+	msPerQtrNote = int(msPerQtrNote)
+	data =[None, None, None]
+	data[0] = chr((msPerQtrNote & (0xFF << 16)) >> 16)
+	data[1] = chr((msPerQtrNote & (0xFF << 8)) >> 8)
+	data[2] = chr((msPerQtrNote & (0xFF)))
+	return ''.join(data)
+
 #############
 
 def showstr(str, n=16):

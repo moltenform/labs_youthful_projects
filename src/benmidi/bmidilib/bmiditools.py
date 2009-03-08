@@ -71,9 +71,12 @@ class BMidiSecondsLength():
 		#get all tempo events
 		for track in midiObject.tracks:
 			tempoChanges.extend( ( (evt.time, bmidilib.dataToTempo(evt.data)) for evt in track.events if evt.type=='SET_TEMPO'))
+		
+		tempoChanges.sort(key=lambda item: item[0]) #unlikely but possible that there are tempo events in separate tracks
 		self.tempoChanges = tempoChanges
 		self.ticksPerQuarterNote = midiObject.ticksPerQuarterNote
 	def ticksToSeconds(self, n):
+		# tempo is in microseconds per quarter note.
 		newarr = list(self.tempoChanges) + [ (n, -1) ] #add a final event, for processing conveniance
 		newarr.sort(key=lambda elem: elem[0])
 		totalTime = 0
@@ -81,7 +84,7 @@ class BMidiSecondsLength():
 			currentTempo = newarr[i][1]
 			currentTime = newarr[i][0]
 			nextTime = newarr[i+1][0]
-			totalTime += (nextTime-currentTime) * 1e-6*currentTempo/self.ticksPerQuarterNote;
+			totalTime += (nextTime-currentTime) * 1.0e-6*currentTempo/self.ticksPerQuarterNote;
 			if newarr[i+1][1]==-1: #reached the time we are interested in.
 				break
 		return totalTime

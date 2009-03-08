@@ -44,7 +44,7 @@ class MciMidiPlayer(): #there should probably be only one instance of this...
 	isPlaying = False #kind of like a mutex. potentially bad in that if an error occurs, isPlaying can be stuck on True, and there is not more audio playback.
 	def __init__(self):
 		self.mci = Mci()
-	def playMidiObject(self, objMidiFile, bSynchronous=True):
+	def playMidiObject(self, objMidiFile, bSynchronous=True, fromMs=0):
 		if self.isPlaying: print 'alreadyplaying'; return
 			
 		#save it to a temporary file
@@ -60,31 +60,28 @@ class MciMidiPlayer(): #there should probably be only one instance of this...
 		
 		if bSynchronous: 
 			time.sleep(1.0)
-			self.playSynchronous(tempfilename)
+			self.playSynchronous(tempfilename, fromMs=fromMs)
 			time.sleep(1.0)
 			#remove the temporary file? right now we just leave it, probably ok since nothing accumulates.
 			#~ import os; try: os.unlink(tempfilename); except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
 		else:
-			self.playAsync(tempfilename)
+			self.playAsync(tempfilename, fromMs=fromMs)
 		
-	def playSynchronous(self, strFilename): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
+	def playSynchronous(self, strFilename, fromMs=0): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
 		if self.isPlaying: print 'alreadyplaying'; return
-			
 		self.isPlaying = True
-		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
-		self.mci.send('set cursong time format milliseconds')
-		buflength = self.mci.send('status cursong length ')
-		#~ print 'Duration : ',buf,' millisecondes'
-		self.mci.send('play cursong from 0 to '+str(buflength))
-		time.sleep( (int(buflength)/1000.0) + 1)
+		
+		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
+		
+		time.sleep( fLengthInSeconds + 1)
 		self.mci.send('close cursong')
 		self.isPlaying = False
 		
-	def playAsync(self, strFilename): #should follow with a call to stop.
+	def playAsync(self, strFilename,fromMs=0): #should follow with a call to stop.
 		if self.isPlaying: print 'alreadyplaying'; return
 		
 		self.isPlaying = True
-		makeThread(self.playInThread, (strFilename,)) #thread to automatically close when done.
+		makeThread(self.playInThread, (strFilename,fromMs)) #thread to automatically close when done.
 	def _stop(self):
 		if self.isPlaying: 
 			self.mci.send('close cursong')
@@ -92,20 +89,30 @@ class MciMidiPlayer(): #there should probably be only one instance of this...
 	def signalStop(self):
 		self.stopsignal=True
 	
-	def playInThread(self, strFilename, fromMs=0):
-		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
-		self.mci.send('set cursong time format milliseconds')
-		self.buflength = self.mci.send('status cursong length ')
-		self.mci.send('play cursong from %d to %s'%(fromMs,str(self.buflength)))
+	def playInThread(self, strFilename, fromMs):
+		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
 		
 		self.stopsignal=False
-		timetarget = time.time() + (int(self.buflength)/1000.0) + 1
+		timetarget = time.time() + fLengthInSeconds + 1
 		while not self.stopsignal and time.time() < timetarget:
 			time.sleep(0.1) #don't tie up cpu
 			
 		#stops the song if it hasn't been stopped already.
 		if self.isPlaying:
 			self._stop()
+	def _mciStartPlayback(self, strFilename, fromMs):
+		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
+		self.mci.send('set cursong time format milliseconds')
+		buflength = self.mci.send('status cursong length ')
+		fTotalLength =  (int(buflength)/1000.0)
+		fStartingPos = int(fromMs)/1000.0
+		if fStartingPos>fTotalLength: 
+			return 0.0
+			
+		self.mci.send('play cursong from %s to %s'%(str(int(fromMs)),str(buflength)))
+		return fTotalLength - fStartingPos
+		
+		
 
 def makeThread(fn, args=None): #fn, args
 	if args==None: args=tuple()

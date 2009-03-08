@@ -10,15 +10,12 @@ class Callable():
 	def __str__(self):
 		return self.func.__name__
 
-def makeThread(fn, args):
+def makeThread(fn, args=None): #fn, args as a tuple
+	if args==None: args=tuple()
 	import threading
-	class MyThread(threading.Thread):
-		"""this is a wrapper for threading.Thread that improves the syntax for creating and starting threads - Allen Downey"""
-		def __init__(self, target, *args):
-			threading.Thread.__init__(self, target=target, args=args)
-			self.start()
-	MyThread(fn, args)
-
+	t = threading.Thread( target=fn, args=args)
+	t.start()
+	
 def ask_openfile(initialfolder='.',title='Open',types=None):
 	"""Open a native file dialog that asks the user to choose a file. The path is returned as a string.
 	Specify types in the format ['.bmp|Windows Bitmap','.gif|Gif image'] and so on.
@@ -61,3 +58,11 @@ def ask_yesno(prompt, title=None):
 	import tkMessageBox
 	return tkMessageBox.askyesno(title=title, message=prompt)
 	
+def ask_float(prompt, default=None, min=0.0,max=100.0, title=''):
+	""" Get input from the user, validated to be an float (decimal number). default refers to the value which is initially in the field. By default, from 0.0 to 100.0; change this by setting max and min. Returns None on cancel."""
+	import tkSimpleDialog
+	if default:
+		return tkSimpleDialog.askfloat(title, prompt, minvalue=min, maxvalue=max, initialvalue=default)
+	else:
+		return tkSimpleDialog.askfloat(title, prompt, minvalue=min, maxvalue=max)
+		

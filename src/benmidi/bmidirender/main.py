@@ -10,29 +10,30 @@ halfhourhacks.blogspot.com
 	#tempo changes
 	#get excerpt changes
 	
+#todo: stop music on close.
 #the Restructuring change can only come first, not later.
-
+import time
 from Tkinter import *
-
-icon0='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg7AP0JHEiwoEGCABIqXHiwoUODCR82XBhRosWHFAFc9JeRocOKG0OKHLnRY8mOFjuahIhS4kqSMGM+DAgAOw=='''
-icon1='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''
-icon2='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg4AP0JHEiwoMGCABIqTHiwocOHEA8uXBixosSJDCFizPhwIwCLIEOKHBnRY8mNJzGmnEiypUuDAQEAOw=='''
 
 
 import midirender_util
-import bmixer
+import midirender_mixer
+import midirender_tempo
 
 sys.path.append('..\\bmidilib')
 import bmidilib
 import bmiditools
+import bmidiplay
 
 sys.path.append('..\\scoreview')
 import scoreview
 import listview
 
 class App():
+	playingState = 'stopped' #or 'paused' or 'playing'
+	
 	def __init__(self, root):
-		root.title('Bmidi Render')
+		root.title('Bmidi Player')
 		
 		frameMain = Frame(root)
 		frameMain.pack(side=TOP,fill=BOTH, expand=True)
@@ -40,27 +41,12 @@ class App():
 		self.lblFilename = Label(frameMain, text='No file opened.')
 		self.lblFilename.pack(side=TOP, anchor='w')
 		
-		def testevt(evt=None):
-			print 'hi'
-		
 		
 		#~ self.lblBank = Label(frameMain, text='Default bank: eawpats')
 		#~ self.lblBank.pack(side=TOP, anchor='w')
 		#~ self.lblBank.bind('<Button-1>', testevt)
 		
-		import time
-		def threado():
-			i = 0
-			while True: #and stillPlaying. and app still open. this might/will lose sync with midi over time, but that's ok.
-				if i>=sc['to']: break
-				sc.set(i); 
-				time.sleep(0.25)
-				i+=0.25
-		def nothing():
-			midirender_util.makeThread(threado)
-		
-		
-		
+				
 		#to "pause" and "resume" we simply play starting somewhere else
 		
 		self.icon0 = PhotoImage(data=icon0)
@@ -68,39 +54,29 @@ class App():
 		self.icon2 = PhotoImage(data=icon2)
 		
 		frameDecogroup = Frame(frameMain, borderwidth=1, relief=GROOVE, padx=3, pady=3)
-		self.timeSlider = Scale(frameDecogroup, orient=HORIZONTAL,resolution=1, width=5) #use resolution=0.1 to see decimals
-		self.timeSlider.pack(side=TOP, fill=X)
-		sc= self.timeSlider
+		self.sliderTime = Scale(frameDecogroup, orient=HORIZONTAL,resolution=0.1, width=5, from_=0, to_=0) #If I wanted to see decimals, I could set resolution=0.1
+		self.sliderTime.pack(side=TOP, fill=X)
 		
 		frameBtns = Frame(frameDecogroup)
-		Button(frameBtns, image=self.icon0, text='Play mid', command=nothing).pack(side=LEFT, padx=4)
-		Button(frameBtns, image=self.icon1, text='Pause mid', command=nothing).pack(side=LEFT, padx=4)
-		Button(frameBtns, image=self.icon2,  text='Stop mid', command=nothing,relief=SUNKEN).pack(side=LEFT, padx=4)
+		self.btnPlay = Button(frameBtns, image=self.icon0, text='Play', command=self.onBtnPlay); self.btnPlay.pack(side=LEFT, padx=4)
+		self.btnPause = Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause); self.btnPause.pack(side=LEFT, padx=4)
+		self.btnStop = Button(frameBtns, image=self.icon2,  text='Stop', command=self.onBtnStop,relief=SUNKEN); self.btnStop.pack(side=LEFT, padx=4)
 		
 		Checkbutton(frameBtns, text='Timidity').pack(side=LEFT, padx=35)
-		#~ Button(frameBtns, text='Preview Wav', command=nothing).pack(side=LEFT, padx=25)
-		Button(frameBtns, text='Save Wav', command=nothing).pack(side=LEFT, padx=2)
+		self.btnSave = Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave); self.btnSave.pack(side=LEFT, padx=2)
 		
 		frameBtns.pack(side=TOP, fill=X, pady=2)
 		
-		frameBtns2 = Frame(frameMain, borderwidth=3)
-		
-		Button(frameBtns2, text='Preview wav', command=nothing).pack(side=LEFT, padx=4)
-		Button(frameBtns2, text='Render wav', command=nothing).pack(side=LEFT, padx=4)
-		Button(frameBtns2, text='Show Mixer', command=nothing).pack(side=LEFT, padx=4)
-		Label(frameBtns2, text='Default bank: eawpats').pack(side=LEFT, padx=4)
-		#~ b.config(relief=SUNKEN)
-		# a scale for when to play? use a scale control, for play position
-		#frameBtns2.pack(side=TOP)
 		
 		frameDecogroup.pack(side=TOP, fill=X)
 		
 		frameGrid = Frame(frameMain, borderwidth=1)
 		frameGrid.pack(side=TOP,fill=BOTH, expand=True, anchor='w', pady=15)
-		#~ frameGrid.grid_rowconfigure(0, weight=1, minsize=10)
+		# frameGrid.grid_rowconfigure(0, weight=1, minsize=10)
 		frameGrid.grid_columnconfigure(1, weight=1, minsize=20)
 		
 		self.haveDrawnHeaders = False
+		self.isMidiLoaded = False
 		
 		self.objMidi = None
 		self.frameGrid = frameGrid
@@ -112,8 +88,13 @@ class App():
 		#These are 
 		self.listviews = {} #index is track number. 
 		self.scoreviews = {}
+		self.mixerWindow=None
 		
 		self.create_menubar(root)
+		
+		self.clearModifications()
+		
+		self.midiPlayer = bmidiplay.MciMidiPlayer()
 	
 	def drawColumnHeaders(self):
 		opts = {}
@@ -126,9 +107,12 @@ class App():
 		Label(self.frameGrid, text=' ', **opts).grid(row=0, column=6)
 		Label(self.frameGrid, text=' ', **opts).grid(row=0, column=7)
 		Label(self.frameGrid, text=' ', **opts).grid(row=0, column=8)
+		
+		#state=DISABLED, state=ENABLED.
 		self.haveDrawnHeaders = True
 	
 	def create_menubar(self,root):
+		root.bind('<Control-space>', self.onBtnPlay)
 		root.bind('<Alt-F4>', lambda x:root.quit)
 		root.bind('<Control-o>', self.menu_openMidi)
 		menubar = Menu(root)
@@ -143,11 +127,12 @@ class App():
 		
 		menuAudio = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="Audio", menu=menuAudio, underline=0)
-		menuAudio.add_command(label="Play", command=self.menu_openMidi, underline=0)
-		menuAudio.add_command(label="Pause", command=self.menu_openMidi, underline=0)
-		menuAudio.add_command(label="Stop", command=self.menu_openMidi, underline=0)
+		menuAudio.add_command(label="Play", command=self.onBtnPlay, underline=0)
+		menuAudio.add_command(label="Pause", command=self.onBtnPause, underline=0)
+		menuAudio.add_command(label="Stop", command=self.onBtnStop, underline=0)
+		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=0)
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Change tempo...", command=self.menu_openMidi, underline=0)
+		menuAudio.add_command(label="Change tempo...", command=self.menu_changeTempo, underline=0)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Choose Patch Bank...", command=self.menu_openMidi, underline=0)
 		menuAudio.add_command(label="Configure Instrument Patches...", command=self.menu_openMidi, underline=0)
@@ -157,7 +142,7 @@ class App():
 		self.objOptionsBarlines = IntVar(); self.objOptionsBarlines.set(1)
 		menuView = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="View", menu=menuView, underline=0)
-		menuView.add_command(label="Mixer", command=self.menu_openMidi, underline=0)
+		menuView.add_command(label="Mixer", command=midirender_util.Callable(self.openMixerView,None), underline=0)
 		menuView.add_command(label="Console output", command=self.menu_openMidi, underline=0)
 		menuView.add_separator()
 		menuView.add_checkbutton(label="Show Durations in score", variable=self.objOptionsDuration, underline=0, onvalue=1, offvalue=0)
@@ -191,11 +176,13 @@ class App():
 		self.objMidi = newmidi
 		
 		if not self.haveDrawnHeaders: self.drawColumnHeaders()
+		if not self.isMidiLoaded: self.isMidiLoaded = True
 		
 		#close any open views
 		for key in self.listviews: self.listviews[key].destroy()
 		for key in self.scoreviews: self.scoreviews[key].destroy()
 		self.listviews = {}; self.scoreviews = {}
+		self.clearModifications()
 		
 		#hide all of the old widgets
 		for key in self.gridwidgets:
@@ -210,17 +197,23 @@ class App():
 			if (x,y+1) not in self.gridwidgets:
 				smallFrame = Frame(self.frameGrid, borderwidth=1, relief=RIDGE) #GROOVE
 				smallFrame.is_smallframe=1
-				if isButton: lbl = Button(smallFrame, text=text, relief=GROOVE,anchor='w'); lbl.pack(anchor='w', fill=BOTH)
-				else: lbl = Label(smallFrame, text=text); lbl.pack(anchor='w')
+				if isButton: 
+					btn = Button(smallFrame, text=text, relief=GROOVE,anchor='w'); 
+					btn.pack(anchor='w', fill=BOTH)
+					thewidget = btn
+				else: 
+					lbl = Label(smallFrame, text=text); 
+					lbl.pack(anchor='w')
+					thewidget = lbl
 				
-				self.gridwidgets[(x,y+1)] = lbl
+				self.gridwidgets[(x,y+1)] = thewidget
 			
 			self.gridwidgets[(x,y+1)]['text'] = text
 			self.gridwidgets[(x,y+1)].master.grid(row=y+1, column=x, sticky='nsew')
 		
 		lengthTimer = bmiditools.BMidiSecondsLength(self.objMidi)
 		overallLengthSeconds = lengthTimer.getOverallLength(self.objMidi)
-		self.timeSlider['to'] = max(1.0, overallLengthSeconds); print overallLengthSeconds
+		self.sliderTime['to'] = max(1.0, overallLengthSeconds+1.0);
 		warnMultipleChannels = False
 		for rownum in range(len(self.objMidi.tracks)):
 			trackobj = self.objMidi.tracks[rownum]
@@ -241,7 +234,7 @@ class App():
 			else: channame = str(chanarray[0])
 			addLabel( channame, rownum, 2)
 			
-			countednoteevts = self.countNoteEvents(trackobj)
+			countednoteevts = len(trackobj.notelist) # this assumes notelist is valid, and notelist is only valid if we've just read from a file
 			
 			# Track Instrument(s)
 			instarray = res['INSTRUMENTS']
@@ -263,12 +256,12 @@ class App():
 			
 			#Buttons
 			if (rownum, 0) not in self.gridbuttons:
-				btn = Button(self.frameGrid, text='Mixer', command=midirender_util.Callable(self.openScoreView, rownum))
+				btn = Button(self.frameGrid, text='Mixer', command=midirender_util.Callable(self.openMixerView, rownum))
 				self.gridbuttons[(rownum, 0)] = btn
 			self.gridbuttons[(rownum, 0)].grid(row=rownum+1, column=6)
 			
 			if (rownum, 1) not in self.gridbuttons:
-				btn = Button(self.frameGrid, text='Score', command=midirender_util.Callable(self.openListView, rownum))
+				btn = Button(self.frameGrid, text='Score', command=midirender_util.Callable(self.openScoreView, rownum))
 				self.gridbuttons[(rownum, 1)] = btn
 			self.gridbuttons[(rownum, 1)].grid(row=rownum+1, column=7)
 			
@@ -285,10 +278,100 @@ class App():
 				return
 	
 	
-	# These aren't in bmiditools for now
-	# they assume notelist is valid, and notelist is only valid if we've just read from a file
-	def countNoteEvents(self, trackObject):
-		return len(trackObject.notelist)
+	def playSliderThread(self):
+		currentTime = self.sliderTime.get()
+		while self.playingState=='playing':
+			
+			try: self.sliderTime['to'] #if the app has exited, this reference throws a TclError, so catch it.
+			except TclError: return None
+			
+			if not self.midiPlayer.isPlaying:
+				self.onBtnStop() #as if Stop had been clicked. will exit this loop.
+				break
+			else:
+				if currentTime>=self.sliderTime['to']:
+					self.sliderTime.set(currentTime)
+					currentTime+=0.0 #just wait here, until the midiPlayer stops playing.
+				else:
+					self.sliderTime.set(currentTime)
+					currentTime+=0.2
+				
+			time.sleep(0.2)
+			
+	def togglePlayButton(self, btn): 
+		self.btnPlay.config(relief=RAISED); self.btnPause.config(relief=RAISED); self.btnStop.config(relief=RAISED) 
+		btn.config(relief=SUNKEN);
+	def onBtnPlay(self, e=None):
+		if not self.isMidiLoaded: return
+		if self.playingState == 'playing': return
+		self.playingState = 'playing'
+		
+		#transform the midi object, etc.
+		midiCopy = self.buildModifiedMidi()
+		
+		self.togglePlayButton(self.btnPlay)
+		self.midiPlayer.playMidiObject(midiCopy, False, fromMs=self.sliderTime.get() * 1000) #asynchronous!
+		midirender_util.makeThread(self.playSliderThread)
+		
+	def onBtnPause(self, e=None):
+		if not self.isMidiLoaded: return
+		if self.playingState=='paused': return
+		
+		if self.playingState=='playing':
+			self.midiPlayer.signalStop()
+		self.playingState = 'paused' #stops the sliderThread
+		
+		self.togglePlayButton(self.btnPause)
+		
+	def onBtnStop(self, e=None):
+		if not self.isMidiLoaded: return
+		if self.playingState=='stopped': return
+		
+		if self.playingState=='playing':
+			self.midiPlayer.signalStop()
+		self.playingState = 'stopped' #stops the sliderThread
+		self.sliderTime.set(0)
+		
+		self.togglePlayButton(self.btnStop)
+	def onBtnSaveWave(self):
+		if not self.isMidiLoaded: return
+	
+	
+	def clearModifications(self):
+		#close Mixer window.
+		if self.mixerWindow:
+			self.mixerWindow.destroy()
+			self.mixerWindow = None
+		
+		#get rid of Tempo modifications.
+		self.tempoScaleFactor = None
+		
+		#get rid of instrument/change modifications
+		
+	
+	def buildModifiedMidi(self):
+		if not self.mixerWindow and self.tempoScaleFactor==None: #... If there are *no* modifications we can get away with returning original
+			return self.objMidi 
+		
+		import copy
+		midiCopy = copy.deepcopy(self.objMidi)
+		if self.mixerWindow: 
+			self.mixerWindow.createMixedMidi( midiCopy )
+			
+		if self.tempoScaleFactor!=None:
+			midirender_tempo.doChangeTempo(midiCopy, self.tempoScaleFactor)
+			
+		return midiCopy
+	def saveModifiedMidi(self, evt=None):
+		if not self.isMidiLoaded: return
+		filename = midiscript_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])
+		if not filename: return
+		
+		mfile = self.buildModifiedMidi()
+		if mfile:
+			mfile.open(filename,'wb')
+			mfile.write()
+			mfile.close()
 	
 	def findNoteChannels(self, trackObject):
 		channelsSeen = {}
@@ -314,7 +397,34 @@ class App():
 		top = Toplevel()
 		window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
 		self.listviews[n] = top
-	
+		
+	def openMixerView(self, n): #we ignore n
+		#this is different than the list and score view - there can only be one of them open at once
+		if not self.isMidiLoaded: return
+		
+		if self.mixerWindow:
+			return #only allow one instance open at a time
+			
+		opts = {}
+		top = Toplevel()
+		def callbackOnClose(): 
+			self.mixerWindow = None
+			
+		self.mixerWindow = midirender_mixer.BMixerWindow(top, self.objMidi, opts, callbackOnClose)
+	def menu_changeTempo(self, e=None):
+		if not self.isMidiLoaded: return			
+		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
+		if res==None: return #canceled.
+		if abs(res-1.0) < 0.001:  #we don't need to change the tempo if it is staying the same.
+			self.tempoScaleFactor = None
+		else:
+			self.tempoScaleFactor = res
+
+icon0='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg7AP0JHEiwoEGCABIqXHiwoUODCR82XBhRosWHFAFc9JeRocOKG0OKHLnRY8mOFjuahIhS4kqSMGM+DAgAOw=='''
+icon1='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''
+icon2='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg4AP0JHEiwoMGCABIqTHiwocOHEA8uXBixosSJDCFizPhwIwCLIEOKHBnRY8mNJzGmnEiypUuDAQEAOw=='''
+
+
 root = Tk()
 app = App(root)
 root.mainloop()
