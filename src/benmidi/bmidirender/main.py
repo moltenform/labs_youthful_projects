@@ -29,18 +29,16 @@ sys.path.append('..\\scoreview')
 import scoreview
 import listview
 
+def pack(o, **kwargs): o.pack(**kwargs); return o
 class App():
 	playingState = 'stopped' #or 'paused' or 'playing'
 	
 	def __init__(self, root):
 		root.title('Bmidi Player')
 		
-		frameMain = Frame(root)
-		frameMain.pack(side=TOP,fill=BOTH, expand=True)
+		frameMain = pack( Frame(root), side=TOP, fill=BOTH, expand=True)
 		
-		self.lblFilename = Label(frameMain, text='No file opened.')
-		self.lblFilename.pack(side=TOP, anchor='w')
-		
+		self.lblFilename = pack( Label(frameMain, text='No file opened.'), side=TOP, anchor='w')
 		
 		#~ self.lblBank = Label(frameMain, text='Default bank: eawpats')
 		#~ self.lblBank.pack(side=TOP, anchor='w')
@@ -49,26 +47,23 @@ class App():
 				
 		#to "pause" and "resume" we simply play starting somewhere else
 		
-		self.icon0 = PhotoImage(data=icon0)
-		self.icon1 = PhotoImage(data=icon1)
-		self.icon2 = PhotoImage(data=icon2)
+		self.icon0 = PhotoImage(data=icon0); self.icon1 = PhotoImage(data=icon1); self.icon2 = PhotoImage(data=icon2)
 		
 		frameDecogroup = Frame(frameMain, borderwidth=1, relief=GROOVE, padx=3, pady=3)
-		self.sliderTime = Scale(frameDecogroup, orient=HORIZONTAL,resolution=0.1, width=5, from_=0, to_=0) #If I wanted to see decimals, I could set resolution=0.1
+		self.sliderTime = Scale(frameDecogroup, orient=HORIZONTAL,resolution=0.1, width=5, from_=0, to_=0)
 		self.sliderTime.pack(side=TOP, fill=X)
 		
 		frameBtns = Frame(frameDecogroup)
-		self.btnPlay = Button(frameBtns, image=self.icon0, text='Play', command=self.onBtnPlay); self.btnPlay.pack(side=LEFT, padx=4)
-		self.btnPause = Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause); self.btnPause.pack(side=LEFT, padx=4)
-		self.btnStop = Button(frameBtns, image=self.icon2,  text='Stop', command=self.onBtnStop,relief=SUNKEN); self.btnStop.pack(side=LEFT, padx=4)
+		self.btnPlay = pack( Button(frameBtns, image=self.icon0, text='Play', command=self.onBtnPlay), side=LEFT, padx=4)
+		self.btnPause = pack( Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause), side=LEFT, padx=4)
+		self.btnStop = pack( Button(frameBtns, image=self.icon2,  text='Stop', command=self.onBtnStop,relief=SUNKEN), side=LEFT, padx=4)
 		
 		Checkbutton(frameBtns, text='Timidity').pack(side=LEFT, padx=35)
-		self.btnSave = Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave); self.btnSave.pack(side=LEFT, padx=2)
+		self.btnSave = pack( Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave), side=LEFT, padx=2)
 		
 		frameBtns.pack(side=TOP, fill=X, pady=2)
-		
-		
 		frameDecogroup.pack(side=TOP, fill=X)
+		
 		
 		frameGrid = Frame(frameMain, borderwidth=1)
 		frameGrid.pack(side=TOP,fill=BOTH, expand=True, anchor='w', pady=15)
@@ -121,7 +116,7 @@ class App():
 		menubar.add_cascade(label="File", menu=menuFile, underline=0)
 		menuFile.add_command(label="Open Midi", command=self.menu_openMidi, underline=0, accelerator='Ctrl+O')
 		menuFile.add_separator()
-		menuFile.add_command(label="Save modified midi...", command=self.menu_openMidi, underline=0)
+		menuFile.add_command(label="Save modified midi...", command=self.saveModifiedMidi, underline=0)
 		menuFile.add_separator()
 		menuFile.add_command(label="Exit", command=root.quit, underline=1)
 		
@@ -198,11 +193,11 @@ class App():
 				smallFrame = Frame(self.frameGrid, borderwidth=1, relief=RIDGE) #GROOVE
 				smallFrame.is_smallframe=1
 				if isButton: 
-					btn = Button(smallFrame, text=text, relief=GROOVE,anchor='w'); 
+					btn = Button(smallFrame, text=text, relief=GROOVE,anchor='w')
 					btn.pack(anchor='w', fill=BOTH)
 					thewidget = btn
 				else: 
-					lbl = Label(smallFrame, text=text); 
+					lbl = Label(smallFrame, text=text)
 					lbl.pack(anchor='w')
 					thewidget = lbl
 				
@@ -364,7 +359,7 @@ class App():
 		return midiCopy
 	def saveModifiedMidi(self, evt=None):
 		if not self.isMidiLoaded: return
-		filename = midiscript_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])
+		filename = midirender_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])
 		if not filename: return
 		
 		mfile = self.buildModifiedMidi()

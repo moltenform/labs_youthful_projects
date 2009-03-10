@@ -65,4 +65,34 @@ def ask_float(prompt, default=None, min=0.0,max=100.0, title=''):
 		return tkSimpleDialog.askfloat(title, prompt, minvalue=min, maxvalue=max, initialvalue=default)
 	else:
 		return tkSimpleDialog.askfloat(title, prompt, minvalue=min, maxvalue=max)
-		
+
+from Tkinter import *
+class ScrolledListbox(Listbox): #an imitation of ScrolledText
+	def __init__(self, master=None, cnf=None, **kw):
+		if cnf is None:
+			cnf = {}
+		if kw:
+			from Tkinter import _cnfmerge
+			cnf = _cnfmerge((cnf, kw))
+		fcnf = {}
+		for k in cnf.keys():
+			if type(k) == ClassType or k == 'name':
+				fcnf[k] = cnf[k]
+				del cnf[k]
+		self.frame = Frame(master, **fcnf)
+		self.vbar = Scrollbar(self.frame, name='vbar')
+		self.vbar.pack(side=RIGHT, fill=Y)
+		cnf['name'] = 'lbox'
+		Listbox.__init__(self, self.frame, **cnf)
+		self.pack(side=LEFT, fill=BOTH, expand=1)
+		self['yscrollcommand'] = self.vbar.set
+		self.vbar['command'] = self.yview
+
+		# Copy geometry methods of self.frame -- hack!
+		methods = Pack.__dict__.keys()
+		methods = methods + Grid.__dict__.keys()
+		methods = methods + Place.__dict__.keys()
+
+		for m in methods:
+			if m[0] != '_' and m != 'config' and m != 'configure':
+				setattr(self, m, getattr(self.frame, m))

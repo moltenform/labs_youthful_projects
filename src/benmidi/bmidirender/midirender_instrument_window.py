@@ -1,19 +1,23 @@
 
 from Tkinter import *
 import midirender_util
+import midirender_choose_voice
 
 sys.path.append('..\\bmidilib')
 import bmidilib
 
 
+
 class BInstrumentWindow():
-	def __init__(self, top, midiObject, opts, callbackOnClose=None):
+	def __init__(self, top, midiObject, opts,whichSelect=0, callbackOnClose=None):
 		#should only display tracks with note events. that way, solves some problems
 		top.title('Instrument')
 		
 		frameTop = Frame(top, height=600)
 		frameTop.pack(expand=YES, fill=BOTH)
 		self.frameTop=frameTop
+		
+		#~ frameA = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
 		
 		frameLeft = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
 		frameLeft.grid(row=0, column=0, sticky='nsew')
@@ -23,20 +27,19 @@ class BInstrumentWindow():
 		frameTop.grid_rowconfigure(0, weight=1, minsize=20)
 		
 		Label(frameLeft, text='Instruments').pack(side=TOP)
-		self.lbProgChanges = ScrolledListbox(frameLeft, selectmode=SINGLE, width=30, height=7)
+		self.lbProgChanges = midirender_util.ScrolledListbox(frameLeft, selectmode=SINGLE, width=25, height=7, exportselection=0)
 		self.lbProgChanges.pack(side=TOP, expand=YES, fill=BOTH)
 		
-		self.lblTrackSel = Label(frameRight, text='Track 1'); self.lblTrackSel.pack(side=TOP)
 		frInst = Frame(frameRight)
 		Label(frInst, text='001 Acoustic Grand Piano').pack(side=LEFT)
-		Button(frInst, text='Change...').pack(side=LEFT, padx=45)
+		Button(frInst, text='Change...',command=self.changeInstrument).pack(side=LEFT, padx=45)
 		frInst.pack(side=TOP)
 		
 		
-		self.lblPatchPack = Label(frameRight, text='Patch: eawpats\\piano.pat')
+		self.lblPatchPack = Label(frameRight, text='Patch: ')
 		self.lblPatchPack.pack(side=TOP, pady=20)
 		frPatch = Frame(frameRight)
-		self.lbPatchChoose = ScrolledListbox(frPatch, selectmode=SINGLE, width=30, height=4)
+		self.lbPatchChoose = midirender_util.ScrolledListbox(frPatch, selectmode=SINGLE, width=35, height=4, exportselection=0)
 		self.lbPatchChoose.pack(side=LEFT)
 		Button(frPatch, text='Set').pack(side=LEFT, anchor='s', padx=5, pady=5)
 		frPatch.pack(side=TOP)
@@ -44,18 +47,37 @@ class BInstrumentWindow():
 		Button(frameRight, text='Advanced...').pack(side=TOP)
 		
 		
+		#fill up self.lbProgChanges
+		res = getFirstProgramChangeEvents(midiObject)
+		for tracknum, instnum in res:
+			s = 'Track %d - '%tracknum
+			s+= ('%03d %s'%(instnum, bmidilib.bmidiconstants.GM_instruments[instnum])) if instnum != -1 else 'Percussion'
+			self.lbProgChanges.insert(END, s)
+		
+		self.lbProgChanges.selection_set(whichSelect)
+		self.progChanges = res
 		
 		
+		self.lbPatchChoose.insert(END, '(None)')
+		self.lbPatchChoose.insert(END, 'Custom...')
+		self.lbPatchChoose.selection_set(0)
+
+
 		if callbackOnClose!=None:
 			def callCallback():
 				callbackOnClose()
 				top.destroy()
 			top.protocol("WM_DELETE_WINDOW", callCallback)
-		
 		self.top = top
-	
 	def destroy(self):
 		self.top.destroy()
+	
+	def changeInstrument(self):
+		current = 68
+		dlg = midirender_choose_voice.ChooseMidiInstrumentDialog(self.top, 'Choose Instrument', current)
+		print dlg.result
+		#should now refresh everything.
+		
 		
 	def createMixedMidi(self, midiObject):
 		#NOTE: modifies the midi object itself, not a copy
@@ -119,45 +141,20 @@ def getFirstProgramChangeEvents(midiObject):
 				results.append((tracknum, -1))
 				haveRecordedPercussion = True
 				
-	return (results, firstTrackWithPercussion)
+	return results
 
 
-class ScrolledListbox(Listbox): #an imitation of ScrolledText
-	def __init__(self, master=None, cnf=None, **kw):
-		if cnf is None:
-			cnf = {}
-		if kw:
-			from Tkinter import _cnfmerge
-			cnf = _cnfmerge((cnf, kw))
-		fcnf = {}
-		for k in cnf.keys():
-			if type(k) == ClassType or k == 'name':
-				fcnf[k] = cnf[k]
-				del cnf[k]
-		self.frame = Frame(master, **fcnf)
-		self.vbar = Scrollbar(self.frame, name='vbar')
-		self.vbar.pack(side=RIGHT, fill=Y)
-		cnf['name'] = 'lbox'
-		Listbox.__init__(self, self.frame, **cnf)
-		self.pack(side=LEFT, fill=BOTH, expand=1)
-		self['yscrollcommand'] = self.vbar.set
-		self.vbar['command'] = self.yview
 
-		# Copy geometry methods of self.frame -- hack!
-		methods = Pack.__dict__.keys()
-		methods = methods + Grid.__dict__.keys()
-		methods = methods + Place.__dict__.keys()
-
-		for m in methods:
-			if m[0] != '_' and m != 'config' and m != 'configure':
-				setattr(self, m, getattr(self.frame, m))
 		
 
+
+
+		
 
 if __name__=='__main__':
-		
+	
 	midiobj = bmidilib.BMidiFile()
-	midiobj.open('..\\midis\\16keys.mid', 'rb')
+	midiobj.open('..\\midis\\weird.mid', 'rb')
 	midiobj.read()
 	midiobj.close()
 	
