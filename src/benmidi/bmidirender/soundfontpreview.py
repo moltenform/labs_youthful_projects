@@ -5,6 +5,7 @@ halfhourhacks.blogspot.com
 """
 
 from Tkinter import *
+import tkSimpleDialog
 import soundfontpreview_get
 import midirender_util
 import midirender_runtimidity
@@ -14,7 +15,7 @@ sfubardir = 'soundfontpreview' #directory to look for sfubar.exe and sample mids
 timiditydir = 'timidity' #directory of timidity program
 labelFieldNames = ['name', 'date', 'author', 'copyright', 'comment']
 def pack(o, **kwargs): o.pack(**kwargs); return o
-class App():
+class BSoundFontPreview():
 	def setLabels(self, objInfo):
 		for name in labelFieldNames:
 			att = getattr(objInfo, name)
@@ -167,10 +168,83 @@ class App():
 			strCfg = '\nbank 0\n'
 			strCfg += '000 "'+escapedfname+'" \n'
 		
-		midirender_runtimidity.runTimidity(strCfg, curMid, timiditydir)
+		runInThread = True
+		try:
+			midirender_runtimidity.runTimidity(strCfg, curMid, timiditydir, runInThread)
+		except midirender_runtimidity.RunTimidityException, e:
+			midirender_util.alert("Error:"+str(e))
+
+#Simple dialog. returns a SoundFontInfoPreset object
+class ChooseSoundFontPresetDialog(tkSimpleDialog.Dialog): 
+	result = None
+	def __init__(self, top, soundfontFilepath, default=0, title='Choose SoundFont Voice:'):
+		self.soundfontFilepath = soundfontFilepath
+		self.defaultInst = default
+		tkSimpleDialog.Dialog.__init__(self, top, title)
+		
+	def body(self, top):
+		frTop = Frame(top)
+		frTop.grid(row=0, column=0, columnspan=2)
+		
+		Label(frTop, text="Choose SoundFont Voice:").pack(side=TOP)
+		
+		self.lbPresetChoose = midirender_util.ScrolledListbox(frTop, selectmode=SINGLE, width=45, height=15)
+		self.lbPresetChoose.pack(side=TOP)
+		
+		#fill 
+		try:
+			objSf = soundfontpreview_get.getpresets(self.soundfontFilepath, sfubardir)
+		except soundfontpreview_get.SFInfoException, e:
+			midirender_util.alert(str(e))
+			return
+			
+		self.lbPresetChoose.delete(0, END)
+		for preset in objSf.presets:
+			self.lbPresetChoose.insert(END, str(preset))
+	
+		self.objSf = objSf
+		
+		self.lbPresetChoose.selection_set(self.defaultInst)
+		self.lbPresetChoose.see(self.defaultInst)
+		
+		self.bind('<MouseWheel>',self.scroll) #binding for Windows
+		self.bind('<Button-4>',self.scroll) #binding for Linux
+		self.bind('<Button-5>',self.scroll)
+	
+		return None # initial focus
+		
+	def apply(self):
+		sel = self.lbPresetChoose.curselection() #returns a tuple of selected items
+		if len(sel)==0: 
+			self.result = None
+		else:
+			index = int(sel[0])
+			self.result = self.objSf.presets[index]
+		
+	def scroll(self, event):
+		if event.num == 5 or event.delta == -120:
+			self.lbPresetChoose.yview_scroll(5, 'units')
+		if event.num == 4 or event.delta == 120:
+			self.lbPresetChoose.yview_scroll(-5, 'units')
 		
 if __name__=='__main__':
-	root = Tk()
-	app = App(root)
-	root.mainloop()
+	if True:
+		def start(top):
+			def callback():
+				print 'hi'
+				dlg = ChooseSoundFontPresetDialog(top, r'C:\Projects\midi\!midi_to_wave\soundfonts_good\sf2_other\vintage_dreams_waves_v2.sf2')
+				print dlg.result
+				
+			Button(text='go', command=callback).pack()
+			
+
+		root = Tk()
+		start(root)
+		root.mainloop()
+		
+
+	else:
+		root = Tk()
+		app = BSoundFontPreview(root)
+		root.mainloop()
 

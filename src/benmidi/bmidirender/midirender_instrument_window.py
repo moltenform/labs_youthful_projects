@@ -17,14 +17,18 @@ class BInstrumentWindow():
 		frameTop.pack(expand=YES, fill=BOTH)
 		self.frameTop=frameTop
 		
-		#~ frameA = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
+		frameAbove = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
+		frameAbove.grid(row=0, column=0, sticky='nsew', columnspan=2)
+		self.lblAbove = Label(frameAbove, text='Global default soundfont set: eawpats'); self.lblAbove.pack(side=LEFT)
+		Button(frameAbove, text='Change...').pack(side=LEFT, padx=20)
+		
 		
 		frameLeft = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
-		frameLeft.grid(row=0, column=0, sticky='nsew')
+		frameLeft.grid(row=1, column=0, sticky='nsew')
 		frameRight = Frame(frameTop, border=3, relief=GROOVE, padx=9, pady=9)
-		frameRight.grid(row=0, column=1, sticky='nsew')
+		frameRight.grid(row=1, column=1, sticky='nsew')
 		frameTop.grid_columnconfigure(1, weight=1, minsize=20)
-		frameTop.grid_rowconfigure(0, weight=1, minsize=20)
+		frameTop.grid_rowconfigure(1, weight=1, minsize=20)
 		
 		Label(frameLeft, text='Instruments').pack(side=TOP)
 		self.lbProgChanges = midirender_util.ScrolledListbox(frameLeft, selectmode=SINGLE, width=25, height=7, exportselection=0)
