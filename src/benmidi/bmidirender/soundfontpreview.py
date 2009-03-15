@@ -174,6 +174,9 @@ class BSoundFontPreview():
 		except midirender_runtimidity.RunTimidityException, e:
 			midirender_util.alert("Error:"+str(e))
 
+
+
+
 #Simple dialog. returns a SoundFontInfoPreset object
 class ChooseSoundFontPresetDialog(tkSimpleDialog.Dialog): 
 	result = None

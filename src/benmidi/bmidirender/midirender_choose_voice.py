@@ -40,7 +40,7 @@ class ChooseMidiInstrumentDialog(tkSimpleDialog.Dialog):
 		if len(sel)==0: 
 			self.result = 0
 		else:
-			self.result = sel[0]
+			self.result = int(sel[0])
 		
 	def scroll(self, event):
 		if event.num == 5 or event.delta == -120:

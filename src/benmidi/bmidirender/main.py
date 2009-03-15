@@ -21,6 +21,8 @@ import midirender_mixer
 import midirender_audiooptions
 import midirender_tempo
 import midirender_runtimidity
+import midirender_choose_voice
+import midirender_soundfont_window
 
 sys.path.append('..\\bmidilib')
 import bmidilib
@@ -30,6 +32,8 @@ import bmidiplay
 sys.path.append('..\\scoreview')
 import scoreview
 import listview
+
+
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class App():
@@ -88,6 +92,8 @@ class App():
 		self.scoreviews = {}
 		self.mixerWindow=None
 		self.audioOptsWindow=None
+		self.soundfontWindow=None
+		self.currentSoundfont = midirender_soundfont_window.SoundFontObject()
 		
 		self.create_menubar(root)
 		
@@ -131,7 +137,7 @@ class App():
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Change tempo...", command=self.menu_changeTempo, underline=0)
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Choose Patch Bank...", command=self.menu_openMidi, underline=0)
+		menuAudio.add_command(label="Choose Sound Font...", command=self.menu_openMidi, underline=0)
 		menuAudio.add_command(label="Configure Instrument Patches...", command=self.menu_openMidi, underline=0)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=0)
@@ -167,7 +173,8 @@ class App():
 			newmidi.open(filename, 'rb')
 			newmidi.read()
 			newmidi.close()
-		except e:
+		except:
+			e=''
 			midirender_util.alert('Could not load midi: exception %s'%str(e), title='Could not load midi',icon='error')
 			return
 		self.lblFilename['text'] = filename
@@ -200,6 +207,7 @@ class App():
 				smallFrame.is_smallframe=1
 				if isButton: 
 					btn = Button(smallFrame, text=text, relief=GROOVE,anchor='w')
+					btn.config(command=midirender_util.Callable(self.onBtnChangeInstrument, y,btn))
 					btn.pack(anchor='w', fill=BOTH)
 					thewidget = btn
 				else: 
@@ -243,7 +251,7 @@ class App():
 			elif len(instarray)>1: instname='(Many)'
 			else: instname = str(instarray[0]) + ' (' + bmidilib.bmidiconstants.GM_instruments[instarray[0]] + ')'
 			if channame=='10': instname = '(Percussion channel)'
-			isButton = countednoteevts>0
+			isButton = channame!='10' and instname!='None' and instname!='(Many)' #countednoteevts>0
 			addLabel( instname, rownum, 3, isButton)
 			#minor bug. If you first, say, open a midi without a conductor track, then it will be a button from then on.
 			
@@ -278,7 +286,23 @@ class App():
 				self.loadMidiObj(newmidi)
 				return
 	
-	
+	def onBtnChangeInstrument(self, y, btn):
+		#As of now, this actually modifies the midi object. For good.
+		track = self.objMidi.tracks[y]
+		theEvt = None
+		for evt in track.events:
+			if evt.type=='PROGRAM_CHANGE':
+				theEvt = evt
+				break
+		if theEvt==None: return
+		
+		dlg = midirender_choose_voice.ChooseMidiInstrumentDialog(self.frameGrid, 'Choose Instrument', min(theEvt.data,127))
+		midiNumber = dlg.result
+		if midiNumber==None: return
+		
+		theEvt.data = midiNumber
+		btn['text'] = str(midiNumber) + ' (' + bmidilib.bmidiconstants.GM_instruments[midiNumber] + ')'
+		
 	def playSliderThreadSynth(self):
 		currentTime = self.sliderTime.get()
 		while self.playingState=='playing':
@@ -415,7 +439,11 @@ class App():
 		if self.audioOptsWindow:
 			self.audioOptsWindow.destroy()
 			self.audioOptsWindow = None
-		
+		if self.soundfontWindow:
+			self.soundfontWindow.destroy()
+			self.soundfontWindow = None
+			#note, however, that self.currentSoundfont remains as it should.
+			
 		#get rid of Tempo modifications.
 		self.tempoScaleFactor = None
 		
@@ -496,6 +524,16 @@ class App():
 		def callbackOnClose(): self.audioOptsWindow = None
 			
 		self.audioOptsWindow = midirender_audiooptions.BTimidityOptions(top, callbackOnClose)
+		
+	def openChangeSoundfontWindow(self):
+		if not self.isMidiLoaded: return
+		if self.soundfontWindow: return #only allow one instance open at a time
+			
+		top = Toplevel()
+		def callbackOnClose(): self.audioOptsWindow = None
+			
+		self.soundfontWindow = midirender_soundfont_window.BChangeSoundfontWindow(top, self.currentSoundfont, self.objMid, callbackOnClose)	
+		
 		
 	def menu_changeTempo(self, e=None):
 		if not self.isMidiLoaded: return			
