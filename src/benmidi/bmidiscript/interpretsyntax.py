@@ -22,8 +22,9 @@ import exceptions
 class InterpException(exceptions.Exception): pass
 import re
 
-import sys; sys.path.append('..\\bmidilib')
-import bbuilder
+import sys; sys.path.append('..')
+from bmidilib import bbuilder
+
 
 def stripComments(s):
 	lines = s.replace('\r\n','\n').split('\n')

@@ -9,12 +9,8 @@ from Tkinter import *
 import midiscript_util
 import interpretsyntax
 
-sys.path.append('..\\bmidilib')
-import bmidilib
-import bbuilder
-import bmidiplay
-
-
+sys.path.append('..')
+from bmidilib import bbuilder, bmidiplay
 
 class App():
 	isPlaying = False
@@ -43,7 +39,11 @@ class App():
 		self.btnSaveMid = Button(frameMain,command=self.saveMidi,  width=20,height=3, text='Save mid', font=tupfontbtn)
 		self.btnSaveMid.pack(side=LEFT, padx=15)
 		
-		self.midiPlayer = bmidiplay.MciMidiPlayer()
+		if sys.platform=='win32':
+			self.midiPlayer = bmidiplay.MciMidiPlayer()
+		else:
+			self.midiPlayer = bmidiplay.TimidityMidiPlayer()
+			
 		self.cachedExamples = {} #have a cached of stripped examples. then, when changing, check against this dict.
 		self.exampleText = []
 		self.create_menubar(root)

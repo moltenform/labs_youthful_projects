@@ -285,10 +285,8 @@ class ScoreViewFrame(Frame):
 			
 
 if __name__=='__main__':
-			
-	
-	sys.path.append('..\\bmidilib')
-	import bmidilib
+	sys.path.append('..')
+	from bmidilib import bmidilib
 	
 	newmidi = bmidilib.BMidiFile()
 	#~ newmidi.open('simple.mid', 'rb')

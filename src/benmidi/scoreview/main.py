@@ -10,9 +10,8 @@ import scoreview_util
 import listview
 import scoreview
 
-sys.path.append('..\\bmidilib')
-import bmidilib
-import bmiditools
+sys.path.append('..')
+from bmidilib import bmidilib, bmiditools
 
 class App:
 	def __init__(self, root):

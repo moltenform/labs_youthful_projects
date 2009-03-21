@@ -49,9 +49,9 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 		tempfilename = self._saveTempMidiFile(objMidiFile)
 		
 		if bSynchronous: 
-			self.playSynchronous(tempfilename, fromMs=fromMs)
+			self.playSynchronous(tempfilename)
 		else:
-			self.playAsync(tempfilename, fromMs=fromMs)
+			self.playAsync(tempfilename)
 	def playSynchronous(self, strFilename):
 		if self.isPlaying: print 'alreadyplaying'; return
 		self.isPlaying = True

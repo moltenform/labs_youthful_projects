@@ -3,28 +3,38 @@ Copyright (C) Ben Fisher, 2009. GPL.
 halfhourhacks.blogspot.com
 
 Why:
-	It's a musical toy, and a fun way to enter in some music.
+	It's a musical toy: a fun way to enter in some music.
 	It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.
 
 Usage:
-	Open "main.py". (Tested in Python 2.5, but not Python3)
+	Open "main.py" in a recent version of Python, like 2.5
 	Type in something, like 'c d e f g'.
-	Press "play". You should hear some sounds. (Provided you are in Windows. in Linux, you will have to click "Save mid" to save the file, and then play it manually).
+	Press "play". You should hear some sounds.
+	
 	If you don't hear anything, 
 		check your volume settings, in particular the volume for "SW Synth." 
 		Make sure that it is turned up and try again.
-
-	There are two modes, "tunescript" mode and "Code" mode. 
-		The tunescript mode is the interesting and fun one
-		Code mode simply evaluates the Python code you provide as a way to quickly make scripts using bbuilder.py.
-		In the Examples menu, the second set of examples are in Code mode.
-		The examples given should be used for reference.
-
-
+	In Linux,
+		You may not have the required program "timidity" installed.
+		In a terminal, if you type in "timidity" but do not get a response, you might have to do something like
+			sudo yum install timidity++
+		to install the timidity++ package.
+		
 Getting started:
 	Load one of the examples from the Examples menu.
 	Play around with it, and make your own songs.
 	If you come up with something cool, send it to me at boinjyboing@hotmail.com
+	
+	
+
+There are two modes, "tunescript" mode and "Code" mode. 
+	The tunescript mode is the interesting and fun one
+	Code mode simply evaluates the Python code you provide as a way to quickly make scripts using bbuilder.py.
+	In the Examples menu, the second set of examples are in Code mode.
+	The examples given should be used for reference.
+
+
+
 
 
 Index of "tunescript" syntax: 

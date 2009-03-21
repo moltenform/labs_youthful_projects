@@ -69,8 +69,8 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
 
 if __name__=='__main__':
 	import sys
-	sys.path.append('..\\bmidilib')
-	import bmidilib
+	sys.path.append('..')
+	from bmidilib import bmidilib
 	
 	class TestApp():
 		def __init__(self, root):
