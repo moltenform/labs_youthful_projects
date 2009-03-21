@@ -7,12 +7,170 @@ Now that ctypes is evidently included in Python, makes it a lot easier.
 
 '''
 
+import sys
 import time
-from ctypes import windll, c_buffer, c_void_p, c_int, byref
-
+from os import sep as os_sep
 
 import exceptions
 class PlayMidiException(exceptions.Exception): pass
+
+
+#base class for something that plays Midi files
+class BaseMidiPlayer():
+	def playMidiObject(self, objMidiFile, bSynchronous=True):
+		raise 'Not implemented'
+	def playSynchronous(self, strFilename):
+		raise 'Not implemented'
+	def playAsync(self, strFilename):
+		raise 'Not implemented'
+	def signalStop(self):
+		raise 'Not implemented'
+	
+	def _saveTempMidiFile(self, objMidiFile):
+		#save it to a temporary file
+		import tempfile
+		tempfilename = tempfile.gettempdir() + os_sep + 'tmpbmidiplay.mid'
+		
+		try: f=open(tempfilename,'wb')
+		except: raise PlayMidiException('Could not create temporary file for midi playback.')
+		f.close()
+		objMidiFile.open(tempfilename, 'wb')
+		objMidiFile.write()
+		objMidiFile.close()
+		return tempfilename
+
+#play Midi files using Timidity
+class TimidityMidiPlayer(BaseMidiPlayer):
+	process = None
+	isPlaying = False 
+	win_timiditypath = 'timidity\\timidity.exe'
+	def playMidiObject(self, objMidiFile, bSynchronous=True):
+		if self.isPlaying: print 'alreadyplaying'; return
+		tempfilename = self._saveTempMidiFile(objMidiFile)
+		
+		if bSynchronous: 
+			self.playSynchronous(tempfilename, fromMs=fromMs)
+		else:
+			self.playAsync(tempfilename, fromMs=fromMs)
+	def playSynchronous(self, strFilename):
+		if self.isPlaying: print 'alreadyplaying'; return
+		self.isPlaying = True
+		self._startPlayback(strFilename)
+		
+	def playAsync(self, strFilename):
+		if self.isPlaying: print 'alreadyplaying'; return
+		self.isPlaying = True
+		makeThread(self._startPlayback, tuple([strFilename]))
+		
+	def signalStop(self):
+		if not self.isPlaying: return
+		if not self.process: return
+			
+		if sys.platform=='win32':
+			#http://code.activestate.com/recipes/347462/
+			import ctypes
+			PROCESS_TERMINATE = 1
+			handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, self.process.pid)
+			ctypes.windll.kernel32.TerminateProcess(handle, -1)
+			ctypes.windll.kernel32.CloseHandle(handle)
+		else:
+			import os, signal
+			os.kill(self.process.pid, signal.SIGKILL)
+		
+	def _additionalTimidityArgs(self): #allows subclasses to add additional parameters
+		return []
+		
+	def _startPlayback(self, strMidiPath):
+		import subprocess
+		if sys.platform=='win32':
+			tim = self.win_timiditypath
+		else:
+			tim = 'timidity'
+		args = [tim]
+		args.extend(self._additionalTimidityArgs())
+		args.append(strMidiPath)
+		
+		self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
+		# Note that use  stdout=PIPE to hide all the stdout. Not too elegant of a way to do that, though
+		self.process.wait()
+		self.process = None
+		self.isPlaying = False
+		#note that these lines should be run, even if signalStop() is called.
+		
+		
+
+if sys.platform=='win32':
+	from ctypes import windll, c_buffer, c_void_p, c_int, byref
+
+#note that it appears the mci send and mci stop must be from the same thread (!)
+class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance of this...
+	isPlaying = False #kind of like a mutex. potentially bad in that if an error occurs, isPlaying can be stuck on True, and there is not more audio playback.
+	def __init__(self):
+		self.mci = Mci()
+	def playMidiObject(self, objMidiFile, bSynchronous=True, fromMs=0):
+		if self.isPlaying: print 'alreadyplaying'; return
+			
+		tempfilename = self._saveTempMidiFile(objMidiFile)
+		
+		if bSynchronous: 
+			time.sleep(1.0)
+			self.playSynchronous(tempfilename, fromMs=fromMs)
+			time.sleep(1.0)
+			#remove the temporary file? right now we just leave it, probably ok since nothing accumulates. #~ import os; try: os.unlink(tempfilename); except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
+		else:
+			self.playAsync(tempfilename, fromMs=fromMs)
+		
+	def playSynchronous(self, strFilename, fromMs=0): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
+		if self.isPlaying: print 'alreadyplaying'; return
+		self.isPlaying = True
+		
+		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
+		
+		time.sleep( fLengthInSeconds + 1)
+		self.mci.send('close cursong')
+		self.isPlaying = False
+		
+	def playAsync(self, strFilename,fromMs=0): #should follow with a call to stop.
+		if self.isPlaying: print 'alreadyplaying'; return
+		
+		self.isPlaying = True
+		makeThread(self._playInThread, (strFilename,fromMs)) #thread to automatically close when done.
+		
+	def signalStop(self):
+		self.stopsignal=True
+	
+	def _stop(self):
+		if self.isPlaying: 
+			self.mci.send('close cursong')
+		self.isPlaying = False
+	
+	def _playInThread(self, strFilename, fromMs):
+		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
+		
+		self.stopsignal=False
+		timetarget = time.time() + fLengthInSeconds + 1
+		while not self.stopsignal and time.time() < timetarget:
+			time.sleep(0.1) #don't tie up cpu
+			
+		#stops the song if it hasn't been stopped already.
+		if self.isPlaying:
+			self._stop()
+	def _mciStartPlayback(self, strFilename, fromMs):
+		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
+		self.mci.send('set cursong time format milliseconds')
+		buflength = self.mci.send('status cursong length ')
+		fTotalLength =  (int(buflength)/1000.0)
+		fStartingPos = int(fromMs)/1000.0
+		if fStartingPos>fTotalLength: 
+			return 0.0
+			
+		self.mci.send('play cursong from %s to %s'%(str(int(fromMs)),str(buflength)))
+		return fTotalLength - fStartingPos
+		
+		
+
+
+	
 
 
 #play using Windows mci. Currently, can only play one file at a time.
@@ -38,90 +196,8 @@ class Mci():
 		buffer = c_buffer(255)
 		self.fnMciGetErrorString(error,buffer,254)
 		return buffer.value
-
-#note that it appears the mci send and mci stop must be from the same thread (!)
-class MciMidiPlayer(): #there should probably be only one instance of this...
-	isPlaying = False #kind of like a mutex. potentially bad in that if an error occurs, isPlaying can be stuck on True, and there is not more audio playback.
-	def __init__(self):
-		self.mci = Mci()
-	def playMidiObject(self, objMidiFile, bSynchronous=True, fromMs=0):
-		if self.isPlaying: print 'alreadyplaying'; return
-			
-		#save it to a temporary file
-		import tempfile
-		tempfilename = tempfile.gettempdir() + '\\tmpbmidiplay.mid'
-		
-		try: f=open(tempfilename,'wb')
-		except: raise PlayMidiException('Could not create temporary file for midi playback.')
-		f.close()
-		objMidiFile.open(tempfilename, 'wb')
-		objMidiFile.write()
-		objMidiFile.close()
-		
-		if bSynchronous: 
-			time.sleep(1.0)
-			self.playSynchronous(tempfilename, fromMs=fromMs)
-			time.sleep(1.0)
-			#remove the temporary file? right now we just leave it, probably ok since nothing accumulates.
-			#~ import os; try: os.unlink(tempfilename); except: pass #raise PlayMidiException('Could not remove temporary file for midi playback.')
-		else:
-			self.playAsync(tempfilename, fromMs=fromMs)
-		
-	def playSynchronous(self, strFilename, fromMs=0): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
-		if self.isPlaying: print 'alreadyplaying'; return
-		self.isPlaying = True
-		
-		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
-		
-		time.sleep( fLengthInSeconds + 1)
-		self.mci.send('close cursong')
-		self.isPlaying = False
-		
-	def playAsync(self, strFilename,fromMs=0): #should follow with a call to stop.
-		if self.isPlaying: print 'alreadyplaying'; return
-		
-		self.isPlaying = True
-		makeThread(self.playInThread, (strFilename,fromMs)) #thread to automatically close when done.
-	def _stop(self):
-		if self.isPlaying: 
-			self.mci.send('close cursong')
-		self.isPlaying = False
-	def signalStop(self):
-		self.stopsignal=True
-	
-	def playInThread(self, strFilename, fromMs):
-		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
-		
-		self.stopsignal=False
-		timetarget = time.time() + fLengthInSeconds + 1
-		while not self.stopsignal and time.time() < timetarget:
-			time.sleep(0.1) #don't tie up cpu
-			
-		#stops the song if it hasn't been stopped already.
-		if self.isPlaying:
-			self._stop()
-	def _mciStartPlayback(self, strFilename, fromMs):
-		self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
-		self.mci.send('set cursong time format milliseconds')
-		buflength = self.mci.send('status cursong length ')
-		fTotalLength =  (int(buflength)/1000.0)
-		fStartingPos = int(fromMs)/1000.0
-		if fStartingPos>fTotalLength: 
-			return 0.0
-			
-		self.mci.send('play cursong from %s to %s'%(str(int(fromMs)),str(buflength)))
-		return fTotalLength - fStartingPos
 		
 		
-
-def makeThread(fn, args=None): #fn, args
-	if args==None: args=tuple()
-	import threading
-	t = threading.Thread( target=fn, args=args)
-	t.start()
-	
-
-
 #experimental real-time playing. 
 #This works, but I'm not sure of how robust it is (and I might not be doing it in the best way), so maybe I'll use mci for now.
 #so, consider this experimental for now.
@@ -173,11 +249,12 @@ class RealTimePlayer():
 			
 		
 	
-
-if __name__=='__main__':
-	pass
-	#~ playMidiFile(r'C:\pydev\mainsvn\benmidi\midis\16keys.mid')
-	#~ playMidiFile(r'C:\docume~1\bfisher\locals~1\temp\tmpbmidiplay.mid')
+def makeThread(fn, args=None): #fn, args
+	if args==None: args=tuple()
+	import threading
+	t = threading.Thread( target=fn, args=args)
+	t.start()
+	
 	
 	#~ if True:
 		#~ import bmidilib

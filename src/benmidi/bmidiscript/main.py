@@ -88,6 +88,7 @@ class App():
 		except: pass
 		nExample = 0
 		if txt:
+			txt = txt.replace('\r\n','\n')
 			def addExample(nExample, exampleName, exampleCode, sType):
 				exampleName= exampleName.strip()
 				exampleCode= exampleCode.strip()

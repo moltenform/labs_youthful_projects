@@ -1,5 +1,6 @@
 from Tkinter import *
 import scoreview_util
+from os import sep as os_sep
 
 class ScoreViewWindow():
 	def __init__(self, top, tracknumber, trackdata, ticksPerQtrNote, opts):
@@ -260,7 +261,7 @@ class ScoreViewFrame(Frame):
 		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
 		desiredImageName = bass_treb + map[self.yScale]
 		if desiredImageName not in self.clefimgs:
-			self.clefimgs[desiredImageName] = PhotoImage(file='clefs\\'+desiredImageName)
+			self.clefimgs[desiredImageName] = PhotoImage(file='clefs'+os_sep+desiredImageName)
 		
 		if bass_treb=='bass': 
 			xposition = 12
