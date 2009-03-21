@@ -1,6 +1,6 @@
 tunescript, a music toy
 Copyright (C) Ben Fisher, 2009. GPL.
-halfhourhacks.blogspot.com
+http://b3nf.com/codepages/bmidi/
 
 Why:
 	It's a musical toy: a fun way to enter in some music.
@@ -16,9 +16,11 @@ Usage:
 		Make sure that it is turned up and try again.
 	In Linux,
 		You may not have the required program "timidity" installed.
-		In a terminal, if you type in "timidity" but do not get a response, you might have to do something like
+		In a terminal, if you type in "timidity" but do not get a response, you might have to do something along the lines of 
+			sudo apt-get install timidity
+			or 
 			sudo yum install timidity++
-		to install the timidity++ package.
+		in a terminal to install the timidity++ package.
 		
 Getting started:
 	Load one of the examples from the Examples menu.

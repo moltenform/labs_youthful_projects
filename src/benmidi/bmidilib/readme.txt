@@ -1,6 +1,6 @@
 bmidilib.py , code for reading/creating midi files in Python
 Ben Fisher, 2008. GPL.
-https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.mdindex.html
+https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
 Based originally on midi.py, placed into the public domain in December 2001 by Will Ware
 
 Tested on a good variety of files. The midi events output are identical, although sometimes the file size is slightly larger. Maybe this has to do with time deltas.

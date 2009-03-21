@@ -1,6 +1,8 @@
 from Tkinter import *
 import scoreview_util
-from os import sep as os_sep
+import os
+
+defaultClefsPath = 'clefs'
 
 class ScoreViewWindow():
 	def __init__(self, top, tracknumber, trackdata, ticksPerQtrNote, opts):
@@ -45,6 +47,9 @@ class ScoreViewFrame(Frame):
 		self.opts = opts
 		self.trackdata = trackdata
 		if 'prefer_flats' in opts and opts['prefer_flats']: self.prefersharpflat = 'b'
+		
+		if 'clefspath' in opts and opts['clefspath']!=None: self.clefspath= opts['clefspath']
+		else: self.clefspath= defaultClefsPath
 		
 		# Calculate scaling factors
 		assert self.yScale >= 2 and self.yScale <= 5
@@ -258,10 +263,12 @@ class ScoreViewFrame(Frame):
 	def draw_oval(self,x0, y0, x1, y1): 
 		self.cv.create_oval(self.coordrect(x0, y0, x1, y1), fill='black' )
 	def draw_clef(self, bass_treb):
+		
 		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
 		desiredImageName = bass_treb + map[self.yScale]
 		if desiredImageName not in self.clefimgs:
-			self.clefimgs[desiredImageName] = PhotoImage(file='clefs'+os_sep+desiredImageName)
+			fname = os.path.join(self.clefspath, desiredImageName)
+			self.clefimgs[desiredImageName] = PhotoImage(file=fname)
 		
 		if bass_treb=='bass': 
 			xposition = 12

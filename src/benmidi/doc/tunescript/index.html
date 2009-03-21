@@ -15,7 +15,8 @@ a.otherlink {color:black;}
 </head>
 <body>
 <a name="top"></a><h2>Tunescript - A music toy</h2> 
- <a href="../tunescript_0_9.zip">Download</a> (Requires an installation of Python 2.5 or newer)<br />
+ <a href="../tunescript_0_9_1.zip">Download</a> (Requires an installation of Python 2.5 or newer), works in Windows and Linux.<br />
+ To use in Linux, depends on the package timidity. See the Getting Started section below.
  <!--A Windows executable may be coming--><br /><br />
  <img src="../thm_tunesc.png" border="0" /><br />
  
@@ -50,16 +51,23 @@ If you make something cool, send it to me at boinjyboing ((at)) hotmail ((dot)) 
 <h4><a name="start"></a>Getting Started</h4>
 <p>
 
-Open "main.py". (Requires an installation of Python 2.5 or Python 2.6)<br />
+Open "main.py" with Python.<br />
 An example song will be automatically loaded.<br />
-Press "Play". You should hear some music. (Provided you are in Windows).<br /><br />
+Press "Play". You should hear some music..<br /><br />
 
 If you don't hear anything, <br />
 	check your volume settings, in particular the volume for "<b><i>SW Synth</i></b>." <br />
 	Make sure that it is turned up and try again.<br /><br />
 
-In Linux, you will have to click "Save mid" to save the file, and then play it manually.<br /><br />
-
+If you are using Linux and you do not hear music, it is possible that you do not have the program Timidity installed.<br />
+	Open a terminal, type "timidity", and press Enter. If it cannot find the file, you'll have to install timdity.<br />
+	Run something along the lines of <br /> 
+	<pre>sudo apt-get install timidity</pre>
+			or <br />
+	<pre>sudo yum install timidity++</pre>
+	in the terminal to install it.<br />
+	(This program also depends on "python-tk", which you may need to apt-get as well.)
+<br /><br />
 There are two modes, "tunescript" mode and "Code" mode. <br />
 	The tunescript mode is the interesting and fun one<br />
 	Code mode simply evaluates the Python code you provide as a way to quickly make scripts using bbuilder.py.<br />

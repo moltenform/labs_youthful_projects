@@ -1,5 +1,6 @@
 scoreview.py , code for visualizing midi files in Python
 Copyright (C) Ben Fisher, 2009. GPL.
+http://b3nf.com/codepages/bmidi/
 
 Usage:
 Run main.py
