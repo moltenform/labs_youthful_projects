@@ -1,8 +1,8 @@
 
 import midirender_util
 
-import sys; sys.path.append('..\\bmidilib')
-import bmidilib
+import sys; sys.path.append('..')
+from bmidilib import bmidilib
 
 STANDARDTEMPO = 500000 #midi spec, 120 bpm if no tempo evts
 def queryChangeTempo(midiObject, default=None):

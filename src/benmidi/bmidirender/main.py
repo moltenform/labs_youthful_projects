@@ -1,57 +1,62 @@
+
 """
 BMidiRender
 Ben Fisher, 2009, GPL
 halfhourhacks.blogspot.com
 """
 
-#midis are modified by:
-	#Instrument changes
-	#Mixer changes --relies on trackNumber, so don't reorder tracks! (includes transposition)
-	#tempo changes
-	#get excerpt changes
+
+'''
+(Notes on internal structure of this program.)
+midis are modified by:
+	Instrument changes - modify the midi file directly.
 	
+	Tempo changes - stored in the variable self.tempoScaleFactor
+	The rest of these are only applied while the dialog is open
+	
+		midirender_mixer --relies on trackNumber, so none of the other modifications should reorder tracks before it!
+
+timidity playback is modified by
+	the variable 
+	midirender_audiooptions - when dialog is open
+'''
+
 #todo: stop music on close.
 #the Restructuring change can only come first, not later.
-import time
+
 from Tkinter import *
+
+import threading
 
 
 import midirender_util
 import midirender_mixer
 import midirender_audiooptions
 import midirender_tempo
-import midirender_runtimidity
-import midirender_choose_voice
+
+import midirender_choose_midi_voice
 import midirender_soundfont_window
+import midirender_playback
 
-sys.path.append('..\\bmidilib')
-import bmidilib
-import bmiditools
-import bmidiplay
+sys.path.append('..') #delete this line for release
+from bmidilib import bmidilib, bmiditools
 
-sys.path.append('..\\scoreview')
-import scoreview
-import listview
-
+clefspath = '..\\scoreview\\clefs' #delete this line for release
+#~ from os import sep as os_sep; clefspath = 'scoreview' + os_sep + 'clefs'
+from scoreview import scoreview, listview
 
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class App():
-	playingState = 'stopped' #or 'paused' or 'playing', or 'stopped_tim' or 'paused_tim' or 'playing_tim'
+	
 	
 	def __init__(self, root):
 		root.title('Bmidi Player')
-		
+		#~ root.protocol("WM_DELETE_WINDOW", self.onClose)
 		frameMain = pack( Frame(root), side=TOP, fill=BOTH, expand=True)
 		
 		self.lblFilename = pack( Label(frameMain, text='No file opened.'), side=TOP, anchor='w')
-		
-		#~ self.lblBank = Label(frameMain, text='Default bank: eawpats')
-		#~ self.lblBank.pack(side=TOP, anchor='w')
-		#~ self.lblBank.bind('<Button-1>', testevt)
-		
 				
-		#to "pause" and "resume" we simply play starting somewhere else
 		
 		self.icon0 = PhotoImage(data=icon0); self.icon1 = PhotoImage(data=icon1); self.icon2 = PhotoImage(data=icon2)
 		
@@ -64,8 +69,8 @@ class App():
 		self.btnPause = pack( Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause), side=LEFT, padx=4)
 		self.btnStop = pack( Button(frameBtns, image=self.icon2,  text='Stop', command=self.onBtnStop,relief=SUNKEN), side=LEFT, padx=4)
 		
-		self.varUseTimidity = IntVar()
-		Checkbutton(frameBtns, text='Timidity', variable=self.varUseTimidity).pack(side=LEFT, padx=35)
+		self.varPreviewTimidity = IntVar()
+		Checkbutton(frameBtns, text='Preview Render', variable=self.varPreviewTimidity).pack(side=LEFT, padx=35)
 		self.btnSave = pack( Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave), side=LEFT, padx=2)
 		
 		frameBtns.pack(side=TOP, fill=X, pady=2)
@@ -99,7 +104,8 @@ class App():
 		
 		self.clearModifications()
 		
-		self.midiPlayer = bmidiplay.MciMidiPlayer()
+		self.player = midirender_playback.BMidiRenderPlayback(self.playCallbackToggleButton, self.playCallbackGetSlider, self.playCallbackSetSlider)
+		
 	
 	def drawColumnHeaders(self):
 		opts = {}
@@ -138,7 +144,6 @@ class App():
 		menuAudio.add_command(label="Change tempo...", command=self.menu_changeTempo, underline=0)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Choose Sound Font...", command=self.menu_openMidi, underline=0)
-		menuAudio.add_command(label="Configure Instrument Patches...", command=self.menu_openMidi, underline=0)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=0)
 		
@@ -182,9 +187,16 @@ class App():
 			
 	def loadMidiObj(self, newmidi):
 		self.objMidi = newmidi
+		if self.player.isPlaying(): return False
 		
 		if not self.haveDrawnHeaders: self.drawColumnHeaders()
-		if not self.isMidiLoaded: self.isMidiLoaded = True
+		if not self.isMidiLoaded: 
+			#check if Timidity is installed
+			if sys.platform != 'win32':
+				import midirender_runtimidity
+				if not midirender_runtimidity.isTimidityInstalled():
+					midirender_util.alert('It appears that the program Timidity is not installed. This program is required for playing and rendering music.\n\nYou could try running something corresponding to "sudo apt-get install timidity" or "sudo yum install timidity++" in a terminal.')
+			self.isMidiLoaded = True
 		
 		#close any open views
 		for key in self.listviews: self.listviews[key].destroy()
@@ -222,7 +234,9 @@ class App():
 		
 		lengthTimer = bmiditools.BMidiSecondsLength(self.objMidi)
 		overallLengthSeconds = lengthTimer.getOverallLength(self.objMidi)
-		self.sliderTime['to'] = max(1.0, overallLengthSeconds+1.0);
+		self.sliderTime['to'] = max(1.0, overallLengthSeconds+1.0)
+		self.player.load( max(1.0, overallLengthSeconds+1.0) )
+		#~ self.sliderTime.set(0.0)
 		warnMultipleChannels = False
 		for rownum in range(len(self.objMidi.tracks)):
 			trackobj = self.objMidi.tracks[rownum]
@@ -287,6 +301,8 @@ class App():
 				return
 	
 	def onBtnChangeInstrument(self, y, btn):
+		#~ if self.playingState in ('playing','playing_tim'): return
+			
 		#As of now, this actually modifies the midi object. For good.
 		track = self.objMidi.tracks[y]
 		theEvt = None
@@ -296,123 +312,49 @@ class App():
 				break
 		if theEvt==None: return
 		
-		dlg = midirender_choose_voice.ChooseMidiInstrumentDialog(self.frameGrid, 'Choose Instrument', min(theEvt.data,127))
+		dlg = midirender_choose_midi_voice.ChooseMidiInstrumentDialog(self.frameGrid, 'Choose Instrument', min(theEvt.data,127))
 		midiNumber = dlg.result
 		if midiNumber==None: return
 		
 		theEvt.data = midiNumber
 		btn['text'] = str(midiNumber) + ' (' + bmidilib.bmidiconstants.GM_instruments[midiNumber] + ')'
 		
-	def playSliderThreadSynth(self):
-		currentTime = self.sliderTime.get()
-		while self.playingState=='playing':
-			
-			try: self.sliderTime['to'] #if the app has exited, this reference throws a TclError, so catch it.
-			except TclError: return None
-			
-			if not self.midiPlayer.isPlaying:
-				self.onBtnStop() #as if Stop had been clicked. will exit this loop.
-				break
-			else:
-				if currentTime>=self.sliderTime['to']:
-					self.sliderTime.set(currentTime)
-					currentTime+=0.0 #just wait here, until the midiPlayer stops playing.
-				else:
-					self.sliderTime.set(currentTime)
-					currentTime+=0.2
-				
-			time.sleep(0.2)
-			
-	def playSliderThreadTimidity(self):
-		currentTime = self.sliderTime.get() #was set to 0 if we don't support pause
-		while self.playingState=='playing_tim':
-			try: self.sliderTime['to'] #if the app has exited, this reference throws a TclError, so catch it.
-			except TclError: return None
-			
-			if currentTime>=self.sliderTime['to']:
-				self.sliderTime.set(currentTime)
-				currentTime+=0.0 #just wait here, until the midiPlayer stops playing.
-			else:
-				self.sliderTime.set(currentTime)
-				currentTime+=0.2
-				
-			time.sleep(0.2)
-			
-	def togglePlayButton(self, btn): 
-		self.btnPlay.config(relief=RAISED); self.btnPause.config(relief=RAISED); self.btnStop.config(relief=RAISED) 
-		btn.config(relief=SUNKEN);
+	
+	
+	def playCallbackToggleButton(self, strBtn): 
+		self.btnPlay.config(relief=RAISED); self.btnPause.config(relief=RAISED); self.btnStop.config(relief=RAISED); 
+		if strBtn=='play': self.btnPlay.config(relief=SUNKEN)
+		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
+		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
+	
+	def playCallbackGetSlider(self):
+		return self.sliderTime.get()
+	def playCallbackSetSlider(self,v):
+		self.sliderTime.set(v)
+	
 	def onBtnPlay(self, e=None):
 		if not self.isMidiLoaded: return
-		if self.playingState == 'playing' or self.playingState=='playing_tim': return
-			
-		if not self.varUseTimidity.get():
-			#play through Windows default synth
-			
-			#transform the midi object, etc.
-			midiCopy = self.buildModifiedMidi()
-			
-			self.playingState = 'playing' #set this afterward, so that we aren't stuck in the state if something went wrong.
-			
-			self.togglePlayButton(self.btnPlay)
-			self.midiPlayer.playMidiObject(midiCopy, False, fromMs=self.sliderTime.get() * 1000) #asynchronous!
-			midirender_util.makeThread(self.playSliderThreadSynth)
-			
-		else:
-			#play with timidity
-			shortenedMid = self.buildModifiedMidi() #this is where we would shorten midi by cutting out some of it
-			if self.sliderTime.get()!=0: bmiditools.makeVeryRoughTimeExcerpt(shortenedMid, float( self.sliderTime.get())/float(self.sliderTime['to']))
-			tmpfilename= self.saveTempModifiedMidi(shortenedMid) #don't directly play the midi, play a copy of it (because we've probably changed volumes etc)
-			
-			strCfg = '\nsoundfont "' + r'C:\Projects\midi\!midi_to_wave\soundfonts_good\sf2_other\vintage_dreams_waves_v2.sf2' + '"\n'
-			timiditydir = 'timidity'
-			try:
-				midirender_runtimidity.runTimidity(strCfg, tmpfilename, timiditydir, runInThread=True, fnCallback=self.timidityCallbackAfterPlaying)
-			except midirender_runtimidity.RunTimidityException, e:
-				midirender_util.alert("Error:"+str(e))
-				return
-			
-			self.playingState = 'playing_tim'
-			
-			#start playback bar
-			self.togglePlayButton(self.btnPlay)
-			midirender_util.makeThread(self.playSliderThreadTimidity)
-			
-			
-			
-	def timidityCallbackAfterPlaying(self):
-		if self.sliderTime['to'] - self.sliderTime.get() < 2:
-			self.playingState = 'stopped_tim'
-			self.sliderTime.set(0)
-			self.togglePlayButton(self.btnStop)
-		else:
-			self.playingState = 'paused_tim'
-			self.togglePlayButton(self.btnPause)
+		#~ strCfg = '\nsoundfont "' + r'C:\Projects\midi\!midi_to_wave\soundfonts_good\sf2_other\vintage_dreams_waves_v2.sf2' + '"\n'
+		strCfg = '\nsoundfont "' + r'C:\pydev\mainsvn\benmidi\bmidirender\soundfonts\sf_gm\TimGM6mb.sf2' + '"\n'
 		
-		
-	def onBtnPause(self, e=None):
-		if not self.isMidiLoaded: return
-		if self.playingState=='paused': return
-		if self.playingState=='paused_tim': return
-		
-		if '_tim' not in self.playingState:  #for now, don't support pausing when during Timidity playback.
-			if self.playingState=='playing':
-				self.midiPlayer.signalStop()
-			self.playingState = 'paused' #stops the sliderThread
+		params = []
+		if self.audioOptsWindow != None:
+			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
+			if params==None: params = [] #evidently an error occurred over there
+		self.player.actionPlay(self.buildModifiedMidi(), params, strCfg, self.varPreviewTimidity.get())
 			
-			self.togglePlayButton(self.btnPause)
-		
 	def onBtnStop(self, e=None):
 		if not self.isMidiLoaded: return
-		if self.playingState=='stopped': return
-		if self.playingState=='stopped_tim': return
-		
-		if '_tim' not in self.playingState:  #for now, don't support stopping when during Timidity playback. (just close the window)
-			if self.playingState=='playing':
-				self.midiPlayer.signalStop()
-			self.playingState = 'stopped' #stops the sliderThread
-			self.sliderTime.set(0)
+		self.player.actionStop()
+	def onBtnPause(self, e=None):
+		if not self.isMidiLoaded: return
+		self.player.actionPause()
+	
+	def onClose(self):
+		self.onBtnStop()
+		#stop playback
+		self.player.playingState = 'stopped'
 			
-			self.togglePlayButton(self.btnStop)
 	def onBtnSaveWave(self):
 		if not self.isMidiLoaded: return
 		filename = midirender_util.ask_savefile(title="Create Wav File", types=['.wav|Wav file'])
@@ -422,7 +364,7 @@ class App():
 		tmpfilename = self.saveTempModifiedMidi(self.buildModifiedMidi())
 		
 		if self.audioOptsWindow != None:
-			timoptions = self.audioOptsWindow.createTimidityOptionsString(includeRenderOptions=True) 
+			timoptions = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=True) 
 			if timoptions==None: return #evidently an error occurred over there
 		else:
 			timoptions =' -Ow'
@@ -451,8 +393,8 @@ class App():
 		
 	
 	def buildModifiedMidi(self):
-		if not self.mixerWindow and self.tempoScaleFactor==None: #... If there are *no* modifications we can get away with returning original
-			return self.objMidi 
+		#~ if not self.mixerWindow and not self.audioOptsWindow and not self.soundfontWindow and not self.tempoScaleFactor==None: #... If there are *no* modifications we can get away with returning original
+			#~ return self.objMidi 
 		
 		import copy
 		midiCopy = copy.deepcopy(self.objMidi)
@@ -473,13 +415,7 @@ class App():
 			mfile.open(filename,'wb')
 			mfile.write()
 			mfile.close()
-	def saveTempModifiedMidi(self, midiCopy):
-		tmpfilename = 'tmpout.mid'
-		midiCopy.open(tmpfilename,'wb')
-		midiCopy.write()
-		midiCopy.close()
-		return tmpfilename
-		
+	
 	def findNoteChannels(self, trackObject):
 		channelsSeen = {}
 		for note in trackObject.notelist:
@@ -494,6 +430,7 @@ class App():
 		opts['show_durations'] = self.objOptionsDuration.get()
 		opts['show_barlines'] = self.objOptionsBarlines.get()
 		opts['show_stems'] = 1; opts['prefer_flats'] = 0
+		opts['clefspath'] = clefspath
 		
 		top = Toplevel()
 		window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n],self.objMidi.ticksPerQuarterNote, opts)
@@ -548,6 +485,14 @@ icon0='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8
 icon1='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''
 icon2='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg4AP0JHEiwoMGCABIqTHiwocOHEA8uXBixosSJDCFizPhwIwCLIEOKHBnRY8mNJzGmnEiypUuDAQEAOw=='''
 
+
+#bug:
+#open a file, check Timidity, go to Paused, drag timer to somewhere , hit play. hangs.
+#FOUND IT: bmidilib.py line 168, putVariableLengthNumber(nexttime - curtime).
+# it was trying to write a negative number, causing an infinite loop in putVariableLengthNumber
+#bug caused by bmiditools getMidiExcerpt 1) incorrectly keeping track of Note_on events and 2) placing them incorrectly at long times, instead of at time 0.
+#repro by opening "out.mid" (16keys.mid) and starting Timidty playback at 46.4 s
+#fixed as of now.
 
 root = Tk()
 app = App(root)
