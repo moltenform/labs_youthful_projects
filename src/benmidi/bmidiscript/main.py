@@ -137,10 +137,9 @@ class App():
 	def playMidi(self, evt=None):
 		mfile = self.createMidiFile()
 		if mfile:
-			#creates a temporary .mid file, and then uses mci to play it
+			#creates a temporary .mid file, and then uses mci (on Windows) or Timidity (on Linux) to play it
 			self.midiPlayer.playMidiObject(mfile, False) 
-		#aSynchronous, pretty cool
-		#to test aSynchronous stop, btnStop can be uncommented
+			# I'd test for a bmidiplay.PlayMidiException, but it would be thrown from another thread...
 
 	def stopMidi(self):
 		self.midiPlayer.signalStop()

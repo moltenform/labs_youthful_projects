@@ -90,7 +90,13 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 		args.extend(self._additionalTimidityArgs())
 		args.append(strMidiPath)
 		
-		self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
+		try:
+			self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
+		except EnvironmentError, e:
+			self.isPlaying = False
+			raise PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
+			return
+			
 		# Note that use  stdout=PIPE to hide all the stdout. Not too elegant of a way to do that, though
 		self.process.wait()
 		self.process = None
