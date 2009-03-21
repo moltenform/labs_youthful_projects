@@ -94,6 +94,7 @@ def putNumber(num, length):
 	return string.join(lst, "")
 
 def putVariableLengthNumber(x):
+	assert x>=0
 	lst = [ ]
 	while 1:
 		y, x = x & 0x7F, x >> 7

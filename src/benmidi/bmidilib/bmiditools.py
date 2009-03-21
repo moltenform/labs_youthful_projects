@@ -117,7 +117,9 @@ def transposeMidi(midiObject, amt, tracknum='all'): #track can be number, like 0
 
 '''excerpt midi. cuts out all of the notes. has to leave the non-note events, though... '''
 def getMidiExcerpt(midiObject, nTics): #note: is destructive, modifies things
-	
+	spaceForEvents = 5 #noteevents start at tick 5, now.
+	if nTics<=spaceForEvents: return
+		
 	#remove all note events, and pitch wheel events, before it.
 	for track in midiObject.tracks: 
 		track.events = [evt for evt in track.events if not (evt.time < nTics and (evt.type=='NOTE_ON' or evt.type=='NOTE_OFF' or evt.type=='PITCH_BEND'))]
@@ -129,31 +131,55 @@ def getMidiExcerpt(midiObject, nTics): #note: is destructive, modifies things
 		if evt.type=='CONTROLLER_CHANGE': return (evt.channel, evt.type, evt.pitch)
 		else: return (evt.channel, evt.type)
 	
+	
 	for track in midiObject.tracks:
-		beginningIndex=0
 		for i in range(len(track.events)):
 			evt = track.events[i]
+			if evt.type=='END_OF_TRACK': track.events[i]=None; continue #eliminate it
 			if evt.time > nTics:
 				evt.time -= (nTics - spaceForEvents)
 			else:
-				key =  getKey(evt)
-				if key not in latestMetaEvents or (key in latestMetaEvents and latestMetaEvents[key][1].time < evt.time): 
-					latestMetaEvents[key] = (track, evt)
+				if evt.type!='NOTE_ON' and evt.type!='NOTE_OFF':
+					key =  getKey(evt)
+					if key not in latestMetaEvents or (key in latestMetaEvents and latestMetaEvents[key][1].time < evt.time): 
+						latestMetaEvents[key] = (track, evt)
 					
 				#record and eliminate it.
 				track.events[i] = None
+		
+		
 		#get rid of Nones
 		track.events = [evt for evt in track.events if not (evt==None)]
 		
 	#re-add the meta events (they're per-channel, not per track)
 	for value in latestMetaEvents.itervalues():
 		track, evt = value
-		track.insert(0, evt)
+		evt.time = 0 #Important!
+		track.events.insert(0, evt)
+		#~ track.events.sort(key=lambda evt:evt.time)
+	
+	#kill tracks with no events (!)
+	midiObject.tracks = [track for track in midiObject.tracks if len(track.events)>0]
+	
+	#re-add End of Track events. also very important.
+	for track in midiObject.tracks:
+		if track.events[-1].type != 'END_OF_TRACK':
+			evt = bmidilib.BMidiEvent()
+			evt.type='END_OF_TRACK'
+			evt.time = track.events[-1].time + 1
+			evt.data = ''
+			track.events.append(evt)
 	
 	return None #as a signal that this modifies, not returns a copy
 	
-				
+def makeVeryRoughTimeExcerpt(midiObject, fPercentageDone):
+	#get length in ticks 
+	lticks = 0
+	for track in midiObject.tracks: 
+		if track.events and track.events[-1].time > lticks:
+			lticks = track.events[-1].time
 	
+	getMidiExcerpt(midiObject, int(fPercentageDone * lticks)) #so if the tempo changes, this will be pretty wrong...
 
 
 '''change all volume events to be multiplied by a certain amount. '''

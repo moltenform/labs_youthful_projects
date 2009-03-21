@@ -31,6 +31,8 @@ BNote
 		note.startEvt.pitch = 60
 		note.endEvt.pitch = 60
 		note.pitch = 60
+
+note that channel, here, is 1 based. values 1 through 16 inclusive are valid channels, not 0-15.
 """
 
 import sys, string, types, exceptions
@@ -47,13 +49,7 @@ class BMidiFile():
 		self.ticksPerSecond = None
 
 	def open(self, filename, attrib="rb"):
-		if filename == None:
-			if attrib in ["r", "rb"]:
-				self.file = sys.stdin
-			else:
-				self.file = sys.stdout
-		else:
-			self.file = open(filename, attrib)
+		self.file = open(filename, attrib)
 
 	def __repr__(self):
 		r = "<MidiFile %d tracks\n" % len(self.tracks)
@@ -100,6 +96,8 @@ class BMidiFile():
 		str = "MThd" + putNumber(6, 4) + putNumber(self.format, 2)
 		str = str + putNumber(len(self.tracks), 2)
 		str = str + putNumber(division, 2)
+		
+		
 		for trk in self.tracks:
 			str = str + trk.write()
 		return str
@@ -158,14 +156,19 @@ class BMidiTrack():
 	def write(self):
 		time = self.events[0].time
 		# build str using BMidiEvents
-		str = ""
+		s = ""
 		curtime = 0
+		
 		for e in self.events:
 			nexttime = e.time
-			str = str + delta_time_write(nexttime - curtime)
-			str = str + e.write()
+			if nexttime - curtime < 0:
+				raise 'bad: negative. at time:%d, difference is %d'%(nexttime, nexttime - curtime)
+			s = s + putVariableLengthNumber(nexttime - curtime)
+			s = s + e.write()
 			curtime=nexttime
-		return "MTrk" + putNumber(len(str), 4) + str
+			
+			
+		return "MTrk" + putNumber(len(s), 4) + s
 
 	def __repr__(self):
 		r = "<MidiTrack  -- %d events\n" % ( len(self.events))
@@ -323,9 +326,6 @@ class BMidiEvent():
 def delta_time_read(oldstr):
 	time, newstr = getVariableLengthNumber(oldstr)
 	return time, newstr
-
-def delta_time_write(deltatime):
-	return putVariableLengthNumber(deltatime)
 
 
 

@@ -44,6 +44,7 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 	process = None
 	isPlaying = False 
 	win_timiditypath = 'timidity\\timidity.exe'
+	file_stdout = None
 	def playMidiObject(self, objMidiFile, bSynchronous=True):
 		if self.isPlaying: print 'alreadyplaying'; return
 		tempfilename = self._saveTempMidiFile(objMidiFile)
@@ -90,14 +91,18 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 		args.extend(self._additionalTimidityArgs())
 		args.append(strMidiPath)
 		
+		file_stdout = self.file_stdout
+		if file_stdout == None:
+			file_stdout = subprocess.PIPE # hides all of the stdout. Not too elegant.
+			
 		try:
-			self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
+			self.process = subprocess.Popen(args, stdout=file_stdout)
 		except EnvironmentError, e:
 			self.isPlaying = False
 			raise PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
 			return
 			
-		# Note that use  stdout=PIPE to hide all the stdout. Not too elegant of a way to do that, though
+		
 		self.process.wait()
 		self.process = None
 		self.isPlaying = False
