@@ -42,9 +42,13 @@ class BTimidityOptions():
 		self.makeOpts('sample', frameAudioOpts, 'Sampling rate:',
 				['22,050Hz','44,100Hz'], [22050,44100], 1)
 		
+		#self.makeOpts('bitrate', frameAudioOpts, 'Quality:',
+		#		['8-bit', '16-bit','24-bit'], [8,16,24], 1)
+		#8 bit audio seems to make a hissing sound. Perhaps a signed/unsigned issue...
+		#The 24bit audio seems to be correct, although it is not read by Windows Media player, only Audacity
 		
 		self.makeOpts('bitrate', frameAudioOpts, 'Quality:',
-				['8-bit', '16-bit','24-bit'], [8,16,24], 1)
+				['16-bit','24-bit'], [16,24], 1)
 		
 		frameTimOpts = pack(LabelFrame(frameTop, text='Audio Settings'), expand=YES, fill=BOTH)
 		self.varFastDecay=IntVar(); self.varFastDecay.set(0)
@@ -71,9 +75,6 @@ class BTimidityOptions():
 		Label(frameTop, text='Settings remain in effect while this dialog is open.'+' '*15).pack(pady=5)
 		#8bit is unsigned, rest should be signed
 		
-		
-		
-
 
 		if callbackOnClose!=None:
 			def callCallback():
@@ -85,8 +86,7 @@ class BTimidityOptions():
 		self.top.destroy()
 	
 	
-	
-	def createTimidityOptionsString(self, includeRenderOptions=False):
+	def createTimidityOptionsList(self, includeRenderOptions=False):
 		sample = self.getOptValue('sample')
 		bitrate = self.getOptValue('bitrate')
 		lpf = self.getOptValue('lpf')
@@ -105,8 +105,9 @@ class BTimidityOptions():
 			if stereo: res+='S' #stereo or mono
 			else: res+='M'
 			
-			if bitrate==8: res+='u' #8-bit wavs are typically unsigned
-			else: res+= 's'
+			# if bitrate==8: res+='u' #8-bit wavs are typically unsigned
+			# else: res+= 's'
+			res+= 's'
 				
 			if bitrate==8: res+='8' #8-bit audio
 			elif bitrate==24: res+='2' #24 bit
@@ -122,7 +123,8 @@ class BTimidityOptions():
 		res += ' --delay %s'%delay
 		res += ' --reverb %s'%reverb
 		
-		return ' ' + res + ' '
+		arParams = res.split(' ')
+		return arParams
 		
 
 if __name__=='__main__':

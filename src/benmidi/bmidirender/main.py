@@ -1,4 +1,3 @@
-
 """
 BMidiRender
 Ben Fisher, 2009, GPL
@@ -21,38 +20,43 @@ timidity playback is modified by
 	midirender_audiooptions - when dialog is open
 '''
 
-#todo: stop music on close.
 #the Restructuring change can only come first, not later.
 
 from Tkinter import *
 
 import threading
+import os
 
 
 import midirender_util
 import midirender_mixer
 import midirender_audiooptions
 import midirender_tempo
+import midirender_consoleout
 
 import midirender_choose_midi_voice
-import midirender_soundfont_window
 import midirender_playback
+import midirender_runtimidity
+
+import midirender_soundfont
+import midirender_soundfont_info
 
 sys.path.append('..') #delete this line for release
 from bmidilib import bmidilib, bmiditools
 
+
 clefspath = '..\\scoreview\\clefs' #delete this line for release
-#~ from os import sep as os_sep; clefspath = 'scoreview' + os_sep + 'clefs'
+#~ clefspath = 'scoreview' + os.sep + 'clefs'
 from scoreview import scoreview, listview
 
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class App():
-	
-	
 	def __init__(self, root):
 		root.title('Bmidi Player')
-		#~ root.protocol("WM_DELETE_WINDOW", self.onClose)
+		root.protocol("WM_DELETE_WINDOW", self.onClose)
+		self.top = root
+		
 		frameMain = pack( Frame(root), side=TOP, fill=BOTH, expand=True)
 		
 		self.lblFilename = pack( Label(frameMain, text='No file opened.'), side=TOP, anchor='w')
@@ -79,7 +83,6 @@ class App():
 		
 		frameGrid = Frame(frameMain, borderwidth=1)
 		frameGrid.pack(side=TOP,fill=BOTH, expand=True, anchor='w', pady=15)
-		# frameGrid.grid_rowconfigure(0, weight=1, minsize=10)
 		frameGrid.grid_columnconfigure(1, weight=1, minsize=20)
 		
 		self.haveDrawnHeaders = False
@@ -88,17 +91,18 @@ class App():
 		self.objMidi = None
 		self.frameGrid = frameGrid
 		
-		#had a memory leak problem before, even though used del on all of the widgets. dang tk.
+		#had a memory leak problem before, even though used del on all of the widgets.
 		self.gridwidgets = {} #index is tuple (row, column)
 		self.gridbuttons = {} #index is tuple (row, column)
 		
-		#These are 
+		
 		self.listviews = {} #index is track number. 
 		self.scoreviews = {}
 		self.mixerWindow=None
 		self.audioOptsWindow=None
 		self.soundfontWindow=None
-		self.currentSoundfont = midirender_soundfont_window.SoundFontObject()
+		self.consoleOutWindow=None
+		self.currentSoundfont = [midirender_soundfont.getDefaultSoundfont()] #an array so we can pass it as a reference.
 		
 		self.create_menubar(root)
 		
@@ -143,7 +147,7 @@ class App():
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Change tempo...", command=self.menu_changeTempo, underline=0)
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Choose Sound Font...", command=self.menu_openMidi, underline=0)
+		menuAudio.add_command(label="Choose Sound Font...", command=self.openSoundfontWindow, underline=0)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=0)
 		
@@ -153,9 +157,9 @@ class App():
 		menuView = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="View", menu=menuView, underline=0)
 		menuView.add_command(label="Mixer", command=midirender_util.Callable(self.openMixerView,None), underline=0)
-		menuView.add_command(label="Console output", command=self.menu_openMidi, underline=0)
+		menuView.add_command(label="Console output", command=self.menu_openConsoleWindow, underline=0)
 		menuView.add_separator()
-		menuView.add_command(label="SoundFont Information & Preview Tool", command=self.menu_openMidi, underline=0)
+		menuView.add_command(label="SoundFont Information Tool", command=self.menu_openMidi, underline=0)
 		menuView.add_separator()
 		menuView.add_checkbutton(label="Show Durations in score", variable=self.objOptionsDuration, underline=0, onvalue=1, offvalue=0)
 		menuView.add_checkbutton(label="Show Barlines in score", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
@@ -193,7 +197,6 @@ class App():
 		if not self.isMidiLoaded: 
 			#check if Timidity is installed
 			if sys.platform != 'win32':
-				import midirender_runtimidity
 				if not midirender_runtimidity.isTimidityInstalled():
 					midirender_util.alert('It appears that the program Timidity is not installed. This program is required for playing and rendering music.\n\nYou could try running something corresponding to "sudo apt-get install timidity" or "sudo yum install timidity++" in a terminal.')
 			self.isMidiLoaded = True
@@ -215,13 +218,15 @@ class App():
 		def addLabel(text, y, x, isButton=False):
 			#Only create a new widget when necessary. This way, don't need to allocate every time a file is opened.
 			if (x,y+1) not in self.gridwidgets:
-				smallFrame = Frame(self.frameGrid, borderwidth=1, relief=RIDGE) #GROOVE
+				smallFrame = Frame(self.frameGrid, borderwidth=1, relief=RIDGE)
 				smallFrame.is_smallframe=1
 				if isButton: 
 					btn = Button(smallFrame, text=text, relief=GROOVE,anchor='w')
 					btn.config(command=midirender_util.Callable(self.onBtnChangeInstrument, y,btn))
 					btn.pack(anchor='w', fill=BOTH)
+					btn['disabledforeground'] = 'black' #means that when it is disabled, looks just like a label. sweet.
 					thewidget = btn
+					
 				else: 
 					lbl = Label(smallFrame, text=text)
 					lbl.pack(anchor='w')
@@ -231,12 +236,13 @@ class App():
 			
 			self.gridwidgets[(x,y+1)]['text'] = text
 			self.gridwidgets[(x,y+1)].master.grid(row=y+1, column=x, sticky='nsew')
+			return self.gridwidgets[(x,y+1)]
 		
 		lengthTimer = bmiditools.BMidiSecondsLength(self.objMidi)
 		overallLengthSeconds = lengthTimer.getOverallLength(self.objMidi)
 		self.sliderTime['to'] = max(1.0, overallLengthSeconds+1.0)
-		self.player.load( max(1.0, overallLengthSeconds+1.0) )
-		#~ self.sliderTime.set(0.0)
+		self.player.load( max(1.0, overallLengthSeconds+1.0) ) #"loading" will also set position to 0.0
+		
 		warnMultipleChannels = False
 		for rownum in range(len(self.objMidi.tracks)):
 			trackobj = self.objMidi.tracks[rownum]
@@ -263,11 +269,15 @@ class App():
 			instarray = res['INSTRUMENTS']
 			if len(instarray)==0: instname='None'
 			elif len(instarray)>1: instname='(Many)'
-			else: instname = str(instarray[0]) + ' (' + bmidilib.bmidiconstants.GM_instruments[instarray[0]] + ')'
+			else: instname = str(instarray[0]) + ' (' + bmidilib.getInstrumentName(instarray[0]) + ')'
 			if channame=='10': instname = '(Percussion channel)'
-			isButton = channame!='10' and instname!='None' and instname!='(Many)' #countednoteevts>0
-			addLabel( instname, rownum, 3, isButton)
-			#minor bug. If you first, say, open a midi without a conductor track, then it will be a button from then on.
+			
+			btn = addLabel( instname, rownum, 3, isButton=True) #add a button (not a label)
+			isEnabled = channame!='10' and instname!='None' and instname!='(Many)' #countednoteevts>0
+			if isEnabled: btn['state'] = NORMAL; btn['relief'] = GROOVE
+			else: btn['state'] = DISABLED; btn['relief'] = FLAT
+			# if there are multiple inst. changes in a track, we don't let you change instruments because there isn't a conveniant way to do that.
+			
 			
 			#Track Time
 			if len(trackobj.notelist)==0: strTime = lengthTimer.secondsToString(0)
@@ -294,15 +304,13 @@ class App():
 			self.gridbuttons[(rownum, 2)].grid(row=rownum+1, column=8)
 		
 		if warnMultipleChannels:
-			resp = midirender_util.ask_yesno('This midi file has notes from different channels in the same track (format 0). It will play back fine, but features such as the Mixer may not work as intended. Click "yes" to import it as a format 1 file, or "no" to leave it. ')
+			resp = midirender_util.ask_yesno('This midi file has notes from different channels in the same track (format 0). Click "yes" (recommended) to import it as a format 1 file, or "no" to leave it. ')
 			if resp:
 				newmidi = bmiditools.restructureMidi(self.objMidi)
 				self.loadMidiObj(newmidi)
 				return
 	
 	def onBtnChangeInstrument(self, y, btn):
-		#~ if self.playingState in ('playing','playing_tim'): return
-			
 		#As of now, this actually modifies the midi object. For good.
 		track = self.objMidi.tracks[y]
 		theEvt = None
@@ -317,61 +325,40 @@ class App():
 		if midiNumber==None: return
 		
 		theEvt.data = midiNumber
-		btn['text'] = str(midiNumber) + ' (' + bmidilib.bmidiconstants.GM_instruments[midiNumber] + ')'
+		btn['text'] = str(midiNumber) + ' (' + bmidilib.getInstrumentName(midiNumber) + ')'
 		
 	
 	
-	def playCallbackToggleButton(self, strBtn): 
-		self.btnPlay.config(relief=RAISED); self.btnPause.config(relief=RAISED); self.btnStop.config(relief=RAISED); 
-		if strBtn=='play': self.btnPlay.config(relief=SUNKEN)
-		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
-		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
 	
-	def playCallbackGetSlider(self):
-		return self.sliderTime.get()
-	def playCallbackSetSlider(self,v):
-		self.sliderTime.set(v)
 	
-	def onBtnPlay(self, e=None):
-		if not self.isMidiLoaded: return
-		#~ strCfg = '\nsoundfont "' + r'C:\Projects\midi\!midi_to_wave\soundfonts_good\sf2_other\vintage_dreams_waves_v2.sf2' + '"\n'
-		strCfg = '\nsoundfont "' + r'C:\pydev\mainsvn\benmidi\bmidirender\soundfonts\sf_gm\TimGM6mb.sf2' + '"\n'
-		
-		params = []
-		if self.audioOptsWindow != None:
-			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
-			if params==None: params = [] #evidently an error occurred over there
-		self.player.actionPlay(self.buildModifiedMidi(), params, strCfg, self.varPreviewTimidity.get())
-			
-	def onBtnStop(self, e=None):
-		if not self.isMidiLoaded: return
-		self.player.actionStop()
-	def onBtnPause(self, e=None):
-		if not self.isMidiLoaded: return
-		self.player.actionPause()
-	
-	def onClose(self):
-		self.onBtnStop()
-		#stop playback
-		self.player.playingState = 'stopped'
+
 			
 	def onBtnSaveWave(self):
 		if not self.isMidiLoaded: return
 		filename = midirender_util.ask_savefile(title="Create Wav File", types=['.wav|Wav file'])
 		if not filename: return
 			
-		# put midi to file.
-		tmpfilename = self.saveTempModifiedMidi(self.buildModifiedMidi())
+		midicopy = self.buildModifiedMidi()
 		
 		if self.audioOptsWindow != None:
-			timoptions = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=True) 
-			if timoptions==None: return #evidently an error occurred over there
+			arParams = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=True) 
+			if arParams==None: return #evidently an error occurred over there
 		else:
-			timoptions =' -Ow'
-			
-		cmdoptions += ' "' + filename.replace('"','\\"')
+			arParams =['-Ow']
 		
-		midirender_util.alert('Beginning wave process. This may take a few moments...')
+		arParams.append('-o')
+		arParams.append(filename)
+		
+		#Play it synchronously, meaning that the whole program stalls while this happens...
+		midirender_util.alert('Beginning wave process. Be patient... this may take a few moments...')
+		objplayer = midirender_runtimidity.RenderTimidityMidiPlayer()
+		objplayer.setConfiguration(self.buildCfg())
+		objplayer.setParameters(arParams)
+		
+		objplayer.playMidiObject(midicopy, bSynchronous=True)
+		if self.consoleOutWindow!=None: self.consoleOutWindow.clear(); self.consoleOutWindow.writeToWindow(objplayer.strLastStdOutput)
+		midirender_util.alert('Completed.')
+		
 	
 	def clearModifications(self):
 		#close Mixer window.
@@ -391,20 +378,34 @@ class App():
 		
 		#get rid of instrument/change modifications
 		
-	
+	def buildCfg(self):
+		#~ strCfg = '\nsoundfont "' + r'C:\pydev\mainsvn\benmidi\bmidirender\soundfonts\sf_gm\TimGM6mb.sf2' + '"\n'
+		
+		#begin, by adding the global soundfont or cfg file.
+		filename =self.currentSoundfont[0]
+		if filename.endswith('.cfg'):
+			path, justname = os.path.split(filename)
+			strCfg = '\ndir "%s"\nsource "%s"\n' % (path, filename)
+		else:
+			strCfg = '\nsoundfont "%s"\n' % (filename)
+		
+		if self.soundfontWindow != None:
+			strCfg += '\n' + self.soundfontWindow.getCfgResults() #add customization.
+			
+		return strCfg
+		
 	def buildModifiedMidi(self):
-		#~ if not self.mixerWindow and not self.audioOptsWindow and not self.soundfontWindow and not self.tempoScaleFactor==None: #... If there are *no* modifications we can get away with returning original
-			#~ return self.objMidi 
+		# at first I thought that I could avoid the deepcopy if we haven't changed any settings.
+		# that is not right, though, because we cut the midi for playback that isn't at the beginning.
 		
 		import copy
 		midiCopy = copy.deepcopy(self.objMidi)
 		if self.mixerWindow: 
 			self.mixerWindow.createMixedMidi( midiCopy )
-			
 		if self.tempoScaleFactor!=None:
 			midirender_tempo.doChangeTempo(midiCopy, self.tempoScaleFactor)
-			
 		return midiCopy
+		
 	def saveModifiedMidi(self, evt=None):
 		if not self.isMidiLoaded: return
 		filename = midirender_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])
@@ -416,12 +417,64 @@ class App():
 			mfile.write()
 			mfile.close()
 	
-	def findNoteChannels(self, trackObject):
-		channelsSeen = {}
-		for note in trackObject.notelist:
-			channelsSeen[note.channel] = 1
-		return channelsSeen.keys()
 	
+	
+	#########Windows for settings###############
+	
+	
+	def menu_changeTempo(self, e=None):
+		if not self.isMidiLoaded: return			
+		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
+		if res==None: return #canceled.
+		if abs(res-1.0) < 0.001:  #we don't need to change the tempo if it is staying the same.
+			self.tempoScaleFactor = None
+		else:
+			self.tempoScaleFactor = res
+			
+	def openSoundfontWindow(self):
+		#this is different than the list and score view - there can only be one of them open at once
+		if not self.isMidiLoaded: return
+		if self.soundfontWindow: return #only allow one instance open at a time
+			
+		top = Toplevel()
+		def callbackOnClose():  self.soundfontWindow = None
+			
+		self.soundfontWindow = midirender_soundfont.BSoundfontWindow(top, self.currentSoundfont, self.objMidi, callbackOnClose)	
+	
+	
+	def openMixerView(self, n): #we ignore n
+		if not self.isMidiLoaded: return
+		if self.mixerWindow: return #only allow one instance open at a time
+			
+		top = Toplevel()
+		def callbackOnClose():  self.mixerWindow = None
+			
+		self.mixerWindow = midirender_mixer.BMixerWindow(top, self.objMidi, {}, callbackOnClose)
+	
+	def menu_openConsoleWindow(self):
+		#i guess we'll let people open this before opening a midi...
+		if self.consoleOutWindow: return #only allow one instance open at a time
+		top = Toplevel()
+		def callbackOnClose(): self.consoleOutWindow = None
+		self.consoleOutWindow = midirender_consoleout.BConsoleOutWindow(top,self.consoleOutCallback, callbackOnClose=callbackOnClose)
+	def consoleOutCallback(self):
+		if not self.isMidiLoaded: return
+		#the window has requested that we show the stdout.
+		
+		if self.consoleOutWindow==None: return
+		self.consoleOutWindow.clear()
+		self.consoleOutWindow.writeToWindow(self.player.getLastStdout())
+	
+	def openAudioOptsWindow(self):
+		#i guess we'll let people open this before opening a midi...
+		if self.audioOptsWindow: return #only allow one instance open at a time
+			
+		top = Toplevel()
+		def callbackOnClose(): self.audioOptsWindow = None
+			
+		self.audioOptsWindow = midirender_audiooptions.BTimidityOptions(top, callbackOnClose)
+	
+		
 	def openScoreView(self, n):
 		if len(self.objMidi.tracks[n].notelist)==0:
 			midirender_util.alert('No notes to show in this track.')
@@ -441,45 +494,54 @@ class App():
 		top = Toplevel()
 		window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
 		self.listviews[n] = top
-		
-	def openMixerView(self, n): #we ignore n
-		#this is different than the list and score view - there can only be one of them open at once
+	
+
+
+
+
+
+	#########Event handlers################
+
+
+	def playCallbackToggleButton(self, strBtn): 
+		self.btnPlay.config(relief=RAISED); self.btnPause.config(relief=RAISED); self.btnStop.config(relief=RAISED); 
+		if strBtn=='play': self.btnPlay.config(relief=SUNKEN)
+		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
+		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
+	
+	def onBtnPlay(self, e=None):
 		if not self.isMidiLoaded: return
 		
-		if self.mixerWindow: return #only allow one instance open at a time
-			
-		top = Toplevel()
-		def callbackOnClose():  self.mixerWindow = None
-			
-		self.mixerWindow = midirender_mixer.BMixerWindow(top, self.objMidi, {}, callbackOnClose)
+		params = []
+		if self.audioOptsWindow != None:
+			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
+			if params==None: params = [] #evidently an error occurred over there
+		self.player.actionPlay(self.buildModifiedMidi(), params, self.buildCfg(), self.varPreviewTimidity.get())
 		
-	def openAudioOptsWindow(self):
-		#i guess we'll let people open this before opening a midi...
-		if self.audioOptsWindow: return #only allow one instance open at a time
-			
-		top = Toplevel()
-		def callbackOnClose(): self.audioOptsWindow = None
-			
-		self.audioOptsWindow = midirender_audiooptions.BTimidityOptions(top, callbackOnClose)
-		
-	def openChangeSoundfontWindow(self):
+	def playCallbackGetSlider(self):
+		return self.sliderTime.get()
+	def playCallbackSetSlider(self,v):
+		self.sliderTime.set(v)
+	def onBtnStop(self, e=None):
 		if not self.isMidiLoaded: return
-		if self.soundfontWindow: return #only allow one instance open at a time
-			
-		top = Toplevel()
-		def callbackOnClose(): self.audioOptsWindow = None
-			
-		self.soundfontWindow = midirender_soundfont_window.BChangeSoundfontWindow(top, self.currentSoundfont, self.objMid, callbackOnClose)	
+		self.player.actionStop()
+	def onBtnPause(self, e=None):
+		if not self.isMidiLoaded: return
+		self.player.actionPause()
 		
-		
-	def menu_changeTempo(self, e=None):
-		if not self.isMidiLoaded: return			
-		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
-		if res==None: return #canceled.
-		if abs(res-1.0) < 0.001:  #we don't need to change the tempo if it is staying the same.
-			self.tempoScaleFactor = None
-		else:
-			self.tempoScaleFactor = res
+	def onClose(self):
+		try:
+			self.onBtnStop()
+			#stop playback slider thread
+			self.player.playingState = 'stopped'
+		finally:
+			self.top.destroy()
+			
+	def findNoteChannels(self, trackObject):
+		channelsSeen = {}
+		for note in trackObject.notelist:
+			channelsSeen[note.channel] = 1
+		return channelsSeen.keys()
 
 icon0='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg7AP0JHEiwoEGCABIqXHiwoUODCR82XBhRosWHFAFc9JeRocOKG0OKHLnRY8mOFjuahIhS4kqSMGM+DAgAOw=='''
 icon1='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''

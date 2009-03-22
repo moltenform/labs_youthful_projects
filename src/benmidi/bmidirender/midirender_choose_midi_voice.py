@@ -22,7 +22,7 @@ class ChooseMidiInstrumentDialog(tkSimpleDialog.Dialog):
 		
 		#fill with all of the voices
 		for instnum in range(128):
-			s = '%03d %s'%(instnum, bmidilib.bmidiconstants.GM_instruments[instnum])
+			s = '%03d %s'%(instnum, bmidilib.getInstrumentName(instnum))
 			self.lbPatchChoose.insert(END, s)
 		
 		self.lbPatchChoose.selection_set(self.defaultInst)

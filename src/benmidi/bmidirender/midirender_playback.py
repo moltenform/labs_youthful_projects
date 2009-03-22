@@ -83,7 +83,6 @@ class BMidiRenderPlayback():
 				self.midiPlayerObject = bmidiplay.TimidityMidiPlayer()
 				self.midiPlayerObject.playMidiObject(midiCopy, False)
 			
-			
 		self.playingState = 'playing'
 		self.fnToggleBtn('play')
 		midirender_util.makeThread(self.playSliderThread)
@@ -114,4 +113,9 @@ class BMidiRenderPlayback():
 		self.fnToggleBtn('stop')
 			
 			
+	def getLastStdout(self):
+		if self.midiPlayerObject == None: return ''
+		if isinstance(self.midiPlayerObject, bmidiplay.MciMidiPlayer): return ''
+		return self.midiPlayerObject.strLastStdOutput
+	
 	
