@@ -327,8 +327,11 @@ def delta_time_read(oldstr):
 	time, newstr = getVariableLengthNumber(oldstr)
 	return time, newstr
 
-
-
+def getInstrumentName(n):
+	if n>=0 and n<len(bmidiconstants.GM_instruments):
+		return bmidiconstants.GM_instruments[n]
+	else:
+		return 'Instrument %d'%n
 
 
 

@@ -29,7 +29,8 @@ class BaseMidiPlayer():
 	def _saveTempMidiFile(self, objMidiFile):
 		#save it to a temporary file
 		import tempfile
-		tempfilename = tempfile.gettempdir() + os_sep + 'tmpbmidiplay.mid'
+		tempfilename = tempfile.gettempdir() + os_sep + 'tmpmid.mid'
+		#evidently in Linux, the filename should be short.
 		
 		try: f=open(tempfilename,'wb')
 		except: raise PlayMidiException('Could not create temporary file for midi playback.')
@@ -44,7 +45,7 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 	process = None
 	isPlaying = False 
 	win_timiditypath = 'timidity\\timidity.exe'
-	file_stdout = None
+	strLastStdOutput = ''
 	def playMidiObject(self, objMidiFile, bSynchronous=True):
 		if self.isPlaying: print 'alreadyplaying'; return
 		tempfilename = self._saveTempMidiFile(objMidiFile)
@@ -91,12 +92,8 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 		args.extend(self._additionalTimidityArgs())
 		args.append(strMidiPath)
 		
-		file_stdout = self.file_stdout
-		if file_stdout == None:
-			file_stdout = subprocess.PIPE # hides all of the stdout. Not too elegant.
-			
 		try:
-			self.process = subprocess.Popen(args, stdout=file_stdout)
+			self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
 		except EnvironmentError, e:
 			self.isPlaying = False
 			raise PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
@@ -104,6 +101,7 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 			
 		
 		self.process.wait()
+		self.strLastStdOutput = self.process.stdout.read()
 		self.process = None
 		self.isPlaying = False
 		#note that these lines should be run, even if signalStop() is called.
