@@ -48,7 +48,7 @@ class BTimidityOptions():
 		#The 24bit audio seems to be correct, although it is not read by Windows Media player, only Audacity
 		
 		self.makeOpts('bitrate', frameAudioOpts, 'Quality:',
-				['16-bit','24-bit'], [16,24], 1)
+				['16-bit','24-bit'], [16,24], 0)
 		
 		frameTimOpts = pack(LabelFrame(frameTop, text='Audio Settings'), expand=YES, fill=BOTH)
 		self.varFastDecay=IntVar(); self.varFastDecay.set(0)

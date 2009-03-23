@@ -1,63 +1,49 @@
 from Tkinter import *
+import tkSimpleDialog
 import exceptions
 import os
 import subprocess
 
 import midirender_util
+import midirender_runtimidity
 
 if sys.platform=='win32':
 	sfubarPath = os.path.join('soundfontpreview', 'sfubar.exe')
 else:
 	sfubarPath = os.path.join('soundfontpreview', 'sfubar')
 
+sampleMidiPath = 'soundfontpreview'
+sampleMidiScale = os.path.join(sampleMidiPath, 'scale.mid')
 
-quickEnter = False #a worse, but quick interface. sometime, should remove all non-quickenter interface
-sfubardir = 'soundfontpreview' #directory to look for sfubar.exe and sample mids
-timiditydir = 'timidity' #directory of timidity program
-labelFieldNames = ['name', 'date', 'author', 'copyright', 'comment']
+#This window can be one of two things:
+#A list of voices to choose from,  (bSelectMode = True), returning object of type SoundFontInfoPreset in dlg.result
+#and a simple soundFont information dialog. (bSelectMode = False)
+
+
 def pack(o, **kwargs): o.pack(**kwargs); return o
-class BSoundFontPreview():
-	def setLabels(self, objInfo):
-		for name in labelFieldNames:
-			att = getattr(objInfo, name)
-			self.lblInfoFields[name]['text'] = name+': '+ (att if att else 'None')
-	
-	def autoSet(self):
-		if self.objSf.type=='pat':
-			self.varPrevVoiceOnly.set(1)
-			self.lblMidi['text'] = 'scale.mid'
-		else:
-			if len(self.objSf.presets)>50: #most likely a GM set
-				self.varPrevVoiceOnly.set(0)
-				self.lblMidi['text'] = 'bossa.mid'
-			else:
-				self.varPrevVoiceOnly.set(1)
-				if (len(self.objSf.presets)<4) and self.objSf.presets[0].presetNumber==0: #most likely a piano instrument
-					self.lblMidi['text'] = 'grieg.mid'
-				else:
-					self.lblMidi['text'] = 'scale.mid'
-				
-	
-	def __init__(self, root):
-		root.title('SoundFont Information')
+class BSoundFontInformation(tkSimpleDialog.Dialog):
+	def __init__(self, parent, soundfontfilename, bSelectMode):
+		self.bSelectMode = bSelectMode
+		self.soundfontfilename = soundfontfilename
 		
-		frameMain = pack( Frame(root), side=TOP,fill=BOTH, expand=True)
+		if self.bSelectMode: title = 'Choose voice...'
+		else: title = 'SoundFont Information'
+		tkSimpleDialog.Dialog.__init__(self, parent, title)
+		
+	def body(self, top):
+		self.labelFieldNames = ['name', 'date', 'author', 'copyright', 'comment']
+		
+		frameMain = pack( Frame(top), side=TOP,fill=BOTH, expand=True)
 		
 		
 		frameLoadSf = Frame(frameMain)
-		Label(frameLoadSf, text='Soundfont').pack(side=LEFT)
-		if quickEnter:
-			self.txtSf = StringVar()
-			pack(Entry(frameLoadSf, textvariable=self.txtSf ), side=LEFT,padx=5)
-		else:
-			self.lblCurrentSf = pack(Label(frameLoadSf ), side=LEFT,padx=5)
-		
-		Button(frameLoadSf,text='Load',command=self.loadSfDialog).pack(side=LEFT,padx=5)
+		self.lblCurrentSf = pack(Label(frameLoadSf, text='Soundfont:none.sf2' ), side=LEFT,padx=5)
 		frameLoadSf.grid(row=0, column=0, columnspan=2)
+		
 		
 		frameInfo = Frame(frameMain)
 		self.lblInfoFields = {}
-		for name in labelFieldNames:
+		for name in self.labelFieldNames:
 			self.lblInfoFields[name] = pack(Label(frameInfo, text=name+': '),side=TOP,anchor='nw')
 		frameInfo.grid(row=1, column=0)
 		
@@ -66,93 +52,106 @@ class BSoundFontPreview():
 		self.lbVoices = pack(midirender_util.ScrolledListbox(frameVoices, width=45, height=9), side=TOP)
 		frameVoices.grid(row=1, column=1)
 		
-		framePreview = Frame(frameMain)
-		tupfontbtn = ('Verdana', 14, 'normal')
-		Button(framePreview,text='Preview Soundfont', font=tupfontbtn, command=self.previewSf).pack()
 		
-		frameMidi = Frame(framePreview)
-		self.lblMidi = pack(Label(frameMidi, text='scale.mid'), side=LEFT,fill=BOTH)
-		Button(frameMidi,text='..',command=self.loadMid).pack(side=LEFT,padx=45)
-		frameMidi.pack(side=TOP, anchor='w',pady=35)
-		self.varPrevVoiceOnly = IntVar(); self.varPrevVoiceOnly.set(0)
-		Checkbutton(framePreview, var=self.varPrevVoiceOnly, text='Preview only selected voice.').pack(side=TOP, anchor='w',pady=1)
+		framePreview = Frame(frameMain)
+		frPrevBtns = Frame(framePreview)
+		if self.bSelectMode: Label(frPrevBtns, text='Preview voice:').pack(side=LEFT)
+		else: Label(frPrevBtns, text='Preview Soundfont:').pack(side=LEFT)
+		Button(frPrevBtns,text='Start', command=self.previewSfStart).pack(side=LEFT,padx=2)
+		Button(frPrevBtns,text='Stop', command=self.previewSfStop).pack(side=LEFT,padx=2)
+		frPrevBtns.pack(pady=5)
+		
+		if not self.bSelectMode:
+			frameMidi = Frame(framePreview)
+			self.lblMidi = pack(Label(frameMidi, text=sampleMidiScale), side=LEFT,fill=BOTH)
+			Button(frameMidi,text='..',command=self.loadMid).pack(side=LEFT,padx=45)
+			frameMidi.pack(side=TOP, anchor='w',pady=35)
+			self.varPrevVoiceOnly = IntVar(); self.varPrevVoiceOnly.set(0)
+			Checkbutton(framePreview, var=self.varPrevVoiceOnly, text='Preview the selected voice.').pack(side=TOP, anchor='w',pady=1)
+			self.currentMidi = sampleMidiScale
+		else:
+			self.varPrevVoiceOnly = IntVar(); self.varPrevVoiceOnly.set(1)
+			self.currentMidi = sampleMidiScale
+		
+
 		framePreview.grid(row=2, column=0, columnspan=2)
 		
 		frameMain.grid_columnconfigure(0, weight=1, minsize=20)
 		frameMain.grid_columnconfigure(1, weight=1, minsize=20)
 		frameMain.grid_rowconfigure(1, weight=1, minsize=20)
 		
+		self.player = None
+		self.loadSf( self.soundfontfilename)
 		
-		self.objSf = None
-	
+		return None # initial focus
 		
-	
-	def loadSfDialog(self):
-		if not quickEnter:
-			filename = midirender_util.ask_openfile(title="Open SoundFont", types=['.sf2|SoundFont','.pat|Patch','.sbk|SoundFont1'])
-			if not filename: return
+		
+	def apply(self): #called when Ok or Cancel clicked.
+		sel = self.lbVoices.curselection() #returns a tuple of selected items
+		if len(sel)==0: 
+			self.result = None
 		else:
-			if not self.txtSf.get() or (self.objSf and self.txtSf.get() == self.objSf.filename):
-				filename = midirender_util.ask_openfile(title="Open SoundFont", types=['.sf2|SoundFont','.pat|Patch','.sbk|SoundFont1'])
-				if not filename: return
-			else:
-				filename = self.txtSf.get()
-				if not os.path.exists(filename): midirender_util.alert("Couldn't find file."); return
-					
-		self.loadSf(filename)
-		
-	#other scripts can call this.
+			index = int(sel[0])
+			self.result = self.objSf.presets[index] #an object of type SoundFontInfoPreset
+	
+	
 	def loadSf(self,filename):
-		if quickEnter: self.txtSf.set(filename)
-		else: self.lblCurrentSf['text'] = filename
+		self.lbVoices.delete(0, END) #clear existing voices
+		self.lblCurrentSf['text'] = filename
+		
+		
 		if filename.lower().endswith('.pat'):
 			#gus (gravis ultrasound) patch
 			namestart, nameend = os.path.split(filename)
-			self.lbVoices.delete(0, END)
 			self.lbVoices.insert(END, nameend)
 			
-			self.objSf = soundfontpreview_get.SoundFontInfo()
+			self.objSf = SoundFontInfo()
 			self.objSf.type='pat'
 			self.objSf.name = nameend
 			self.objSf.filename = filename
+			self.varPrevVoiceOnly.set(1)
 		else:
-			
-			
 			try:
-				objSf = soundfontpreview_get.getpresets(filename, sfubardir)
-			except soundfontpreview_get.SFInfoException, e:
+				objSf = getpresets(filename)
+			except SFInfoException, e:
 				midirender_util.alert(str(e))
 				return
 				
-			self.setLabels(objSf)
-			self.lbVoices.delete(0, END)
+			#set labels
+			for name in self.labelFieldNames:
+				att = getattr(objSf, name)
+				att = (att if att else 'None')
+				if len(att)>80: att = att[0:80]
+				self.lblInfoFields[name]['text'] = name+': '+ att
+			
+			# fill listbox
 			for preset in objSf.presets:
 				self.lbVoices.insert(END, str(preset))
 		
 			self.objSf = objSf
 			self.objSf.filename = filename
+			self.objSf.type='soundfont'
 		
-		self.autoSet()
+		if self.bSelectMode: self.lbVoices.selection_set(0)
 		
 	
 	def loadMid(self):
-		filename = midirender_util.ask_openfile(title="Choose midi song", types=['.mid|Midi'], initialfolder=sfubardir)
+		filename = midirender_util.ask_openfile(title="Choose midi song", types=['.mid|Midi'], initialfolder=sampleMidiPath)
 		if not filename: return
 		self.lblMidi['text'] = filename
+		self.currentMidi = filename
 		
-	def previewSf(self):
-		if not self.objSf: return
-		
+	def previewSfStart(self):
+		if self.player!=None and self.player.isPlaying: return #don't play while something is already playing.
+			
 		#check for mid, see if it exists
-		curMid = self.lblMidi['text']
-		if not os.path.exists(curMid):
-			curMid = os.path.join(sfubardir, curMid)
+		curMid = self.currentMidi
 		if not os.path.exists(curMid):
 			midirender_util.alert("Couldn't find midi file.")
 			return
 		
 		#get cfg data
-		escapedfname = self.objSf.filename.replace('"','\\"')
+		escapedfname = self.objSf.filename
 		if self.objSf.type!='pat':
 			sel = self.lbVoices.curselection()
 			if self.varPrevVoiceOnly.get() and len(sel)>0:
@@ -177,10 +176,14 @@ class BSoundFontPreview():
 			strCfg = '\nbank 0\n'
 			strCfg += '000 "'+escapedfname+'" \n'
 		
-		player = midirender_runtimidity.RenderTimidityMidiPlayer()
-		player.setConfiguration(strCfg)
-		player.playAsync(curMid)
-			
+		self.player = midirender_runtimidity.RenderTimidityMidiPlayer()
+		self.player.setConfiguration(strCfg)
+		self.player.playAsync(curMid)
+		
+	def previewSfStop(self):
+		if self.player == None: return
+		self.player.signalStop()
+		
 
 #specify mydirectory if not running from the same folder as sfubar.exe.
 #tested with sfubar 0.9.
@@ -194,7 +197,7 @@ def getpresets(file):
 		raise SFInfoException('Could not find the soundfont...')
 		
 	outtmpfilename = 'outtmp_sfinfo.txt'
-	if os.path.exists(outtmpfilename): os.unlink('out.txt')
+	if os.path.exists(outtmpfilename): os.unlink(outtmpfilename)
 	if os.path.exists(outtmpfilename): raise SFInfoException("Couldn't delete %s file."%outtmpfilename)
 		
 	process = subprocess.Popen([sfubar, '--sfdebug', file, outtmpfilename])
@@ -241,9 +244,43 @@ def getpresets(file):
 	return currentFont
 	
 class SFInfoException(exceptions.Exception): pass
-	
-if __name__=='__main__':
-	root = Tk()
-	app = BSoundFontPreview(root)
-	root.mainloop()
 
+class SoundFontInfo():
+	type=None
+	name = None
+	date = None
+	author = None
+	product = None
+	copyright = None
+	comment = None
+	
+	presets = None
+	def __init__(self):
+		self.presets = []
+		#each is a SoundFontInfoPreset
+	def __repr__(self):
+		s = 'name: %s\n date: %s\n author: %s\n product: %s\n copyright: %s\n comment: %s'%(self.name,self.date,self.author,self.product,self.copyright, self.comment)
+		for preset in self.presets: s+= '\n\tPreset '+str(preset)
+		return s
+		
+class SoundFontInfoPreset():
+	name=None
+	bank=None
+	presetNumber=None #a string, for now
+	def __repr__(self):
+		return '"%s"   bank: %s, instrument: %s'%(self.name, self.bank, self.presetNumber)
+
+if __name__=='__main__':
+	def start(top):
+		def callback():
+			print 'hi'
+			dlg = ChooseMidiInstrumentDialog(top, 'Choose Instrument', 66)
+			print dlg.result
+			
+		Button(text='go', command=callback).pack()
+		
+
+	root = Tk()
+	start(root)
+	root.mainloop()
+	

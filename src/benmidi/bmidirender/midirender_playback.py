@@ -10,6 +10,7 @@ tmpfilename = 'tmpout.mid'
 
 class BMidiRenderPlayback():
 	playingState = 'stopped' #or 'paused' or 'playing'.
+	endreason = 'done' # or 'user_pause' or 'user_stop'. keeps track of why the song is not playing. did it end naturally, or did we hit stop? 
 	midiPlayerObject = None
 	def __init__(self, fnToggleBtn, fnGetSlider, fnSetSlider):
 		self.fnToggleBtn = fnToggleBtn
@@ -36,10 +37,17 @@ class BMidiRenderPlayback():
 	def playSliderThread(self):
 		while self.playingState=='playing':
 			if not self.midiPlayerObject.isPlaying:
-				if isinstance(self.midiPlayerObject,bmidiplay.MciMidiPlayer) or self.currentTime>=self.lengthTime-3:
-					self.actionStop() #as if Stop had been clicked. will exit this loop.
+				if isinstance(self.midiPlayerObject,bmidiplay.MciMidiPlayer):
+					self.actionStop()
 				else:
-					self.actionPause()
+					if self.endreason=='done' or self.endreason=='user_stop':
+						self.currentTime = 0.0
+						self.fnSetSlider(0.0)
+						self.fnToggleBtn('stop')
+						self.playingState = 'stopped'
+					else:
+						self.fnToggleBtn('pause')
+						self.playingState = 'paused'
 				break
 			else:
 				if self.currentTime>=self.lengthTime:
@@ -84,33 +92,49 @@ class BMidiRenderPlayback():
 				self.midiPlayerObject.playMidiObject(midiCopy, False)
 			
 		self.playingState = 'playing'
+		self.endreason = 'done' # or 'user_pause' or 'user_stop'
 		self.fnToggleBtn('play')
 		midirender_util.makeThread(self.playSliderThread)
 		
 		
 		
 	def actionPause(self):
-		if self.playingState=='paused': return
+		if self.playingState=='paused': 
+			return
+			
+		if self.playingState=='stopped': 
+			return
 		
 		if self.playingState=='playing':
 			self.midiPlayerObject.signalStop()
-			#~ if not isinstance(self.midiPlayerObject,bmidiplay.MciMidiPlayer): time.sleep(0.5) #time for process to die
-			
-		self.playingState = 'paused' #stops the sliderThread
-		self.fnToggleBtn('pause')
+		
+			self.endreason = 'user_pause'
+			if isinstance(self.midiPlayerObject,bmidiplay.MciMidiPlayer):
+				self.playingState = 'paused' #stops the sliderThread
+				self.fnToggleBtn('pause')
+			return
 		
 	def actionStop(self):
-		if self.playingState=='stopped': return
+		if self.playingState=='stopped':
+			return
+		
+		if self.playingState=='paused':
+			self.playingState = 'stopped' #stops the sliderThread
+			self.currentTime = 0.0
+			self.fnSetSlider(0.0)
+			self.fnToggleBtn('stop')
+			return
 		
 		if self.playingState=='playing':
 			self.midiPlayerObject.signalStop()
-			#~ if not isinstance(self.midiPlayerObject,bmidiplay.MciMidiPlayer): time.sleep(0.5) #time for process to die
-			
-		self.playingState = 'stopped' #stops the sliderThread
-		self.currentTime = 0.0
-		self.fnSetSlider(0.0)
 		
-		self.fnToggleBtn('stop')
+			self.endreason = 'user_stop'
+			if isinstance(self.midiPlayerObject,bmidiplay.MciMidiPlayer):
+				self.playingState = 'stopped' #stops the sliderThread
+				self.currentTime = 0.0
+				self.fnSetSlider(0.0)
+				self.fnToggleBtn('stop')
+			return
 			
 			
 	def getLastStdout(self):

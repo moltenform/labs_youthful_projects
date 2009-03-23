@@ -1,43 +1,23 @@
 """
-BMidiRender
+bmidi to wave
 Ben Fisher, 2009, GPL
 halfhourhacks.blogspot.com
 """
 
-
-'''
-(Notes on internal structure of this program.)
-midis are modified by:
-	Instrument changes - modify the midi file directly.
-	
-	Tempo changes - stored in the variable self.tempoScaleFactor
-	The rest of these are only applied while the dialog is open
-	
-		midirender_mixer --relies on trackNumber, so none of the other modifications should reorder tracks before it!
-
-timidity playback is modified by
-	the variable 
-	midirender_audiooptions - when dialog is open
-'''
-
-#the Restructuring change can only come first, not later.
+#preview solo is a few seconds late
 
 from Tkinter import *
-
 import threading
 import os
-
 
 import midirender_util
 import midirender_mixer
 import midirender_audiooptions
 import midirender_tempo
 import midirender_consoleout
-
 import midirender_choose_midi_voice
 import midirender_playback
 import midirender_runtimidity
-
 import midirender_soundfont
 import midirender_soundfont_info
 
@@ -45,7 +25,7 @@ sys.path.append('..') #delete this line for release
 from bmidilib import bmidilib, bmiditools
 
 
-clefspath = '..\\scoreview\\clefs' #delete this line for release
+clefspath = '..\\scoreview\\clefs' #delete this line for release and use line below
 #~ clefspath = 'scoreview' + os.sep + 'clefs'
 from scoreview import scoreview, listview
 
@@ -53,7 +33,7 @@ from scoreview import scoreview, listview
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class App():
 	def __init__(self, root):
-		root.title('Bmidi Player')
+		root.title('Bmidi to wave')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
 		self.top = root
 		
@@ -73,13 +53,14 @@ class App():
 		self.btnPause = pack( Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause), side=LEFT, padx=4)
 		self.btnStop = pack( Button(frameBtns, image=self.icon2,  text='Stop', command=self.onBtnStop,relief=SUNKEN), side=LEFT, padx=4)
 		
-		self.varPreviewTimidity = IntVar()
-		Checkbutton(frameBtns, text='Preview Render', variable=self.varPreviewTimidity).pack(side=LEFT, padx=35)
+		self.varPreviewTimidity = IntVar(); self.varPreviewTimidity.set(1)
+		if sys.platform=='win32': thetxt = 'Play with Timidity'
+		else: thetxt='Preview Render'
+		Checkbutton(frameBtns, text=thetxt, variable=self.varPreviewTimidity).pack(side=LEFT, padx=35)
 		self.btnSave = pack( Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave), side=LEFT, padx=2)
 		
 		frameBtns.pack(side=TOP, fill=X, pady=2)
 		frameDecogroup.pack(side=TOP, fill=X)
-		
 		
 		frameGrid = Frame(frameMain, borderwidth=1)
 		frameGrid.pack(side=TOP,fill=BOTH, expand=True, anchor='w', pady=15)
@@ -91,7 +72,7 @@ class App():
 		self.objMidi = None
 		self.frameGrid = frameGrid
 		
-		#had a memory leak problem before, even though used del on all of the widgets.
+		#save and reuse grid widgets created.
 		self.gridwidgets = {} #index is tuple (row, column)
 		self.gridbuttons = {} #index is tuple (row, column)
 		
@@ -126,8 +107,11 @@ class App():
 	
 	def create_menubar(self,root):
 		root.bind('<Control-space>', self.onBtnPlay)
+		root.bind('<Control-r>', self.onBtnSaveWave)
+		root.bind('<Control-f>', self.openSoundfontWindow)
 		root.bind('<Alt-F4>', lambda x:root.quit)
 		root.bind('<Control-o>', self.menu_openMidi)
+		root.bind('<Control-m>', self.openMixerView)
 		menubar = Menu(root)
 		
 		menuFile = Menu(menubar, tearoff=0)
@@ -141,32 +125,33 @@ class App():
 		menuAudio = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="Audio", menu=menuAudio, underline=0)
 		menuAudio.add_command(label="Play", command=self.onBtnPlay, underline=0)
-		menuAudio.add_command(label="Pause", command=self.onBtnPause, underline=0)
+		menuAudio.add_command(label="Pause", command=self.onBtnPause, underline=2)
 		menuAudio.add_command(label="Stop", command=self.onBtnStop, underline=0)
-		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=0)
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Change tempo...", command=self.menu_changeTempo, underline=0)
+		menuAudio.add_command(label="Change Tempo...", command=self.menu_changeTempo, underline=0)
+		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=6)
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Choose Sound Font...", command=self.openSoundfontWindow, underline=0)
+		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=5, accelerator='Ctrl+R')
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=0)
+		menuAudio.add_command(label="Choose Sound Font...", command=self.openSoundfontWindow, underline=13, accelerator='Ctrl+F')
+		
 		
 		
 		self.objOptionsDuration = IntVar(); self.objOptionsDuration.set(0)
 		self.objOptionsBarlines = IntVar(); self.objOptionsBarlines.set(1)
 		menuView = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="View", menu=menuView, underline=0)
-		menuView.add_command(label="Mixer", command=midirender_util.Callable(self.openMixerView,None), underline=0)
+		menuView.add_command(label="Mixer", command=self.openMixerView, underline=0, accelerator='Ctrl+M')
 		menuView.add_command(label="Console output", command=self.menu_openConsoleWindow, underline=0)
 		menuView.add_separator()
-		menuView.add_command(label="SoundFont Information Tool", command=self.menu_openMidi, underline=0)
+		menuView.add_command(label="SoundFont Information Tool", command=self.menu_soundFontInfoTool, underline=0)
 		menuView.add_separator()
-		menuView.add_checkbutton(label="Show Durations in score", variable=self.objOptionsDuration, underline=0, onvalue=1, offvalue=0)
+		menuView.add_checkbutton(label="Show Durations in score", variable=self.objOptionsDuration, underline=5, onvalue=1, offvalue=0)
 		menuView.add_checkbutton(label="Show Barlines in score", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
 		
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', command=(lambda: midirender_util.alert('BMidiRender, by Ben Fisher 2009\nhalfhourhacks.blogspot.com\n\nA graphical frontend for Timidity.','benmidi Render')))
+		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wave, by Ben Fisher 2009\nhalfhourhacks.blogspot.com\n\nA graphical frontend for Timidity.','Bmidi to wave')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)
@@ -289,7 +274,7 @@ class App():
 			
 			#Buttons
 			if (rownum, 0) not in self.gridbuttons:
-				btn = Button(self.frameGrid, text='Mixer', command=midirender_util.Callable(self.openMixerView, rownum))
+				btn = Button(self.frameGrid, text='Mixer', command=self.openMixerView)
 				self.gridbuttons[(rownum, 0)] = btn
 			self.gridbuttons[(rownum, 0)].grid(row=rownum+1, column=6)
 			
@@ -327,13 +312,7 @@ class App():
 		theEvt.data = midiNumber
 		btn['text'] = str(midiNumber) + ' (' + bmidilib.getInstrumentName(midiNumber) + ')'
 		
-	
-	
-	
-	
-
-			
-	def onBtnSaveWave(self):
+	def onBtnSaveWave(self,e=None):
 		if not self.isMidiLoaded: return
 		filename = midirender_util.ask_savefile(title="Create Wav File", types=['.wav|Wav file'])
 		if not filename: return
@@ -379,9 +358,7 @@ class App():
 		#get rid of instrument/change modifications
 		
 	def buildCfg(self):
-		#~ strCfg = '\nsoundfont "' + r'C:\pydev\mainsvn\benmidi\bmidirender\soundfonts\sf_gm\TimGM6mb.sf2' + '"\n'
-		
-		#begin, by adding the global soundfont or cfg file.
+		#begin by adding the global soundfont or cfg file.
 		filename =self.currentSoundfont[0]
 		if filename.endswith('.cfg'):
 			path, justname = os.path.split(filename)
@@ -389,8 +366,9 @@ class App():
 		else:
 			strCfg = '\nsoundfont "%s"\n' % (filename)
 		
+		#now add customization to override specific voices, if set
 		if self.soundfontWindow != None:
-			strCfg += '\n' + self.soundfontWindow.getCfgResults() #add customization.
+			strCfg += '\n' + self.soundfontWindow.getCfgResults()
 			
 		return strCfg
 		
@@ -431,7 +409,7 @@ class App():
 		else:
 			self.tempoScaleFactor = res
 			
-	def openSoundfontWindow(self):
+	def openSoundfontWindow(self,e=None):
 		#this is different than the list and score view - there can only be one of them open at once
 		if not self.isMidiLoaded: return
 		if self.soundfontWindow: return #only allow one instance open at a time
@@ -442,7 +420,7 @@ class App():
 		self.soundfontWindow = midirender_soundfont.BSoundfontWindow(top, self.currentSoundfont, self.objMidi, callbackOnClose)	
 	
 	
-	def openMixerView(self, n): #we ignore n
+	def openMixerView(self, e=None):
 		if not self.isMidiLoaded: return
 		if self.mixerWindow: return #only allow one instance open at a time
 			
@@ -495,9 +473,12 @@ class App():
 		window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
 		self.listviews[n] = top
 	
-
-
-
+	def menu_soundFontInfoTool(self):
+		filename = midirender_util.ask_openfile(initialfolder=midirender_soundfont.gm_dir, title="Choose SoundFont", types=['.sf2|SoundFont','.sbk|SoundFont1','.pat|Patch sound'])
+		if not filename: return
+		
+		dlg = midirender_soundfont_info.BSoundFontInformation(self.top, filename, bSelectMode=False)
+		#note that it is modal. that is fine for now, though.
 
 
 	#########Event handlers################
@@ -508,6 +489,7 @@ class App():
 		if strBtn=='play': self.btnPlay.config(relief=SUNKEN)
 		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
 		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
+		else: raise 'Unknown button'
 	
 	def onBtnPlay(self, e=None):
 		if not self.isMidiLoaded: return
@@ -560,3 +542,29 @@ root = Tk()
 app = App(root)
 root.mainloop()
 
+'''
+midis are modified by:
+-----------
+1) if format 0 (everything in one track), convert to format 1 (tracks by channel). This occurs before anything else.
+
+2) changes made directly.
+	Instrument changes, made by clicking the instrument in the grid, modify the midi file directly.
+
+3) changes based on other windows:
+	
+	Tempo changes - stored in the variable self.tempoScaleFactor
+	midirender_mixer,mixer changes only while the mixer window is open
+			(relies on tracknumber, so none of the other modifications before this should reorder tracks)
+
+4) final modification
+	cutting the midi to start playback halfway through the song
+
+timidity playback is modified by
+---------------
+1) changes made directly:
+	the variable self.currentSoundfont, which is modified by the soundfont window
+
+2) changes made only when window is open
+	"customize" options 
+	midirender_audiooptions - when dialog is open
+'''

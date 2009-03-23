@@ -1,11 +1,13 @@
 
 from Tkinter import *
 import midirender_util
+import midirender_soundfont_info
+import midirender_runtimidity
 
 import os
 
 sys.path.append('..')
-from bmidilib import bmidilib
+from bmidilib import bmidilib, bmiditools
 
 soundfontsdir = 'soundfonts'
 gm_dir = os.path.join(soundfontsdir,'sf_gm')
@@ -53,7 +55,7 @@ class BSoundfontWindow():
 		self.lblAbove = Label(frameAbove, text='Current soundfont: "%s"'%main_soundfont_reference[0]); 
 		self.lblAbove.pack(side=LEFT)
 		Button(frameAbove, text='Change...',command=self.setGlobalSoundfont).pack(side=LEFT, padx=20)
-		Button(frameAbove, text='Soundfont Information',command=self.nothing).pack(side=LEFT, padx=20)
+		Button(frameAbove, text='Soundfont Information',command=self.infoGlobalSoundfont).pack(side=LEFT, padx=20)
 		
 		self.btnCustomize = Button(frameTop, text='Customize', command=self.toggleCustomize)
 		self.btnCustomize.grid(row=1, column=0, sticky='w')
@@ -72,7 +74,8 @@ class BSoundfontWindow():
 			top.protocol("WM_DELETE_WINDOW", callCallback)
 		self.top = top
 		self.frameTop=frameTop
-		
+		self.player=None
+		self.midiObject = midiObject #unfortunately, have to keep this reference, so that can PreviewSolo
 	
 		
 	def openCustomize(self):
@@ -96,13 +99,13 @@ class BSoundfontWindow():
 		
 		frBtns = Frame(frameRight)
 		Button(frBtns, text='Choose soundfont...',command=self.onBtnChooseSoundfont).pack(side=LEFT, anchor='s')
-		Button(frBtns, text='Choose voice within soundfont...',command=self.nothing).pack(side=LEFT, anchor='s')
+		Button(frBtns, text='Choose voice within soundfont...',command=self.onBtnChooseWithinSoundfont).pack(side=LEFT, anchor='s')
 		frBtns.pack(side=TOP)
 		
 		frPrev = Frame(frameRight)
 		Label(frPrev, text='Preview solo:').pack(side=LEFT, anchor='s')
-		Button(frPrev, text='Start',command=self.nothing).pack(side=LEFT, anchor='s')
-		Button(frPrev, text='Stop',command=self.nothing).pack(side=LEFT, anchor='s')
+		Button(frPrev, text='Start',command=self.onBtnPlayStart).pack(side=LEFT, anchor='s')
+		Button(frPrev, text='Stop',command=self.onBtnPlayStop).pack(side=LEFT, anchor='s')
 		frPrev.pack(side=TOP, pady=5)
 		
 		Label(frameRight,text='\n\nChanges remain in effect while this dialog is open.').pack(side=TOP)
@@ -123,6 +126,7 @@ class BSoundfontWindow():
 			state['soundfont'] = self.main_soundfont_reference[0]
 			state['sf_program'] = instnum
 			state['sf_bank'] = 0
+			state['originating_track'] = tracknum
 			self.arCustomizationState.append(state)
 		
 		self.current=None
@@ -131,9 +135,23 @@ class BSoundfontWindow():
 	def getCfgResults(self):
 		if not self.showCustomize: 
 			return ''
+			
+		#elsewhere, the global "soundfont" will be set. That's necessary to cover percussion, which we don't handle here.
+		#here we only set the custom overrides.
 		
-		#otherwise, get the data
-		return ''
+		strCfg = '\nbank 0\n'
+		for state in self.arCustomizationState:
+			if state['soundfont'].endswith('.pat'):
+				if not self.main_soundfont_reference[0].endswith('.cfg'): #if using a global soundfont,
+					strCfg += '\nfont exclude 0 %d'%state['instrument'] #signal to Timidity that we want to override the soundfont's instrument
+				strCfg += '\n%d "%s" '%(state['instrument'], state['soundfont'])
+			elif state['soundfont'].endswith('.cfg'):
+				pass #must be taking this from a global cfg, because cfgs can't be set individually...
+			else:
+				strCfg += '\n%d '%state['instrument'] + ' %font' #note a literal% symbol. The string %font, not intended for substitution
+				strCfg += ' "%s" %d %d'%(state['soundfont'],state['sf_bank'],state['sf_program']) 
+			
+		return strCfg
 		
 	def setGlobalSoundfont(self):
 		filename = midirender_util.ask_openfile(initialfolder=gm_dir, title="Choose SoundFont", types=['.sf2|SoundFont','.sbk|SoundFont1','.cfg|Timidity Configuration file'])
@@ -141,9 +159,9 @@ class BSoundfontWindow():
 		
 		self.main_soundfont_reference[0] = filename
 		self.lblAbove['text'] ='Current soundfont:%s'%filename
+	def infoGlobalSoundfont(self):
+		dlg = midirender_soundfont_info.BSoundFontInformation(self.top, self.main_soundfont_reference[0], bSelectMode=False)
 		
-		
-	def nothing(self): pass
 
 	def onChangeLbProgChanges(self):
 		index = self.getListboxIndex()
@@ -152,6 +170,8 @@ class BSoundfontWindow():
 		self.lblInstname.config(text = '%03d %s'%(state['instrument'], bmidilib.getInstrumentName(state['instrument'])))
 		if state['soundfont'].endswith('.pat'):
 			self.lblInstsf.config(text='Soundfont: %s'%(state['soundfont']))
+		elif state['soundfont'].endswith('.cfg'):
+			self.lblInstsf.config(text='Using patch file specified in:\n %s'%(state['soundfont']))
 		else:
 			self.lblInstsf.config(text='Soundfont: %s\n bank %d program %d'%(state['soundfont'],state['sf_bank'],state['sf_program']))
 		
@@ -163,6 +183,60 @@ class BSoundfontWindow():
 		state = self.arCustomizationState[index]
 		state['soundfont'] = filename
 		self.onChangeLbProgChanges() #refresh the fields
+	
+	def onBtnChooseWithinSoundfont(self):
+		index = self.getListboxIndex()
+		state = self.arCustomizationState[index]
+		if state['soundfont'].endswith('.pat'): midirender_util.alert("Patch files don't contain separate voices."); return
+		elif state['soundfont'].endswith('.cfg'): midirender_util.alert("Patch files don't contain separate voices."); return
+		dlg = midirender_soundfont_info.BSoundFontInformation(self.top, state['soundfont'] , bSelectMode=True)
+		if not dlg.result: return
+		
+		try:
+			bank = int(dlg.result.bank)
+			program = int(dlg.result.presetNumber)
+		except ValueError, e:
+			midirender_util.alert("Couldn't parse bank/preset for some reason.")
+			return
+		
+		state['sf_program'] = program
+		state['sf_bank'] = bank
+		self.onChangeLbProgChanges() #refresh the fields
+	
+	def onBtnPlayStart(self):
+		if self.player!=None and self.player.isPlaying: return #don't play while something is already playing.
+		
+		index = self.getListboxIndex()
+		state = self.arCustomizationState[index]
+		tracknum = state['originating_track']
+		trackobj = self.midiObject.tracks[tracknum]
+		
+		startTime = 0
+		for evt in trackobj.events: 
+			if evt.type=='NOTE_ON': startTime=evt.time; break
+		
+		import copy
+		
+		shallowcopy = copy.copy(self.midiObject)
+		shallowcopy.tracks = [trackobj, self.midiObject.tracks[0]] #also include track0 ,because it has tempo events.
+		midicopy = copy.deepcopy(shallowcopy)
+		bmiditools.getMidiExcerpt(midicopy, startTime)
+		
+		if state['soundfont'].endswith('.cfg'):
+			path, justname = os.path.split(state['soundfont'])
+			strCfg = '\ndir "%s"\nsource "%s"\n' % (path, state['soundfont'])
+		elif state['soundfont'].endswith('.pat'):
+			strCfg = '\nbank 0\n\n%d "%s"\n' % (state['instrument'],state['soundfont'])
+		else:
+			strCfg = self.getCfgResults() #note that this preview might not work for percussion, but shouldn't matter since we're only previewing a solo instrument.
+		
+		self.player = midirender_runtimidity.RenderTimidityMidiPlayer()
+		self.player.setConfiguration(strCfg)
+		self.player.playMidiObject(midicopy, bSynchronous=False)
+	
+	def onBtnPlayStop(self):
+		if self.player == None: return
+		self.player.signalStop()
 	
 	def destroy(self):
 		self.top.destroy()
@@ -177,6 +251,8 @@ class BSoundfontWindow():
 		if len(currentSelection)==0: raise 'No Listbox selection.'
 		return int(currentSelection[0])
 	
+
+
 
 def getPrograms(midiObject):
 	seenVoices = {}
@@ -194,23 +270,6 @@ def getPrograms(midiObject):
 	return results
 
 
-
-#~ def getFirstProgramChangeEvents(midiObject):
-	#~ firstpan=None
-	#~ firstvol=None
-	#~ results = [] #(tracknum, instrument). includes all program changes. 
-	#~ #also, if there are chan10 events, addes EXACTLY one percussion, instrument=-1.
-	#~ haveRecordedPercussion = None
-	#~ for tracknum in range(len(midiObject.tracks)):
-		#~ trackObject = midiObject.tracks[tracknum]
-		#~ for evt in trackObject.events:
-			#~ if evt.type=='PROGRAM_CHANGE':
-				#~ results.append((tracknum, evt.data))
-			#~ elif evt.type=='NOTE_ON' and evt.channel==10 and not haveRecordedPercussion:
-				#~ results.append((tracknum, -1))
-				#~ haveRecordedPercussion = True
-				
-	#~ return results
 	
 if __name__=='__main__':
 	midiobj = bmidilib.BMidiFile()
