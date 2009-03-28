@@ -418,7 +418,7 @@ class App():
 		def callbackOnClose():  self.soundfontWindow = None
 			
 		self.soundfontWindow = midirender_soundfont.BSoundfontWindow(top, self.currentSoundfont, self.objMidi, callbackOnClose)	
-	
+		top.focus_set()
 	
 	def openMixerView(self, e=None):
 		if not self.isMidiLoaded: return
@@ -428,13 +428,14 @@ class App():
 		def callbackOnClose():  self.mixerWindow = None
 			
 		self.mixerWindow = midirender_mixer.BMixerWindow(top, self.objMidi, {}, callbackOnClose)
-	
+		top.focus_set()
 	def menu_openConsoleWindow(self):
 		#i guess we'll let people open this before opening a midi...
 		if self.consoleOutWindow: return #only allow one instance open at a time
 		top = Toplevel()
 		def callbackOnClose(): self.consoleOutWindow = None
 		self.consoleOutWindow = midirender_consoleout.BConsoleOutWindow(top,self.consoleOutCallback, callbackOnClose=callbackOnClose)
+		top.focus_set()
 	def consoleOutCallback(self):
 		if not self.isMidiLoaded: return
 		#the window has requested that we show the stdout.
@@ -451,7 +452,7 @@ class App():
 		def callbackOnClose(): self.audioOptsWindow = None
 			
 		self.audioOptsWindow = midirender_audiooptions.BTimidityOptions(top, callbackOnClose)
-	
+		top.focus_set()
 		
 	def openScoreView(self, n):
 		if len(self.objMidi.tracks[n].notelist)==0:
@@ -466,12 +467,14 @@ class App():
 		top = Toplevel()
 		window = scoreview.ScoreViewWindow(top, n, self.objMidi.tracks[n],self.objMidi.ticksPerQuarterNote, opts)
 		self.scoreviews[n] = top
+		top.focus_set()
 			
 	def openListView(self, n):
 		opts = {}
 		top = Toplevel()
 		window = listview.ListViewWindow(top, n, self.objMidi.tracks[n], opts)
 		self.listviews[n] = top
+		top.focus_set()
 	
 	def menu_soundFontInfoTool(self):
 		filename = midirender_util.ask_openfile(initialfolder=midirender_soundfont.gm_dir, title="Choose SoundFont", types=['.sf2|SoundFont','.sbk|SoundFont1','.pat|Patch sound'])

@@ -15,6 +15,7 @@ gm_dir = os.path.join(soundfontsdir,'sf_gm')
 def getDefaultSoundfont():
 	files = os.listdir(gm_dir)
 	files = [file for file in files if file.endswith('.sf2')]
+	files.sort()
 	if len(files)==0:
 		return '(None)'
 	else:
