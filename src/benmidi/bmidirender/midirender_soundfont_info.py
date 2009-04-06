@@ -7,10 +7,7 @@ import subprocess
 import midirender_util
 import midirender_runtimidity
 
-if sys.platform=='win32':
-	sfubarPath = os.path.join('soundfontpreview', 'sfubar.exe')
-else:
-	sfubarPath = os.path.join('soundfontpreview', 'sfubar')
+from soundfontpreview import pysf
 
 sampleMidiPath = 'soundfontpreview'
 sampleMidiScale = os.path.join(sampleMidiPath, 'scale.mid')
@@ -21,6 +18,7 @@ sampleMidiScale = os.path.join(sampleMidiPath, 'scale.mid')
 
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
+
 class BSoundFontInformation(tkSimpleDialog.Dialog):
 	def __init__(self, parent, soundfontfilename, bSelectMode):
 		self.bSelectMode = bSelectMode
@@ -185,62 +183,54 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 		self.player.signalStop()
 		
 
-#specify mydirectory if not running from the same folder as sfubar.exe.
-#tested with sfubar 0.9.
-# Because this program uses its debugging information, other sfubar versions may not work.
 verbose = False
 def getpresets(file):
-	sfubar = sfubarPath
-	if not os.path.exists(sfubar):
-		raise SFInfoException('Could not find required file '+sfubarPath)
+	class nullFile:
+		def _null(self, *args, **kwds):
+			pass
+
+		def __getattr__(self, name):
+			return self._null
+
 	if not os.path.exists(file):
 		raise SFInfoException('Could not find the soundfont...')
 		
-	outtmpfilename = 'outtmp_sfinfo.txt'
-	if os.path.exists(outtmpfilename): os.unlink(outtmpfilename)
-	if os.path.exists(outtmpfilename): raise SFInfoException("Couldn't delete %s file."%outtmpfilename)
-		
-	process = subprocess.Popen([sfubar, '--sfdebug', file, outtmpfilename])
-	process.wait()
+	InHandle = open(file, 'rb')
+	OutHandle = nullFile()
+	Chunk = pysf.SfChunkReader(InHandle)
+	Tree = pysf.SfTree(pysf.SfItems(), pysf.SfContainers, None, OutHandle, "")
+	Tree.Read(Chunk, 0)
+	Presets = pysf.SfZoneList(Tree, pysf.SfZoneType('preset'))
 	
-	try:
-		f = open(outtmpfilename,'r')
-	except IOError:
-		raise SFInfoException("That soundfont might not exist. Couldn't open output file.")
 	currentFont = SoundFontInfo()
-	for line in f:
-		if '=' in line:
-			part1, part2 = line.strip().split('=',1)
-			if part1=='RIFF.LIST.INAM.zstr':
-				currentFont.name = part2
-				if verbose: print 'Name: '+part2
-			elif part1=='RIFF.LIST.ICRD.zstr':
-				currentFont.date = part2
-			elif part1=='RIFF.LIST.IENG.zstr':
-				currentFont.author = part2
-				if verbose: print 'By: '+part2
-			elif part1=='RIFF.LIST.IPRD.zstr':
-				currentFont.product = part2
-			elif part1=='RIFF.LIST.ICOP.zstr':
-				currentFont.copyright = part2
-			elif part1=='RIFF.LIST.ICMT.zstr':
-				currentFont.comment = part2
-			else:
-				if 'RIFF.LIST.phdr' in part1 and 'achPresetName' in part1:
-					if part2=='EOP': 
-						break
-					if verbose: print '\n'+part2
-						
-					currentFont.presets.append( SoundFontInfoPreset() )
-					currentFont.presets[-1].name=part2
-				elif 'RIFF.LIST.phdr' in part1 and 'wPreset.' in part1:
-					if verbose: print '\tProgram: '+part2
-					currentFont.presets[-1].presetNumber= part2
-				elif 'RIFF.LIST.phdr' in part1 and 'wBank.' in part1:
-					if verbose:  print '\tBank: '+part2
-					currentFont.presets[-1].bank= part2
-
-	f.close()
+	INAM = Tree.CkIdStr('INAM', None, -1)
+	ICRD = Tree.CkIdStr('ICRD', None, -1)
+	IENG = Tree.CkIdStr('IENG', None, -1)
+	IPRD = Tree.CkIdStr('IPRD', None, -1)
+	ICOP = Tree.CkIdStr('ICOP', None, -1)
+	ICMT = Tree.CkIdStr('ICMT', None, -1)
+	if INAM != None:
+		currentFont.name = INAM
+	if ICRD != None:
+		currentFont.date = ICRD
+	if IENG != None:
+		currentFont.author = IENG
+		if verbose: print 'By: ' + IENG
+	if IPRD != None:
+		currentFont.product = IPRD
+	if ICOP != None:
+		currentFont.copyright = ICOP
+	if ICMT != None:
+		currentFont.comment = ICMT
+	for preset in Presets:
+		currentFont.presets.append(SoundFontInfoPreset())
+		currentFont.presets[-1].name = preset[u'name']
+		currentFont.presets[-1].presetNumber = preset[u'presetId']
+		if verbose: print '\tProgram: ' + preset[u'presetId']
+		currentFont.presets[-1].bank = preset[u'bank']
+		if verbose: print '\tBank: ' + preset[u'bank']
+	InHandle.close()
+	OutHandle.close()
 	return currentFont
 	
 class SFInfoException(exceptions.Exception): pass
