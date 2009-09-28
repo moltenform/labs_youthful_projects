@@ -1,0 +1,16 @@
+
+PIL adds features:
+
+	-draw image
+	(allows shading, gradients, insert image)
+	-Render picture
+	(draws much bigger and then resizes downwards, to antialias.)
+
+"draw standard"
+
+render movie to avi
+
+Graphical interface version
+-perhaps use Revolution
+
+
