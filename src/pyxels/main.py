@@ -1,68 +1,83 @@
-from link_djoser import *
 
-from pix_parser import *
-from pix_preview import PreviewImage
-from pix_minitimer import Minitimer
+#~ from pix_parser import *
+#~ from pix_preview import PreviewImage
+#~ from pix_minitimer import Minitimer
 
 import Image, ImageTk
-import Tkinter
 
-class PythonPixelsApp(DjApplication):
+import tkutil
+import tkutil_dialog
+from Tkinter import *
+import ScrolledText
+
+def pack(o, **kwargs): o.pack(**kwargs); return o
+class PythonPixelsApp():
 	windowInput = None
 	windowOutput = None
 	imgInput = None
 	imgOutput = None
 	
-	def layout(self,window):
-		window.title = 'PythonPixels'
-				
-		m = DjMenu(window,
-			['&File',
-				'&New Image|Ctrl+N',self.menu_newImage,
+	def __init__(self,root):
+		root.title('PythonPixels')
+		
+		tkutil.bindShortcuts(root, {'<Control-n>':self.menu_newImage,
+				'<Control-o>': self.menu_openImage,
+				'<Control-s>': self.menu_saveImage,
+				'<Control-V>': self.menu_pasteImage,
+				'<Control-N>': self.menu_newScript,
+				'<Control-O>': self.menu_openScript,
+				'<Control-S>': self.menu_saveScript,
+				'<Control-r>': self.menu_runScript } )
+		
+		menubar = Menu(root)
+		menuFile = Menu(menubar, tearoff=0)
+		menubar.add_cascade(label="File", menu=menuFile, underline=0)
+		tkutil.addMenuItems(menuFile, 
+				['&New Image|Ctrl+N',self.menu_newImage,
 				'&Open Image|Ctrl+O', self.menu_openImage,
 				'&Save Output|Ctrl+S', self.menu_saveImage,
-				
-				
-				'_',
+				'_', None,
 				'&Paste Image|Ctrl+Shift+V', self.menu_pasteImage, #note not to interfere with Ctrl+V
 				'&Solid color', self.menu_fillColor,
-				'_',
+				'_', None,
 				'&Batch Process', self.menu_batch,
-				'_',
-				
-				'E&xit', self.menu_quit
-			],
-			['&Script',
-				'&New Script|Ctrl+Shift+N', self.menu_newScript,
+				'_', None,
+				'E&xit', self.menu_quit]
+			)
+		menuScript = Menu(menubar, tearoff=0)
+		menubar.add_cascade(label="Script", menu=menuScript, underline=0)
+		tkutil.addMenuItems(menuScript, 
+				['&New Script|Ctrl+Shift+N', self.menu_newScript,
 				'&Open Script|Ctrl+Shift+O', self.menu_openScript,
 				'&Save Script|Ctrl+Shift+S', self.menu_saveScript,
-				'_',
+				'_',None,
 				'&See Generated Code', self.menu_genScript,
-				'&Run Script|Ctrl+R', self.menu_runScript,
-			]
-		)
-		window.set_shortcut_keys(m._keyshortcuts)
-		
+				'&Run Script|Ctrl+R', self.menu_runScript ]
+			)
 		menuFavorites = self.makeFavoritesMenu()
-		m.basecontrol.add_cascade(label='Favorites', menu=menuFavorites, underline=1)
-		window.menubar = m
+		menubar.add_cascade(label='Favorites', menu=menuFavorites, underline=1)
 		
-		window.frame(V, layout='fill,expand')
-		self.fldScript = window.field('#Flip red and green\nloop:\n\tR=g\n\tG=r-30\nprint "this is Python code!"', layout='fill,expand', scrollbar=True, height=6, width=100, wrap='none')
-		self.fldScript.select_all_binding()
-		self.btnRun = window.button('Run', self.menu_runScript)
-		self.fldOut = window.field('Welcome', layout='fillx', scrollbar=True, height=4, width=100, wrap='none')
-		window.endframe()
+		root.config(menu=menubar)
+		
+		
+		frameBtns = pack(Frame(root), fill=BOTH, expand=True)
+		self.fldScript = pack(ScrolledText.ScrolledText(frameBtns, height=6, width=100, wrap=NONE), side=TOP)
+		self.fldScript.insert(END, '#Flip red and green\nloop:\n\tR=g\n\tG=r-30\nprint "this is Python code!"')
+		tkutil.select_all_binding(self.fldScript)
+		
+		pack(Button(frameBtns, text='Run', command=self.menu_runScript), side=TOP)
+		
+		self.fldOut = pack(ScrolledText.ScrolledText(frameBtns, height=4, width=100, wrap=NONE), side=TOP, fill=X)
+		self.fldOut.insert(END, 'Welcome')
+		tkutil.select_all_binding(self.fldScript)
 		
 		self.realstdout = sys.stdout
 		self.realstderr = sys.stderr
-		self.newstdout = PseudoFile(self.writeStdOut, 'stdout')
-		self.newstderr = PseudoFile(self.writeStdOut, 'stderr')
+		self.newstdout = tkutil.PseudoFile(self.writeStdOut, 'stdout')
+		self.newstderr = tkutil.PseudoFile(self.writeStdOut, 'stderr')
 		
 		# Redirect std out
 		sys.stdout = self.newstdout
-		
-		window.add_all()
 		
 	def writeStdOut(self,s):
 		if s!='\n':
@@ -75,23 +90,16 @@ class PythonPixelsApp(DjApplication):
 		
 	def makeFavoritesMenu(self):
 		import os
-		def isDirectory(dir_name):
-			mask = 040000
-			try: s = os.stat(dir_name)
-			except: return 0
-			if (mask & s[0]) == mask: return 1
-			else: return 0
-		
-		favMenu = Tkinter.Menu(tearoff=0)
+		favMenu = Menu(tearoff=0)
 		astrFolders = os.listdir('scripts')
-		astrFolders = [strFolder for strFolder in astrFolders if isDirectory(os.path.join('scripts',strFolder)) and not strFolder.startswith('.')]
+		astrFolders = [strFolder for strFolder in astrFolders if tkutil.isDirectory(os.path.join('scripts',strFolder)) and not strFolder.startswith('.')]
 		
 		for strFolder in astrFolders:
-			submenu = Tkinter.Menu(favMenu, tearoff=0)
+			submenu = Menu(favMenu, tearoff=0)
 			astrFiles = os.listdir(os.path.join('./scripts',strFolder))
 			astrFiles = [strFile for strFile in astrFiles if strFile.endswith('.pyx')]
 			for strItem in astrFiles:
-				submenu.add('command', label=strItem, command=Callable(self.menu_pickFavorite, strFolder, strItem))
+				submenu.add('command', label=strItem, command=tkutil.Callable(self.menu_pickFavorite, strFolder, strItem))
 			favMenu.add_cascade(label=strFolder, menu=submenu)
 		return favMenu
 	
@@ -102,7 +110,7 @@ class PythonPixelsApp(DjApplication):
 	def menu_quit(self):
 		self.quit()
 	def menu_newImage(self):
-		strDimensions = ask('What are the dimensions?','256,256')
+		strDimensions = tkutil_dialog.ask('What are the dimensions?','256,256')
 		if not strDimensions: return
 		x,y = strDimensions.split(',')
 		self.imgInput = Image.new('RGB', (int(x),int(y)))
@@ -130,7 +138,7 @@ class PythonPixelsApp(DjApplication):
 			self.windowOutput.setImage(self.imgOutput)
 	
 	def menu_openImage(self):
-		filename = ask_openfile(title="Open Image")
+		filename = tkutil_dialog.ask_openfile(title="Open Image")
 		if not filename: return
 		try:
 			im = Image.open(filename)
@@ -147,7 +155,7 @@ class PythonPixelsApp(DjApplication):
 		if self.imgOutput==None:
 			print 'No output image.'
 			return
-		filename = ask_savefile(title = 'Save Image',types=['.png|Png image','.bmp|Bitmap image','.jpg|Jpeg image','.tif|TIFF image'])
+		filename = tkutil_dialog.ask_savefile(title = 'Save Image',types=['.png|Png image','.bmp|Bitmap image','.jpg|Jpeg image','.tif|TIFF image'])
 		if not filename: return
 		self.imgOutput.save(filename)
 		print 'Image saved to ',filename
@@ -156,7 +164,7 @@ class PythonPixelsApp(DjApplication):
 	def menu_newScript(self):
 		self.fldScript.text = ''
 	def menu_openScript(self):
-		filename = ask_openfile(title="Open Script", types=['.pyx|Scripts'])
+		filename = tkutil_dialog.ask_openfile(title="Open Script", types=['.pyx|Scripts'])
 		if not filename: return
 		self._setScriptFile(filename)
 		
@@ -167,7 +175,7 @@ class PythonPixelsApp(DjApplication):
 		self.fldScript.text = alltext
 		
 	def menu_saveScript(self):
-		filename = ask_savefile(title = 'Save Script',types=['.pyx|Scripts'])
+		filename = tkutil_dialog.ask_savefile(title = 'Save Script',types=['.pyx|Scripts'])
 		if not filename: return
 		f = open(filename, 'w')
 		f.write(self.fldScript.text)
@@ -193,7 +201,7 @@ class PythonPixelsApp(DjApplication):
 			
 	def menu_batch(self):
 		import os
-		filename = ask_openfile(title="Choose representative file (same directory, type).")
+		filename = tkutil_dialog.ask_openfile(title="Choose representative file (same directory, type).")
 		if not filename: return
 		if '.' not in filename:
 			print 'Could not find extension.'
@@ -202,7 +210,7 @@ class PythonPixelsApp(DjApplication):
 		ext = filename.split('.')[-1]
 		files = [file for file in os.listdir(path) if file.endswith('.'+ext)]
 		
-		outputfilename = ask_savefile(title = 'Choose directory and format of output images.',types=['.png|Png image','.bmp|Bitmap image','.jpg|Jpeg image','.tif|TIFF image'])
+		outputfilename = tkutil_dialog.ask_savefile(title = 'Choose directory and format of output images.',types=['.png|Png image','.bmp|Bitmap image','.jpg|Jpeg image','.tif|TIFF image'])
 		outputpath, outputfilename = os.path.split(outputfilename)
 		outputext = outputfilename.split('.')[-1]
 		
@@ -253,5 +261,7 @@ class PythonPixelsApp(DjApplication):
 		# The problem stops when the program is closed.
 		
 	
-m = PythonPixelsApp()
-m.run()
+
+root = Tk()
+app = PythonPixelsApp(root)
+root.mainloop()
