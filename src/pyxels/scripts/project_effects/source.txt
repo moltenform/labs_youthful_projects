@@ -1,0 +1,2 @@
+Algorithms adapted from:
+http://www.codeproject.com/KB/GDI-plus/displacementfilters.aspx
