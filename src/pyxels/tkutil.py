@@ -3,7 +3,7 @@
 
 def bindShortcuts(root, d):
 	for key in d:
-		root.bind(key, d[key])
+		root.bind(key, lambda evt=None, fn=d[key]: fn() ) #it doesn't take an arg
 	#effect is something like:
 	#root.bind('<Control-r>', self.onBtnSaveWave)
 	
@@ -95,5 +95,14 @@ def select_all_binding(fld):
 		return 'break'
 	fld.bind('<Control-a>',lambda event: sel(fld), '+')
 		
-		
+def gettext(fld):
+	import Tkinter
+	return fld.get(1.0, Tkinter.END)
+
+def settext(fld,txt):
+	import Tkinter
+	fld.delete('1.0', Tkinter.END)
+	fld.insert(Tkinter.END, txt)
+
+
 		

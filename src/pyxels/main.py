@@ -1,14 +1,17 @@
 
-#~ from pix_parser import *
-#~ from pix_preview import PreviewImage
-#~ from pix_minitimer import Minitimer
+from pix_parser import *
+from pix_preview import PreviewImage
+from pix_minitimer import Minitimer
 
 import Image, ImageTk
+_image_module = Image
 
 import tkutil
 import tkutil_dialog
 from Tkinter import *
 import ScrolledText
+
+Image = _image_module #we want Image module, not Tkinter.Image.
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class PythonPixelsApp():
@@ -61,7 +64,7 @@ class PythonPixelsApp():
 		
 		
 		frameBtns = pack(Frame(root), fill=BOTH, expand=True)
-		self.fldScript = pack(ScrolledText.ScrolledText(frameBtns, height=6, width=100, wrap=NONE), side=TOP)
+		self.fldScript = pack(ScrolledText.ScrolledText(frameBtns, height=6, width=100, wrap=NONE), side=TOP, fill=BOTH, expand=True)
 		self.fldScript.insert(END, '#Flip red and green\nloop:\n\tR=g\n\tG=r-30\nprint "this is Python code!"')
 		tkutil.select_all_binding(self.fldScript)
 		
@@ -78,11 +81,13 @@ class PythonPixelsApp():
 		
 		# Redirect std out
 		sys.stdout = self.newstdout
+		self.root = root
 		
 	def writeStdOut(self,s):
 		if s!='\n':
-			self.fldOut.text += s.strip()
-			self.fldOut.scrollto_end()
+			self.fldOut.insert(END, s.strip())
+			self.fldOut.insert(END, '\n')
+			self.fldOut.see(END)
 			
 	def redirectStdErr(self, bEnable):
 		if bEnable: sys.stderr = self.newstderr
@@ -108,7 +113,7 @@ class PythonPixelsApp():
 		self._setScriptFile(os.path.join(os.path.join('scripts',strFolder),strItem))
 	
 	def menu_quit(self):
-		self.quit()
+		self.root.quit()
 	def menu_newImage(self):
 		strDimensions = tkutil_dialog.ask('What are the dimensions?','256,256')
 		if not strDimensions: return
@@ -121,19 +126,21 @@ class PythonPixelsApp():
 			print 'No input image loaded.'
 			return
 		x,y = self.imgInput.size
-		color = ask_color()
+		color = tkutil_dialog.ask_color()
 		if not color: return
 		self.imgInput = Image.new('RGB', (int(x),int(y)),color)
 		self.updateInput()
 	
 	def updateInput(self):
 		if self.windowInput == None:
-			self.windowInput = PreviewImage('Input',self.imgInput)
+			wnd = Toplevel()
+			self.windowInput = PreviewImage(wnd, 'Input',self.imgInput)
 		else:
 			self.windowInput.setImage(self.imgInput)
 	def updateOutput(self):
 		if self.windowOutput == None:
-			self.windowOutput = PreviewImage('Output',self.imgOutput)
+			wnd = Toplevel()
+			self.windowOutput = PreviewImage(wnd, 'Output',self.imgOutput)
 		else:
 			self.windowOutput.setImage(self.imgOutput)
 	
@@ -162,7 +169,7 @@ class PythonPixelsApp():
 	
 	
 	def menu_newScript(self):
-		self.fldScript.text = ''
+		tkutil.settext(self.fldScript , '')
 	def menu_openScript(self):
 		filename = tkutil_dialog.ask_openfile(title="Open Script", types=['.pyx|Scripts'])
 		if not filename: return
@@ -172,19 +179,19 @@ class PythonPixelsApp():
 		f = open(filename,'r')
 		alltext = f.read()
 		f.close()
-		self.fldScript.text = alltext
+		tkutil.settext(self.fldScript , alltext)
 		
 	def menu_saveScript(self):
 		filename = tkutil_dialog.ask_savefile(title = 'Save Script',types=['.pyx|Scripts'])
 		if not filename: return
 		f = open(filename, 'w')
-		f.write(self.fldScript.text)
+		f.write(tkutil.gettext(self.fldScript))
 		f.close()
 		print 'Script saved to ',filename
 	def menu_genScript(self):
-		strCode = self.fldScript.text
+		strCode = tkutil.gettext(self.fldScript)
 		strParsed = parseInput(strCode)
-		self.fldScript.text = strParsed
+		tkutil.settext(self.fldScript, strParsed)
 		
 	def menu_runScript(self):
 		if self.imgInput == None:
@@ -192,7 +199,7 @@ class PythonPixelsApp():
 			return
 		mt = Minitimer()
 		self.redirectStdErr(True)
-		result = runScript(self.fldScript.text, self.imgInput)
+		result = runScript(tkutil.gettext(self.fldScript), self.imgInput)
 		self.redirectStdErr(False)
 		if result != None:
 			print 'Took, ' + str(mt.check())
@@ -214,7 +221,7 @@ class PythonPixelsApp():
 		outputpath, outputfilename = os.path.split(outputfilename)
 		outputext = outputfilename.split('.')[-1]
 		
-		confirm = ask_okcancel('Run current script on '+str(len(files))+' files of type .'+ext +' in directory '+path+'?')
+		confirm = tkutil_dialog.ask_okcancel('Run current script on '+str(len(files))+' files of type .'+ext +' in directory '+path+'?')
 		if not confirm: return
 		for file in files:
 			filename = os.path.join(path, file)
@@ -229,7 +236,7 @@ class PythonPixelsApp():
 				print 'Skipped: Could not open image.'
 				continue
 				
-			imgResult = runScript(self.fldScript.text, im)
+			imgResult = runScript(tkutil.gettext(self.fldScript), im)
 			if imgResult==None:
 				print 'Skipped: Script error.'
 				continue
@@ -257,7 +264,7 @@ class PythonPixelsApp():
 			return
 		self.imgInput = im
 		self.updateInput()
-		# NOTE An apparent error in PIL makes this block the clipboard!
+		# NOTE An apparent error in PIL for py2.5 makes this block the clipboard!
 		# The problem stops when the program is closed.
 		
 	

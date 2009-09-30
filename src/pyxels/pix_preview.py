@@ -1,41 +1,28 @@
-from link_djoser import *
 import ImageTk
+from Tkinter import *
 
-class PreviewImage(DjApplicationSubwindow):
-	def __init__(self, strName, imagePIL):
+class PreviewImage():
+	def __init__(self, top, strName, imagePIL):
 		self.name = strName		
 		self.imtk = ImageTk.PhotoImage(imagePIL)
 		
-		DjApplicationSubwindow.__init__(self)
 		
-	def layout(self,window):
-		window.title = self.name
+		top.title(self.name)
 		
-		self.imControl = window.image()
-		self.imControl.image = self.imtk
+		top.attributes('-toolwindow',1)
 		
-		window.add_all()
-		window.set_style('tool')
-		window.set_resizeable(False,False)
-		window.onclose = lambda: False #prevent closing
+		self.imControl = Label(top)
+		self.imControl.config(image = self.imtk)
+		self.imControl.pack()
+		
+		top.resizable(0,0)
+		top.protocol('WM_DELETE_WINDOW',  lambda: False) #prevent from closing!
+		
 		
 	def setImage(self, imagePIL):
-		imtk = ImageTk.PhotoImage(imagePIL)
-		self.imControl.image = imtk
+		self.imtk = ImageTk.PhotoImage(imagePIL)
+		self.imControl.config(image = self.imtk)
 
-if __name__=='__main__':
-	def testPreview():
-		import Image
-		impil = Image.open('im/test.png')
-		#~ imtk = ImageTk.PhotoImage(impil)
-		
-		p = PreviewImage('Test',impil)
-		
-	class TestApp(DjApplication):
-		def layout(self, window):
-			window.button('Click',testPreview)
-			window.add_all()
+
+
 	
-	
-	p = TestApp()
-	p.run()
