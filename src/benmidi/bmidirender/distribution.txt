@@ -1,0 +1,20 @@
+
+If running from svn, first uncompress ./timidity/timidity.exe found in the .rar file.
+You may also want to put soundfonts into ./soundfonts/sf_gm/
+
+
+Before distribution
+================
+Arrange directories as seen in downloads.
+
+delete sys.path.append('..') lines
+
+look at main.py
+sys.path.append('..') #delete this line for release
+from bmidilib import bmidilib, bmiditools
+
+
+clefspath = '..\\scoreview\\clefs' #delete this line for release and use line below
+
+and delete as appropriate.
+
