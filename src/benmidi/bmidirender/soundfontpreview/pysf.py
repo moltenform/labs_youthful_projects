@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# pysf, by Ben Collver
+
 # The following changes have been made from pysf-2:
 # Removed XML beautification because it freezes on large output.
 # Added more loop types.
@@ -9,7 +11,10 @@
 # converting back to .sf2.  Not fixed yet.
 
 import aifc, array, chunk, datetime, logging, math, os, os.path
-import struct, sys, tempfile, wave, xml.dom.minidom
+import struct, sys, tempfile, wave
+
+import exceptions
+class PysfException(exceptions.Exception): pass
 
 class SfChunkReader(chunk.Chunk):
     Item = 0
@@ -165,7 +170,7 @@ class SfZoneType:
             self.Mod = 'pmod'
             self.Hdr = 'phdr'
         else:
-            raise ValueError
+            raise PysfException('Invalid value.')
 
 def PrintUsage():
     UsageStr = 'pysf version ' + str(PysfVersion) + '\n\n\n' + """
@@ -298,6 +303,7 @@ def DictToXml(Xml, XmlEl, Dict):
             XmlSubEl.appendChild(XmlTextEl)
 
 def DictToXmlStr(Dict):
+    import xml.dom.minidom
     Xml = xml.dom.minidom.parseString(XmlRootStr.encode('UTF-8'))
     XmlEl = Xml.documentElement
     DictToXml(Xml, XmlEl, Dict)
@@ -334,10 +340,11 @@ def XmlToDict(Xml):
                 else:
                     Dict = Str
         else:
-            raise TypeError
+            raise PysfException('Invalid type.')
     return Dict
 
 def XmlFileToDict(FileName):
+    import xml.dom.minidom
     Xml = xml.dom.minidom.parse(FileName)
     Retval = XmlToDict(Xml)
     Xml.unlink()
@@ -374,11 +381,11 @@ def ListToIff(List, OutHandle):
         elif type(Data) == list:
             ListToIff(Data, OutHandle)
         else:
-            raise TypeError
+            raise PysfException('Invalid type.')
         Pos = OutHandle.tell()
         ChunkSize = Pos - DataPos
         if ChunkSize % 2 > 0:
-            raise ValueError
+            raise PysfException('Invalid value.')
         OutHandle.seek(ChunkPos + 4)
         OutHandle.write(struct.pack('<I', ChunkSize))
         OutHandle.seek(Pos)
@@ -389,7 +396,7 @@ def AudOpen(FileName, Mode, Format):
     elif Format == 'aif':
         AudOpenFunc = aifc.open
     else:
-        LogDie('unsupported format')
+        raise PysfException('unsupported format')
     return AudOpenFunc(FileName, Mode)
 
 def AudToXml(Src, Dst, Format):
@@ -410,7 +417,7 @@ def XmlToAud(Src, Dst, Format):
     try:
         Dict = XmlFileToDict(Src)[u'sf:pysf'][ustr(Format)]
     except KeyError:
-        LogDie('Invalid input format.')
+        raise PysfException('Invalid input format.')
     Channels = Def(Val(Dict, u'channels'), 0)
     FileName = Def(Val(Dict, u'file'), 'noname.wav')
     SampleSize = Def(Val(Dict, u'sampleSize'), 0)
@@ -419,15 +426,15 @@ def XmlToAud(Src, Dst, Format):
     if Byteswap != None:
         Byteswap = Byteswap == 1
     if Channels < 1:
-        LogDie('unsupported number of channels')
+        raise PysfException('unsupported number of channels')
     if SampleSize < 1 or SampleSize % 8 != 0:
-        LogDie('unsupported sampleSize')
+        raise PysfException('unsupported sampleSize')
     SampleSizeBytes = SampleSize / 8
     Raw = open(FileName, 'rb')
     Raw.seek(0, 2)
     FileSize = Raw.tell()
     if FileSize < 1 or FileSize % SampleSizeBytes != 0:
-        LogDie("unsupported raw data size %d" % (FileSize))
+        raise PysfException("unsupported raw data size %d" % (FileSize))
     Raw.seek(0, 0)
     NumSampleFrames = FileSize / SampleSizeBytes
     Aud.setnchannels(Channels)
@@ -456,7 +463,7 @@ def SfStr(Str, MaxLen = 256):
 def SfWavetableList(Tree):
     Smpl = Tree.CkId('smpl', None, -1)
     if Smpl == None:
-        LogDie('no wavetable data')
+        raise PysfException('no wavetable data')
     Ifil = Tree.CkId('ifil', None, -1)
     if Ifil != None:
         IfilD = Ifil.Chunk.DataRead()
@@ -477,7 +484,7 @@ def SfWavetableList(Tree):
             Sm24 = None
     Shdr = Tree.CkId('shdr', None, -1)
     if Shdr == None:
-        LogDie('no wavetable header')
+        raise PysfException('no wavetable header')
     Data = Shdr.Chunk.DataRead()
     FmtStr = '<20s5IbB2H'
     FmtLen = struct.calcsize(FmtStr)
@@ -502,7 +509,7 @@ def SfWavetableList(Tree):
             WDict[u'channel'] = 'left'
             WDict[u'link'] = WSampleLink + 1
         else:
-            LogDie("wavetable %d, can't use %s SampleType %d" % (Order + 1,
+            raise PysfException("wavetable %d, can't use %s SampleType %d" % (Order + 1,
                 Def(Val(SfStNames, SfSampleType), 'unknown'), SfSampleType))
         if DwStartLoop != DwStart or DwEndLoop != DwStart:
             WDict[u'loop'] = {u'begin': DwStartLoop - DwStart,
@@ -540,19 +547,19 @@ def SfZoneList(Tree, Zt):
     Order = 0
     Bag = Tree.CkId(Zt.Bag, None, -1)
     if Bag == None:
-        LogDie("no %s section" % (Zt.Bag))
+        raise PysfException("no %s section" % (Zt.Bag))
     BagD = Bag.Chunk.DataRead()
     BagFmtStr = '<2H'
     BagRecLen = struct.calcsize(BagFmtStr)
     Gen = Tree.CkId(Zt.Gen, None, -1)
     if Gen == None:
-        LogDie("no %s section" % (Zt.Gen))
+        raise PysfException("no %s section" % (Zt.Gen))
     GenD = Gen.Chunk.DataRead()
     GenFmtStr = '<2H'
     GenRecLen = struct.calcsize(GenFmtStr)
     Hdr = Tree.CkId(Zt.Hdr, None, -1)
     if Hdr == None:
-        LogDie("no %s section" % (Zt.Gen))
+        raise PysfException("no %s section" % (Zt.Gen))
     HdrD = Hdr.Chunk.DataRead()
     HdrFmtStr = '<20sH'
     if Zt.KeyN == 'preset':
@@ -605,7 +612,7 @@ def SfZoneList(Tree, Zt):
                         ZDict[ustr(Name)] = ShAmount
                     elif ListHas([53, 41], SfGenOper) == True:
                         if SfGenOper != Zt.Oper:
-                            LogDie("%s operator found in %s context" % (
+                            raise PysfException("%s operator found in %s context" % (
                                 Name, Zt.KeyN))
                         ZDict[ustr(Zt.ItemN) + u'Id'] = WAmount + 1
                     elif SfGenOper == 58:
@@ -723,14 +730,14 @@ def StereoSampleCheck(Wavetables, Id, Channel, WSampleLink):
        (RightId, LeftId) = (WSampleLink, Id)
     Left = LdFind(Wavetables, u'id', LeftId)
     if Left == None:
-        LogDie("Wavetable %d: Can't find left channel" % (Id))
+        raise PysfException("Wavetable %d: Can't find left channel" % (Id))
     Right = LdFind(Wavetables, u'id', RightId)
     if Right == None:
-        LogDie("Wavetable %d: Can't find right channel" % (Id))
+        raise PysfException("Wavetable %d: Can't find right channel" % (Id))
     if Left[u'link'] != RightId:
-        LogDie("Wavetable %d: Left channel not linked to right" % (Id))
+        raise PysfException("Wavetable %d: Left channel not linked to right" % (Id))
     if Right[u'link'] != LeftId:
-        LogDie("Wavetable %d: Right channel not linked to Left" % (Id))
+        raise PysfException("Wavetable %d: Right channel not linked to Left" % (Id))
 
 def SfSdtaShdr(Dict):
     ShdrFmtStr = '<20sIIIIIBbHH'
@@ -745,7 +752,7 @@ def SfSdtaShdr(Dict):
     for Wavetable in Wavetables:
         Id = Wavetable[u'id']
         if Id != Order + 1:
-            LogDie("Wavetable %d: id=%d, expected %d" % (Order + 1, Id,
+            raise PysfException("Wavetable %d: id=%d, expected %d" % (Order + 1, Id,
                 Order + 1))
         FileName = Wavetable[u'file']
         Ext = os.path.splitext(FileName)[1][1:4].lower()
@@ -756,7 +763,7 @@ def SfSdtaShdr(Dict):
             Aud = aifc.open(str(FileName), 'rb')
             DataOrder = 'big'
         else:
-            LogDie("Wavetable %d: Unknown format" % (Id))
+            raise PysfException("Wavetable %d: Unknown format" % (Id))
         Byteswap = True
         if DataOrder == sys.byteorder:
             Byteswap = False
@@ -814,11 +821,11 @@ def SfSdtaShdr(Dict):
             if GlobalSampWidth == -1:
                 GlobalSampWidth = Aud.getsampwidth()
             if GlobalSampWidth != Aud.getsampwidth():
-                LogDie("Wavetable %d: %d bit, other are %d bit" % (Order + 1,
+                raise PysfException("Wavetable %d: %d bit, other are %d bit" % (Order + 1,
                     Aud.getsampwidth() * 8, GlobalSampWidth * 8))
         else:
             if Aud.getsampwidth() == 3:
-                LogDie("Wavetable %d: 24 bit, but ifil 2.1" % (Order + 1))
+                raise PysfException("Wavetable %d: 24 bit, but ifil 2.1" % (Order + 1))
         if Aud.getsampwidth() == 2:
             DataCopy(Aud, SmplD, 2, Aud.getnframes(), Byteswap, AudChannel)
         elif Aud.getsampwidth() == 3:
@@ -829,7 +836,7 @@ def SfSdtaShdr(Dict):
             DataCopy(Aud, SmplD, 3, Aud.getnframes(), Byteswap,
                 AudChannel, "part16")
         else:
-            LogDie("Wavetable %d: can't use %d bit sample width" % (Order + 1,
+            raise PysfException("Wavetable %d: can't use %d bit sample width" % (Order + 1,
                 Aud.getsampwidth() * 8))
         SmplD.write(struct.pack('92s', '')) # 46 sample Pad
         Aud.close()
@@ -852,7 +859,7 @@ def SfRange(Item, Key, Min, Max, DefaultVal, Msg, Warn):
         Begin = Item[Key][u'begin']
         End = Item[Key][u'end']
         if Begin < Min or End < Min or Begin > Max or End > Max:
-            LogDie("%s: invalid %s" % (Msg, Key))
+            raise PysfException("%s: invalid %s" % (Msg, Key))
     except KeyError:
         Begin = End = DefaultVal
         if Warn == True:
@@ -902,7 +909,7 @@ def SfZone(Dict, Zt):
             IopsCount = 1
             ItemRef = Zone[Zt.ItemN + u'Id'] - 1
             if ItemRef < 0 or ItemRef > ItemMax:
-                LogDie("%s: invalid %s index %d (range 0,%d)" % (
+                raise PysfException("%s: invalid %s index %d (range 0,%d)" % (
                     Wstr, Zt.ItemN, ItemRef, ItemMax))
             (KeyRangeBegin, KeyRangeEnd) = SfRange(Zone, u'keyRange',
                 0, 127, -1, Wstr, True)
@@ -1025,7 +1032,7 @@ def XmlToSf(Src, Dst):
     try:
         Dict = XmlFileToDict(Src)[u'sf:pysf'][u'sf2']
     except KeyError:
-        LogDie('Invalid input format.')
+        raise PysfException('Invalid input format.')
     Info = SfInfo(Dict)
     [Sdta, Shdr] = SfSdtaShdr(Dict)
     Pdta = SfPdta(Dict, Shdr)

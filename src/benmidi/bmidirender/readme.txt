@@ -2,7 +2,7 @@ bmidi to wave, turning midis into wavs
 Copyright (C) Ben Fisher, 2009. GPL v2.
 http://b3nf.com/codepages/bmidi/mtowave
 Uses timidity++, a software synthesizer, Masanao Izumo, GPL v2.
-Uses sfubar, released in the public domain, Ben Collver.
+Uses pysf, released in the public domain, Ben Collver.
 
 About:
 	bmidi to wave can be used:
@@ -12,7 +12,7 @@ About:
 	
 	
 	bmidi to wave is a frontend for the program timidity++, which does the actual playback.
-	This program provides a graphical interface and saves you from having to edit configuration files.
+	This program provides a graphical interface and saves you from manually editing configuration files.
 	This program is especially useful when trying many soundfonts, and using several different soundfonts to play one midi.
 	
 Dependencies:
@@ -47,7 +47,7 @@ Notes and known issues:
 	The program has to be run in a writable directory. This may be fixed in a later version.
 	
 	It is potentially confusing that "program", "preset", "voice", "instrument" are all basically the same concept. It's just that Soundfonts and midi files use different terminology.
-	24bit wav files created won't open in Windows Media Player, but they are valid and will open in Audacity among other programs.
+	24bit wav files created are valid and will open in Audacity among other programs.
 
 
 	This program supports the older timidity method of using .pat files. 
@@ -67,10 +67,10 @@ Notes and known issues:
 		Notice that near the bottom of the open dialog, "files of type" can be changed to "Patch File (.pat)". choose that, and open a patch file.
 	Neither of those, though, work in Linux as of now, as said above.
 	
-	In Linux, this program uses the x86 binary "sfubar" for the SoundFont information tool.
-	If running a non x86 system, (or an os with a different binary format like mac os) and want to run that tool, you may need to recompile sfubar.
-		The source and makefile are in ./soundfontpreview/sfubar-src/
-		Place the compiled binary sfubar in the directory ./soundfontpreview
 
-
+History
+v1.1
+-Uses pysf instead of sfubar binary
+-does not require writable directory
+-windows installer / exe
 

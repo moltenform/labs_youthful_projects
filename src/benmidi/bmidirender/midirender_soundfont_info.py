@@ -96,7 +96,7 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 	def loadSf(self,filename):
 		self.lbVoices.delete(0, END) #clear existing voices
 		self.lblCurrentSf['text'] = filename
-		
+		self.objSf = None
 		
 		if filename.lower().endswith('.pat'):
 			#gus (gravis ultrasound) patch
@@ -148,6 +148,9 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 			midirender_util.alert("Couldn't find midi file.")
 			return
 		
+		#if soundfont couldn't be parsed.
+		if self.objSf == None: return
+		
 		#get cfg data
 		escapedfname = self.objSf.filename
 		if self.objSf.type!='pat':
@@ -194,43 +197,50 @@ def getpresets(file):
 
 	if not os.path.exists(file):
 		raise SFInfoException('Could not find the soundfont...')
-		
-	InHandle = open(file, 'rb')
-	OutHandle = nullFile()
-	Chunk = pysf.SfChunkReader(InHandle)
-	Tree = pysf.SfTree(pysf.SfItems(), pysf.SfContainers, None, OutHandle, "")
-	Tree.Read(Chunk, 0)
-	Presets = pysf.SfZoneList(Tree, pysf.SfZoneType('preset'))
 	
-	currentFont = SoundFontInfo()
-	INAM = Tree.CkIdStr('INAM', None, -1)
-	ICRD = Tree.CkIdStr('ICRD', None, -1)
-	IENG = Tree.CkIdStr('IENG', None, -1)
-	IPRD = Tree.CkIdStr('IPRD', None, -1)
-	ICOP = Tree.CkIdStr('ICOP', None, -1)
-	ICMT = Tree.CkIdStr('ICMT', None, -1)
-	if INAM != None:
-		currentFont.name = INAM
-	if ICRD != None:
-		currentFont.date = ICRD
-	if IENG != None:
-		currentFont.author = IENG
-		if verbose: print 'By: ' + IENG
-	if IPRD != None:
-		currentFont.product = IPRD
-	if ICOP != None:
-		currentFont.copyright = ICOP
-	if ICMT != None:
-		currentFont.comment = ICMT
-	for preset in Presets:
-		currentFont.presets.append(SoundFontInfoPreset())
-		currentFont.presets[-1].name = preset[u'name']
-		currentFont.presets[-1].presetNumber = preset[u'presetId']
-		if verbose: print '\tProgram: ' + preset[u'presetId']
-		currentFont.presets[-1].bank = preset[u'bank']
-		if verbose: print '\tBank: ' + preset[u'bank']
-	InHandle.close()
-	OutHandle.close()
+	try:
+		#if an error occurs reading the file, catch the exception.
+		
+		InHandle = open(file, 'rb')
+		OutHandle = nullFile()
+		Chunk = pysf.SfChunkReader(InHandle)
+		Tree = pysf.SfTree(pysf.SfItems(), pysf.SfContainers, None, OutHandle, "")
+		Tree.Read(Chunk, 0)
+		Presets = pysf.SfZoneList(Tree, pysf.SfZoneType('preset'))
+	
+		currentFont = SoundFontInfo()
+		INAM = Tree.CkIdStr('INAM', None, -1)
+		ICRD = Tree.CkIdStr('ICRD', None, -1)
+		IENG = Tree.CkIdStr('IENG', None, -1)
+		IPRD = Tree.CkIdStr('IPRD', None, -1)
+		ICOP = Tree.CkIdStr('ICOP', None, -1)
+		ICMT = Tree.CkIdStr('ICMT', None, -1)
+		if INAM != None:
+			currentFont.name = INAM
+		if ICRD != None:
+			currentFont.date = ICRD
+		if IENG != None:
+			currentFont.author = IENG
+			if verbose: print 'By: ' + IENG
+		if IPRD != None:
+			currentFont.product = IPRD
+		if ICOP != None:
+			currentFont.copyright = ICOP
+		if ICMT != None:
+			currentFont.comment = ICMT
+		for preset in Presets:
+			currentFont.presets.append(SoundFontInfoPreset())
+			currentFont.presets[-1].name = preset[u'name']
+			currentFont.presets[-1].presetNumber = preset[u'presetId']
+			if verbose: print '\tProgram: ' + preset[u'presetId']
+			currentFont.presets[-1].bank = preset[u'bank']
+			if verbose: print '\tBank: ' + preset[u'bank']
+		InHandle.close()
+		OutHandle.close()
+		
+	except pysf.PysfException, e:
+		raise SFInfoException('Could not parse soundfont: '+str(e))
+		
 	return currentFont
 	
 class SFInfoException(exceptions.Exception): pass
@@ -260,17 +270,5 @@ class SoundFontInfoPreset():
 	def __repr__(self):
 		return '"%s"   bank: %s, instrument: %s'%(self.name, self.bank, self.presetNumber)
 
-if __name__=='__main__':
-	def start(top):
-		def callback():
-			print 'hi'
-			dlg = ChooseMidiInstrumentDialog(top, 'Choose Instrument', 66)
-			print dlg.result
-			
-		Button(text='go', command=callback).pack()
-		
 
-	root = Tk()
-	start(root)
-	root.mainloop()
 	
