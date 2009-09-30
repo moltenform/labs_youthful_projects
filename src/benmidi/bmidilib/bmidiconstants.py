@@ -41,18 +41,18 @@ metaEvents = Enumeration([("SEQUENCE_NUMBER", 0x00,'Sequence Number'),
 
 controllerTypes = Enumeration([
 		('BANK_SELECT',0x00, 'Bank Select'),
-		('MODULATION',0x01, 'Modulation'),
+		('MODULATION',0x01, 'Modulation'), #Causes a modulation in pitch or vibrato effect
 		('BREATH_CONTROLLER',0x02, 'Breath Controller'),
 		('FOOT_CONTROLLER',0x04, 'Foot Controller'),
 		('PORTAMENTO_TIME',0x05, 'Portamento Time'),
 		('DATA_ENTRY',0x06, 'Data Entry (MSB)'),
-		('VOLUME',0x07, 'Volume'),
+		('VOLUME',0x07, 'Volume'), #Sets the relative volume of all notes in the channel
 		('BALANCE',0x08, 'Balance'),
-		('PAN',0x0A, 'Pan'),
-		('EXPRESSION_CONTROLLER',0x0B, 'Expression Controller'),
+		('PAN',0x0A, 'Pan'), #Positions the channel to the left or right. 0 is left; 64 is center; and 127 is right.
+		('EXPRESSION_CONTROLLER',0x0B, 'Expression Controller'), #Similar to volume but can be used repeatedly to control the dynamics of just one note.
 		('EFFECT_CONTROL_1',0x0C, 'Effect Control 1'),
 		('EFFECT_CONTROL_2',0x0D, 'Effect Control 2'),
-		('DAMPER_PEDAL_(SUSTAIN)',0x40, 'Damper pedal (Sustain)'),
+		('DAMPER_PEDAL_(SUSTAIN)',0x40, 'Damper pedal (Sustain)'), #0 is "up" and 127 is "down". The effect will blur note values while down.
 		('PORTAMENTO',0x41, 'Portamento'),
 		('SOSTENUTO',0x42, 'Sostenuto'),
 		('SOFT_PEDAL',0x43, 'Soft Pedal'),
@@ -63,15 +63,17 @@ controllerTypes = Enumeration([
 		('SOUND_CONTROLLER_3',0x48, 'Sound Controller 3 (Release Time)'),
 		('SOUND_CONTROLLER_4',0x49, 'Sound Controller 4 (Attack Time)'),
 		('PORTAMENTO_CONTROL',0x54, 'Portamento Control'),
-		('EFFECTS_1',0x5B, 'Effects 1 Depth (External Effects Depth)'),
+		('EFFECTS_1',0x5B, 'Effects 1 Depth (External Effects Depth)'), #This "reverb" effect will cause echoes.
 		('EFFECTS_2',0x5C, 'Effects 2 Depth (Tremolo Depth)'),
-		('EFFECTS_3',0x5D, 'Effects 3 Depth (Chorus Depth)'),
+		('EFFECTS_3',0x5D, 'Effects 3 Depth (Chorus Depth)'), #To specify a "chorus" effect of many voices simultaneously.
 		('EFFECTS_4',0x5E, 'Effects 4 Depth (Celeste Detune)'),
 		('EFFECTS_5',0x5F, 'Effects 5 Depth (Phaser Depth)'),
 		('DATA_INCREMENT',0x60, 'Data Increment'),
-		('DATA_DECREMENT',0x61, 'Data Decrement')])
+		('DATA_DECREMENT',0x61, 'Data Decrement'),
+		('RESET_ALL',0x79, 'Reset All Controllers'),
+		('LOCAL_CONTROL',0x7A, 'Local Control On/Off'),
+		('ALL_NOTES_OFF',0x7B, 'All Notes Off')])
 		
-
 	
 #others, not included
 #~ (0x10-0x13) 	General-Purpose Controllers 1-4
