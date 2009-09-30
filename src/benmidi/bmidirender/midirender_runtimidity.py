@@ -6,7 +6,9 @@ import sys
 sys.path.append('..')
 from bmidilib import bmidiplay
 
-tempcfgfilename = 'tmpout.cfg'
+import tempfile
+from os import sep as os_sep
+tempcfgfilename = tempfile.gettempdir() + os_sep + 'tmpcg.cfg'
 
 
 class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
@@ -15,10 +17,11 @@ class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
 	def setParameters(self, arParameters):
 		self.extraParameters = arParameters
 	def setConfiguration(self, strCfg):
-		f=open(tempcfgfilename, 'w')
+		filename = tempcfgfilename
+		f=open(filename, 'w')
 		f.write(strCfg)
 		f.close()
-		self.cfgFile = tempcfgfilename
+		self.cfgFile = filename
 	
 	def _additionalTimidityArgs(self):
 		ret = []

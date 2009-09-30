@@ -27,7 +27,7 @@ Dependencies:
 			depending on your distribution should do the trick.
 
 Usage:
-	Unzip the archive into a writable directory.
+	Unzip the archive.
 	Run the file main.py. The main window will open.
 	First, open a midi file. There are some provided in sample_midis.
 	Now, you can play the file, configure instruments, or save the file to a wave file.
@@ -44,7 +44,6 @@ Usage:
 
 Notes and known issues:
 	In Linux, when manually specifying a .cfg configuration file, it is apparently overridden by the default Timidity configuration file in /etc/timidity.
-	The program has to be run in a writable directory. This may be fixed in a later version.
 	
 	It is potentially confusing that "program", "preset", "voice", "instrument" are all basically the same concept. It's just that Soundfonts and midi files use different terminology.
 	24bit wav files created are valid and will open in Audacity among other programs.
@@ -70,7 +69,7 @@ Notes and known issues:
 
 History
 v1.1
--Uses pysf instead of sfubar binary
+-Uses pysf instead of sfubar binary. Thanks to Ben Collver for providing patch.
 -does not require writable directory
 -windows installer / exe
 

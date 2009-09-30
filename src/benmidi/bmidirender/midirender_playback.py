@@ -6,7 +6,9 @@ import time
 sys.path.append('..')
 from bmidilib import bmidiplay, bmiditools
 
-tmpfilename = 'tmpout.mid'
+import tempfile
+from os import sep as os_sep
+tmpfilename = tempfile.gettempdir() + os_sep + 'tmpmid0.mid'
 
 class BMidiRenderPlayback():
 	playingState = 'stopped' #or 'paused' or 'playing'.
@@ -76,7 +78,7 @@ class BMidiRenderPlayback():
 		else:
 			#play with timidity. we'll have to cut the midi ourselves.
 			bmiditools.makeVeryRoughTimeExcerpt(midiCopy, float( self.currentTime)/float(self.lengthTime))
-			#~ print midiCopy
+			
 			midiCopy.open(tmpfilename,'wb')
 			midiCopy.write()
 			midiCopy.close()
