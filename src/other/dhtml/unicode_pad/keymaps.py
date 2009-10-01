@@ -12,8 +12,11 @@ def parse(mapfilename = 'default.py.js'):
 	f.close()
 	
 	alltext = alltext.replace('\r\n','\n').replace('\n//', '\n#') #Convert // to #
-	exec alltext
-	# Now, the local variables modes, keys, and mapname will be created.
+	ldict = {}
+	exec(alltext,globals(),ldict)
+	mapname = ldict['mapname']
+	modes = ldict['modes']
+	keys = ldict['keys']
 	
 	dict_hotkeys = {}
 	dict_modes = {}
@@ -39,7 +42,7 @@ def parse(mapfilename = 'default.py.js'):
 		else:
 			hotdescription = ''
 		if hotkey in dict_hotkeys:
-			print 'Warning: duplicate entry for hotkey '+str(hotkey)
+			print('Warning: duplicate entry for hotkey '+str(hotkey))
 		
 		dict_hotkeys[hotkey] = ('char',hotvalue, hotdescription)
 	
@@ -47,5 +50,5 @@ def parse(mapfilename = 'default.py.js'):
 
 if __name__ == '__main__':
 	dict_modes, dict_hotkeys, mapname = parse()
-	print dict_hotkeys
+	print(dict_hotkeys)
 

@@ -1,7 +1,12 @@
-from Tkinter import *
+
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
 import os
 
-class App:
+class App(object):
 	def __init__(self, root):
 		root.title('Keyshort-switch map')
 		lblMain = Label(root, text='Use the Maps menu to choose a map')
@@ -24,20 +29,20 @@ class App:
 	
 	def changeMap(self, s):
 		import shutil
-		print s
+		print(s)
 		os.remove('./currentmap.js')
 		shutil.copy('./maps/'+s, './currentmap.js')
 
 		
 		
 	
-class Callable:
+class Callable(object):
 	def __init__(self, func, *args, **kwds):
 		self.func = func
 		self.args = args
 		self.kwds = kwds
 	def __call__(self, event=None):
-		return apply(self.func, self.args, self.kwds)
+		return self.func(*self.args, **self.kwds)
 	def __str__(self):
 		return self.func.__name__
 	

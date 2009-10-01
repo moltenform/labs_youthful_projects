@@ -3,10 +3,19 @@
 # Requires Python 2.5
 # linux is not yet supported
 
-from Tkinter import *
-import tkFileDialog
-import tkMessageBox
-import ScrolledText
+try:
+	from Tkinter import *
+	import tkFileDialog
+	import tkMessageBox
+	import tkSimpleDialog
+	import ScrolledText
+except ImportError:
+	from tkinter import *
+	import tkinter.filedialog as tkFileDialog
+	import tkinter.messagebox as tkMessageBox
+	import tkinter.simpledialog as tkSimpleDialog
+	import tkinter.scrolledtext as ScrolledText
+
 import codecs
 import sys
 
@@ -15,7 +24,7 @@ import layouts
 import keymaps
 
 
-class App:
+class App(object):
 	currentMode = ''
 	currentFilename = ''
 	currentSaved = True
@@ -139,7 +148,6 @@ class App:
 			self.textFormat = (self.textFormat[0], self.textFormat[1] - 2,self.textFormat[2])
 		self.txtContent['font'] = self.textFormat
 	def changeFont(self):
-		import tkSimpleDialog
 		newfont = tkSimpleDialog.askstring('Font:','Choose new font (i.e. Verdana).')
 		if not newfont: return
 		self.textFormat = (newfont, self.textFormat[1],self.textFormat[2])
@@ -254,7 +262,7 @@ class App:
 			# There was no text selected, so simply insert the character
 			pass
 		char = hotkey[1]
-		self.txtContent.insert(INSERT, unichr(char))
+		self.txtContent.insert(INSERT, unicodechr(char))
 		return 'break'
 		
 	def show_bindings(self, strParam):
@@ -263,7 +271,7 @@ class App:
 		
 		if strParam == 'ascii':
 			for i in range(32,256):
-				self.txtContent.insert(INSERT, str(i) +': '+ unichr(i) + '\n')
+				self.txtContent.insert(INSERT, str(i) +': '+ unicodechr(i) + '\n')
 		elif strParam == 'modes':
 			modekeys = [(hotkey,self.dictHotkeys[hotkey]) for hotkey in self.dictHotkeys if self.dictHotkeys[hotkey][0]=='setmode']
 			strShow = ''
@@ -285,7 +293,7 @@ class App:
 			import shutil
 			shutil.copy(os.path.join(kdir, self.currentMap), os.path.join(kdir, '_current.js'))
 		except:
-			print 'Warning: could not copy file.'
+			print('Warning: could not copy file.')
 		if os.path.exists(kf):
 			makeThread(os.system, kf)
 		else:
@@ -326,10 +334,9 @@ class App:
 		tkMessageBox.showinfo('Values', ', '.join([str(ord(c)) for c in strText]))
 			
 	def insertCharacter(self):
-		import tkSimpleDialog
 		chars = tkSimpleDialog.askstring('Characters:','Enter Unicode values, separated by commas.(i.e. 293,111,349)')
 		if not chars: return
-		self.txtContent.insert(INSERT, ''.join([unichr(int(char)) for char in chars.replace(' ','').split(',')]))
+		self.txtContent.insert(INSERT, ''.join([unicodechr(int(char)) for char in chars.replace(' ','').split(',')]))
 	
 	def showDocs(self):
 		ret = self.new_file()
@@ -345,7 +352,13 @@ The program begins in Normal Mode, but you can press Control+L to enter Grave Ac
 Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take effect when the mode is chosen again from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
 		"""
 		)
-	
+
+def unicodechr(c):
+	if sys.version_info[0] > 2:
+		return chr(c)
+	else:
+		return unichr(c)
+
 root = Tk()
 app = App(root)
 
