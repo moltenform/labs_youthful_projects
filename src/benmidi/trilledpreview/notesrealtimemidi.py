@@ -111,7 +111,7 @@ class NotesRealtimeMidi():
 				#if it does, though, stop all playing notes.
 				#the transposition could have changed, so just stop playing everything
 				print 'warning, unexpected keyrelease', event.state, event.keysym
-				self._onlosefocus()
+				self.stopallnotes()
 			else:
 				notenumber = self.keyCodesCurrentlyHeld[event.keycode]
 				if notenumber != -1:
@@ -124,6 +124,7 @@ class NotesRealtimeMidi():
 				del self.keyCodesCurrentlyHeld[event.keycode]
 	
 	def _ontab(self):
+		print 't'
 		if self.bRecordingMode:
 			self.listRecorded.append((-1, fntimer(), None))
 	

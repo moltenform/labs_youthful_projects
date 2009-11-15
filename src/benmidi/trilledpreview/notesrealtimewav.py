@@ -2,12 +2,16 @@ import sys
 import time
 import winsound
 
+#does not support polyphony. in output from recording, notes never overlap.
+#in fact, polyphony doesn't work well anyways, because can obscure recognition of Tab key
+#todo: check threading
+
 # On Windows, the best timer is time.clock()
 # On most other platforms the best timer is time.time()
 if sys.platform == "win32": fntimer = time.clock
 else: fntimer = time.time
 
-mediadir=r'C:\pydev\mainsvn2\benmidi\trilled\trilled-wav\media'+'\\'
+mediadir=r'media'+'\\'
 
 class NotesRealtimeWav():
 	manualbindings = None
@@ -83,7 +87,22 @@ class NotesRealtimeWav():
 		if event.keycode in self.notebindings:
 			if bNoModifierKeys:
 				if event.keycode not in self.keyCodesCurrentlyHeld:
-					#~ print 'play note',notenumber
+					
+					#Because we only support one tone at once -- turn off all other notes
+					newdict={}
+					for keycode in self.keyCodesCurrentlyHeld:
+						notenumber = self.keyCodesCurrentlyHeld[keycode]
+						if notenumber != -1:
+							notenumber, tm=notenumber
+							if self.bRecordingMode:
+								self.listRecorded.append((notenumber, tm, fntimer()))
+							
+							newdict[keycode] = -1 #signifies we've processed it
+						else:
+							newdict[keycode] = notenumber
+					self.keyCodesCurrentlyHeld = newdict
+					
+					
 					notenumber = self.notebindings[event.keycode] + self.transposition
 					self.theLastNote = event.keycode
 					winsound.PlaySound(mediadir+str(notenumber)+'.wav',winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
@@ -91,8 +110,12 @@ class NotesRealtimeWav():
 					if self.bRecordingMode: tm = fntimer()
 					else: tm=0
 					self.keyCodesCurrentlyHeld[event.keycode] = notenumber,tm #(need to record notenumber because transposition may have changed)
+					
+					
+					
+					
 			else:
-				self.keyCodesCurrentlyHeld[event.keycode] = -1
+				self.keyCodesCurrentlyHeld[event.keycode] = -1 #means that this note was played with a modifier key.
 		
 	def _onkeyrelease(self, event):
 		if event.keycode==16 or event.keycode==17 or event.keycode==0:
@@ -110,7 +133,7 @@ class NotesRealtimeWav():
 				#if it does, though, stop all playing notes.
 				#the transposition could have changed, so just stop playing everything
 				print 'warning, unexpected keyrelease', event.state, event.keysym
-				self._onlosefocus()
+				winsound.PlaySound(None,0)
 			else:
 				notenumber = self.keyCodesCurrentlyHeld[event.keycode]
 				if notenumber != -1:
