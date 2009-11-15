@@ -22,7 +22,8 @@ import notesinterpret
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class Gui1():
-	objNotesRealtimeMidi = None
+	objNotesRealtime = None
+	isRecording = False
 	
 	def __init__(self, root):
 		root.title('Trilling Recorder')
@@ -33,7 +34,7 @@ class Gui1():
 		
 		figure = PhotoImage(file='figure.gif')
 		label = Label(frameMain, image=figure)
-		label.image = figure # keep a reference!
+		label.image = figure # keep a reference
 		label.pack(side=TOP)
 		
 		self.lblTransposition = pack( Label(frameMain, text='Transposition: +0   (lowest note is C4)'), side=TOP, anchor='w')
@@ -53,14 +54,15 @@ class Gui1():
 			('Control+','Down'): Callable(self.changeTransposition,-1),
 			('Alt+','F4'):self.onClose }
 			
-		self.objNotesRealtimeMidi = notesrealtimewav.NotesRealtimeWav(manualbindings)
-		self.objNotesRealtimeMidi.addBindings(root)
-		self.objNotesRealtimeMidi.addNotebindings('notes.cfg')
+		self.objNotesRealtime = notesrealtimewav.NotesRealtimeWav(manualbindings)
+		self.objNotesRealtime.addBindings(root)
+		self.objNotesRealtime.addNotebindings('notes.cfg')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
+		root.bind('<FocusOut>',self.onlosefocus)
 		self.root=root
 	
 	def changeTransposition(self, amount):
-		newtrans = self.objNotesRealtimeMidi.setTranspose(amount)
+		newtrans = self.objNotesRealtime.setTranspose(amount)
 		
 		s='Transposition: %d   (lowest note is %s)'%(newtrans-60, ''.join(map(str,music_util.noteToName(newtrans))))
 		self.lblTransposition.config(text=s)
@@ -79,12 +81,14 @@ class Gui1():
 		self._settings = (bSharps, bTreble, timesig, nQuantize)
 		self.btnStop.config(state=NORMAL)
 		self.btnRecord.config(state=DISABLED)
-		self.objNotesRealtimeMidi.setRecordingMode(True)
+		self.objNotesRealtime.setRecordingMode(True)
+		self.isRecording=True
 	
 	def stopRecord(self):
+		self.isRecording=False
 		self.btnStop.config(state=DISABLED)
 		self.btnRecord.config(state=NORMAL)
-		res = self.objNotesRealtimeMidi.setRecordingMode(False)
+		res = self.objNotesRealtime.setRecordingMode(False)
 		bSharps, bTreble, timesig, nQuantize = self._settings
 		try:
 			res = notesinterpret.notesinterpret(res, timesig, nQuantize)
@@ -94,10 +98,15 @@ class Gui1():
 			return
 		
 		
-	
+	def onlosefocus(self,e=None):
+		self.objNotesRealtime.stopallnotes()
+		if self.isRecording:
+			alert('Recording was stopped, because you switched to another program.')
+			self.stopRecord()
+		
 	def onClose(self):
 		try:
-			self.objNotesRealtimeMidi.closeDevice()
+			self.objNotesRealtime.closeDevice()
 		finally:
 			self.root.destroy()
 			#if not in a finally, it's possible error thrown and app can't close

@@ -24,8 +24,7 @@ class NotesRealtimeWav():
 		
 	def addBindings(self,tkTopLevel):
 		
-		#add bindings to toplevel. circular references ok in python
-		tkTopLevel.bind('<FocusOut>',self._onlosefocus)
+		#add bindings to toplevel.
 		
 		#key press/release events
 		#(they keep repeating the event when held)
@@ -137,14 +136,11 @@ class NotesRealtimeWav():
 		if eventstate & 0x00000001: mods += 'Shift+'
 		return mods
 			
-	def _onlosefocus(self,e=None): 
+	def stopallnotes(self): 
 		#stop all currently playing notes
-		for keyCode in self.keyCodesCurrentlyHeld:
-			notenumber = self.keyCodesCurrentlyHeld[keyCode]
-			if notenumber!=-1:
-				self.midiplayerdevice.rawNoteOff(notenumber)
+		winsound.PlaySound(None,0)
 		self.keyCodesCurrentlyHeld = {}
-		self.theLastNote=None #?
+		self.theLastNote=None
 
 	def closeDevice(self):
 		pass
