@@ -1,4 +1,4 @@
-namespace VivaceOne
+namespace Midisketch
 {
     partial class DlgInstrument
     {

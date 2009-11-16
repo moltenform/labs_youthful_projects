@@ -1,4 +1,4 @@
-namespace VivaceOne
+namespace Midisketch
 {
     partial class Midisketch
     {
@@ -231,7 +231,7 @@ namespace VivaceOne
             // 
             // label5
             // 
-            this.label5.Image = global::VivaceOne.Properties.Resources.figure;
+            this.label5.Image = global::Midisketch.Properties.Resources.figure;
             this.label5.Location = new System.Drawing.Point(11, 42);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(593, 267);

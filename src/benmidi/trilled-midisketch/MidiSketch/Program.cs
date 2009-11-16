@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace VivaceOne
+namespace Midisketch
 {
     static class Program
     {

@@ -30,11 +30,11 @@
   <ItemGroup>
     <Reference Include="Multimedia, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\CSharpMidiToolkitV4_demo\Multimedia.dll</HintPath>
+      <HintPath>..\CSharpMidiToolkitV4_demo\Multimedia.dll</HintPath>
     </Reference>
     <Reference Include="StateMachineToolkit, Version=3.5.0.0, Culture=neutral">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\CSharpMidiToolkitV4_demo\StateMachineToolkit.dll</HintPath>
+      <HintPath>..\CSharpMidiToolkitV4_demo\StateMachineToolkit.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

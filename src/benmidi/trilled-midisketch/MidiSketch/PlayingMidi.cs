@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 //todo: if change transposition while holding note, that note is sustained.
 
-namespace VivaceOne
+namespace Midisketch
 {
     public class PlayingMidi
     {

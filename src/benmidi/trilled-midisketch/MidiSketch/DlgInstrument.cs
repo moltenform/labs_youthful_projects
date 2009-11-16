@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace VivaceOne
+namespace Midisketch
 {
     public partial class DlgInstrument : Form
     {

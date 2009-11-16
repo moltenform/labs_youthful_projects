@@ -11,7 +11,7 @@ using System.IO;
 using Multimedia.Midi;
 using System.Diagnostics;
 
-namespace VivaceOne
+namespace Midisketch
 {
     public partial class Midisketch : Form
     {
