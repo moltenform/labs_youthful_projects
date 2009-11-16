@@ -7,8 +7,8 @@
     <ProjectGuid>{444BEAE6-931A-45A3-BB87-962339F941EA}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VivaceOne</RootNamespace>
-    <AssemblyName>VivaceOne</AssemblyName>
+    <RootNamespace>Midisketch</RootNamespace>
+    <AssemblyName>Midisketch</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -92,39 +92,6 @@
       <Project>{4269C72A-8D3A-4737-8F89-72EAA33EA9E1}</Project>
       <Name>Multimedia.Midi</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\audio-input-microphone.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\open.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\new.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\save.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\cut.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\audio-x-generic.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\audio-volume-high.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\stop.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\001play.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\001record.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\001stop.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\figure.gif" />
