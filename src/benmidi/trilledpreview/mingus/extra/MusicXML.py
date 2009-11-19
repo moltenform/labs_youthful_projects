@@ -302,9 +302,13 @@ def from_Track(track):
     c = Composition()
     c.add_track(track)
     return _composition2musicxml(c).toprettyxml()
-	
-def from_Composition(comp):
-    return _composition2musicxml(comp).toprettyxml()
+
+def from_Composition(comp, includeWhitespace=False):
+    if includeWhitespace:
+        # "prettyxml" can't always be parsed, because of extra tabs/line breaks in output. A known issue in toprettyxml.
+        return _composition2musicxml(comp).toprettyxml()
+    else:
+        return _composition2musicxml(comp).toxml()
     
 def write_Composition(composition, filename, zip=False):
     '''Creates an xml file (or mxl if compressed) for a given composition'''
