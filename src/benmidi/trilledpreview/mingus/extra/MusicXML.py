@@ -38,7 +38,7 @@ import xml
 from xml.dom.minidom import Document
 from mingus.core import notes
 from mingus.core.diatonic import basic_keys
-from mingus.containers.Instrument import MidiInstrument
+from mingus.containers.Instrument import Instrument, MidiInstrument
 from mingus.containers.Composition import Composition
 from mingus.containers.Track import Track
 from mingus.core import value
@@ -178,7 +178,7 @@ def _track2musicxml(track):
     doc = Document()
     clef = None
     track_node = doc.createElement("part")
-    track_node.setAttribute("id",str(id(track)))
+    track_node.setAttribute("id",_get_object_id(track))
     if track.instrument: #try to guess the clef of the instrument
         if "treble" in track.instrument.clef.lower():
         	clef = ("G","2")
@@ -254,15 +254,15 @@ def _composition2musicxml(comp):
 	for t in comp:
 		track = _track2musicxml(t)
 		score_part = doc.createElement("score-part")
-		track.setAttribute("id",str(id(t)))
-		score_part.setAttribute("id",str(id(t)))
+		track.setAttribute("id",_get_object_id(t))
+		score_part.setAttribute("id",_get_object_id(t))
 		part_name = doc.createElement("part-name")
 		part_name.appendChild(doc.createTextNode(t.name))
 		score_part.appendChild(part_name)
 		if t.instrument:
 		    #add instrument info
 			score_inst = doc.createElement("score-instrument")
-			score_inst.setAttribute("id",str(id(t.instrument)))
+			score_inst.setAttribute("id",_get_object_id(t.instrument))
 			name = doc.createElement("instrument-name")
 			name.appendChild(doc.createTextNode(str(t.instrument.name)))
 			score_inst.appendChild(name)
@@ -270,7 +270,7 @@ def _composition2musicxml(comp):
 			#add midi instruments
 			if isinstance(t.instrument,MidiInstrument):
 				midi = doc.createElement("midi-instrument")
-				midi.setAttribute("id",str(id(t.instrument)))
+				midi.setAttribute("id",_get_object_id(t.instrument))
 				channel = doc.createElement("midi-channel")
 				channel.appendChild(doc.createTextNode(str(1))) #what about the midi channels?
 				program = doc.createElement("midi-program")
@@ -281,7 +281,7 @@ def _composition2musicxml(comp):
 
 		
 		part_list.appendChild(score_part)
-		track.setAttribute("id",str(id(t)))
+		track.setAttribute("id",_get_object_id(t))
 		score.appendChild(track)			
 
 	return score
@@ -329,3 +329,11 @@ def write_Composition(composition, filename, zip=False):
 	zf.writestr(zi,text)
         zf.close()
         
+def _get_object_id(o):
+	#some xml parsers require ids to start with alpha chars
+	if isinstance(o,Instrument):
+		return 'ins'+str(id(o))
+	elif isinstance(o, Track):
+		return 'P'+str(id(o))
+	else:
+		assert False 
