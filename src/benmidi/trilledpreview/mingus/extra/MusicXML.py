@@ -136,14 +136,14 @@ def _bar2musicxml(bar):
         time  = value.determine(nc[1])
         beat = time[0]
         note_cont = nc[2]
-        is_chord=False
-        if note_cont:
-            #is a note_container with 2 or more notes a chord?
-            if len(note_cont)>1: is_chord=True
-        else: note_cont = [None]
+        is_first_of_group=True
+
+        if not note_cont: note_cont = [None]
         for n in note_cont:
-            note = _note2musicxml(n, isChord=is_chord)
-            
+            note = _note2musicxml(n, isChord=not is_first_of_group)
+            is_first_of_group = False
+            #all but the last have a <chord/> element.
+
             #convert the duration of the note
             duration = doc.createElement("duration")
             duration.appendChild(doc.createTextNode(str(int(lcm*(4.0/beat))))) 
@@ -304,11 +304,14 @@ def from_Track(track):
     return _composition2musicxml(c).toprettyxml()
 
 def from_Composition(comp, includeWhitespace=False):
+    header = '''<?xml version="1.0" standalone="no"?>
+<!DOCTYPE score-partwise PUBLIC  "-//Recordare//DTD MusicXML Partwise//EN"
+    "http://www.musicxml.org/dtds/partwise.dtd">'''
     if includeWhitespace:
         # "prettyxml" can't always be parsed, because of extra tabs/line breaks in output. A known issue in toprettyxml.
-        return _composition2musicxml(comp).toprettyxml()
+        return header+_composition2musicxml(comp).toprettyxml()
     else:
-        return _composition2musicxml(comp).toxml()
+        return header+_composition2musicxml(comp).toxml()
     
 def write_Composition(composition, filename, zip=False):
     '''Creates an xml file (or mxl if compressed) for a given composition'''
