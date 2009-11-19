@@ -60,9 +60,12 @@ def _lcm(a=None,b=None, terms=None):
    else: return (a*b)/_gcd(a,b)
 
 
-def _note2musicxml(note):
+def _note2musicxml(note, isChord=False):
     doc = Document()
     note_node = doc.createElement("note")
+    if isChord:
+        chord=doc.createElement("chord")
+        note_node.appendChild(chord)
     if note==None:
         #note is a rest
         rest = doc.createElement("rest")
@@ -127,7 +130,7 @@ def _bar2musicxml(bar):
     
     bar_node.appendChild(attributes)
     
-    chord=doc.createElement("chord")
+    
 
     for nc in bar:
         time  = value.determine(nc[1])
@@ -139,9 +142,8 @@ def _bar2musicxml(bar):
             if len(note_cont)>1: is_chord=True
         else: note_cont = [None]
         for n in note_cont:
-            note = _note2musicxml(n)
-            if is_chord:
-                note.appendChild(chord)
+            note = _note2musicxml(n, isChord=is_chord)
+            
             #convert the duration of the note
             duration = doc.createElement("duration")
             duration.appendChild(doc.createTextNode(str(int(lcm*(4.0/beat))))) 
