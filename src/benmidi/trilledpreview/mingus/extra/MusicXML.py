@@ -136,7 +136,7 @@ def _bar2musicxml(bar):
         is_chord=False
         if note_cont:
             #is a note_container with 2 or more notes a chord?
-            if len(note_cont)>1: is_chord=True; chord=doc.createElement("chord")
+            if len(note_cont)>1: is_chord=True
         else: note_cont = [None]
         for n in note_cont:
             note = _note2musicxml(n)
