@@ -1,6 +1,7 @@
 import sys
 import time
 import winsound
+#linux: see http://stackoverflow.com/questions/307305/play-a-sound-with-python
 
 #does not support polyphony. in output from recording, notes never overlap.
 #in fact, polyphony doesn't work well anyways, because can obscure recognition of Tab key

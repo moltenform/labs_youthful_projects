@@ -40,7 +40,8 @@ def notesinterpret(listResults, timesig, quantize):
 	#~ if len(listPulses)==1: listPulses.append(listPulses[0] + (listPulses[0]-0.0))
 	#~ listPulses.append(listPulses[-1] + (listPulses[-1]-listPulses))
 	
-	#create quantization list (contains all acceptible times)
+	#create quantization list (contains all acceptible times).
+	#divides linearly. one could also smooth inter-beat timing
 	listQuantize=[]
 	listQuantize.append(0.0)
 	prevTime = 0.0
@@ -95,13 +96,13 @@ def notesinterpret(listResults, timesig, quantize):
 	
 
 def convToClass(listFinal, timesig, quantize, bIsTreble, bSharps):
-	doc = TrDocument()
-	doc.score = TrScore()
-	part = TrPart()
+	doc = trclasses.TrDocument()
+	doc.trscore = trclasses.TrScore()
+	part = trclasses.TrPart()
 	firstmeasure = part.addMeasure()
 	firstmeasure.timesigchange = timesig
 	firstmeasure.keysigchange = 'sharps' if bSharps else 'flats'
-	doc.score.parts.append(part)
+	doc.trscore.trparts.append(part)
 	part.clef = 'treble' if bIsTreble else 'bass'
 	
 	fQtrnotespermeasure = float(timesig[0]) / (timesig[1]/4)
@@ -116,7 +117,7 @@ def convToClass(listFinal, timesig, quantize, bIsTreble, bSharps):
 			restLength = listFinal[i+1][1]-listFinal[i][2]
 			assert restLength >= 0
 			if restLength != 0:
-				newlistFinal.append((0, listFinal[i][2], listFinal[i+1][1]))
+				newlistFinal.append(((0,), listFinal[i][2], listFinal[i+1][1]))
 	
 	
 	def qStepToTimeBase(x):
@@ -130,8 +131,8 @@ def convToClass(listFinal, timesig, quantize, bIsTreble, bSharps):
 		results, _ = effectivelyTieLongNotesBarlines(currentMeasureTime, length, nTimestepspermeasure)
 		for i in range(len(results)):
 			result = results[i]
-			bIsTied = i==len(results)-1
-			part.addNote(note[0], result, tied=bIsTied) #addNote(pitch, length)
+			bIsTied = i!=len(results)-1
+			part.addNote(note[0],currentMeasureTime,currentMeasureTime+result, tied=bIsTied) #addNote(pitch, length)
 			currentMeasureTime += result
 			assert currentMeasureTime<= nTimestepspermeasure
 			if currentMeasureTime == nTimestepspermeasure:
@@ -272,16 +273,7 @@ if __name__=='__main__':
 	r,_ = effectivelyTieLongNotesBarlines( bd*3 , bd*2, bd*4); print [ n/float(bd) for n in r]
 	
 	print atomicnotes
-#~ 1-sort by keydown time
-#~ 2-quantize
-#~ 3-run through list.
-	#~ if two start at same time,
-		#~ treat longer of the pair as the length of the two
-		#~ -
-		#~ unless interrupted by the next event, which silences both.
-	#~ if one at time,
-		#~ hold for duration,
-		#~ unless interrupted by next event.
+
 		
 		
 
