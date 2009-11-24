@@ -13,7 +13,7 @@ class Dlg2(tkSimpleDialog.Dialog):
 	def body(self, top):
 		
 		pack(Label(top,text="When playing, tap the Tab key in time with your playing, to indicate the pulse."),side=TOP)
-		pack(Label(top,text="Tap every quarter note. This can be a lot, but helps accuracy greatly."),side=TOP)
+		pack(Label(top,text="Tap every quarter note."),side=TOP)
 		pack(Label(top,text="Your recording should start and end with a tap."),side=TOP)
 		
 		
@@ -22,7 +22,7 @@ class Dlg2(tkSimpleDialog.Dialog):
 		pack(Label(fr3,text='fastest note:'), side=LEFT)
 		self.optionstime= ['4th','8th','16th','32th','64th','128th']
 		self.vartime = StringVar()
-		self.vartime.set(self.optionstime[1])
+		self.vartime.set(self.optionstime[2])
 		pack(OptionMenu(fr3, self.vartime, *self.optionstime), side=LEFT)
 		
 		

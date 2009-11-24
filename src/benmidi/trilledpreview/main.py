@@ -3,11 +3,8 @@ musicpad
 Ben Fisher, 2007
 License: GPL
 
-can't support too much polyphony, see http://www.sjbaker.org/wiki/index.php?title=Keyboards_Are_Evil
-[s down] [shift down][s up] [shift up]=error
-[shift down][s down][v down][shift up][v up] [s up] = error
-fixed those. now only alt causes problems
--find source of delay. use precomputed wav tables?
+Used to use real-time midi output (notesrealtimemidi.py), but there was significant delay.
+Now uses precomputed .wav files.
 """
 from Tkinter import *
 import tkFileDialog
@@ -54,7 +51,10 @@ class Gui1():
 			('Control+','Down'): Callable(self.changeTransposition,-1),
 			('Alt+','F4'):self.onClose }
 			
-		self.objNotesRealtime = notesrealtimewav.NotesRealtimeWav(manualbindings)
+		if True:
+			self.objNotesRealtime = notesrealtimewav.NotesRealtimeWav(manualbindings)
+		else:
+			self.objNotesRealtime = notesrealtimemidi.NotesRealtimeMidi(manualbindings)
 		self.objNotesRealtime.addBindings(root)
 		self.objNotesRealtime.addNotebindings('notes.cfg')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
@@ -92,10 +92,18 @@ class Gui1():
 		bSharps, bTreble, timesig, nQuantize = self._settings
 		try:
 			res = notesinterpret.notesinterpret(res, timesig, nQuantize)
-			#doc = convToClass(res, timesig, nQuantize, bTreble, bSharps)
+			trdoc = notesinterpret.convToClassTrClasses(res, timesig, nQuantize, bTreble, bSharps)
+			docMingus = notesinterpret.convTrClassToMingus(trdoc, timesig, nQuantize, bTreble, bSharps)
+			
 		except notesinterpret.NotesinterpretException, e:
 			alert('Exception:'+str(e), title='Trilling Recorder')
 			return
+			
+		from mingus.extra import MusicXML, LilyPond
+		s=LilyPond.from_Composition(docMingus)
+		f=open('out.ly','w')
+		f.write(s)
+		f.close()
 		
 		
 	def onlosefocus(self,e=None):

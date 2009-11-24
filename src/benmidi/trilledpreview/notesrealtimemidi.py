@@ -4,6 +4,12 @@ import time
 import win32midi
 
 
+#~ can't support too much polyphony, see http://www.sjbaker.org/wiki/index.php?title=Keyboards_Are_Evil
+#~ [s down] [shift down][s up] [shift up]=error
+#~ [shift down][s down][v down][shift up][v up] [s up] = error
+#~ fixed those. now only alt causes problems
+
+
 # On Windows, the best timer is time.clock()
 # On most other platforms the best timer is time.time()
 if sys.platform == "win32": fntimer = time.clock
