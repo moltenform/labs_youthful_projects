@@ -1,7 +1,6 @@
 
-
+from notesrealtimerecorded import NotesinterpretException
 import testdepiction
-import exceptions
 import bisect
 
 import music_util
@@ -9,39 +8,21 @@ import trclasses
 
 from mingus.containers import Composition,Track, Instrument, Note, Bar
 
+#quantize is 4, 8, 16, for qtr note, 8th, 16th
 
-
-def notesinterpret(listResults, timesig, quantize):
-	print listResults
-	startTime = listResults.pop(0)
-	assert startTime[0]==None
-	startTime = startTime[1]
-	
-	
-	#shift times so that 0 is start time.
-	listResults = [(m[0],float(m[1]-startTime),None if m[2]==None else float(m[2]-startTime)) for m in listResults]
-	
-	#sort results by *start* time
-	listResults.sort(key=lambda a: a[1])
-	if listResults[-1][0]!=-1: raise NotesinterpretException('must end with tab pulse!')
-	if listResults[0][0]!=-1: raise NotesinterpretException('must start with tab pulse!')
-	
-	#separate tabs
-	listNotes = [m for m in listResults if m[0] != -1]
-	listPulses = [m[1] for m in listResults if m[0] == -1]
-	if not listPulses: raise NotesinterpretException('no tabs!')
-	
+def notesinterpret(objResults, timesig, quantize):
+	if isinstance(objResults, NotesinterpretException): raise objResults
+	vis = testdepiction.TestDepiction()
+	listPulses, listNotes = objResults.listPulses, objResults.listNotes
 	
 	# how many subdivisions?
-	divisions = quantize
-	divisions /= 4 #now, since tapping every qtr note
+	divisions = quantize / 4 #because each pulse is a qtr note
+	assert quantize >= 4
+	#for example, if quantize by 8th note, and each pulse is a qtr note, there are two possible values per pulse.
 	
-	#add a final pulse. Disabled: better just to enforce final event is a tab-pulse
-	#~ if len(listPulses)==1: listPulses.append(listPulses[0] + (listPulses[0]-0.0))
-	#~ listPulses.append(listPulses[-1] + (listPulses[-1]-listPulses))
-	
+
 	#create quantization list (contains all acceptible times).
-	#divides linearly. one could also smooth inter-beat timing
+	#divides linearly. one might also smooth intra-pulse timing with a spline...
 	listQuantize=[]
 	listQuantize.append(0.0)
 	prevTime = 0.0
@@ -51,47 +32,48 @@ def notesinterpret(listResults, timesig, quantize):
 			listQuantize.append(prevTime + i*inc)
 		prevTime = pulseTime
 	
-	
-	TMPlistNotesUnquantized = listNotes
+	vis.addPreQuantize(listQuantize, listNotes)
 	#quantize all of the times
-	listNotes = [(m[0],findclosest(listQuantize,m[1]),findclosest(listQuantize,m[2])) for m in listNotes]
-	#now times are integers, corresponding to multiples of time unit. So if quantize=8, each unit is an 8th note
+	for note in listNotes:
+		note.start = findclosest(listQuantize, note.start)
+		note.end = findclosest(listQuantize, note.end)
+		#now times are integers, corresponding to multiples of time unit. So if quantize=8, each unit is an 8th note
 	
-	TMPlistnotes = list(listNotes)
+	vis.addQuantized(listNotes)
 	
 	
-		
 	#now get rid of overlapping notes, using some heuristics.
+	#this logic is not currently used since polyphony no longer supported...
+	#although could occur if two notes played rapidly
 	listFinal = []
 	while listNotes:
 		currentPitchGroup = [listNotes.pop(0)]
-		currentPitchStartTime = currentPitchGroup[0][1]
-		while listNotes and listNotes[0][1]==currentPitchStartTime:
+		currentPitchStartTime = currentPitchGroup[0].start
+		while listNotes and listNotes[0].start==currentPitchStartTime:
 			currentPitchGroup.append(listNotes.pop(0))
 		
 		#length of this pitch group is the longest in the group...
 		currentPitchEndTime = 0
 		for note in currentPitchGroup: 
-			if note[2]>currentPitchEndTime: currentPitchEndTime=note[2]
+			if note.end>currentPitchEndTime: currentPitchEndTime=note.end
 		
 		#...unless it is interrupted by some other note.
-		if listNotes and listNotes[0][1] < currentPitchEndTime:
-			currentPitchEndTime = listNotes[0][1]
+		if listNotes and listNotes[0].start < currentPitchEndTime:
+			currentPitchEndTime = listNotes[0].start
 		
 		#can't have a note of length 0.
 		if currentPitchEndTime==currentPitchStartTime:
 			currentPitchEndTime += 1
 		
 		#quantize currentPitchEndTime to have it fill to next note?
-		if listNotes and currentPitchEndTime != listNotes[0][1]:
-			if listNotes[0][1] - currentPitchEndTime < quantize:
-				currentPitchEndTime = listNotes[0][1] #bleed into next note.
+		if listNotes and currentPitchEndTime != listNotes[0].start:
+			if listNotes[0].start - currentPitchEndTime < quantize:
+				currentPitchEndTime = listNotes[0].start #bleed into next note.
 		assert currentPitchEndTime>currentPitchStartTime
 		
 		listFinal.append(( [m[0] for m in currentPitchGroup], currentPitchStartTime, currentPitchEndTime))
 	
-	
-	testdepiction.draw(listQuantize, listPulses,TMPlistNotesUnquantized, TMPlistnotes, listFinal)
+	vis.draw(listPulses, listFinal)
 	return listFinal
 	
 
@@ -143,10 +125,76 @@ def convTrClassToMingus(trdoc, timesig, quantize, bIsTreble, bSharps):
 	
 	return comp
 	
+class IntermediateList():
+	#an intermediate list of notes. timings in terms of baseDivisions.
+	noteList = None # list of NotesRealtimeNoteEvent.
+	bSharps = True
+	timesig=None
+	baseDivisions = 64 #each qtr note can be divided into this many pieces. 64 units always = 1 qtr note
 	
+	atomicnotes = [int(baseDivisions/n) for n in [ 0.25, 0.5, 1, 2, 4, 8, 16, 32]]
+	#							     whole, half, qtr, 8th, 16, 32, 64, 138
 	
+	def __init__(self, timesig, bSharps=True):
+		self.timesig=timesig
+		self.bSharps=bSharps
+		self.noteList=[]
 
+	def effectivelyTieLongNotes(self, currentMeasureTime, length): 
+		#spell a long note on the beat. for example, turn something 3 beats long into halfnote tied to qtr
+		# probably only looks well for duple times!
+		#returns list of atoms
+		results = []
+		lengthleft = length
+		
+		while lengthleft>0:
+			found=False
+			for atom in atomicnotes:
+				if atom  <= lengthleft and isDivisible(currentMeasureTime, atom):
+					results.append(atom)
+					lengthleft -= atom
+					currentMeasureTime += atom
+					found=True
+					break
+			assert Found
+					
+		assert lengthleft == 0
+		return results
+		
+	def effectivelyTieLongNotesBarlines(self, currentMeasureTime, length, measureLength): 
+		#spell a long note, taking measures into account (must tie across barlines)
+		#returns list of atoms.
+		results = []
+		
+		if currentMeasureTime+length <= measureLength:
+			return self.effectivelyTieLongNotes(currentMeasureTime, length)
+		else:
+			lengthleft = length
+			firstnotelength = measureLength - currentMeasureTime
+			results.extend(self.effectivelyTieLongNotes(currentMeasureTime, firstnotelength))
+			lengthleft-=firstnotelength
+			currentMeasureTime += firstnotelength
+			
+			#add any full measures
+			while lengthleft >= measureLength:
+				results.extend(self.effectivelyTieLongNotes(currentMeasureTime, measureLength))
+				lengthleft-=measureLength
+				currentMeasureTime += measureLength
+			
+			#add the rest
+			if lengthleft != 0:
+				results.extend(self.effectivelyTieLongNotes(currentMeasureTime, lengthleft))
+				lengthleft-=lengthleft
+				currentMeasureTime += lengthleft
+			
+			return results
+	
+	
 def convToClassTrClasses(listFinal, timesig, quantize, bIsTreble, bSharps):
+	
+	
+	
+	
 	doc = trclasses.TrDocument()
 	doc.trscore = trclasses.TrScore()
 	part = trclasses.TrPart()
@@ -179,7 +227,7 @@ def convToClassTrClasses(listFinal, timesig, quantize, bIsTreble, bSharps):
 	currentMeasureTime = 0
 	for note in newlistFinal:
 		length = qStepToTimeBase(note[2]-note[1])
-		results, _ = effectivelyTieLongNotesBarlines(currentMeasureTime, length, nTimestepspermeasure)
+		results = effectivelyTieLongNotesBarlines(currentMeasureTime, length, nTimestepspermeasure)
 		for i in range(len(results)):
 			result = results[i]
 			bIsTied = i!=len(results)-1
@@ -199,63 +247,6 @@ def convToClassTrClasses(listFinal, timesig, quantize, bIsTreble, bSharps):
 def isDivisible(a,b): return a%b == 0
 
 
-atomicnotes = [int(trclasses.baseDivisions/n) for n in [ 0.25, 0.5, 1, 2, 4, 8, 16, 32]]
-#									whole, half, qtr, 8th, 16, 32, 64, 138
-
-def effectivelyTieLongNotes(currentMeasureTime, length): 
-	#spell a long note on the beat. probably only looks well for duple times!
-	results = []
-	lengthleft = length
-	
-	#if longer than  whole notes, add whole notes (unnecessary?)
-	#~ while lengthleft>atomicnotes[0]: 
-		#~ print 'whole'; results.append(atomicnotes[0]); 
-		#~ lengthleft-=atomicnotes[0]; 
-		#~ currentMeasureTime+=atomicnotes[0]
-	
-	while lengthleft>0:
-		#~ print 'currentMeasureTime %d,lengthleft %d' % (currentMeasureTime,lengthleft)
-		for atom in atomicnotes:
-			#~ print 'atom %d lengthleft %d' % (atom, lengthleft)
-			if atom  <= lengthleft and isDivisible(currentMeasureTime, atom):
-				results.append(atom)
-				lengthleft -= atom
-				currentMeasureTime += atom
-				break
-		
-				
-	assert lengthleft == 0
-	return results, currentMeasureTime
-	
-def effectivelyTieLongNotesBarlines(currentMeasureTime, length, measureLength): 
-	results = []
-	#spell a long note, taking measures into account
-	
-	if currentMeasureTime+length <= measureLength:
-		return effectivelyTieLongNotes(currentMeasureTime, length)
-	else:
-		lengthleft = length
-		firstnotelength = measureLength - currentMeasureTime
-		results.extend(effectivelyTieLongNotes(currentMeasureTime, firstnotelength)[0])
-		lengthleft-=firstnotelength
-		currentMeasureTime += firstnotelength
-		
-		#add any full measures
-		while lengthleft >= measureLength:
-			results.extend(effectivelyTieLongNotes(currentMeasureTime, measureLength)[0])
-			lengthleft-=measureLength
-			currentMeasureTime += measureLength
-		
-		#add the rest
-		if lengthleft != 0:
-			results.extend(effectivelyTieLongNotes(currentMeasureTime, lengthleft)[0])
-			lengthleft-=lengthleft
-			currentMeasureTime += lengthleft
-		
-		return results, currentMeasureTime
-	
-	
-
 #here's a way to quantize:
 #make a big list of acceptible times.
 #quantize all starts/stops to that.
@@ -273,7 +264,7 @@ def findclosest(lst, n): #returns index of closest match.
 	else:
 		return leftpoint - 1
 	
-class NotesinterpretException(exceptions.Exception): pass
+
 class TrebleInstrument(Instrument):
 	name = ''
 	range = (Note('C', 0), Note('C', 10))
@@ -333,21 +324,21 @@ if __name__=='__main__':
 	
 	bd = trclasses.baseDivisions
 	def testTieNotes():
-		r,_ = effectivelyTieLongNotes( 0, bd*3); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotes( bd, bd*3); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotes( 0 , bd*2); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotes( 0 , bd*3.5); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotes( 0 , bd*2.25); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotes( bd , bd*5); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotes( 0, bd*3); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotes( bd, bd*3); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotes( 0 , bd*2); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotes( 0 , bd*3.5); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotes( 0 , bd*2.25); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotes( bd , bd*5); print [ n/float(bd) for n in r]
 		
 		
-		r,_ = effectivelyTieLongNotesBarlines( 0 , bd*4, bd*4); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotesBarlines( 0 , bd*8, bd*4); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotesBarlines( 0 , bd*12, bd*4); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotesBarlines( 0 , bd*10, bd*4); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotesBarlines( bd , bd*5, bd*4); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotesBarlines( bd , bd*8, bd*4); print [ n/float(bd) for n in r]
-		r,_ = effectivelyTieLongNotesBarlines( bd*3 , bd*2, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( 0 , bd*4, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( 0 , bd*8, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( 0 , bd*12, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( 0 , bd*10, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( bd , bd*5, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( bd , bd*8, bd*4); print [ n/float(bd) for n in r]
+		r = effectivelyTieLongNotesBarlines( bd*3 , bd*2, bd*4); print [ n/float(bd) for n in r]
 	
 	print atomicnotes
 
