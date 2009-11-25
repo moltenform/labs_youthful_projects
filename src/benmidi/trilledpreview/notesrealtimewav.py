@@ -1,16 +1,14 @@
-import sys
-import time
+import notesrealtimerecorded
+
 import winsound
 #linux: see http://stackoverflow.com/questions/307305/play-a-sound-with-python
+
+fntimer = notesrealtimerecorded.fntimer
 
 #does not support polyphony. in output from recording, notes never overlap.
 #in fact, polyphony doesn't work well anyways, because can obscure recognition of Tab key
 #todo: check threading
 
-# On Windows, the best timer is time.clock()
-# On most other platforms the best timer is time.time()
-if sys.platform == "win32": fntimer = time.clock
-else: fntimer = time.time
 
 mediadir=r'media'+'\\'
 
@@ -19,13 +17,14 @@ class NotesRealtimeWav():
 	keyCodesCurrentlyHeld = None
 	transposition =60 #default start at c4
 	bRecordingMode = False
-	listRecorded = None
+	objRecording = None
 	
 	def __init__(self, manualbindings):
 		self.manualbindings = manualbindings
 		self.keyCodesCurrentlyHeld = {} #map from Keycode to Notenumber
 		
 		self.theLastNote=None
+		self.objRecording = notesrealtimerecorded.NotesRealtimeRecordedRaw()
 		
 	def addBindings(self,tkTopLevel):
 		
@@ -60,15 +59,15 @@ class NotesRealtimeWav():
 		
 	def setRecordingMode(self, b):
 		if b:
-			self.listRecorded = []
-			self.listRecorded.append((None, fntimer(), None))
 			self.bRecordingMode = True
+			self.objRecording.beginRecording()
 			return None
 		else:
-			l = self.listRecorded
-			self.listRecorded = None
 			self.bRecordingMode = False
-			return l
+			# return results of recording
+			ret = self.objRecording.getProcessedResults()
+			self.objRecording.clear()
+			return ret
 	
 	def _onkey(self, event):
 		if event.keycode==16 or event.keycode==17 or event.keycode==0:
@@ -94,9 +93,9 @@ class NotesRealtimeWav():
 					for keycode in self.keyCodesCurrentlyHeld:
 						notenumber = self.keyCodesCurrentlyHeld[keycode]
 						if notenumber != -1:
-							notenumber, tm=notenumber
+							notenumber, startTime=notenumber
 							if self.bRecordingMode:
-								self.listRecorded.append((notenumber, tm, fntimer()))
+								self.objRecording.recNoteEvent(notenumber, startTime)
 							
 							newdict[keycode] = -1 #signifies we've processed it
 						else:
@@ -108,9 +107,9 @@ class NotesRealtimeWav():
 					self.theLastNote = event.keycode
 					winsound.PlaySound(mediadir+str(notenumber)+'.wav',winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
 					
-					if self.bRecordingMode: tm = fntimer()
-					else: tm=0
-					self.keyCodesCurrentlyHeld[event.keycode] = notenumber,tm #(need to record notenumber because transposition may have changed)
+					if self.bRecordingMode: startTime = fntimer()
+					else: startTime=0
+					self.keyCodesCurrentlyHeld[event.keycode] = notenumber,startTime #(need to record notenumber because transposition may have changed)
 					
 					
 					
@@ -138,20 +137,20 @@ class NotesRealtimeWav():
 			else:
 				notenumber = self.keyCodesCurrentlyHeld[event.keycode]
 				if notenumber != -1:
-					notenumber, tm=notenumber
+					notenumber, startTime=notenumber
 					
 					if event.keycode==self.theLastNote:
 						winsound.PlaySound(None,0)
 					
 					if self.bRecordingMode:
-						self.listRecorded.append((notenumber, tm, fntimer()))
+						self.objRecording.recNoteEvent(notenumber, startTime)
 				
 				#~ print 'release note',notenumber
 				del self.keyCodesCurrentlyHeld[event.keycode]
 	
 	def _ontab(self):
 		if self.bRecordingMode:
-			self.listRecorded.append((-1, fntimer(), None))
+			self.objRecording.recPulseEvent()
 	
 	def _getkeyboardmods(self, eventstate):
 		mods = ''

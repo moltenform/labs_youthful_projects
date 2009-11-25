@@ -1,6 +1,8 @@
 
 # On Windows, the best timer is time.clock()
 # On most other platforms the best timer is time.time()
+import sys
+import time
 if sys.platform == "win32": fntimer = time.clock
 else: fntimer = time.time
 import exceptions
@@ -28,12 +30,14 @@ class NotesRealtimeRecordedRaw():
 		self.listRecorded.append((-1, fntimer(), None))
 	
 	def recNoteEvent(self, noteNumber, startTime):
-		self.listRecorded.append((noteNumber, startTime, fntimer())
+		self.listRecorded.append((noteNumber, startTime, fntimer()))
 	
 	def getProcessedResults(self):
 		#returns either a NotesRealtimeRecorded or a NotesinterpretException
 		
 		listResults = self.listRecorded
+		print self.startTime
+		print listResults
 		
 		#sort results by *start* time
 		listResults.sort(key=lambda a: a[1])

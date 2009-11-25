@@ -91,9 +91,9 @@ class Gui1():
 		res = self.objNotesRealtime.setRecordingMode(False)
 		bSharps, bTreble, timesig, nQuantize = self._settings
 		try:
-			res = notesinterpret.notesinterpret(res, timesig, nQuantize)
-			trdoc = notesinterpret.convToClassTrClasses(res, timesig, nQuantize, bTreble, bSharps)
-			docMingus = notesinterpret.convTrClassToMingus(trdoc, timesig, nQuantize, bTreble, bSharps)
+			listQuantized = notesinterpret.createQuantizedList(res, timesig, nQuantize)
+			intermed = notesinterpret.createIntermediateList(listQuantized, timesig, nQuantize, bTreble, bSharps)
+			docMingus = notesinterpret.createMingusComposition(intermed, timesig, nQuantize, bTreble, bSharps)
 			
 		except notesinterpret.NotesinterpretException, e:
 			alert('Exception:'+str(e), title='Trilling Recorder')

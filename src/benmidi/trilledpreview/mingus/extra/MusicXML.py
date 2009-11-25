@@ -60,12 +60,21 @@ def _lcm(a=None,b=None, terms=None):
    else: return (a*b)/_gcd(a,b)
 
 
-def _note2musicxml(note, isChord=False):
+def _note2musicxml(note, isChord=False,isTied=False,wasTied=False):
     doc = Document()
     note_node = doc.createElement("note")
     if isChord:
         chord=doc.createElement("chord")
         note_node.appendChild(chord)
+    if wasTied:
+        tied=doc.createElement("tie")
+        tied.setAttribute("type","stop")
+        note_node.appendChild(tied)
+    if isTied:
+        tied=doc.createElement("tie")
+        tied.setAttribute("type","start")
+        note_node.appendChild(tied)
+        
     if note==None:
         #note is a rest
         rest = doc.createElement("rest")
@@ -131,16 +140,20 @@ def _bar2musicxml(bar):
     bar_node.appendChild(attributes)
     
     
-
+    prevTied = False
+    isTied=False
     for nc in bar:
         time  = value.determine(nc[1])
         beat = time[0]
         note_cont = nc[2]
         is_first_of_group=True
-
+        
+        prevTied = isTied
+        isTied = note_cont.tied
+        
         if not note_cont: note_cont = [None]
         for n in note_cont:
-            note = _note2musicxml(n, isChord=not is_first_of_group)
+            note = _note2musicxml(n, isChord=not is_first_of_group, isTied=isTied,wasTied=prevTied)
             is_first_of_group = False
             #all but the last have a <chord/> element.
 

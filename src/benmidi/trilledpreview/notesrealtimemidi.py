@@ -14,7 +14,7 @@ import win32midi
 # On most other platforms the best timer is time.time()
 if sys.platform == "win32": fntimer = time.clock
 else: fntimer = time.time
-    
+
 
 class NotesRealtimeMidi():
 	manualbindings = None
@@ -29,6 +29,9 @@ class NotesRealtimeMidi():
 		self.keyCodesCurrentlyHeld = {} #map from Keycode to Notenumber
 		self.midiplayerdevice = win32midi.RealTimePlayer()
 		self.midiplayerdevice.openDevice()
+		
+		assert False #not yet updated to use NotesRealtimeRecordedRaw class
+
 		
 	def addBindings(self,tkTopLevel):
 		

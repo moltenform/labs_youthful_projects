@@ -31,7 +31,7 @@ class NoteContainer:
 [refMingusContainersNote mingus.containers.Note] objects. \
 It can be used to store single and multiple notes in and is \
 required for working with [refMingusContainersBar Bars]."""
-
+	tied = False
 	notes = []
 
 	def __init__(self, notes = []):
@@ -100,6 +100,9 @@ notes = [["C", 5, {"volume" : 20}], ["E", 6, {"volume":20}]]
 			else:
 				self.add_note(x)
 		return self.notes
+		
+	def set_tied(self, tied):
+		self.tied = tied
 
         def from_chord(self, shorthand):
                 """Shortcut to from_chord_shorthand."""

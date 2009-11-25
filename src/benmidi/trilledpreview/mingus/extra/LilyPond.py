@@ -102,6 +102,9 @@ determining the duration of the NoteContainer is optional."""
 			result += str(int(parsed_value[0]))
 		for i in range(parsed_value[1]):
 			result += "."
+			
+	if nc.tied:
+		result += " ~ "
 	return result
 
 def from_Bar(bar, showkey = True, showtime = True):
