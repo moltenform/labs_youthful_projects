@@ -48,8 +48,8 @@ class DlgResultsWindow():
 		top=Toplevel()
 		top.title('Trilled Results - Rough Preview')
 		opts={}
-		frScoreViewWithBtns = scoreview_intermed.ScoreViewWindow(top, intermed,self.bTreble, clefsfilepath, opts)
-
+		frScoreViewWithBtns = scoreview_intermed.ScoreViewWindow(top, self.intermed,self.bTreble, clefsfilepath, opts)
+		top.focus_set()
 
 def testWriteToLilypond(docMingus):
 	s=LilyPond.from_Composition(docMingus)

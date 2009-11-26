@@ -13,9 +13,11 @@ import music_util
 import dlg1
 import dlg2
 import dlg3
+import dlgresults
 import notesrealtimemidi
 import notesrealtimewav
 import notesinterpret
+import tkutil
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class Gui1():
@@ -38,17 +40,17 @@ class Gui1():
 		pack( Label(frameMain, text='(Use up/down arrows to transpose)'), side=TOP, anchor='w')
 		
 		frame2 = pack( Frame(frameMain), side=TOP, fill=BOTH, expand=True)
-		self.btnRecord =  pack( Button(frame2, text='Record...', command=self.startRecordProcess), side=LEFT, pady=25, padx=5)
+		self.btnRecord =  pack( Button(frame2, text='Record and notate...', command=self.startRecordProcess), side=LEFT, pady=25, padx=5)
 		self.btnStop =  pack( Button(frame2, text='Stop', command=self.stopRecord), side=LEFT, pady=25, padx=3)
 		self.btnStop.config(state=DISABLED)
 		pack( Label(frame2, text='\t Notate what is played, and export to Finale or Sibelius.'), side=LEFT)
 		self.lblEvents = pack( Label(root, text=''),side=TOP)
 	
 		manualbindings = {
-			('','Up'): Callable(self.changeTransposition,12),
-			('','Down'): Callable(self.changeTransposition,-12),
-			('Control+','Up'): Callable(self.changeTransposition,1),
-			('Control+','Down'): Callable(self.changeTransposition,-1),
+			('','Up'): tkutil.Callable(self.changeTransposition,12),
+			('','Down'): tkutil.Callable(self.changeTransposition,-12),
+			('Control+','Up'): tkutil.Callable(self.changeTransposition,1),
+			('Control+','Down'): tkutil.Callable(self.changeTransposition,-1),
 			('Alt+','F4'):self.onClose }
 			
 		if True:
@@ -96,20 +98,19 @@ class Gui1():
 			docMingus = notesinterpret.createMingusComposition(intermed, timesig, nQuantize, bTreble, bSharps)
 			
 		except notesinterpret.NotesinterpretException, e:
-			alert('Exception:'+str(e), title='Trilling Recorder')
+			tkutil.alert('Exception:'+str(e), title='Trilling Recorder')
 			return
-			
-		from mingus.extra import MusicXML, LilyPond
-		s=LilyPond.from_Composition(docMingus)
-		f=open('out.ly','w')
-		f.write(s)
-		f.close()
+		
+		#open results window
+		top = Toplevel()
+		window = dlgresults.DlgResultsWindow(top, intermed, docMingus, bTreble)
+		top.focus_set()
 		
 		
 	def onlosefocus(self,e=None):
 		self.objNotesRealtime.stopallnotes()
 		if self.isRecording:
-			alert('Recording was stopped, because you switched to another program.')
+			tkutil.alert('Recording was stopped, because you switched to another program.')
 			self.stopRecord()
 		
 	def onClose(self):
@@ -120,25 +121,6 @@ class Gui1():
 			#if not in a finally, it's possible error thrown and app can't close
 
 
-class Callable():
-	def __init__(self, func, *args, **kwds):
-		self.func = func
-		self.args = args
-		self.kwds = kwds
-	def __call__(self, event=None):
-		return apply(self.func, self.args, self.kwds)
-	def __str__(self):
-		return self.func.__name__
-
-def alert(message, title=None, icon='info'):
-	""" Show dialog with information. Icon can be one of 'info','warning','error', defaulting to 'info'."""
-	import tkMessageBox
-	if icon=='info':
-		return tkMessageBox.showinfo(title=title, message=message)
-	elif icon=='warning':
-		return tkMessageBox.showwarning(title=title, message=message)
-	elif icon=='error':
-		return tkMessageBox.showerror(title=title, message=message)
 
 root = Tk()
 app = Gui1(root)

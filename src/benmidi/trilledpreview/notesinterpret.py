@@ -8,7 +8,7 @@ import trclasses
 
 from mingus.containers import Composition,Track, Instrument, Note,NoteContainer, Bar
 
-#quantize is 4, 8, 16, for qtr note, 8th, 16th
+#quantize is 4 for qtr note, 8 for 8th, and so on
 
 def createQuantizedList(objResults, timesig, quantize):
 	#quantizes and eliminate overlapping notes
@@ -76,6 +76,7 @@ def createQuantizedList(objResults, timesig, quantize):
 	
 	vis.draw(listPulses, listFinal)
 	return listFinal
+	#returns list of tuples in the form ( [pitches], start, end) 
 	
 
 def createIntermediateList(listNotes, timesig, quantize, bIsTreble, bSharps):
@@ -99,14 +100,13 @@ def createIntermediateList(listNotes, timesig, quantize, bIsTreble, bSharps):
 			assert restLength >= 0
 			if restLength != 0:
 				newlist.append(((0,), listNotes[i][2], listNotes[i+1][1]))
-				#~ newlist.append(NotesRealtimeNoteEvent(pitch=(0,), start=listNotes[i][2], end=listNotes[i+1][1]))
 	
 	#convert to a standard time base, where each unit is 1/baseDivisions of a qtr note.
 	def qStepToTimeBase(x):
 		return int((float(x) / (divisions) * intermed.baseDivisions))
 	
 	
-	#insert notes, creating tied notes when necessary.
+	#standardize durations, creating tied notes when necessary.
 	currentMeasureTime = 0
 	for note in newlist:
 		length = qStepToTimeBase(note[2]-note[1])
@@ -143,16 +143,15 @@ def createMingusComposition(intermed, timesig, quantize, bIsTreble, bSharps):
 	firstbar = Bar(meter=timesig)
 	track.add_bar(firstbar)
 	
-	mapDurs={
-		intermed.baseDivisions*4: 1.0,
-		intermed.baseDivisions*2: 2.0,
-		intermed.baseDivisions*1: 4.0,
-		intermed.baseDivisions*0.5: 8.0,
-		intermed.baseDivisions*0.25: 16.0,
-		intermed.baseDivisions*0.125: 32.0,
-		intermed.baseDivisions*0.0625: 64.0,
+	mapDurs={ 
+		int(intermed.baseDivisions*4): 1.0, #whole note,
+		int(intermed.baseDivisions*2): 2.0, #half note
+		int(intermed.baseDivisions*1): 4.0, #qtr note, and so on
+		int(intermed.baseDivisions*0.5): 8.0,
+		int(intermed.baseDivisions*0.25): 16.0,
+		int(intermed.baseDivisions*0.125): 32.0,
+		int(intermed.baseDivisions*0.0625): 64.0,
 			}
-	
 	
 	for note in intermed.noteList:
 		if note.pitch==0 or note.pitch==(0,): # a rest
@@ -164,7 +163,7 @@ def createMingusComposition(intermed, timesig, quantize, bIsTreble, bSharps):
 				thepitches.append(pname+'-'+str(poctave))
 		
 		dur = note.end - note.start
-		if dur not in mapDurs: raise NotesinterpretException('Unknown duration')
+		if dur not in mapDurs: raise NotesinterpretException('Unknown duration:' + str(dur))
 		notecontainer = NoteContainer(thepitches)
 		notecontainer.tied =  note.isTied
 		bFit = track.add_notes(notecontainer, mapDurs[dur])
@@ -301,12 +300,12 @@ if __name__=='__main__':
 		assert findclosest(testlist, 99)==4
 		assert findclosest(testlist, 2.1)==4
 	
-	def dataTest(listEvents):
-		nQuantize = 8; timesig=(4,4); bTreble=True; bSharps=True
+	def dataTest(startTime, listEvents):
+		nQuantize = 16; timesig=(4,4); bTreble=True; bSharps=True
 		import notesrealtimerecorded
 		raw = notesrealtimerecorded.NotesRealtimeRecordedRaw()
 		raw.listRecorded = listEvents
-		raw.startTime = 3.6317464929201895e-06
+		raw.startTime = startTime
 		out = raw.getProcessedResults()
 		
 		listQuantized = createQuantizedList(out, timesig, nQuantize)
@@ -319,9 +318,10 @@ if __name__=='__main__':
 		f.write(s)
 		f.close()
 	
-	testFirst = [ (-1, 1.3594319948485072, None), (60, 1.379929292689434, 2.0158894496367554), (-1, 2.0164087893852431, None), (-1, 2.5513834858899664, None), (62, 2.0160755068032388, 2.5517243113300712), (-1, 3.169228770695717, None), (64, 2.551906178019832, 3.1695567453405391), (65, 3.1697419644116782, 3.6429870276808924), (-1, 3.7864303982768761, None), (65, 3.7661233480791552, 4.055627181666944), (64, 4.0558101658171637, 4.363614649347892), (-1, 4.3638982049394546, None), (-1, 4.9788758068413719, None), (62, 4.3637157795194641, 4.9793247465809198), (64, 4.9795158323194704, 5.2669185608785476), (62, 5.2671219386821511, 5.554015105271759), (-1, 5.5548263815652552, None), (60, 5.5542020005335875, 6.0478613902046208), (-1, 6.1506713842122389, None), (60, 6.1714058630356652, 6.4583012645461926), (-1, 6.7864605697092788, None), (62, 6.4584901153638246, 6.7868988935744623), (64, 6.7870924935990464, 7.095053421594085), (-1, 7.3821667278941874, None), (65, 7.0952593136837221, 7.3826081247756346), (-1, 7.998778615717919, None), (64, 7.3828042390862523, 8.0198569929977133), (-1, 8.6353701378247791, None), (62, 8.0200617676268919, 8.6763147271510768), (-1, 9.3115337284487278, None), (-1, 9.9065979055997335, None), (-1, 10.480808035658164, None), (60, 8.6964918725703964, 10.954150038622227), (-1, 11.036485922093451, None), (-1, 11.651723333552169, None)]
-	testTied = [(-1, 1.3984277331336803, None), (-1, 1.7275737558823816, None), (-1, 2.0561465214154313, None), (-1, 2.551346050964578, None), (-1, 2.9419032307178705, None), (-1, 3.3313323341374392, None), (-1, 3.7209793423465833, None), (-1, 4.1311197372850463, None), (-1, 4.5210530947369012, None), (-1, 4.9106858553251884, None), (-1, 5.3002845333694646, None), (-1, 5.6909766464732252, None), (60, 2.0787918576243629, 5.7119340586582927), (-1, 6.1489574792326955, None), (67, 5.7539287814512736, 6.1496033713782055), (-1, 6.5418861894458651, None), (64, 6.1497444507612, 6.5433112308966646), (62, 6.5434928182213099, 6.9139206239899202), (-1, 6.9352227727267017, None), (65, 6.9141262367144432, 7.1198009802921876), (64, 7.1200077104771697, 7.3043076703882752), (-1, 7.3049393149129287, None), (62, 7.3045135624779123, 7.5315250960666793), (-1, 7.7164131195445229, None), (-1, 8.1890737509934919, None), (60, 7.7170338688296978, 8.3544676767577997)]
-	dataTest(testTied)
+	testFirst = 3.63174e-06, [ (-1, 1.3594319948485072, None), (60, 1.379929292689434, 2.0158894496367554), (-1, 2.0164087893852431, None), (-1, 2.5513834858899664, None), (62, 2.0160755068032388, 2.5517243113300712), (-1, 3.169228770695717, None), (64, 2.551906178019832, 3.1695567453405391), (65, 3.1697419644116782, 3.6429870276808924), (-1, 3.7864303982768761, None), (65, 3.7661233480791552, 4.055627181666944), (64, 4.0558101658171637, 4.363614649347892), (-1, 4.3638982049394546, None), (-1, 4.9788758068413719, None), (62, 4.3637157795194641, 4.9793247465809198), (64, 4.9795158323194704, 5.2669185608785476), (62, 5.2671219386821511, 5.554015105271759), (-1, 5.5548263815652552, None), (60, 5.5542020005335875, 6.0478613902046208), (-1, 6.1506713842122389, None), (60, 6.1714058630356652, 6.4583012645461926), (-1, 6.7864605697092788, None), (62, 6.4584901153638246, 6.7868988935744623), (64, 6.7870924935990464, 7.095053421594085), (-1, 7.3821667278941874, None), (65, 7.0952593136837221, 7.3826081247756346), (-1, 7.998778615717919, None), (64, 7.3828042390862523, 8.0198569929977133), (-1, 8.6353701378247791, None), (62, 8.0200617676268919, 8.6763147271510768), (-1, 9.3115337284487278, None), (-1, 9.9065979055997335, None), (-1, 10.480808035658164, None), (60, 8.6964918725703964, 10.954150038622227), (-1, 11.036485922093451, None), (-1, 11.651723333552169, None)]
+	testTied = 3.63174e-06, [(-1, 1.3984277331336803, None), (-1, 1.7275737558823816, None), (-1, 2.0561465214154313, None), (-1, 2.551346050964578, None), (-1, 2.9419032307178705, None), (-1, 3.3313323341374392, None), (-1, 3.7209793423465833, None), (-1, 4.1311197372850463, None), (-1, 4.5210530947369012, None), (-1, 4.9106858553251884, None), (-1, 5.3002845333694646, None), (-1, 5.6909766464732252, None), (60, 2.0787918576243629, 5.7119340586582927), (-1, 6.1489574792326955, None), (67, 5.7539287814512736, 6.1496033713782055), (-1, 6.5418861894458651, None), (64, 6.1497444507612, 6.5433112308966646), (62, 6.5434928182213099, 6.9139206239899202), (-1, 6.9352227727267017, None), (65, 6.9141262367144432, 7.1198009802921876), (64, 7.1200077104771697, 7.3043076703882752), (-1, 7.3049393149129287, None), (62, 7.3045135624779123, 7.5315250960666793), (-1, 7.7164131195445229, None), (-1, 8.1890737509934919, None), (60, 7.7170338688296978, 8.3544676767577997)]
+	testFast = 54.54, [(-1, 55.626115609665476, None), (-1, 56.063453036628957, None), (-1, 56.438331687407199, None), (-1, 56.876017482668885, None), (-1, 57.2822959342598, None), (-1, 57.80875083285725, None), (69, 57.300973447742663, 58.023952485581269), (71, 58.024174301482454, 58.134684994880637), (-1, 58.222658466369332, None), (72, 58.134929439356121, 58.244087167503132), (-1, 58.724571139628083, None), (74, 58.244332450073962, 58.917860789569623), (72, 58.918066122929034, 59.003811378261766), (71, 59.004014756065366, 59.125544447688185), (-1, 59.141545084640647, None), (-1, 59.577993013078476, None), (69, 59.125730784219783, 59.792813611785853), (71, 59.792986259426826, 59.878814206833553), (-1, 60.001850514520697, None), (72, 59.879018981462728, 60.002357562204132), (-1, 60.490131846365948, None), (74, 60.002544736831076, 60.683503070921027), (72, 60.683708683645548, 60.796795961497899), (-1, 60.835879141064019, None), (71, 60.79700129485731, 60.921809615467886), (-1, 61.390482030537399, None), (69, 60.922014390097068, 61.43355677886435), (-1, 61.868844783345367, None), (71, 61.433730543965787, 61.891054589340264), (72, 61.891436202087135, 62.101251136666811), (71, 62.101362882712749, 62.306913588179505), (-1, 62.307166972338663, None), (69, 62.32944885453319, 62.582877712111454), (-1, 62.829163762433495, None), (-1, 63.297919428307232, None)]
+	dataTest(*testFast)
 	
 	intermed=IntermediateList((4,4))
 	bd = intermed.baseDivisions

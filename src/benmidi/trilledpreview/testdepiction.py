@@ -30,8 +30,12 @@ class TestDepiction():
 			return convCoord(listQuantize[x])
 		def  convCoordQRegular(x):
 			return int((float(x)/(len(listQuantize)-1)) * w)
-			
-		def getnote(x): return {60:0,62:1,64:2,65:3}.get(x,3)
+		
+		self.prevpitch=0; self.curlevel=0
+		def getnote(x):
+			if x!=self.prevpitch: self.curlevel= (self.curlevel+1)%4
+			self.prevpitch=x
+			return self.curlevel
 
 		draw = ImageDraw.Draw(im)
 		#~ draw.line((0, 0) + im.size, fill=128)
