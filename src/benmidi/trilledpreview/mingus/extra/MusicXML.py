@@ -3,8 +3,8 @@
 
 ================================================================================
 
-	mingus - Music theory Python package, MusicXML
-	Copyright (C) 2008-2009, Bart Spaans, Javier Palanca
+    mingus - Music theory Python package, MusicXML
+    Copyright (C) 2008-2009, Bart Spaans, Javier Palanca
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,14 +21,14 @@
 
 ================================================================================
 
-	This module can convert mingus.containers to MusicXML files. 
-	The MusicXML format represents common Western musical notation from 
-	the 17th century onwards. It lets you distribute interactive sheet 
-	music online, and to use sheet music files with a wide variety of 
-	musical applications. The MusicXML format is open for use by anyone 
-	under a royalty-free license, and is supported by over 100 applications.
+    This module can convert mingus.containers to MusicXML files. 
+    The MusicXML format represents common Western musical notation from 
+    the 17th century onwards. It lets you distribute interactive sheet 
+    music online, and to use sheet music files with a wide variety of 
+    musical applications. The MusicXML format is open for use by anyone 
+    under a royalty-free license, and is supported by over 100 applications.
 
-	http://www.musicxml.org/xml.html
+    http://www.musicxml.org/xml.html
 
 ================================================================================
 
@@ -48,10 +48,10 @@ import datetime
 def _gcd(a=None,b=None, terms=None):
    """Return greatest common divisor using Euclid's Algorithm."""
    if terms:
-   	return reduce(lambda a,b: _gcd(a,b), terms)
+        return reduce(lambda a,b: _gcd(a,b), terms)
    else:
         while b:
-                a, b = b, a % b
+            a, b = b, a % b
         return a
 
 def _lcm(a=None,b=None, terms=None):
@@ -131,7 +131,7 @@ def _bar2musicxml(bar):
     
     bar_node.appendChild(attributes)
     
-    global prevTied,isTied #must last over barlines
+    global isTied #must last over barlines
     
     for nc in bar:
         time  = value.determine(nc[1])
@@ -154,7 +154,6 @@ def _bar2musicxml(bar):
             note.appendChild(duration)
             
             #add tie if necessary.
-            print note_cont.tied, n
             if prevTied:
                 tied=doc.createElement("tie")
                 tied.setAttribute("type","stop")
@@ -170,9 +169,9 @@ def _bar2musicxml(bar):
                 note.appendChild(dot)
 
             if beat in value.musicxml.keys():
-            	type_node = doc.createElement("type")
-            	type_node.appendChild(doc.createTextNode(value.musicxml[beat]))
-            	note.appendChild(type_node)
+                type_node = doc.createElement("type")
+                type_node.appendChild(doc.createTextNode(value.musicxml[beat]))
+                note.appendChild(type_node)
             
             #check for non-standard ratio
             if time[2]!=1 and time[3]!=1:
@@ -197,115 +196,113 @@ def _track2musicxml(track):
     track_node.setAttribute("id",_get_object_id(track))
     if track.instrument: #try to guess the clef of the instrument
         if "treble" in track.instrument.clef.lower():
-        	clef = ("G","2")
+            clef = ("G","2")
         elif "bass" in track.instrument.clef.lower():
-        	clef = ("F","4")
+            clef = ("F","4")
         elif "french" in track.instrument.clef.lower():
-        	clef = ("G", "1")
+            clef = ("G", "1")
         elif "baritone" in track.instrument.clef.lower():
-        	clef= ("F","3")
+            clef= ("F","3")
         elif "subbass" in track.instrument.clef.lower():
-        	clef = ("F","5")
+            clef = ("F","5")
         elif "alto" in track.instrument.clef.lower():
-        	clef = ("C","3")
+            clef = ("C","3")
         elif "tenor" in track.instrument.clef.lower():
-        	clef = ("C","4")
+            clef = ("C","4")
         elif "mezzo-soprano" in track.instrument.clef.lower():
-        	clef = ("C","2")
+            clef = ("C","2")
         elif "soprano" in track.instrument.clef.lower():
-        	clef = ("C","1")
+            clef = ("C","1")
 
 
     counter = 1
     for b in track.bars:
-    	bar = _bar2musicxml(b)
-    	bar.setAttribute("number",str(counter))
-    	if clef:
-    		attrs = bar.getElementsByTagName("attributes")
-    		for attr in attrs:
-    			clef_node = doc.createElement("clef")
-    			sign = doc.createElement("sign")
-    			line = doc.createElement("line")
-    			sign.appendChild(doc.createTextNode(clef[0]))
-    			line.appendChild(doc.createTextNode(clef[1]))
-    			clef_node.appendChild(sign)
-    			clef_node.appendChild(line)
-    			attr.appendChild(clef_node)
-     	track_node.appendChild(bar)
-    	counter += 1
+        bar = _bar2musicxml(b)
+        bar.setAttribute("number",str(counter))
+        if clef:
+            attrs = bar.getElementsByTagName("attributes")
+            for attr in attrs:
+                clef_node = doc.createElement("clef")
+                sign = doc.createElement("sign")
+                line = doc.createElement("line")
+                sign.appendChild(doc.createTextNode(clef[0]))
+                line.appendChild(doc.createTextNode(clef[1]))
+                clef_node.appendChild(sign)
+                clef_node.appendChild(line)
+                attr.appendChild(clef_node)
+        track_node.appendChild(bar)
+        counter += 1
 
     return track_node
 
 def _composition2musicxml(comp):
-    
-	doc = Document()
-	score = doc.createElement("score-partwise")
-	score.setAttribute("version","2.0")
-	#set title information
-	if comp.title:
-		title = doc.createElement("movement-title")
-		title.appendChild(doc.createTextNode(str(comp.title)))
-		score.appendChild(title)
-	identification = doc.createElement("identification")
-	#set author information
-	if comp.author:
-		author = doc.createElement("creator")
-		author.setAttribute("type","composer")
-		author.appendChild(doc.createTextNode(str(comp.author)))
-		identification.appendChild(author)
-	#set additional info
-	encoding = doc.createElement("encoding")
-	software = doc.createElement("software")
-	software.appendChild(doc.createTextNode("mingus"))
-	encoding.appendChild(software)
-	enc_date = doc.createElement("encoding-date")
-	enc_date.appendChild(doc.createTextNode(str(datetime.date.today())))
-	encoding.appendChild(enc_date)
-	identification.appendChild(encoding)
-	score.appendChild(identification)
+    doc = Document()
+    score = doc.createElement("score-partwise")
+    score.setAttribute("version","2.0")
+    #set title information
+    if comp.title:
+        title = doc.createElement("movement-title")
+        title.appendChild(doc.createTextNode(str(comp.title)))
+        score.appendChild(title)
+    identification = doc.createElement("identification")
+    #set author information
+    if comp.author:
+        author = doc.createElement("creator")
+        author.setAttribute("type","composer")
+        author.appendChild(doc.createTextNode(str(comp.author)))
+        identification.appendChild(author)
+    #set additional info
+    encoding = doc.createElement("encoding")
+    software = doc.createElement("software")
+    software.appendChild(doc.createTextNode("mingus"))
+    encoding.appendChild(software)
+    enc_date = doc.createElement("encoding-date")
+    enc_date.appendChild(doc.createTextNode(str(datetime.date.today())))
+    encoding.appendChild(enc_date)
+    identification.appendChild(encoding)
+    score.appendChild(identification)
 
-    global prevTied, isTied
-    prevTied = False
+    global isTied
     isTied = False
 
-	#add tracks
-	part_list = doc.createElement("part-list")
-	score.appendChild(part_list)
+    #add tracks
+    part_list = doc.createElement("part-list")
+    score.appendChild(part_list)
 
-	for t in comp:
-		track = _track2musicxml(t)
-		score_part = doc.createElement("score-part")
-		track.setAttribute("id",_get_object_id(t))
-		score_part.setAttribute("id",_get_object_id(t))
-		part_name = doc.createElement("part-name")
-		part_name.appendChild(doc.createTextNode(t.name))
-		score_part.appendChild(part_name)
-		if t.instrument:
-		    #add instrument info
-			score_inst = doc.createElement("score-instrument")
-			score_inst.setAttribute("id",_get_object_id(t.instrument))
-			name = doc.createElement("instrument-name")
-			name.appendChild(doc.createTextNode(str(t.instrument.name)))
-			score_inst.appendChild(name)
-			score_part.appendChild(score_inst)
-			#add midi instruments
-			if isinstance(t.instrument,MidiInstrument):
-				midi = doc.createElement("midi-instrument")
-				midi.setAttribute("id",_get_object_id(t.instrument))
-				channel = doc.createElement("midi-channel")
-				channel.appendChild(doc.createTextNode(str(1))) #what about the midi channels?
-				program = doc.createElement("midi-program")
-				program.appendChild(doc.createTextNode(str(t.instrument.instrument_nr)))
-				midi.appendChild(channel)
-				midi.appendChild(program)
-				score_part.appendChild(midi)
+    for t in comp:
+        track = _track2musicxml(t)
+        score_part = doc.createElement("score-part")
+        track.setAttribute("id",_get_object_id(t))
+        score_part.setAttribute("id",_get_object_id(t))
+        part_name = doc.createElement("part-name")
+        part_name.appendChild(doc.createTextNode(t.name))
+        score_part.appendChild(part_name)
+        if t.instrument:
+            #add instrument info
+            score_inst = doc.createElement("score-instrument")
+            score_inst.setAttribute("id",_get_object_id(t.instrument))
+            name = doc.createElement("instrument-name")
+            name.appendChild(doc.createTextNode(str(t.instrument.name)))
+            score_inst.appendChild(name)
+            score_part.appendChild(score_inst)
+            #add midi instruments
+            if isinstance(t.instrument,MidiInstrument):
+                midi = doc.createElement("midi-instrument")
+                midi.setAttribute("id",_get_object_id(t.instrument))
+                channel = doc.createElement("midi-channel")
+                channel.appendChild(doc.createTextNode(str(1))) #what about the midi channels?
+                program = doc.createElement("midi-program")
+                program.appendChild(doc.createTextNode(str(t.instrument.instrument_nr)))
+                midi.appendChild(channel)
+                midi.appendChild(program)
+                score_part.appendChild(midi)
 
-		
-		part_list.appendChild(score_part)
-		track.setAttribute("id",_get_object_id(t))
-		score.appendChild(track)			
+        
+        part_list.appendChild(score_part)
+        track.setAttribute("id",_get_object_id(t))
+        score.appendChild(track)			
 
-	return score
+    return score
 
 def from_Note(note):
     c = Composition()
@@ -345,22 +342,21 @@ def write_Composition(composition, filename, zip=False):
         import zipfile
         import os
         zf = zipfile.ZipFile(filename+".mxl", mode='w',compression=zipfile.ZIP_DEFLATED)
-	zi = zipfile.ZipInfo("META-INF"+os.sep+"container.xml")
-	zi.external_attr = 0660 << 16L
+        zi = zipfile.ZipInfo("META-INF"+os.sep+"container.xml")
+        zi.external_attr = 0660 << 16L
         zf.writestr(zi,"<?xml version='1.0' encoding='UTF-8'?><container><rootfiles><rootfile full-path='"+filename+".xml'/></rootfiles></container>")
         zi = zipfile.ZipInfo(filename+".xml")
-	zi.external_attr = 0660 << 16L
-	zf.writestr(zi,text)
+        zi.external_attr = 0660 << 16L
+        zf.writestr(zi,text)
         zf.close()
         
 def _get_object_id(o):
-	#some xml parsers require ids to start with alpha chars
-	if isinstance(o,Instrument):
-		return 'ins'+str(id(o))
-	elif isinstance(o, Track):
-		return 'P'+str(id(o))
-	else:
-		assert False 
+    #some xml parsers require ids to start with alpha chars
+    if isinstance(o,Instrument):
+        return 'ins'+str(id(o))
+    elif isinstance(o, Track):
+        return 'P'+str(id(o))
+    else:
+        assert False 
 
-prevTied = False
 isTied = False
