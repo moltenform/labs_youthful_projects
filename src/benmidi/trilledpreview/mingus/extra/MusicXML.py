@@ -60,20 +60,12 @@ def _lcm(a=None,b=None, terms=None):
    else: return (a*b)/_gcd(a,b)
 
 
-def _note2musicxml(note, isChord=False,isTied=False,wasTied=False):
+def _note2musicxml(note, isChord=False):
     doc = Document()
     note_node = doc.createElement("note")
     if isChord:
         chord=doc.createElement("chord")
         note_node.appendChild(chord)
-    if wasTied:
-        tied=doc.createElement("tie")
-        tied.setAttribute("type","stop")
-        note_node.appendChild(tied)
-    if isTied:
-        tied=doc.createElement("tie")
-        tied.setAttribute("type","start")
-        note_node.appendChild(tied)
         
     if note==None:
         #note is a rest
@@ -139,9 +131,8 @@ def _bar2musicxml(bar):
     
     bar_node.appendChild(attributes)
     
+    global prevTied,isTied #must last over barlines
     
-    prevTied = False
-    isTied=False
     for nc in bar:
         time  = value.determine(nc[1])
         beat = time[0]
@@ -153,7 +144,7 @@ def _bar2musicxml(bar):
         
         if not note_cont: note_cont = [None]
         for n in note_cont:
-            note = _note2musicxml(n, isChord=not is_first_of_group, isTied=isTied,wasTied=prevTied)
+            note = _note2musicxml(n, isChord=not is_first_of_group)
             is_first_of_group = False
             #all but the last have a <chord/> element.
 
@@ -161,6 +152,18 @@ def _bar2musicxml(bar):
             duration = doc.createElement("duration")
             duration.appendChild(doc.createTextNode(str(int(lcm*(4.0/beat))))) 
             note.appendChild(duration)
+            
+            #add tie if necessary.
+            print note_cont.tied, n
+            if prevTied:
+                tied=doc.createElement("tie")
+                tied.setAttribute("type","stop")
+                note.appendChild(tied)
+            if isTied:
+                tied=doc.createElement("tie")
+                tied.setAttribute("type","start")
+                note.appendChild(tied)
+            
             #check for dots
             dot = doc.createElement("dot")
             for i in range(0,time[1]):
@@ -234,6 +237,7 @@ def _track2musicxml(track):
     return track_node
 
 def _composition2musicxml(comp):
+    
 	doc = Document()
 	score = doc.createElement("score-partwise")
 	score.setAttribute("version","2.0")
@@ -259,6 +263,10 @@ def _composition2musicxml(comp):
 	encoding.appendChild(enc_date)
 	identification.appendChild(encoding)
 	score.appendChild(identification)
+
+    global prevTied, isTied
+    prevTied = False
+    isTied = False
 
 	#add tracks
 	part_list = doc.createElement("part-list")
@@ -353,3 +361,6 @@ def _get_object_id(o):
 		return 'P'+str(id(o))
 	else:
 		assert False 
+
+prevTied = False
+isTied = False
