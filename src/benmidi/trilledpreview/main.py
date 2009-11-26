@@ -16,8 +16,9 @@ import dlg3
 import dlgresults
 import notesrealtimemidi
 import notesrealtimewav
-import notesinterpret
 import tkutil
+
+#rev.190 is somewhat stable.
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class Gui1():
@@ -70,17 +71,12 @@ class Gui1():
 		self.lblTransposition.config(text=s)
 		
 	def startRecordProcess(self):
-		res1 = dlg1.Dlg1(self.root)
-		if res1.result==None: return
-		bSharps, bTreble, timesig = res1.result
 		res2 = dlg2.Dlg2(self.root)
 		if res2.result==None: return
 		nQuantize = res2.result
-		res3 = dlg3.Dlg3(self.root)
-		if res3.result==None: return
 		
 		#begin recording
-		self._settings = (bSharps, bTreble, timesig, nQuantize)
+		self._settings = (nQuantize,)
 		self.btnStop.config(state=NORMAL)
 		self.btnRecord.config(state=DISABLED)
 		self.objNotesRealtime.setRecordingMode(True)
@@ -91,19 +87,15 @@ class Gui1():
 		self.btnStop.config(state=DISABLED)
 		self.btnRecord.config(state=NORMAL)
 		res = self.objNotesRealtime.setRecordingMode(False)
-		bSharps, bTreble, timesig, nQuantize = self._settings
-		try:
-			listQuantized = notesinterpret.createQuantizedList(res, timesig, nQuantize)
-			intermed = notesinterpret.createIntermediateList(listQuantized, timesig, nQuantize, bTreble, bSharps)
-			docMingus = notesinterpret.createMingusComposition(intermed, timesig, nQuantize, bTreble, bSharps)
-			
-		except notesinterpret.NotesinterpretException, e:
-			tkutil.alert('Exception:'+str(e), title='Trilling Recorder')
-			return
+		nQuantize = self._settings[0]
+		
+		window = dlgresults.DlgResultsWindow()
+		result = window.loadData(res, nQuantize)
+		if not result: return
 		
 		#open results window
 		top = Toplevel()
-		window = dlgresults.DlgResultsWindow(top, intermed, docMingus, bTreble)
+		window.openWindow(top)
 		top.focus_set()
 		
 		

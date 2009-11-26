@@ -36,8 +36,8 @@ class NotesRealtimeRecordedRaw():
 		#returns either a NotesRealtimeRecorded or a NotesinterpretException
 		
 		listResults = self.listRecorded
-		print self.startTime
-		print listResults
+		#~ print self.startTime
+		#~ print listResults
 		
 		#sort results by *start* time
 		listResults.sort(key=lambda a: a[1])

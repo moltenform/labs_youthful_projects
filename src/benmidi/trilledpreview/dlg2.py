@@ -14,7 +14,7 @@ class Dlg2(tkSimpleDialog.Dialog):
 		
 		pack(Label(top,text="When playing, tap the Tab key in time with your playing, to indicate the pulse."),side=TOP)
 		pack(Label(top,text="Tap every quarter note."),side=TOP)
-		pack(Label(top,text="Your recording should start and end with a tap."),side=TOP)
+		pack(Label(top,text="Currently your recording must start and end with a tap."),side=TOP)
 		
 		
 		fr3= Frame(top)
@@ -25,6 +25,8 @@ class Dlg2(tkSimpleDialog.Dialog):
 		self.vartime.set(self.optionstime[2])
 		pack(OptionMenu(fr3, self.vartime, *self.optionstime), side=LEFT)
 		
+		pack(Label(top,text="Click OK to start recording."),side=TOP)
+		pack(Label(top,text="Remember to tap the Tab key!"),side=TOP)
 		
 	def apply(self): #called when Ok clicked.
 		self.result = int(self.vartime.get().replace('th',''))
