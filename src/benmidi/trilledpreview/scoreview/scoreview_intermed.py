@@ -3,7 +3,8 @@ import scoreview_util
 import os
 import sys
 
-
+#todo: whole note rests even when not 4/4
+#todo: accdentals are wrong
 
 class ScoreViewWindow():
 	def __init__(self, top, intermed,bTrebleClef, clefsfilepath, opts):
@@ -32,7 +33,7 @@ class ScoreViewFrame(Frame):
 	yScale = 3 # scale, half of distance between two staff lines.
 	defaultWidth=600
 	defaultHeight=200
-	completeWidth = None #not known yet, to be found in __init__
+	completeWidth = None #not known yet, to be found when drawing
 	completeHeight = 200
 	clefWidth = 30
 	
@@ -69,7 +70,7 @@ class ScoreViewFrame(Frame):
 		total=0
 		for note in intermed.noteList: total+= note.end-note.start
 		self.lastTick = total
-		self.completeWidth = self.scaleTicksToPixels(self.lastTick)
+		#~ self.completeWidth = self.scaleTicksToPixels(self.lastTick)
 		
 		# So the visible boundaries of the canvas are defaultWidth by defaultHeight 
 		# but the actual boundaries are completeWidth by completeHeight
@@ -97,12 +98,7 @@ class ScoreViewFrame(Frame):
 	def shiftOctaveDown(self): self.shiftnotes-=12; self.redraw()
 		
 	def redraw(self):
-		#update complete size of canvas (the pixelsPerTick could have changed)
-		self.completeWidth = self.scaleTicksToPixels(self.lastTick)
-		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
-		
 		self.clear()
-		self.drawBackground(self.opts)
 		
 		mapDurs={ 
 		int(self.intermed.baseDivisions*4): 1, #whole note,
@@ -120,10 +116,12 @@ class ScoreViewFrame(Frame):
 				self.drawRest( currentPos, mapDurs[note.end-note.start])
 			else:
 				pitch=note.pitch[0] #take the first note of the group - we don't support drawing polyphony!
-				self.drawNote( currentPos, pitch, mapDurs[note.end-note.start], note.isTied, note.end-note.start)
+				tielength=note.end-note.start
+				if mapDurs[note.end-note.start]>=16: tielength+= 32 #add some space per note
+				self.drawNote( currentPos, pitch, mapDurs[note.end-note.start], note.isTied, tielength)
 			
-			currentPos += note.end-note.start 
 			currentTime += note.end-note.start
+			currentPos += note.end-note.start 
 			if mapDurs[note.end-note.start]>=16: currentPos+= 32 #add some space per note
 			
 			assert currentTime<=self.ticksPerMeasure
@@ -132,7 +130,11 @@ class ScoreViewFrame(Frame):
 				currentPos += self.intermed.baseDivisions/8; #some extra space for barline
 				currentTime=0
 		
-		
+		self.lastTick = currentPos #important change.
+		#update complete size of canvas (the pixelsPerTick could have changed)
+		self.completeWidth = self.scaleTicksToPixels(self.lastTick)
+		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
+		self.drawBackground(self.opts)
 	
 	def drawBackground(self, opts):
 		self.draw_clef( 'treble')
@@ -140,7 +142,7 @@ class ScoreViewFrame(Frame):
 		
 		#draw staff lines
 		def drawstaffline(y): 
-			self.draw_line(0, y, self.completeWidth*2, y) ###
+			self.draw_line(0, y, self.completeWidth, y) 
 		for i in range(1,6): 
 			drawstaffline(i*2 + 2)
 			drawstaffline(-i*2 - 2)
@@ -202,7 +204,7 @@ class ScoreViewFrame(Frame):
 		#draw stem
 		def drawstem(x,y, direction, noteType): #direction is 1: upwards stem, direction is -1: downwards stem
 			self.draw_line(x, y, x, y+direction*7)
-			# draw "tails" on  
+			# draw "tails" on fast notes
 			if noteType>=64: self.draw_line(x, y+direction*4, x+5, y+direction*2)
 			if noteType>=32: self.draw_line(x, y+direction*5, x+5, y+direction*3)
 			if noteType>=16: self.draw_line(x, y+direction*6, x+5, y+direction*4)
@@ -213,13 +215,39 @@ class ScoreViewFrame(Frame):
 			else: drawstem(xPixels, fy, -1, noteType)
 		
 		if isTied:
-			tiedTo = self.scaleTicksToPixels(currentPos+tieLength) - 4
-			self.draw_faintline(xPixels, tiedTo)
+			tiedTo = self.scaleTicksToPixels(currentPos+tieLength) -1 #-4
+			self.draw_tiearc(xPixels,posy+3, tiedTo, posy-3, flipped=self.bTrebleClef)
 		
 	
 	def drawRest(self, currentPos, restType):
-		if self.bTrebleClef: ypos = 6 + 2
-		else: ypos = -6 - 2
+		xPixels = self.scaleTicksToPixels(currentPos)
+		if restType==1 or restType==2:
+			if restType==1:
+				if self.bTrebleClef: ypos = 7 + 2
+				else: ypos = -5 - 2
+			else:
+				if self.bTrebleClef: ypos = 6 + 2
+				else: ypos = -6 - 2
+			#draw from ypos to ypos+1
+			self.draw_rect(xPixels, ypos,xPixels+5,ypos+1)
+		elif restType==4:
+			if self.bTrebleClef: startingY = 9 + 2
+			else: startingY = -3 - 2
+
+			self.draw_line(xPixels-2, startingY, xPixels+3,startingY-2)
+			self.draw_line(xPixels+3, startingY-2, xPixels-2, startingY-4)
+			self.draw_line(xPixels-2, startingY-4, xPixels+3, startingY-6)
+			self.draw_line(xPixels+3,  startingY-6, xPixels-2,  startingY-8)
+		else:
+			if self.bTrebleClef: startingY = 9 + 2
+			else: startingY = -3 - 2
+			#a simplification...
+			if restType>=64: self.draw_oval(xPixels+2.0, startingY-5.5, xPixels+0.5, startingY-6.5)
+			if restType>=32: self.draw_oval(xPixels+3.0, startingY-3.5, xPixels+1.5, startingY-4.5)
+			if restType>=16: self.draw_oval(xPixels+4.0, startingY-1.5, xPixels+2.5, startingY-2.5)
+			if restType>=8: self.draw_oval(xPixels+5.0, startingY-.5, xPixels+3.5, startingY+0.5)
+			self.draw_line(xPixels+7.0, startingY+0.5, xPixels+4.0, startingY-5.5)
+			
 		
 	def getnoteposition(self,note, shift, prefersharpflat): #middle C is note 60, returns a position of 0
 		note += shift
@@ -256,15 +284,6 @@ class ScoreViewFrame(Frame):
 		return (posy, sharpflat)
 		
 		
-	def threadEvents(self, g=None):
-		if self.ripe!=True: return
-		self.ripe= False
-		import time
-		time.sleep(1)
-		
-		pos = self.cv.xview()[0] * self.completeWidth
-		self.cv.coords(self.myRect, (pos, 0, pos+20, self.completeHeight))
-		self.ripe= True
 		
 	def createWidgets(self):
 		self.ripe = True
@@ -274,7 +293,7 @@ class ScoreViewFrame(Frame):
 		self.cv = Canvas(frameGrid, bd=1, background='white', width=self.defaultWidth, height=self.defaultHeight)
 		hScroll = Scrollbar(frameGrid, orient=HORIZONTAL, command=self.cv.xview)
 		vScroll = Scrollbar(frameGrid, orient=VERTICAL, command=self.cv.yview)
-		self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
+		#self.cv.configure(scrollregion=(0, 0, self.completeWidth, self.completeHeight))
 		self.cv.configure(xscrollcommand=hScroll.set, yscrollcommand=vScroll.set)
 		
 		self.cv.grid(row = 0, column=0, sticky='nsew', ipadx=0)
@@ -296,17 +315,23 @@ class ScoreViewFrame(Frame):
 		self.cv.create_line(self.coordrect(x0, y0, x1, y1)  )
 	def draw_faintline(self, x0, y0, x1, y1):
 		self.cv.create_line(self.coordrect(x0, y0, x1, y1),fill="gray", dash=(4, 4)  )
+	def draw_tiearc(self, x0, y0, x1, y1,flipped=False):
+		if flipped:
+			self.cv.create_arc(self.coordrect(x0, y0, x1, y1),style=ARC,start=180,extent=180)
+		else:
+			self.cv.create_arc(self.coordrect(x0, y0, x1, y1),style=ARC,start=0,extent=180)
 	def draw_text(self, x, y, s):
 		textFormat = ('Times New Roman', 9, 'normal')
 		self.cv.create_text(self.coord(x,y),text=s, anchor='w', font=textFormat )
 		
-	def draw_oval(self,x0, y0, x1, y1, bFilled): 
+	def draw_oval(self,x0, y0, x1, y1, bFilled=True): 
 		if bFilled:
 			self.cv.create_oval(self.coordrect(x0, y0, x1, y1), fill='black' )
 		else:
 			self.cv.create_oval(self.coordrect(x0, y0, x1, y1) )
+	def draw_rect(self,x0, y0, x1, y1): 
+		self.cv.create_rectangle(self.coordrect(x0, y0, x1, y1), fill='black' )
 	def draw_clef(self, bass_treb):
-		
 		map = {2:'16.gif',3:'24.gif',4:'32.gif',5:'40.gif'}
 		desiredImageName = bass_treb + map[self.yScale]
 		if desiredImageName not in self.clefimgs:
@@ -315,7 +340,7 @@ class ScoreViewFrame(Frame):
 		
 		if bass_treb=='bass': 
 			xposition = 12
-			yposition = self.scaleYPositionToPixels(7.0)
+			yposition = self.scaleYPositionToPixels(-8.0)
 		else:
 			xposition = 12
 			yposition = self.scaleYPositionToPixels(7.5)

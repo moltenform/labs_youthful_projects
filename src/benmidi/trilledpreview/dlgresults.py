@@ -46,7 +46,7 @@ class DlgResultsWindow():
 		
 	def openPreview(self):
 		top=Toplevel()
-		top.title('Trilled Results - rough preview')
+		top.title('Trilled Results - Rough Preview')
 		opts={}
 		frScoreViewWithBtns = scoreview_intermed.ScoreViewWindow(top, intermed,self.bTreble, clefsfilepath, opts)
 
@@ -62,17 +62,40 @@ if __name__=='__main__':
 	from notesrealtimerecorded import  NotesRealtimeNoteEvent
 	import notesinterpret
 	intermed = notesinterpret.IntermediateList((4,4))
-	sampleList = [1,2,2,4,8,4,4,8   ,64,64,64,64,32,32,16,16,2,4,  8,8,8,8,4,4, 4,4,8,8,8,8]
 	
-	noteList=[]
-	curtime = 0
-	for n in sampleList:
-		noteList.append(NotesRealtimeNoteEvent([60+curtime%7], curtime, curtime+4*intermed.baseDivisions/n))
-		noteList[-1].isTied = False
-		curtime+=4*intermed.baseDivisions/n
-	intermed.noteList = noteList
-	intermed.bSharps = True
+	def test1():
+		#tests notes, sharps, different durations
+		sampleList = [1,2,2,4,8,4,4,8   ,64,64,64,64,32,32,16,16,2,4,  8,8,8,8,4,4, 4,4,8,8,8,8]
+		noteList=[]
+		curtime = 0
+		for n in sampleList:
+			noteList.append(NotesRealtimeNoteEvent([60+curtime%7], curtime, curtime+4*intermed.baseDivisions/n))
+			noteList[-1].isTied = False
+			curtime+=4*intermed.baseDivisions/n
+		intermed.noteList = noteList
+		intermed.bSharps = True
 	
+	def test2():
+		#tests ties, rests, notes
+		rlist = [64,64,64,64,32,32,16,16,8,8,4,4,2,2,1,1]
+		noteList=[]
+		curtime = 0
+		for i in range(len(rlist)):
+			n=rlist[i]
+			pitch=60+i%3
+			if i%2==1: pitch=0 #a rest
+			noteList.append(NotesRealtimeNoteEvent([pitch], curtime, curtime+4*intermed.baseDivisions/n))
+			noteList[-1].isTied = False
+			curtime+=4*intermed.baseDivisions/n
+		for i in range(len(rlist)):
+			n=rlist[i]
+			noteList.append(NotesRealtimeNoteEvent([70], curtime, curtime+4*intermed.baseDivisions/n))
+			noteList[-1].isTied = True
+			curtime+=4*intermed.baseDivisions/n
+		intermed.noteList = noteList
+		intermed.bSharps = True
+	
+	test1()
 	bTreble=True
 	docMingus=None
 	
