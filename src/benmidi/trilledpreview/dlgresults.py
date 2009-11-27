@@ -18,7 +18,7 @@ class DlgResultsWindow():
 		try:
 			self.listQuantized = notesinterpret.createQuantizedList(res, nQuantize)
 		except notesinterpret.NotesinterpretException, e:
-			tkutil.alert('Exception:'+str(e), title='Trilling Recorder')
+			tkutil.alert(': '+str(e), title='Trilling Recorder')
 			return False
 		
 		self.nEvents = len(self.listQuantized)

@@ -82,9 +82,10 @@ class NotesRealtimeWav():
 			self._ontab()
 			return 'break'
 		
-		bNoModifierKeys = event.state==0
+		
 		
 		mods = self._getkeyboardmods(event.state)
+		bNoModifierKeys = mods==''
 		if (mods,event.keysym) in self.manualbindings:
 			self.manualbindings[(mods,event.keysym)]()
 			return 'break'
@@ -128,7 +129,7 @@ class NotesRealtimeWav():
 			return
 		
 		
-		bNoModifierKeys = event.state==0
+		bNoModifierKeys = self._getkeyboardmods(event.state)==''
 		
 		#~ if bNoModifierKeys and event.keycode in self.notebindings:
 		#to fix Shift bugs, don't require noModifierKeys. just call on everything.

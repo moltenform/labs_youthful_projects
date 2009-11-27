@@ -38,11 +38,13 @@ class NotesRealtimeRecordedRaw():
 		listResults = self.listRecorded
 		#~ print self.startTime
 		#~ print listResults
+		if not len(listResults): return NotesinterpretException('Nothing was recorded.')
 		
 		#sort results by *start* time
 		listResults.sort(key=lambda a: a[1])
-		if listResults[-1][0]!=-1: return NotesinterpretException('must end with tab pulse!')
-		if listResults[0][0]!=-1: return NotesinterpretException('must start with tab pulse!')
+		if listResults[0][0]!=-1: return NotesinterpretException('must begin with pressing Tab.')
+		if listResults[-1][0]!=-1: return NotesinterpretException('must end with pressing Tab.')
+		
 		
 		#add a final pulse? Disabled: better just to enforce final event is a tab-pulse
 		#~ if len(listPulses)==1: listPulses.append(listPulses[0] + (listPulses[0]-0.0))
