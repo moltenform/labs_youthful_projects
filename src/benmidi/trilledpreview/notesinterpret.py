@@ -1,6 +1,7 @@
 
 from notesrealtimerecorded import NotesinterpretException, NotesRealtimeNoteEvent
-import testdepiction
+useVisualTest = False
+if useVisualTest: import testdepiction
 import bisect
 
 import music_util
@@ -13,7 +14,7 @@ from mingus.containers import Composition,Track, Instrument, Note,NoteContainer,
 def createQuantizedList(objResults, quantize):
 	#quantizes and eliminate overlapping notes
 	if isinstance(objResults, NotesinterpretException): raise objResults
-	vis = testdepiction.TestDepiction()
+	if useVisualTest: vis = testdepiction.TestDepiction()
 	listPulses, listNotes = objResults.listPulses, objResults.listNotes
 	
 	# how many subdivisions?
@@ -33,14 +34,14 @@ def createQuantizedList(objResults, quantize):
 			listQuantize.append(prevTime + i*inc)
 		prevTime = pulseTime
 	
-	vis.addPreQuantize(listQuantize, listNotes)
+	if useVisualTest: vis.addPreQuantize(listQuantize, listNotes)
 	#quantize all of the times
 	for note in listNotes:
 		note.start = findclosest(listQuantize, note.start)
 		note.end = findclosest(listQuantize, note.end)
 		#now times are integers, corresponding to multiples of time unit. So if quantize=8, each unit is an 8th note
 	
-	vis.addQuantized(listNotes)
+	if useVisualTest: vis.addQuantized(listNotes)
 	
 	
 	#now get rid of overlapping notes, using some heuristics.
@@ -74,7 +75,7 @@ def createQuantizedList(objResults, quantize):
 		
 		listFinal.append(( [m.pitch for m in currentPitchGroup], currentPitchStartTime, currentPitchEndTime))
 	
-	vis.draw(listPulses, listFinal)
+	if useVisualTest: vis.draw(listPulses, listFinal)
 	return listFinal
 	#returns list of tuples in the form ( [pitches], start, end) 
 	

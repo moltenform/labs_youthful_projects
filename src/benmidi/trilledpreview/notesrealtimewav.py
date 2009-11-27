@@ -1,12 +1,18 @@
 import notesrealtimerecorded
 
+import sys
+if sys.platform != "win32": 
+	s= 'Platform not currently supported. The Windows-only winsound module is currently used. This will be addressed in a future release.'
+	print s
+	raise s
+
 import winsound
 #linux: see http://stackoverflow.com/questions/307305/play-a-sound-with-python
 
 fntimer = notesrealtimerecorded.fntimer
 
 #does not support polyphony. in output from recording, notes never overlap.
-#in fact, polyphony doesn't work well anyways, because can obscure recognition of Tab key
+#in fact, polyphony doesn't work well anyways, because this can obscure recognition of Tab key
 #todo: check threading
 
 

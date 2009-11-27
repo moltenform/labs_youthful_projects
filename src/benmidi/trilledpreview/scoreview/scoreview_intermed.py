@@ -4,7 +4,8 @@ import os
 import sys
 
 #todo: whole note rests even when not 4/4
-#todo: accdentals are wrong
+#todo: accidentals are wrong
+#todo: key signatures
 
 class ScoreViewWindow():
 	def __init__(self, top, intermed,bTrebleClef, clefsfilepath, opts):

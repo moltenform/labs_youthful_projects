@@ -10,15 +10,12 @@ from Tkinter import *
 import tkFileDialog
 
 import music_util
-import dlg1
 import dlg2
-import dlg3
 import dlgresults
 import notesrealtimemidi
 import notesrealtimewav
 import tkutil
 
-#rev.190 is somewhat stable.
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class Gui1():
@@ -26,7 +23,7 @@ class Gui1():
 	isRecording = False
 	
 	def __init__(self, root):
-		root.title('Trilling Recorder')
+		root.title('Trilling')
 		
 		frameMain = pack( Frame(root), side=TOP, fill=BOTH, expand=True)
 		pack( Label(frameMain, text='(This is a preview of a work-in-progress by Ben Fisher).'), side=TOP)
