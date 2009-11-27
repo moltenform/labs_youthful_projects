@@ -1,3 +1,2 @@
-import scoreview
 import scoreview_intermed
 import listview
