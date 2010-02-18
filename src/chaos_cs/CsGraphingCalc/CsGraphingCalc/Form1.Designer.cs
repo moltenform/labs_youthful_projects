@@ -39,7 +39,7 @@ namespace CsGraphingCalc
             this.btnEvalAt = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.btnHelp = new System.Windows.Forms.Button();
-            this.pointPlotUserControl1 = new CsGraphingCalc.PointPlotExpressionUserControl();
+            this.pointPlotUserControl1 = new CsGraphingCalc.PlotGraphEvaluateControl();
             this.SuspendLayout();
             // 
             // txtEq1
@@ -183,7 +183,7 @@ namespace CsGraphingCalc
         #endregion
 
         private System.Windows.Forms.TextBox txtEq1;
-        private PointPlotExpressionUserControl pointPlotUserControl1;
+        private PlotGraphEvaluateControl pointPlotUserControl1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtEq2;
         private System.Windows.Forms.Label label2;

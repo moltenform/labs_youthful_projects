@@ -5,7 +5,7 @@ using chaosExplorerControl;
 
 namespace CsGraphingCalc
 {
-    public class PointPlotExpressionUserControl : PointPlotGraphUserControl
+    public class PlotGraphEvaluateControl : PointPlotGraphUserControl
     {
         protected override int getControlPaintWidth() { return 500; }
         protected override int getControlPaintHeight() { return 500; }
@@ -13,7 +13,7 @@ namespace CsGraphingCalc
         public string strExp2 = "y=0.0;"; // must be valid c# assigning to y.
         public string strInit = ""; // if set, must be valid c# code
 
-        public PointPlotExpressionUserControl()
+        public PlotGraphEvaluateControl()
         {
             this.setInitialBounds();
         }

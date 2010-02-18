@@ -5,14 +5,14 @@ using chaosExplorerControl;
 
 namespace CsBifurcation
 {
-    public class PointPlotBifurcationUserControl  : PointPlotBitmapUserControl
+    public class PlotBitmapBifurcationControl  : PointPlotBitmapUserControl
     {
         public int paramSettle = 200;
         public double param1, param2, paramShading = 0.1;
         public string paramExpression, paramInit, paramP0;
         public bool bShading=true;
         
-        public PointPlotBifurcationUserControl()
+        public PlotBitmapBifurcationControl()
         {
             paramExpression = "p=p*r*(1-p);";
             paramInit = "";

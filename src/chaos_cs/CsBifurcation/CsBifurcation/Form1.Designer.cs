@@ -56,7 +56,7 @@ namespace CsBifurcation
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.txtInit = new System.Windows.Forms.TextBox();
-            this.pointPlotBifurcationUserControl1 = new CsBifurcation.PointPlotBifurcationUserControl();
+            this.pointPlotBifurcationUserControl1 = new CsBifurcation.PlotBitmapBifurcationControl();
             ((System.ComponentModel.ISupportInitialize)(this.tbSettling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbShading)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
@@ -398,7 +398,7 @@ namespace CsBifurcation
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label lblParam2;
         private System.Windows.Forms.Button btnSave;
-        private PointPlotBifurcationUserControl pointPlotBifurcationUserControl1;
+        private PlotBitmapBifurcationControl pointPlotBifurcationUserControl1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label4;
