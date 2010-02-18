@@ -48,11 +48,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="2DPlotControl.cs">
+    <Compile Include="PlotUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="2DPlotControl.Designer.cs">
-      <DependentUpon>2DPlotControl.cs</DependentUpon>
+    <Compile Include="PlotUserControl.Designer.cs">
+      <DependentUpon>PlotUserControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Service Include="{94E38DFF-614B-4cbd-B67C-F211BB35CE8B}" />
@@ -63,9 +63,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="2DPlotControl.resx">
+    <EmbeddedResource Include="PlotUserControl.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>2DPlotControl.cs</DependentUpon>
+      <DependentUpon>PlotUserControl.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
