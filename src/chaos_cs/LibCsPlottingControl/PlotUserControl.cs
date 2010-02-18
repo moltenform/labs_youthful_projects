@@ -1,3 +1,16 @@
+/*
+ * Left-click           nothing
+ * Middle-click         reset view
+ * Right-click          undo zoom
+ * 
+ * Shift-click          zoom out
+ * Shift-rightclick     reset view
+ * 
+ * Drag                 zoom window
+ * Alt-Drag             non-square zoom window
+ * 
+ * */
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -32,6 +45,10 @@ namespace chaosExplorerControl
             setInitialBounds();
             //this.resetZoom(); Have it called by client
         }
+
+        public static bool isAltKey() { return ((Keys.Modifiers & Keys.Alt)!=0); }
+        public static bool isShiftKey() { return ((Keys.Modifiers & Keys.Shift)!=0); }
+        public static bool isControlKey() { return ((Keys.Modifiers & Keys.Control)!=0); }
 
         /// These will probably be overridden:
 
@@ -72,8 +89,7 @@ namespace chaosExplorerControl
         public void undoZoom()
         {
             setBounds(prevX0, prevX1, prevY0, prevY1);
-            //prevX0 = X0; prevX1=X1; prevY0=Y0; prevY1=Y1;
-            //X0 = prevX0; X1 = prevX1; Y0 = prevY0; Y1 = prevY1;
+            
             System.Diagnostics.Debug.Assert(Y1 > Y0 && X1 > X0);
         }
         
@@ -95,7 +111,11 @@ namespace chaosExplorerControl
                 int ixr = ix + rubberbanding.SelectRect.Width;
                 int iyr = HEIGHT - (rubberbanding.SelectRect.Y);
                 if (ixr-ix <= 0 || iyr-iy<=0)
+                {
+                    if (isShiftKey())
+                        this.mnuZoomOut_Click(null, null);
                     return; //prevent 0x0 zoom
+                }
                 double newX0, newY0, newX1, newY1;
                 newX0 = (ix / ((double)WIDTH)) * (X1 - X0) + X0;
                 newX1 = (ixr / ((double)WIDTH)) * (X1 - X0) + X0;
@@ -106,8 +126,13 @@ namespace chaosExplorerControl
             }
             else if (e.Button == MouseButtons.Right)
             {
-                this.undoZoom();
-                redraw();
+                if (isShiftKey())
+                    this.resetZoom();
+                else
+                {
+                    this.undoZoom();
+                    redraw();
+                }
             }
             else if (e.Button == MouseButtons.Middle)
             {
@@ -199,6 +224,7 @@ namespace chaosExplorerControl
         Point ps = new Point();
         Point pe = new Point();
         public bool isBanding = false;
+        public bool isSquare = true;
 
         public ClsLineRectangle()
         {
@@ -215,6 +241,7 @@ namespace chaosExplorerControl
             ps.Y = e.Y;
             pe = ps;
             isBanding = true;
+            isSquare = !PointPlotUserControl.isAltKey(); //use Alt to make it not-square
         }
 
         public void clsLineRectangle_OnMouseMove(Object sender, MouseEventArgs e)
@@ -231,20 +258,28 @@ namespace chaosExplorerControl
                 int w = e.X - SelectRect.X;
                 int h = e.Y - SelectRect.Y;
                 double ratio = PointPlotUserControl.RATIO; //0.75;
-                if (w * ratio == h)
+                if (isSquare)
                 {
-                    SelectRect.Width = w;
-                    SelectRect.Height = h;
-                }
-                else if (w * ratio <= h)
-                {
-                    SelectRect.Width = (int)(h / ratio);
-                    SelectRect.Height = h;
+                    if (w * ratio == h)
+                    {
+                        SelectRect.Width = w;
+                        SelectRect.Height = h;
+                    }
+                    else if (w * ratio <= h)
+                    {
+                        SelectRect.Width = (int)(h / ratio);
+                        SelectRect.Height = h;
+                    }
+                    else
+                    {
+                        SelectRect.Width = w;
+                        SelectRect.Height = (int)(w * ratio);
+                    }
                 }
                 else
                 {
                     SelectRect.Width = w;
-                    SelectRect.Height = (int)(w * ratio);
+                    SelectRect.Height = h;
                 }
                 ControlPaint.DrawReversibleFrame(thisform.RectangleToScreen(SelectRect), Color.Black, FrameStyle.Dashed);
             }

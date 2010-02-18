@@ -66,16 +66,6 @@ namespace CsGraphingCalc
             }
         }
 
-        /*//expose method to public
-        public void setZoomBounds(double nX0, double nX1, double nY0, double nY1)
-        {
-            this.setBounds(nX0, nX1, nY0, nY1);
-        }
-        public void getZoomBounds(out double nX0, out double nX1, out double nY0, out double nY1)
-        {
-            nX0=X0; nX1=X1; nY0=Y0; nY1=Y1;
-        }*/
-
         protected override void renderToDiskSave(int F /*=4*/, string sFilename)
         {
             System.Windows.Forms.MessageBox.Show("Not implemented yet.");

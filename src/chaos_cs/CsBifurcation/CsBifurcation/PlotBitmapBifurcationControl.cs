@@ -206,10 +206,5 @@ namespace CsBifurcation
             }
         }
 
-        //expose method to public
-        /*public void setZoomBounds(double nX0, double nX1, double nY0, double nY1)
-        {
-            this.setBounds(nX0, nX1, nY0, nY1);
-        }*/
     }
 }
