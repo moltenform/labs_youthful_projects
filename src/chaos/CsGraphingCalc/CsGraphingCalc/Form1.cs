@@ -60,7 +60,7 @@ namespace CsGraphingCalc
             if (!double.TryParse(ss[3].Replace(" ", ""), out y1))
                 { MessageBox.Show("Couldn't parse boundaries."); return; }
 
-            this.pointPlotUserControl1.setZoomBounds(x0, x1, y0, y1);
+            this.pointPlotUserControl1.setBounds(x0, x1, y0, y1);
             this.pointPlotUserControl1.redraw();
         }
 

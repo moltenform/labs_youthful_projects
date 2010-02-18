@@ -36,7 +36,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="2DPlotBifurcationControl.cs">
+    <Compile Include="PlotBitmapBifurcationControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="CsIniFile.cs" />
