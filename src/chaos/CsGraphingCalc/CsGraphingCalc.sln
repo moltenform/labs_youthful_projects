@@ -1,0 +1,32 @@
+
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsGraphingCalc", "CsGraphingCalc\CsGraphingCalc.csproj", "{244121B6-A708-4D70-8B2B-B93FFDB71544}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodedomEvaluator", "..\LibCodedomEvaluator\CodedomEvaluator.csproj", "{1B8F1E06-57A1-4079-8EE4-5D39DF7439A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csPlottingControl", "..\LibCsPlottingControl\csPlottingControl.csproj", "{F0A1DECB-621F-4D25-8CC6-F0E3EDBCF1E6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{244121B6-A708-4D70-8B2B-B93FFDB71544}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{244121B6-A708-4D70-8B2B-B93FFDB71544}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{244121B6-A708-4D70-8B2B-B93FFDB71544}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{244121B6-A708-4D70-8B2B-B93FFDB71544}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B8F1E06-57A1-4079-8EE4-5D39DF7439A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B8F1E06-57A1-4079-8EE4-5D39DF7439A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B8F1E06-57A1-4079-8EE4-5D39DF7439A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B8F1E06-57A1-4079-8EE4-5D39DF7439A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0A1DECB-621F-4D25-8CC6-F0E3EDBCF1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0A1DECB-621F-4D25-8CC6-F0E3EDBCF1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0A1DECB-621F-4D25-8CC6-F0E3EDBCF1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0A1DECB-621F-4D25-8CC6-F0E3EDBCF1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
