@@ -37,10 +37,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="2DPlotControlBitmap.cs">
+    <Compile Include="PlotBitmapControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="2DPlotControlGraph.cs">
+    <Compile Include="PlotGraphControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
