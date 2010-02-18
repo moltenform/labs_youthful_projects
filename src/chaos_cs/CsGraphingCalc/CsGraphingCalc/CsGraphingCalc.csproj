@@ -36,7 +36,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="2DPlotControlExpressionGraph.cs">
+    <Compile Include="PlotGraphEvaluateControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Form1.cs">
