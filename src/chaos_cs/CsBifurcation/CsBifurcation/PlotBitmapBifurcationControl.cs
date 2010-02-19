@@ -88,7 +88,7 @@ namespace CsBifurcation
             }
         }
 
-        public override void getData(double[] elems) //note we modify this.dbData instead of elems...
+        public override void getData(int width, int height, ref double[] elems)
         {
             //getData_TemplateShadingLanding(elems);
             //return;
@@ -96,7 +96,7 @@ namespace CsBifurcation
             //Pass in: X0,X1,Y0,Y1,WIDTH,HEIGHT,paramShading,paramSettle
             Dictionary<string, double> d = new Dictionary<string, double>();
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
-            d["fWIDTH"] = WIDTH; d["fHEIGHT"] = HEIGHT;
+            d["fWIDTH"] = width; d["fHEIGHT"] = height;
             d["paramShading"] = paramShading; d["paramSettle"] = paramSettle;
 
             //provide: paramShading, paramSettle
@@ -105,16 +105,16 @@ namespace CsBifurcation
             double shadingAmount = paramShading*0.2 + 0.8;
             int nPointsDrawn = (int)(paramShading * 40)+1;
             int nSettletime = (int)paramSettle;
-            int WIDTH=(int)fWIDTH, HEIGHT=(int)fHEIGHT;
+            int width=(int)fWIDTH, height=(int)fHEIGHT;
             for (int i = 0; i < arrAns.Length; i++) arrAns[i] = 1.0; //set all white
 
             Random R = new Random();
-            double dx = (X1 - X0) / WIDTH;
+            double dx = (X1 - X0) / width;
             double fx = X0;
             int y;
             double p;
             $$INITCODE$$
-            for (int x = 0; x < WIDTH; x++)
+            for (int x = 0; x < width; x++)
             {
                 double r = fx;
                 p = $$PNAUGHTEXPRESSION$$;
@@ -127,9 +127,9 @@ namespace CsBifurcation
                 {
                     $$CODE$$
 
-                    y = (int)(HEIGHT - HEIGHT * ((p - Y0) / (Y1 - Y0)));
-                    if (y >= 0 && y < HEIGHT)
-                        arrAns[y + x * HEIGHT] $$SHADEOPERATION$$
+                    y = (int)(height - height * ((p - Y0) / (Y1 - Y0)));
+                    if (y >= 0 && y < height)
+                        arrAns[y + x * height] $$SHADEOPERATION$$
                 }
                 fx += dx;
             }";
@@ -147,12 +147,14 @@ namespace CsBifurcation
             System.Windows.Forms.Clipboard.SetText(sTemplate);
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
-            double[] out1 = cde.mathEvalArray(sTemplate, d, WIDTH*HEIGHT, out strErr);
+            double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);
             if (strErr != "")
             { System.Windows.Forms.MessageBox.Show(strErr); return; }
             //because of ref counting, apparently ok to set reference like this instead of copying elements.
-            System.Diagnostics.Debug.Assert(this.dbData.Length == out1.Length);
-            this.dbData = out1;
+
+            System.Diagnostics.Debug.Assert(out1.Length == width*height);
+            elems = out1;
+            
 
             /*if (!bShading) //redistribute ink? 
             {

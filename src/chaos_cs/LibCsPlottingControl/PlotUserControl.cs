@@ -46,9 +46,9 @@ namespace chaosExplorerControl
             //this.resetZoom(); Have it called by client
         }
 
-        public static bool isAltKey() { return ((Keys.Modifiers & Keys.Alt)!=0); }
-        public static bool isShiftKey() { return ((Keys.Modifiers & Keys.Shift)!=0); }
-        public static bool isControlKey() { return ((Keys.Modifiers & Keys.Control)!=0); }
+        public static bool isAltKey() { return ((Control.ModifierKeys & Keys.Alt)!=0); }
+        public static bool isShiftKey() { return ((Control.ModifierKeys & Keys.Shift)!=0); }
+        public static bool isControlKey() { return ((Control.ModifierKeys & Keys.Control)!=0); }
 
         /// These will probably be overridden:
 
