@@ -1,3 +1,10 @@
+/*
+ * See keyboard shortcuts in plotusercontrol.cs
+ * Press ctrl+enter to redraw
+ * Enter arbitrary code in P0, such as C1, rand(), or randneg()
+ * 
+ * */
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,6 +28,18 @@ namespace CsBifurcation
             rdoShade.Checked = true; rdoPoints.Checked = false;
             txtP0.Text = "0.35";
             this.loadSavedConfigs();
+            this.KeyPreview = true;
+            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+            if (this.comboBox1.Items.Count >0)
+            {
+                this.comboBox1.SelectedIndex = 0;
+            }
+        }
+
+        void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && ((e.Modifiers & Keys.Control)!=0))
+                pointPlotBifurcationUserControl1.redraw();
         }
 
         

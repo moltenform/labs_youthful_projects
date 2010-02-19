@@ -98,8 +98,8 @@ namespace CsBifurcation
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
             d["fWIDTH"] = width; d["fHEIGHT"] = height;
             d["paramShading"] = paramShading; d["paramSettle"] = paramSettle;
+            d["c1"] = param1; d["c2"] = param2;
 
-            //provide: paramShading, paramSettle
             string sTemplate = @"
             //double shadingAmount = paramShading/5;
             double shadingAmount = paramShading*0.2 + 0.8;

@@ -70,6 +70,7 @@ namespace CsBifurcation
             this.txtExpression.Location = new System.Drawing.Point(545, 180);
             this.txtExpression.Multiline = true;
             this.txtExpression.Name = "txtExpression";
+            this.txtExpression.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtExpression.Size = new System.Drawing.Size(167, 43);
             this.txtExpression.TabIndex = 0;
             this.txtExpression.Text = "p = r*p*(1-p);";
