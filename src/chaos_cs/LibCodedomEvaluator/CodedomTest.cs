@@ -96,7 +96,7 @@ namespace CodedomEvaluator
                 d = new Dictionary<string, double>();
                 resultArr = cd.mathEvalArray(strExp, d, 1, out strErr);
             }
-            catch (Exception e)
+            catch (Exception )
             {
                 Debug.Assert(false); //an exception occurred.
             }

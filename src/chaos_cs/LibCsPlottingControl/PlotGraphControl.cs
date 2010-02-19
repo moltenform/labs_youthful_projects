@@ -14,7 +14,6 @@ namespace chaosExplorerControl
         public bool bAxes = true;
         public bool bDrawSecond=false;
         Bitmap bitmap = null;
-        Bitmap bitmapRender = null;
         Pen pen1,pen2;
         public PointPlotGraphUserControl()
         {
