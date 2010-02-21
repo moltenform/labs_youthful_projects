@@ -112,7 +112,7 @@ namespace chaosExplorerControl
                 int iyr = HEIGHT - (rubberbanding.SelectRect.Y);
                 if (ixr-ix <= 0 || iyr-iy<=0)
                 {
-                    if (isShiftKey())
+                    if (ixr-ix == 0 &&  iyr-iy==0 && isShiftKey())
                         this.mnuZoomOut_Click(null, null);
                     return; //prevent 0x0 zoom
                 }

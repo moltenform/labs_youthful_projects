@@ -134,8 +134,8 @@ namespace CsBifurcation
                 fx += dx;
             }";
             string sItersPer = (bShading)?"10000" : "nPointsDrawn";
-            //string sShadeOperation = (bShading)?"-= shadingAmount;" : "= 0.2;";
             string sShadeOperation = (bShading)?"*= shadingAmount;" : "= 0.2;";
+            //string sShadeOperation = (bShading)?"-= shadingAmount;" : "= 0.2;";
             //string sShadeOperation = (bShading)?"= (arrAns[y + x * HEIGHT]>shadingAmount)?(arrAns[y + x * HEIGHT]-shadingAmount):shadingAmount;" : "= 0.2;";
 
             sTemplate = sTemplate.Replace("$$NITERS$$", sItersPer);
@@ -144,7 +144,7 @@ namespace CsBifurcation
             sTemplate = sTemplate.Replace("$$PNAUGHTEXPRESSION$$", paramP0);
             sTemplate = sTemplate.Replace("$$SHADEOPERATION$$", sShadeOperation);
 
-            System.Windows.Forms.Clipboard.SetText(sTemplate);
+            //System.Windows.Forms.Clipboard.SetText(sTemplate);
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
             double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);

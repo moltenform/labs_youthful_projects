@@ -40,6 +40,8 @@ namespace CsBifurcation
         {
             if (e.KeyCode == Keys.Enter && ((e.Modifiers & Keys.Control)!=0))
                 pointPlotBifurcationUserControl1.redraw();
+            else
+                e.Handled = false;
         }
 
         
