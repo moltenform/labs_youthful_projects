@@ -238,6 +238,42 @@ namespace CsBifurcation
 
         }
 
+        private void btnMovie_Click(object sender, EventArgs e)
+        {
+            double d, c0_0, c0_1, c1_0, c1_1; string s; int nframes;
+            s = InputBoxForm.GetStrInput("Initial c0:", pointPlotBifurcationUserControl1.param1.ToString(CultureInfo.InvariantCulture));
+            if (s==null || s=="" || !double.TryParse(s, out d)) return;
+            c0_0=d;
+            s = InputBoxForm.GetStrInput("Final c0:", pointPlotBifurcationUserControl1.param1.ToString(CultureInfo.InvariantCulture));
+            if (s==null || s=="" || !double.TryParse(s, out d)) return;
+            c0_1=d;
+            s = InputBoxForm.GetStrInput("Initial c1:", pointPlotBifurcationUserControl1.param2.ToString(CultureInfo.InvariantCulture));
+            if (s==null || s=="" || !double.TryParse(s, out d)) return;
+            c1_0=d;
+            s = InputBoxForm.GetStrInput("Final c1:", pointPlotBifurcationUserControl1.param2.ToString(CultureInfo.InvariantCulture));
+            if (s==null || s=="" || !double.TryParse(s, out d)) return;
+            c1_1=d;
+            s = InputBoxForm.GetStrInput("Number of frames:", "50");
+            if (s==null || s=="" || !int.TryParse(s, out nframes)) return;
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "png files (*.png)|*.png";
+            saveFileDialog1.RestoreDirectory = true;
+            if (!(saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
+                return;
+            string sfilename= saveFileDialog1.FileName;
+            double c0_inc = (c0_1-c0_0)/nframes;
+            double c1_inc = (c1_1-c1_0)/nframes;
+            
+            for (int i=0; i<nframes; i++)
+            {
+                pointPlotBifurcationUserControl1.param1 = c0_0;
+                pointPlotBifurcationUserControl1.param2 = c1_0;
+                pointPlotBifurcationUserControl1.exposeRenderSaveToDisk(sfilename.Replace(".png","_"+i.ToString()+".png"));
+                c0_0 += c0_inc;
+                c1_0 += c1_inc;
+            }
+        }
+
 
     }
 }

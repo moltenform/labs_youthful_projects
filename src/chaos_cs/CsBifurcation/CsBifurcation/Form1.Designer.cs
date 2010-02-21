@@ -57,6 +57,7 @@ namespace CsBifurcation
             this.label8 = new System.Windows.Forms.Label();
             this.txtInit = new System.Windows.Forms.TextBox();
             this.pointPlotBifurcationUserControl1 = new CsBifurcation.PlotBitmapBifurcationControl();
+            this.btnMovie = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.tbSettling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbShading)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
@@ -237,6 +238,7 @@ namespace CsBifurcation
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnMovie);
             this.groupBox1.Controls.Add(this.btnBounds);
             this.groupBox1.Controls.Add(this.txtP0);
             this.groupBox1.Controls.Add(this.panel1);
@@ -342,6 +344,16 @@ namespace CsBifurcation
             this.pointPlotBifurcationUserControl1.Size = new System.Drawing.Size(415, 432);
             this.pointPlotBifurcationUserControl1.TabIndex = 6;
             // 
+            // btnMovie
+            // 
+            this.btnMovie.Location = new System.Drawing.Point(7, 107);
+            this.btnMovie.Name = "btnMovie";
+            this.btnMovie.Size = new System.Drawing.Size(55, 23);
+            this.btnMovie.TabIndex = 18;
+            this.btnMovie.Text = "Movie...";
+            this.btnMovie.UseVisualStyleBackColor = true;
+            this.btnMovie.Click += new System.EventHandler(this.btnMovie_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -413,6 +425,7 @@ namespace CsBifurcation
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox txtInit;
         private System.Windows.Forms.Button btnBounds;
+        private System.Windows.Forms.Button btnMovie;
     }
 }
 
