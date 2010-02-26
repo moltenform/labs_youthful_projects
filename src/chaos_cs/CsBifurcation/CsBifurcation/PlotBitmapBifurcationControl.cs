@@ -37,6 +37,7 @@ namespace CsBifurcation
             d["c1"] = param1; d["c2"] = param2;
 
             string sTemplate = @"
+            double additionalShading = 1.0; //can be set by code
             //double shadingAmount = paramShading/5;
             double shadingAmount = paramShading*0.2 + 0.8;
             int nPointsDrawn = (int)(paramShading * 40)+1;
@@ -69,7 +70,7 @@ namespace CsBifurcation
                 }
                 fx += dx;
             }";
-            string sItersPer = (bShading)?"10000" : "nPointsDrawn";
+            string sItersPer = (bShading)?"(int)(additionalShading*10000)" : "nPointsDrawn";
             string sShadeOperation = (bShading)?"*= shadingAmount;" : "= 0.2;";
             //string sShadeOperation = (bShading)?"-= shadingAmount;" : "= 0.2;";
             //string sShadeOperation = (bShading)?"= (arrAns[y + x * HEIGHT]>shadingAmount)?(arrAns[y + x * HEIGHT]-shadingAmount):shadingAmount;" : "= 0.2;";

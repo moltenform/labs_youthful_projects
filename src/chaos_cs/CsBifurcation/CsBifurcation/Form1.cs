@@ -2,6 +2,7 @@
  * See keyboard shortcuts in plotusercontrol.cs
  * Press ctrl+enter to redraw
  * Enter arbitrary code in P0, such as C1, rand(), or randneg()
+ * Change additionalShading in init code for higher quality.
  * 
  * */
 
@@ -26,11 +27,10 @@ namespace CsBifurcation
             InitializeComponent();
             lblParam1.Text = lblParam2.Text = lblSettling.Text = lblShading.Text = "";
             rdoShade.Checked = true; rdoPoints.Checked = false;
-            txtP0.Text = "0.35";
             this.loadSavedConfigs();
             this.KeyPreview = true;
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
-            if (this.comboBox1.Items.Count >0)
+            if (this.comboBox1.Items.Count > 0)
             {
                 this.comboBox1.SelectedIndex = 0;
             }
@@ -241,16 +241,17 @@ namespace CsBifurcation
         private void btnMovie_Click(object sender, EventArgs e)
         {
             double d, c0_0, c0_1, c1_0, c1_1; string s; int nframes;
-            s = InputBoxForm.GetStrInput("Initial c0:", pointPlotBifurcationUserControl1.param1.ToString(CultureInfo.InvariantCulture));
+            double param1=pointPlotBifurcationUserControl1.param1, param2=pointPlotBifurcationUserControl1.param2;
+            s = InputBoxForm.GetStrInput("Initial c0:", param1.ToString(CultureInfo.InvariantCulture));
             if (s==null || s=="" || !double.TryParse(s, out d)) return;
             c0_0=d;
-            s = InputBoxForm.GetStrInput("Final c0:", pointPlotBifurcationUserControl1.param1.ToString(CultureInfo.InvariantCulture));
+            s = InputBoxForm.GetStrInput("Final c0:", param1.ToString(CultureInfo.InvariantCulture));
             if (s==null || s=="" || !double.TryParse(s, out d)) return;
             c0_1=d;
-            s = InputBoxForm.GetStrInput("Initial c1:", pointPlotBifurcationUserControl1.param2.ToString(CultureInfo.InvariantCulture));
+            s = InputBoxForm.GetStrInput("Initial c1:", param2.ToString(CultureInfo.InvariantCulture));
             if (s==null || s=="" || !double.TryParse(s, out d)) return;
             c1_0=d;
-            s = InputBoxForm.GetStrInput("Final c1:", pointPlotBifurcationUserControl1.param2.ToString(CultureInfo.InvariantCulture));
+            s = InputBoxForm.GetStrInput("Final c1:", param2.ToString(CultureInfo.InvariantCulture));
             if (s==null || s=="" || !double.TryParse(s, out d)) return;
             c1_1=d;
             s = InputBoxForm.GetStrInput("Number of frames:", "50");
