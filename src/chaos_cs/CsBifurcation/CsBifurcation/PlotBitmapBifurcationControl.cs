@@ -25,74 +25,10 @@ namespace CsBifurcation
         {
             setBounds(-5, 5, -5, 5);
         }
-        private void getData_TemplateShading(double[] elems)
-        {
-            double shadingAmount = paramShading/5;
-            for (int i = 0; i < elems.Length; i++) elems[i] = 1.0; //set all white
-
-            Random R = new Random();
-            double dx = (X1 - X0) / WIDTH;
-            double fx = X0;
-            int y;
-            double p;
-            //$$INITCODE$$
-            for (int x = 0; x < WIDTH; x++)
-            {
-                double r = fx;
-                p = 0.35; //$$PNAUGHTEXPRESSION$$
-                for (int i = 0; i < paramSettle; i++)
-                {
-                    p = r*p*(1-p); //$$CODE$$
-                }
-
-                for (int i = 0; i < 10000; i++)
-                {
-                    p = r*p*(1-p); //$$CODE$$
-                    
-                    y = (int)(HEIGHT - HEIGHT * ((p - Y0) / (Y1 - Y0)));
-                    if (y >= 0 && y < HEIGHT)
-                        elems[y + x * HEIGHT] -= shadingAmount;
-                }
-                fx += dx;
-            }
-        }
-        private void getData_TemplatePoints(double[] elems)
-        {
-            int nPointsDrawn = (int)(paramShading * 40)+1;
-            for (int i = 0; i < elems.Length; i++) elems[i] = 1.0; //set all white
-
-            Random R = new Random();
-            double dx = (X1 - X0) / WIDTH;
-            double fx = X0;
-            int y;
-            double p;
-            //$$INITCODE$$
-            for (int x = 0; x < WIDTH; x++)
-            {
-                double r = fx;
-                p = 0.35; //$$PNAUGHTEXPRESSION$$
-                for (int i = 0; i < paramSettle; i++)
-                {
-                    p = r*p*(1-p); //$$CODE$$
-                }
-
-                for (int i = 0; i < nPointsDrawn; i++)
-                {
-                    p = r*p*(1-p); //$$CODE$$
-
-                    y = (int)(HEIGHT - HEIGHT * ((p - Y0) / (Y1 - Y0)));
-                    if (y >= 0 && y < HEIGHT)
-                        elems[y + x * HEIGHT] = 0.2;
-                }
-                fx += dx;
-            }
-        }
-
+        
+        
         public override void getData(int width, int height, ref double[] elems)
         {
-            //getData_TemplateShadingLanding(elems);
-            //return;
-
             //Pass in: X0,X1,Y0,Y1,WIDTH,HEIGHT,paramShading,paramSettle
             Dictionary<string, double> d = new Dictionary<string, double>();
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
@@ -169,44 +105,7 @@ namespace CsBifurcation
 
         }
 
-        private void getData_TemplateShadingLanding(double[] elems)
-        {
-            double shadingAmount = paramShading/5;
-            for (int i = 0; i < elems.Length; i++) elems[i] = 1.0; //set all white
-
-            Random R = new Random();
-            double dx = (X1 - X0) / WIDTH;
-            double fx = X0;
-            int y;
-            double p;
-            //$$INITCODE$$
-            int landings=0;
-            while (landings < 100*WIDTH)
-            {
-                for (int x = 0; x < WIDTH; x++)
-                {
-                    double r = fx;
-                    p = 0.35; //$$PNAUGHTEXPRESSION$$
-                    for (int i = 0; i < paramSettle; i++)
-                    {
-                        p = r*p*(1-p); //$$CODE$$
-                    }
-
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        p = r*p*(1-p); //$$CODE$$
-
-                        y = (int)(HEIGHT - HEIGHT * ((p - Y0) / (Y1 - Y0)));
-                        if (y >= 0 && y < HEIGHT)
-                        {
-                            elems[y + x * HEIGHT] -= shadingAmount;
-                            landings++;
-                        }
-                    }
-                    fx += dx;
-                }
-            }
-        }
+        
 
 
         public void exposeRenderSaveToDisk(string sfilename)
