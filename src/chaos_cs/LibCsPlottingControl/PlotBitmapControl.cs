@@ -16,13 +16,12 @@ namespace chaosExplorerControl
 
         public PointPlotBitmapUserControl()
         {
-            bitmap = new Bitmap(WIDTH, HEIGHT, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            dbData = new double[WIDTH * HEIGHT];
+            int paintWidth = getControlPaintWidth();
+            int paintHeight = getControlPaintHeight();
+            bitmap = new Bitmap(paintWidth, paintHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            dbData = new double[paintWidth * paintHeight];
 
-            // fill with 0s
-            for (int x = 0; x < WIDTH; x++)
-                for (int y = 0; y < HEIGHT; y++)
-                    dbData[y + x*HEIGHT] = 0; //note HEIGHT x WIDTH
+            // not necessary to fill dbData with 0.0s because doubles default to 0.0
         }
 
         
@@ -63,9 +62,12 @@ namespace chaosExplorerControl
             r=g=b=shade;
         }
 
+        // the method called for drawing the main image (i.e. not "render" to disk)
         protected override void drawPlot()
         {
-            createBitmap(WIDTH, HEIGHT, ref this.dbData, ref this.bitmap);
+            int paintWidth = getControlPaintWidth();
+            int paintHeight = getControlPaintHeight();
+            createBitmap(paintWidth, paintHeight, ref this.dbData, ref this.bitmap);
         }
 
         protected void createBitmap(int width, int height, ref double[] elems, ref Bitmap lbitmap)
@@ -107,14 +109,14 @@ namespace chaosExplorerControl
             graphics.DrawImageUnscaled(this.bitmap, 0, 0);
         }
 
-        protected override void renderToDiskSave(int F, string sFilename)
+        public override void renderToDiskSave(int width, int height, string sFilename)
         {
-            if (dbDataRender==null || dbDataRender.Length!=WIDTH *F)
+            if (dbDataRender==null || dbDataRender.Length!=width*height)
             {
-                bitmapRender = new Bitmap(WIDTH*F, HEIGHT*F, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-                dbDataRender = new double[WIDTH*HEIGHT*F*F];
+                bitmapRender = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                dbDataRender = new double[width*height];
             }
-            createBitmap(WIDTH*F, HEIGHT*F, ref this.dbDataRender, ref this.bitmapRender);
+            createBitmap(width, height, ref this.dbDataRender, ref this.bitmapRender);
             this.bitmapRender.Save(sFilename);
            
         }

@@ -18,12 +18,12 @@ namespace CsGraphingCalc
             this.setInitialBounds();
         }
 
-        public override void getPlotPoints()
+        public override void getPlotPoints(int width, int height, ref double[] data1, ref double[] data2)
         {
             /*
              * Create this code:
-            double x = X0, xinc=(X1-X0)/WIDTH;
-            for (int i=0; i<WIDTH; i++)
+            double x = X0, xinc=(X1-X0)/width;
+            for (int i=0; i<width; i++)
             {
                 dbPlotData1[i] = x;
                 dbPlotData2[i] = x;
@@ -32,9 +32,9 @@ namespace CsGraphingCalc
 
             StringBuilder sbCode = new StringBuilder();
             sbCode.AppendLine("double y;");
-            sbCode.AppendLine("double x = X0, xinc=(X1-X0)/WIDTH;");
+            sbCode.AppendLine("double x = X0, xinc=(X1-X0)/width;");
             sbCode.AppendLine(strInit);
-            sbCode.AppendLine("for (int i=0; i<WIDTH; i++) {");
+            sbCode.AppendLine("for (int i=0; i<width; i++) {");
             sbCode.AppendLine("$$code$$");
             sbCode.AppendLine("arrAns[i] = y;");
             sbCode.AppendLine("x+=xinc;");
@@ -42,11 +42,11 @@ namespace CsGraphingCalc
 
             Dictionary<string, double> d = new Dictionary<string, double>();
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
-            d["WIDTH"] = WIDTH; d["HEIGHT"] = HEIGHT;
+            d["width"] = width; d["height"] = height;
 
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
-            double[] out1 = cde.mathEvalArray(sbCode.ToString().Replace("$$code$$", strExp1), d, WIDTH, out strErr);
+            double[] out1 = cde.mathEvalArray(sbCode.ToString().Replace("$$code$$", strExp1), d, width, out strErr);
             if (strErr != "")
                 { System.Windows.Forms.MessageBox.Show(strErr); return; }
 
@@ -59,17 +59,13 @@ namespace CsGraphingCalc
             if (bDrawSecond)
             {
                 cde = new CodedomEvaluator.CodedomEvaluator();
-                double[] out2 = cde.mathEvalArray(sbCode.ToString().Replace("$$code$$", strExp2), d, WIDTH, out strErr);
+                double[] out2 = cde.mathEvalArray(sbCode.ToString().Replace("$$code$$", strExp2), d, width, out strErr);
                 if (strErr != "")
                 { System.Windows.Forms.MessageBox.Show(strErr); return; }
                 this.dbPlotData2 = out2;
             }
         }
 
-        protected override void renderToDiskSave(int F /*=4*/, string sFilename)
-        {
-            System.Windows.Forms.MessageBox.Show("Not implemented yet.");
-        }
 
     }
 }

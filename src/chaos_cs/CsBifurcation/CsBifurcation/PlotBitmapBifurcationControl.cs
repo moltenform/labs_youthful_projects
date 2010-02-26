@@ -105,12 +105,5 @@ namespace CsBifurcation
 
         }
 
-        
-
-
-        public void exposeRenderSaveToDisk(string sfilename)
-        {
-            this.renderToDiskSave(1, sfilename);
-        }
     }
 }

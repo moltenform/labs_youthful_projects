@@ -268,7 +268,7 @@ namespace CsBifurcation
             {
                 pointPlotBifurcationUserControl1.param1 = c0_0;
                 pointPlotBifurcationUserControl1.param2 = c1_0;
-                pointPlotBifurcationUserControl1.exposeRenderSaveToDisk(sfilename.Replace(".png","_"+i.ToString()+".png"));
+                pointPlotBifurcationUserControl1.renderToDiskSave(400,400,sfilename.Replace(".png","_"+i.ToString()+".png"));
                 c0_0 += c0_inc;
                 c1_0 += c1_inc;
             }

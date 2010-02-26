@@ -24,17 +24,18 @@ namespace chaosExplorerControl
 {
     public partial class PointPlotUserControl : UserControl
     {
-        protected int WIDTH, HEIGHT;
+        private int WIDTH, HEIGHT; // subclasses should not be concerned about these physical dimensions.
         public static readonly double RATIO = 1.0; //ratio of WIDTH to HEIGHT, regardless of stretching
         protected double X0, X1, Y0, Y1;
         protected double prevX0, prevX1, prevY0, prevY1;
         protected ClsLineRectangle rubberbanding = new ClsLineRectangle();
-        protected virtual int getControlPaintWidth() { return 250; }
-        protected virtual int getControlPaintHeight() { return 250; }
+        protected virtual int getControlPaintWidth() { return 250; } //the physical size of it, in pixels, for drawing main version.
+        protected virtual int getControlPaintHeight() { return 250; } //the physical size of it, in pixels, for drawing main version.
         public PointPlotUserControl()
         {
             InitializeComponent();
-            WIDTH = getControlPaintWidth(); HEIGHT = getControlPaintHeight();
+            WIDTH = getControlPaintWidth(); 
+            HEIGHT = getControlPaintHeight();
 
             this.MouseDown += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseDown);
             this.MouseMove += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseMove);
@@ -61,7 +62,7 @@ namespace chaosExplorerControl
         {
             return;
         }
-        protected virtual void renderToDiskSave(int F /*=4*/, string sFilename)
+        public virtual void renderToDiskSave(int width,int height, string sFilename)
         {
             throw new NotImplementedException();
         }
@@ -159,18 +160,18 @@ namespace chaosExplorerControl
             Clipboard.SetText(s);
         }
         
-        public void renderToDisk(int F)
+        public void renderToDisk(int width, int height)
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "png files (*.png)|*.png";
             saveFileDialog1.RestoreDirectory = true;
             if (!(saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
                 return;
-            renderToDiskSave(F, saveFileDialog1.FileName);
+            renderToDiskSave(width, height, saveFileDialog1.FileName);
         }
 
-        private void mnuRender_Click(object sender, EventArgs e) { this.renderToDisk(4); }
-        private void mnuRenderLarge_Click(object sender, EventArgs e) { this.renderToDisk(8); }
+        private void mnuRender_Click(object sender, EventArgs e) { this.renderToDisk(WIDTH*4, HEIGHT*4); }
+        private void mnuRenderLarge_Click(object sender, EventArgs e) { this.renderToDisk(WIDTH*8, HEIGHT*8); }
         private void mnuReset_Click_1(object sender, EventArgs e) { resetZoom(); }
 
         private void mnuZmWiden_Click(object sender, EventArgs e)
