@@ -177,6 +177,10 @@ namespace CsBifurcation
             lblParam2.Text = p2.ToString();
             lblSettling.Text = pst.ToString();
             lblShading.Text = ps.ToString();
+            // set sliders, TODO: also set for sliderSettling (known issue) 
+            tbShading.Value = (int)(tbShading.Maximum*ps);
+            tbParam1.Value = (int)(tbShading.Maximum*p1);
+            tbParam2.Value = (int)(tbShading.Maximum*p2);
 
             //retrieves from txtExpression and redraws()
             btnGo_Click(null, null);

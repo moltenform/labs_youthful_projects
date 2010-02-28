@@ -117,6 +117,7 @@ namespace CsBifurcation
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "InputBoxForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Some Custom Dialog";
             this.ResumeLayout(false);
             this.PerformLayout();
