@@ -101,30 +101,27 @@ namespace CsBifurcation
             lblParam2.Text = v.ToString();
         }
 
+        private bool getBounds(string sName, double fCurrent, out double dOut)
+        {
+            dOut = 0.0;
+            string s = InputBoxForm.GetStrInput(sName, fCurrent.ToString(CultureInfo.InvariantCulture));
+            if (s==null || s=="") return false;
+            return double.TryParse(s, out dOut);
+        }
         private void btnBounds_Click(object sender, EventArgs e)
         {
-            double nX0, nX1, nY0, nY1;
-            pointPlotBifurcationUserControl1.getBounds(out nX0, out nX1, out nY0, out nY1);
-            string sCurrent=nX0.ToString(CultureInfo.InvariantCulture)+","+nX1.ToString(CultureInfo.InvariantCulture)+","+nY0.ToString(CultureInfo.InvariantCulture)+","+nY1.ToString(CultureInfo.InvariantCulture)+","+nX0.ToString(CultureInfo.InvariantCulture);
+            double X0, X1, Y0, Y1, nX0, nX1, nY0, nY1;
+            pointPlotBifurcationUserControl1.getBounds(out X0, out X1, out Y0, out Y1);
 
-            double x0, x1, y0, y1;
-            string s = InputBoxForm.GetStrInput("Enter boundaries, separated by commas:", sCurrent); //"-10,10,-10,10"
-            if (s==null || s=="") return;
-            string[] ss = s.Split(new char[] { ',' });
-            if (ss.Length != 4) { MessageBox.Show("Couldn't parse boundaries."); return; }
+            if (!getBounds("Leftmost x", X0, out nX0)) return;
+            if (!getBounds("Rightmost x", X1, out nX1)) return;
+            if (!getBounds("Lowest y", Y0, out nY0)) return;
+            if (!getBounds("Greatest y", Y1, out nY1)) return;
 
-            if (!double.TryParse(ss[0].Replace(" ", ""), out x0))
-            { MessageBox.Show("Couldn't parse boundaries."); return; }
-            if (!double.TryParse(ss[1].Replace(" ", ""), out x1))
-            { MessageBox.Show("Couldn't parse boundaries."); return; }
-            if (!double.TryParse(ss[2].Replace(" ", ""), out y0))
-            { MessageBox.Show("Couldn't parse boundaries."); return; }
-            if (!double.TryParse(ss[3].Replace(" ", ""), out y1))
-            { MessageBox.Show("Couldn't parse boundaries."); return; }
+            if (!(nY1 > nY0 && nX1 > nX0)) { MessageBox.Show("Invalid bounds."); return; }
 
-            this.pointPlotBifurcationUserControl1.setBounds(x0, x1, y0, y1);
+            this.pointPlotBifurcationUserControl1.setBounds(nX0, nX1, nY0, nY1);
             this.pointPlotBifurcationUserControl1.redraw();
-
         }
 
         private void loadSavedConfigs()
