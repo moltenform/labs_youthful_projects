@@ -40,7 +40,6 @@ namespace chaosExplorerControl
             this.MouseDown += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseDown);
             this.MouseMove += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseMove);
             this.MouseMove += new MouseEventHandler(PointPlotUserControl_MouseMove);
-            this.MouseUp += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseUp);
             this.MouseUp += new MouseEventHandler(PointPlotUserControl_MouseUp);
 
             setInitialBounds();
@@ -106,24 +105,30 @@ namespace chaosExplorerControl
         {
             if (e.Button == MouseButtons.Left) 
             {
-                //zoom to the drawn rectangle
-                int ix = rubberbanding.SelectRect.X;
-                int iy = HEIGHT - (rubberbanding.SelectRect.Y + rubberbanding.SelectRect.Height);
-                int ixr = ix + rubberbanding.SelectRect.Width;
-                int iyr = HEIGHT - (rubberbanding.SelectRect.Y);
-                if (ixr-ix <= 0 || iyr-iy<=0)
+                if (rubberbanding.isBanding) //fix bug where opening a file, click caught, could make you zoom in
                 {
-                    if (ixr-ix == 0 &&  iyr-iy==0 && isShiftKey())
-                        this.mnuZoomOut_Click(null, null);
-                    return; //prevent 0x0 zoom
+                    rubberbanding.doOnMouseUp(sender);
+                    //zoom to the drawn rectangle
+                    int ix = rubberbanding.SelectRect.X;
+                    int iy = HEIGHT - (rubberbanding.SelectRect.Y + rubberbanding.SelectRect.Height);
+                    int ixr = ix + rubberbanding.SelectRect.Width;
+                    int iyr = HEIGHT - (rubberbanding.SelectRect.Y);
+                    if (ixr-ix <= 0 || iyr-iy<=0)
+                    {
+                        if (ixr-ix == 0 &&  iyr-iy==0 && isShiftKey())
+                            this.mnuZoomOut_Click(null, null);
+                        return; //prevent 0x0 zoom
+                    }
+                    double newX0, newY0, newX1, newY1;
+                    newX0 = (ix / ((double)WIDTH)) * (X1 - X0) + X0;
+                    newX1 = (ixr / ((double)WIDTH)) * (X1 - X0) + X0;
+                    newY0 = (iy / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
+                    newY1 = (iyr / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
+                    setBounds(newX0, newX1, newY0, newY1);
+                    redraw();
+
+                    rubberbanding.isBanding = false;
                 }
-                double newX0, newY0, newX1, newY1;
-                newX0 = (ix / ((double)WIDTH)) * (X1 - X0) + X0;
-                newX1 = (ixr / ((double)WIDTH)) * (X1 - X0) + X0;
-                newY0 = (iy / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
-                newY1 = (iyr / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
-                setBounds(newX0, newX1, newY0, newY1);
-                redraw();
             }
             else if (e.Button == MouseButtons.Right)
             {
@@ -286,13 +291,11 @@ namespace chaosExplorerControl
             }
         }
 
-        public void clsLineRectangle_OnMouseUp(Object sender, MouseEventArgs e)
+        public void doOnMouseUp(object sender)
         {
-           // Form thisform = (Form)sender;
+            //Form thisform = (Form)sender;
             PointPlotUserControl thisform = (PointPlotUserControl)sender;
             ControlPaint.DrawReversibleFrame(thisform.RectangleToScreen(SelectRect), Color.Black, FrameStyle.Dashed);
-            isBanding = false;
-       
         }
     }
 }
