@@ -46,15 +46,29 @@ namespace CsBifurcation
                 dict[kvp.Key] = kvp.Value;
         }
 
+        public double getDouble(string sParamName, bool optional) //defaults to 0.0 if not found
+        {
+            if (!dict.ContainsKey(sParamName)) 
+                if (!optional)
+                    throw new IniFileParsingException("Could not find key "+sParamName);
+                else 
+                    return 0.0;
+
+            double ret;
+            if (!double.TryParse(dict[sParamName], out ret)) throw new IniFileParsingException("Not valid number.");
+            return ret;
+        }
         public double getDouble(string sParamName)
         {
-            if (!dict.ContainsKey(sParamName)) throw new IniFileParsingException("Could not find key "+sParamName);
-            return double.Parse(dict[sParamName]);
+            return getDouble(sParamName, false);
         }
         public int getInt(string sParamName)
         {
             if (!dict.ContainsKey(sParamName)) throw new IniFileParsingException("Could not find key "+sParamName);
-            return int.Parse(dict[sParamName]);
+
+            int ret;
+            if (!int.TryParse(dict[sParamName], out ret)) throw new IniFileParsingException("Not valid number.");
+            return ret;
         }
         public string getString(string sParamName)
         {

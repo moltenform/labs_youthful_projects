@@ -194,8 +194,7 @@ namespace chaosExplorerControl
             setBounds(X0, X1, newY0, newY1);
             redraw();
         }
-
-        private void mnuZoomIn_Click(object sender, EventArgs e)
+        public void zoomIn()
         {
             double newX0, newY0, newX1, newY1;
             newX0 = X0+ (X1-X0)/4;
@@ -205,15 +204,23 @@ namespace chaosExplorerControl
             setBounds(newX0, newX1, newY0, newY1);
             redraw();
         }
-        private void mnuZoomOut_Click(object sender, EventArgs e)
+        public void zoomOut()
         {
             double newX0, newY0, newX1, newY1;
             newX0 = X0- (X1-X0)/2;
             newX1 = X1+ (X1-X0)/2;
             newY0 = Y0- (Y1-Y0)/2;
             newY1 = Y1+ (Y1-Y0)/2;
-            setBounds(newX0, newX1,newY0, newY1);
+            setBounds(newX0, newX1, newY0, newY1);
             redraw();
+        }
+        private void mnuZoomIn_Click(object sender, EventArgs e)
+        {
+            zoomIn();
+        }
+        private void mnuZoomOut_Click(object sender, EventArgs e)
+        {
+            zoomOut();
         }
 
         private void mnuZoomUndo_Click(object sender, EventArgs e)

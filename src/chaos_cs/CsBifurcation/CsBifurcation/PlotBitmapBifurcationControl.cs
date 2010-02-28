@@ -8,7 +8,7 @@ namespace CsBifurcation
     public class PlotBitmapBifurcationControl  : PointPlotBitmapUserControl
     {
         public int paramSettle = 200;
-        public double param1, param2, paramShading = 0.1;
+        public double param1, param2,param3,param4, paramShading = 0.1;
         public string paramExpression, paramInit, paramP0;
         public bool bShading=true;
         
@@ -35,11 +35,10 @@ namespace CsBifurcation
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
             d["fWIDTH"] = width; d["fHEIGHT"] = height;
             d["paramShading"] = paramShading; d["paramSettle"] = paramSettle;
-            d["c1"] = param1; d["c2"] = param2;
+            d["c1"] = param1; d["c2"] = param2; d["c3"] = param3; d["c4"] = param4;
 
             string sTemplate = @"
             double additionalShading = 1.0; //can be set by code
-            //double shadingAmount = paramShading/5;
             double shadingAmount = paramShading*0.2 + 0.8;
             int nPointsDrawn = (int)(paramShading * 40)+1;
             int nSettletime = (int)paramSettle;
@@ -82,7 +81,7 @@ namespace CsBifurcation
             sTemplate = sTemplate.Replace("$$PNAUGHTEXPRESSION$$", paramP0);
             sTemplate = sTemplate.Replace("$$SHADEOPERATION$$", sShadeOperation);
 
-            System.Windows.Forms.Clipboard.SetText(sTemplate);
+            //System.Windows.Forms.Clipboard.SetText(sTemplate);
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
             double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);
