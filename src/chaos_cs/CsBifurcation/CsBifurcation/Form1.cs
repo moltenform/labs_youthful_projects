@@ -4,6 +4,7 @@
  * Enter arbitrary code in P0, such as C1, rand(), or randneg()
  * Change additionalShading in init code for higher quality.
  * 
+ * version 217 was a large change.
  * */
 
 using System;
@@ -21,19 +22,21 @@ namespace CsBifurcation
 {
     public partial class Form1 : Form
     {
-        public string strIniPath = @"C:\Ben's Goodies\SpringChaos\csbifurcation.ini"; //Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)+"\\csbifurcation.ini";
+        public readonly string Version = "1.0.0";
         public Form1()
         {
+            if (Directory.Exists(@"..\..\cfgs")) 
+                Directory.SetCurrentDirectory(@"..\..\cfgs"); //Test environment
+            else
+                Directory.SetCurrentDirectory(@"cfgs"); //Release environment
+
             InitializeComponent();
             lblParam1.Text = lblParam2.Text = lblSettling.Text = lblShading.Text = "";
             rdoShade.Checked = true; rdoPoints.Checked = false;
-            this.loadSavedConfigs();
             this.KeyPreview = true;
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
-            if (this.comboBox1.Items.Count > 0)
-            {
-                this.comboBox1.SelectedIndex = 0;
-            }
+            
+            mnuFileNew_Click(null, null);
         }
 
         void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -49,11 +52,15 @@ namespace CsBifurcation
 
         private void btnGo_Click(object sender, EventArgs e)
         {
+            Redraw();
+        }
+        public void Redraw()
+        {
             this.pointPlotBifurcationUserControl1.paramExpression = getUserExpression(this.txtExpression.Text);
             this.pointPlotBifurcationUserControl1.paramP0 = getUserExpression(this.txtP0.Text);
             this.pointPlotBifurcationUserControl1.paramInit = getUserExpression(this.txtInit.Text);
             this.pointPlotBifurcationUserControl1.bShading = this.rdoShade.Checked;
-            
+
             this.pointPlotBifurcationUserControl1.redraw();
         }
 
@@ -124,120 +131,9 @@ namespace CsBifurcation
             this.pointPlotBifurcationUserControl1.redraw();
         }
 
-        private void loadSavedConfigs()
-        {
-            comboBox1.Items.Clear();
-            if (!File.Exists(strIniPath)) return;
-            IniFileParsing ifParsing = new IniFileParsing(strIniPath, true);
-            List<string> l = ifParsing.GetCategories();
-            foreach (string s in l) comboBox1.Items.Add(s);
-        }
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (!File.Exists(strIniPath)) return;
-            IniFileParsing ifParsing = new IniFileParsing(strIniPath, true);
-            string sChosen = this.comboBox1.Items[comboBox1.SelectedIndex] as string;
-            try
-            {
-                CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, sChosen);
-                
-                //set props
-                double nX0 = loader.getDouble("X0");
-                double nX1 = loader.getDouble("X1");
-                double nY0 = loader.getDouble("Y0");
-                double nY1 = loader.getDouble("Y1");
-                pointPlotBifurcationUserControl1.setBounds(nX0, nX1, nY0, nY1);
-                pointPlotBifurcationUserControl1.param1 = loader.getDouble("param1");
-                pointPlotBifurcationUserControl1.param2 = loader.getDouble("param2");
-                pointPlotBifurcationUserControl1.paramSettle = loader.getInt("paramSettle");
-                pointPlotBifurcationUserControl1.paramShading = loader.getDouble("paramShading");
+        
 
-                //these are transformed, so set the ui instead of the prop
-                //pointPlotBifurcationUserControl1.paramExpression = loader.getString("paramExpression");
-                //pointPlotBifurcationUserControl1.paramInit = loader.getString("paramInit");
-                //pointPlotBifurcationUserControl1.paramP0 = loader.getString("paramP0");
-                //pointPlotBifurcationUserControl1.bShading = loader.getInt("bShading")!=0;
-                rdoShade.Checked = loader.getInt("bShading")!=0;
-                rdoPoints.Checked = loader.getInt("bShading")==0;
-                txtExpression.Text = loader.getString("paramExpression");
-                txtP0.Text = loader.getString("paramP0");
-                txtInit.Text = loader.getString("paramInit");
-               
-            }
-            catch (IniFileParsingException err)
-            {
-                MessageBox.Show("Prefs Error:"+err.ToString());
-                return;
-            }
-
-            //set ui
-            double p1 = pointPlotBifurcationUserControl1.param1; double p2 = pointPlotBifurcationUserControl1.param2;
-            double ps = pointPlotBifurcationUserControl1.paramShading; double pst = pointPlotBifurcationUserControl1.paramSettle;
-            lblParam1.Text = p1.ToString();
-            lblParam2.Text = p2.ToString();
-            lblSettling.Text = pst.ToString();
-            lblShading.Text = ps.ToString();
-            // set sliders, TODO: also set for sliderSettling (known issue) 
-            tbShading.Value = (int)(tbShading.Maximum*ps);
-            tbParam1.Value = (int)(tbShading.Maximum*p1);
-            tbParam2.Value = (int)(tbShading.Maximum*p2);
-
-            //retrieves from txtExpression and redraws()
-            btnGo_Click(null, null);
-        }
-
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            string sName = InputBoxForm.GetStrInput("Enter name:", "");
-            if (sName==null || sName=="")
-                return;
-
-            //make the name alphanumeric, but also allowing _,.
-            Regex pattern=new Regex("[^a-zA-Z0-9_,. ]");
-            if (pattern.IsMatch(sName)) { MessageBox.Show("Invalid character in name."); return; }
-
-            /* It's ok to overwrite existing...
-            foreach (object o in this.comboBox1.Items)
-            {
-                if (o as string).Equals(sName)) { MessageBox.Show("Name '"+sName+"' already exists.");  return;  }
-            }*/
-
-            IniFileParsing ifParsing = new IniFileParsing(strIniPath, false); //creates ini if doesn't exist
-            try
-            {
-                CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, sName);
-
-                double nX0, nX1, nY0, nY1;
-                pointPlotBifurcationUserControl1.getBounds(out nX0, out nX1, out nY0, out nY1);
-                saver.saveDouble("X0", nX0);
-                saver.saveDouble("X1", nX1);
-                saver.saveDouble("Y0", nY0);
-                saver.saveDouble("Y1", nY1);
-
-                saver.saveDouble("param1", pointPlotBifurcationUserControl1.param1);
-                saver.saveDouble("param2", pointPlotBifurcationUserControl1.param2);
-                saver.saveInt("paramSettle", pointPlotBifurcationUserControl1.paramSettle);
-                saver.saveDouble("paramShading", pointPlotBifurcationUserControl1.paramShading);
-
-                saver.saveString("paramExpression", txtExpression.Text);
-                saver.saveString("paramInit", txtInit.Text);
-                saver.saveString("paramP0", txtP0.Text);
-                saver.saveInt("bShading", rdoShade.Checked?1:0);
-
-            }
-            catch (IniFileParsingException err)
-            {
-                MessageBox.Show("Prefs Error:"+err.ToString());
-                loadSavedConfigs();
-                return;
-            }
-            loadSavedConfigs();
-
-            //will create inifile if doesn't exist
-           // IniFileParsing ifParsing = new IniFileParsing(strIniPath, false);
-           // CsIniSaveHelper prefs = new CsIniSaveHelper(ifParsing, sName);
-
-        }
+       
 
         private void btnMovie_Click(object sender, EventArgs e)
         {
@@ -276,6 +172,115 @@ namespace CsBifurcation
             }
         }
 
+        private void mnuFileOpen_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg1 = new OpenFileDialog();
+            dlg1.RestoreDirectory = true;
+            dlg1.Filter = "CsBifurcation files (*.cfg)|*.cfg";
+            if (!(dlg1.ShowDialog() == System.Windows.Forms.DialogResult.OK && dlg1.FileName.Length > 0))
+                return;
+            loadIni(dlg1.FileName);
+        }
+
+        
+
+        private void mnuFileSave_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "CsBifurcation files (*.cfg)|*.cfg";
+            saveFileDialog1.RestoreDirectory = true;
+            if (!(saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
+                return;
+            saveIni(saveFileDialog1.FileName);
+        }
+        private void loadIni(string sFilename)
+        {
+            if (!File.Exists(sFilename)) return;
+            IniFileParsing ifParsing = new IniFileParsing(sFilename, true);
+            try
+            {
+                CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, "main");
+
+                //set props
+                double nX0 = loader.getDouble("X0");
+                double nX1 = loader.getDouble("X1");
+                double nY0 = loader.getDouble("Y0");
+                double nY1 = loader.getDouble("Y1");
+                pointPlotBifurcationUserControl1.setBounds(nX0, nX1, nY0, nY1);
+                pointPlotBifurcationUserControl1.param1 = loader.getDouble("param1");
+                pointPlotBifurcationUserControl1.param2 = loader.getDouble("param2");
+                pointPlotBifurcationUserControl1.paramSettle = loader.getInt("paramSettle");
+                pointPlotBifurcationUserControl1.paramShading = loader.getDouble("paramShading");
+
+                //these are transformed, so set the ui instead of the prop. Call to Redraw will retrieve this.
+                rdoShade.Checked = loader.getInt("bShading")!=0;
+                rdoPoints.Checked = loader.getInt("bShading")==0;
+                txtExpression.Text = loader.getString("paramExpression");
+                txtP0.Text = loader.getString("paramP0");
+                txtInit.Text = loader.getString("paramInit");
+                
+            }
+            catch (IniFileParsingException err)
+            {
+                MessageBox.Show("Prefs Error:"+err.ToString());
+                return;
+            }
+
+            //set ui
+            double p1 = pointPlotBifurcationUserControl1.param1; double p2 = pointPlotBifurcationUserControl1.param2;
+            double ps = pointPlotBifurcationUserControl1.paramShading; double pst = pointPlotBifurcationUserControl1.paramSettle;
+            lblParam1.Text = p1.ToString();
+            lblParam2.Text = p2.ToString();
+            lblSettling.Text = pst.ToString();
+            lblShading.Text = ps.ToString();
+            // set sliders, TODO: also set for sliderSettling (known issue) 
+            tbShading.Value = (int)(tbShading.Maximum*ps);
+            tbParam1.Value = (int)(tbShading.Maximum*p1);
+            tbParam2.Value = (int)(tbShading.Maximum*p2);
+
+            Redraw();
+        }
+        private void saveIni(string sFilename)
+        {
+            IniFileParsing ifParsing = new IniFileParsing(sFilename, false); //creates ini if doesn't exist
+            try
+            {
+                CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, "main"); //one section called "main"
+
+                double nX0, nX1, nY0, nY1;
+                pointPlotBifurcationUserControl1.getBounds(out nX0, out nX1, out nY0, out nY1);
+                saver.saveDouble("X0", nX0);
+                saver.saveDouble("X1", nX1);
+                saver.saveDouble("Y0", nY0);
+                saver.saveDouble("Y1", nY1);
+
+                saver.saveDouble("param1", pointPlotBifurcationUserControl1.param1);
+                saver.saveDouble("param2", pointPlotBifurcationUserControl1.param2);
+                saver.saveInt("paramSettle", pointPlotBifurcationUserControl1.paramSettle);
+                saver.saveDouble("paramShading", pointPlotBifurcationUserControl1.paramShading);
+
+                saver.saveString("paramExpression", txtExpression.Text);
+                saver.saveString("paramInit", txtInit.Text);
+                saver.saveString("paramP0", txtP0.Text);
+                saver.saveInt("bShading", rdoShade.Checked?1:0);
+
+                saver.saveString("programVersion", Version);
+            }
+            catch (IniFileParsingException err)
+            {
+                MessageBox.Show("Prefs Error:"+err.ToString());
+                return;
+            }
+        }
+
+        private void mnuFileNew_Click(object sender, EventArgs e)
+        {
+            string sFilename = Path.GetFullPath(Directory.GetCurrentDirectory()) + "\\default.cfg";
+            if (File.Exists(sFilename))
+                loadIni(sFilename);
+            else
+                Redraw();
+        }
 
     }
 }

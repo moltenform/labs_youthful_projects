@@ -29,6 +29,7 @@ namespace CsBifurcation
         
         public override void getData(int width, int height, ref double[] elems)
         {
+            if (paramP0.Trim()=="") paramP0 = "0.5";
             //Pass in: X0,X1,Y0,Y1,WIDTH,HEIGHT,paramShading,paramSettle
             Dictionary<string, double> d = new Dictionary<string, double>();
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
@@ -81,7 +82,7 @@ namespace CsBifurcation
             sTemplate = sTemplate.Replace("$$PNAUGHTEXPRESSION$$", paramP0);
             sTemplate = sTemplate.Replace("$$SHADEOPERATION$$", sShadeOperation);
 
-            //System.Windows.Forms.Clipboard.SetText(sTemplate);
+            System.Windows.Forms.Clipboard.SetText(sTemplate);
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
             double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);
@@ -105,6 +106,6 @@ namespace CsBifurcation
             }*/
 
         }
-
+        
     }
 }
