@@ -44,13 +44,7 @@ namespace CsBifurcation
             this.lblParam2 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.btnMovie = new System.Windows.Forms.Button();
-            this.btnBounds = new System.Windows.Forms.Button();
             this.txtP0 = new System.Windows.Forms.TextBox();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.label6 = new System.Windows.Forms.Label();
-            this.rdoPoints = new System.Windows.Forms.RadioButton();
-            this.rdoShade = new System.Windows.Forms.RadioButton();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.txtInit = new System.Windows.Forms.TextBox();
@@ -60,7 +54,7 @@ namespace CsBifurcation
             this.mnuFileOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFileSave = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuFileRender = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,41 +65,41 @@ namespace CsBifurcation
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.fToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuViewRedraw = new System.Windows.Forms.ToolStripMenuItem();
             this.advancedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.drawShadingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.drawPointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuAdvShades = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuAdvPoints = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.setBoundsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.additionalQualityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.redrawWhenC1ChangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuAdvAutoRedraw = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.pointPlotBifurcationUserControl1 = new CsBifurcation.PlotBitmapBifurcationControl();
             ((System.ComponentModel.ISupportInitialize)(this.tbSettling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbShading)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam2)).BeginInit();
             this.groupBox1.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // txtExpression
             // 
-            this.txtExpression.Location = new System.Drawing.Point(545, 180);
+            this.txtExpression.Location = new System.Drawing.Point(519, 127);
             this.txtExpression.Multiline = true;
             this.txtExpression.Name = "txtExpression";
             this.txtExpression.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtExpression.Size = new System.Drawing.Size(167, 43);
+            this.txtExpression.Size = new System.Drawing.Size(209, 61);
             this.txtExpression.TabIndex = 0;
             this.txtExpression.Text = "p = r*p*(1-p);";
             // 
             // btnGo
             // 
-            this.btnGo.Location = new System.Drawing.Point(545, 229);
+            this.btnGo.Location = new System.Drawing.Point(519, 194);
             this.btnGo.Name = "btnGo";
-            this.btnGo.Size = new System.Drawing.Size(167, 40);
+            this.btnGo.Size = new System.Drawing.Size(210, 50);
             this.btnGo.TabIndex = 1;
             this.btnGo.Text = "Go";
             this.btnGo.UseVisualStyleBackColor = true;
@@ -230,10 +224,7 @@ namespace CsBifurcation
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.btnMovie);
-            this.groupBox1.Controls.Add(this.btnBounds);
             this.groupBox1.Controls.Add(this.txtP0);
-            this.groupBox1.Controls.Add(this.panel1);
             this.groupBox1.Controls.Add(this.label9);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.txtInit);
@@ -244,73 +235,12 @@ namespace CsBifurcation
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = " ";
             // 
-            // btnMovie
-            // 
-            this.btnMovie.Location = new System.Drawing.Point(7, 107);
-            this.btnMovie.Name = "btnMovie";
-            this.btnMovie.Size = new System.Drawing.Size(55, 23);
-            this.btnMovie.TabIndex = 18;
-            this.btnMovie.Text = "Movie...";
-            this.btnMovie.UseVisualStyleBackColor = true;
-            this.btnMovie.Click += new System.EventHandler(this.btnMovie_Click);
-            // 
-            // btnBounds
-            // 
-            this.btnBounds.Location = new System.Drawing.Point(166, 46);
-            this.btnBounds.Name = "btnBounds";
-            this.btnBounds.Size = new System.Drawing.Size(64, 20);
-            this.btnBounds.TabIndex = 14;
-            this.btnBounds.Text = "Bounds...";
-            this.btnBounds.UseVisualStyleBackColor = true;
-            this.btnBounds.Click += new System.EventHandler(this.btnBounds_Click);
-            // 
             // txtP0
             // 
             this.txtP0.Location = new System.Drawing.Point(74, 46);
             this.txtP0.Name = "txtP0";
             this.txtP0.Size = new System.Drawing.Size(84, 20);
             this.txtP0.TabIndex = 17;
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.label6);
-            this.panel1.Controls.Add(this.rdoPoints);
-            this.panel1.Controls.Add(this.rdoShade);
-            this.panel1.Location = new System.Drawing.Point(21, 19);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(237, 25);
-            this.panel1.TabIndex = 16;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(2, 3);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(73, 13);
-            this.label6.TabIndex = 10;
-            this.label6.Text = "Drawing style:";
-            // 
-            // rdoPoints
-            // 
-            this.rdoPoints.AutoSize = true;
-            this.rdoPoints.Location = new System.Drawing.Point(146, 3);
-            this.rdoPoints.Name = "rdoPoints";
-            this.rdoPoints.Size = new System.Drawing.Size(54, 17);
-            this.rdoPoints.TabIndex = 9;
-            this.rdoPoints.TabStop = true;
-            this.rdoPoints.Text = "Points";
-            this.rdoPoints.UseVisualStyleBackColor = true;
-            // 
-            // rdoShade
-            // 
-            this.rdoShade.AutoSize = true;
-            this.rdoShade.Location = new System.Drawing.Point(81, 3);
-            this.rdoShade.Name = "rdoShade";
-            this.rdoShade.Size = new System.Drawing.Size(56, 17);
-            this.rdoShade.TabIndex = 9;
-            this.rdoShade.TabStop = true;
-            this.rdoShade.Text = "Shade";
-            this.rdoShade.UseVisualStyleBackColor = true;
             // 
             // label9
             // 
@@ -359,7 +289,7 @@ namespace CsBifurcation
             this.mnuFileOpen,
             this.mnuFileSave,
             this.toolStripSeparator1,
-            this.toolStripMenuItem2,
+            this.mnuFileRender,
             this.toolStripMenuItem1,
             this.toolStripSeparator5,
             this.exitToolStripMenuItem});
@@ -396,11 +326,11 @@ namespace CsBifurcation
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(192, 6);
             // 
-            // toolStripMenuItem2
+            // mnuFileRender
             // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(195, 22);
-            this.toolStripMenuItem2.Text = "Render Image to Disk...";
+            this.mnuFileRender.Name = "mnuFileRender";
+            this.mnuFileRender.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileRender.Text = "Render Image to Disk...";
             // 
             // toolStripMenuItem1
             // 
@@ -428,7 +358,7 @@ namespace CsBifurcation
             this.toolStripSeparator3,
             this.resetToolStripMenuItem,
             this.toolStripSeparator4,
-            this.fToolStripMenuItem});
+            this.mnuViewRedraw});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
@@ -436,69 +366,75 @@ namespace CsBifurcation
             // zoomInToolStripMenuItem
             // 
             this.zoomInToolStripMenuItem.Name = "zoomInToolStripMenuItem";
-            this.zoomInToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.zoomInToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.zoomInToolStripMenuItem.Text = "Zoom In";
             // 
             // zoomOutToolStripMenuItem
             // 
             this.zoomOutToolStripMenuItem.Name = "zoomOutToolStripMenuItem";
-            this.zoomOutToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.zoomOutToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.zoomOutToolStripMenuItem.Text = "Zoom Out";
             // 
             // undoZoomToolStripMenuItem
             // 
             this.undoZoomToolStripMenuItem.Name = "undoZoomToolStripMenuItem";
-            this.undoZoomToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.undoZoomToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z)));
+            this.undoZoomToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.undoZoomToolStripMenuItem.Text = "Undo Zoom";
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(135, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(176, 6);
             // 
             // resetToolStripMenuItem
             // 
             this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-            this.resetToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.resetToolStripMenuItem.Text = "Reset";
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(135, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(176, 6);
             // 
-            // fToolStripMenuItem
+            // mnuViewRedraw
             // 
-            this.fToolStripMenuItem.Name = "fToolStripMenuItem";
-            this.fToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
-            this.fToolStripMenuItem.Text = "Redraw";
+            this.mnuViewRedraw.Name = "mnuViewRedraw";
+            this.mnuViewRedraw.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space)));
+            this.mnuViewRedraw.Size = new System.Drawing.Size(179, 22);
+            this.mnuViewRedraw.Text = "Redraw";
+            this.mnuViewRedraw.Click += new System.EventHandler(this.mnuViewRedraw_Click);
             // 
             // advancedToolStripMenuItem
             // 
             this.advancedToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.drawShadingToolStripMenuItem,
-            this.drawPointsToolStripMenuItem,
+            this.mnuAdvShades,
+            this.mnuAdvPoints,
             this.toolStripSeparator2,
             this.setBoundsToolStripMenuItem,
             this.additionalQualityToolStripMenuItem,
-            this.redrawWhenC1ChangesToolStripMenuItem});
+            this.toolStripSeparator6,
+            this.mnuAdvAutoRedraw});
             this.advancedToolStripMenuItem.Name = "advancedToolStripMenuItem";
             this.advancedToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
             this.advancedToolStripMenuItem.Text = "Advanced";
             // 
-            // drawShadingToolStripMenuItem
+            // mnuAdvShades
             // 
-            this.drawShadingToolStripMenuItem.Checked = true;
-            this.drawShadingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.drawShadingToolStripMenuItem.Name = "drawShadingToolStripMenuItem";
-            this.drawShadingToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.drawShadingToolStripMenuItem.Text = "Draw Shades";
+            this.mnuAdvShades.Checked = true;
+            this.mnuAdvShades.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mnuAdvShades.Name = "mnuAdvShades";
+            this.mnuAdvShades.Size = new System.Drawing.Size(207, 22);
+            this.mnuAdvShades.Text = "Draw Shades";
+            this.mnuAdvShades.Click += new System.EventHandler(this.mnuAdvShades_Click);
             // 
-            // drawPointsToolStripMenuItem
+            // mnuAdvPoints
             // 
-            this.drawPointsToolStripMenuItem.Name = "drawPointsToolStripMenuItem";
-            this.drawPointsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.drawPointsToolStripMenuItem.Text = "Draw Points";
+            this.mnuAdvPoints.Name = "mnuAdvPoints";
+            this.mnuAdvPoints.Size = new System.Drawing.Size(207, 22);
+            this.mnuAdvPoints.Text = "Draw Points";
+            this.mnuAdvPoints.Click += new System.EventHandler(this.mnuAdvPoints_Click);
             // 
             // toolStripSeparator2
             // 
@@ -517,11 +453,12 @@ namespace CsBifurcation
             this.additionalQualityToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.additionalQualityToolStripMenuItem.Text = "Additional Quality...";
             // 
-            // redrawWhenC1ChangesToolStripMenuItem
+            // mnuAdvAutoRedraw
             // 
-            this.redrawWhenC1ChangesToolStripMenuItem.Name = "redrawWhenC1ChangesToolStripMenuItem";
-            this.redrawWhenC1ChangesToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.redrawWhenC1ChangesToolStripMenuItem.Text = "Redraw when c1 changes";
+            this.mnuAdvAutoRedraw.Name = "mnuAdvAutoRedraw";
+            this.mnuAdvAutoRedraw.Size = new System.Drawing.Size(207, 22);
+            this.mnuAdvAutoRedraw.Text = "Redraw when c1 changes";
+            this.mnuAdvAutoRedraw.Click += new System.EventHandler(this.mnuAdvAutoRedraw_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -537,9 +474,14 @@ namespace CsBifurcation
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "About";
             // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(204, 6);
+            // 
             // pointPlotBifurcationUserControl1
             // 
-            this.pointPlotBifurcationUserControl1.Location = new System.Drawing.Point(12, 69);
+            this.pointPlotBifurcationUserControl1.Location = new System.Drawing.Point(12, 27);
             this.pointPlotBifurcationUserControl1.Name = "pointPlotBifurcationUserControl1";
             this.pointPlotBifurcationUserControl1.Size = new System.Drawing.Size(415, 432);
             this.pointPlotBifurcationUserControl1.TabIndex = 6;
@@ -576,8 +518,6 @@ namespace CsBifurcation
             ((System.ComponentModel.ISupportInitialize)(this.tbParam2)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -605,15 +545,9 @@ namespace CsBifurcation
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox txtP0;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.RadioButton rdoPoints;
-        private System.Windows.Forms.RadioButton rdoShade;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox txtInit;
-        private System.Windows.Forms.Button btnBounds;
-        private System.Windows.Forms.Button btnMovie;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mnuFileOpen;
@@ -622,25 +556,26 @@ namespace CsBifurcation
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem advancedToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem drawShadingToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem drawPointsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mnuAdvShades;
+        private System.Windows.Forms.ToolStripMenuItem mnuAdvPoints;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem setBoundsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem additionalQualityToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem redrawWhenC1ChangesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mnuAdvAutoRedraw;
         private System.Windows.Forms.ToolStripMenuItem zoomInToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem zoomOutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem undoZoomToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripMenuItem fToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem mnuViewRedraw;
+        private System.Windows.Forms.ToolStripMenuItem mnuFileRender;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem mnuFileNew;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
     }
 }
 

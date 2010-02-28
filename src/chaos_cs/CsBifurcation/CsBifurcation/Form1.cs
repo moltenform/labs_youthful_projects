@@ -5,6 +5,7 @@
  * Change additionalShading in init code for higher quality.
  * 
  * version 217 was a large change.
+ * todo: threading, previews, zoom animations, undo stack
  * */
 
 using System;
@@ -32,20 +33,12 @@ namespace CsBifurcation
 
             InitializeComponent();
             lblParam1.Text = lblParam2.Text = lblSettling.Text = lblShading.Text = "";
-            rdoShade.Checked = true; rdoPoints.Checked = false;
-            this.KeyPreview = true;
-            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+            mnuAdvShades.Checked = true; mnuAdvPoints.Checked = false;
             
             mnuFileNew_Click(null, null);
         }
 
-        void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter && ((e.Modifiers & Keys.Control)!=0))
-                pointPlotBifurcationUserControl1.redraw();
-            else
-                e.Handled = false;
-        }
+        
 
         
        
@@ -59,7 +52,7 @@ namespace CsBifurcation
             this.pointPlotBifurcationUserControl1.paramExpression = getUserExpression(this.txtExpression.Text);
             this.pointPlotBifurcationUserControl1.paramP0 = getUserExpression(this.txtP0.Text);
             this.pointPlotBifurcationUserControl1.paramInit = getUserExpression(this.txtInit.Text);
-            this.pointPlotBifurcationUserControl1.bShading = this.rdoShade.Checked;
+            this.pointPlotBifurcationUserControl1.bShading = this.mnuAdvShades.Checked;
 
             this.pointPlotBifurcationUserControl1.redraw();
         }
@@ -84,7 +77,6 @@ namespace CsBifurcation
             int v = (int)Math.Pow(10.0, d * 6);
             lblSettling.Text = v.ToString();
             this.pointPlotBifurcationUserControl1.paramSettle = v;
-            //pointPlotBifurcationUserControl1.redraw();
         }
 
         private void tbShading_Scroll(object sender, EventArgs e)
@@ -99,6 +91,7 @@ namespace CsBifurcation
             double v = (tbParam1.Value / 1000.0);
             pointPlotBifurcationUserControl1.param1 = v;
             lblParam1.Text = v.ToString();
+            if (mnuAdvAutoRedraw.Checked) pointPlotBifurcationUserControl1.redraw();
         }
 
         private void tbParam2_Scroll(object sender, EventArgs e)
@@ -195,6 +188,7 @@ namespace CsBifurcation
         }
         private void loadIni(string sFilename)
         {
+            //note: requires absolute path to file.
             if (!File.Exists(sFilename)) return;
             IniFileParsing ifParsing = new IniFileParsing(sFilename, true);
             try
@@ -213,8 +207,8 @@ namespace CsBifurcation
                 pointPlotBifurcationUserControl1.paramShading = loader.getDouble("paramShading");
 
                 //these are transformed, so set the ui instead of the prop. Call to Redraw will retrieve this.
-                rdoShade.Checked = loader.getInt("bShading")!=0;
-                rdoPoints.Checked = loader.getInt("bShading")==0;
+                mnuAdvShades.Checked = loader.getInt("bShading")!=0;
+                mnuAdvPoints.Checked = loader.getInt("bShading")==0;
                 txtExpression.Text = loader.getString("paramExpression");
                 txtP0.Text = loader.getString("paramP0");
                 txtInit.Text = loader.getString("paramInit");
@@ -262,7 +256,7 @@ namespace CsBifurcation
                 saver.saveString("paramExpression", txtExpression.Text);
                 saver.saveString("paramInit", txtInit.Text);
                 saver.saveString("paramP0", txtP0.Text);
-                saver.saveInt("bShading", rdoShade.Checked?1:0);
+                saver.saveInt("bShading", mnuAdvShades.Checked?1:0);
 
                 saver.saveString("programVersion", Version);
             }
@@ -277,10 +271,19 @@ namespace CsBifurcation
         {
             string sFilename = Path.GetFullPath(Directory.GetCurrentDirectory()) + "\\default.cfg";
             if (File.Exists(sFilename))
-                loadIni(sFilename);
+                loadIni(sFilename); // requires absolute path.
             else
                 Redraw();
         }
 
+        private void mnuAdvShades_Click(object sender, EventArgs e) { mnuAdvShades.Checked = true; mnuAdvPoints.Checked=false; Redraw(); }
+        private void mnuAdvPoints_Click(object sender, EventArgs e) { mnuAdvShades.Checked = false; mnuAdvPoints.Checked=true; Redraw(); }
+
+        private void mnuViewRedraw_Click(object sender, EventArgs e) { Redraw(); }
+        private void mnuAdvAutoRedraw_Click(object sender, EventArgs e) { mnuAdvAutoRedraw.Checked=!mnuAdvAutoRedraw.Checked; }
+
+
+
+        
     }
 }
