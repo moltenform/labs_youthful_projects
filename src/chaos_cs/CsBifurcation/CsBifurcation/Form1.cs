@@ -7,6 +7,7 @@
  * Press left/right and pgup/pgdn to make small changes to C1, C2
  * click label to manually set value
  * 
+ * 
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox changes? Eliminate view menu, plotcontrol to have only public methods no ui?
@@ -204,6 +205,8 @@ namespace CsBifurcation
 
                 saver.saveDouble("param1", pointPlotBifurcationUserControl1.param1);
                 saver.saveDouble("param2", pointPlotBifurcationUserControl1.param2);
+                saver.saveDouble("param3", pointPlotBifurcationUserControl1.param3);
+                saver.saveDouble("param4", pointPlotBifurcationUserControl1.param4);
                 saver.saveInt("paramSettle", pointPlotBifurcationUserControl1.paramSettle);
                 saver.saveDouble("paramShading", pointPlotBifurcationUserControl1.paramShading);
 

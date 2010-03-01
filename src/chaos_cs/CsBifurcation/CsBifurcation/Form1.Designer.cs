@@ -266,7 +266,7 @@ namespace CsBifurcation
             // 
             this.mnuFileNew.Name = "mnuFileNew";
             this.mnuFileNew.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.mnuFileNew.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileNew.Size = new System.Drawing.Size(236, 22);
             this.mnuFileNew.Text = "New";
             this.mnuFileNew.Click += new System.EventHandler(this.mnuFileNew_Click);
             // 
@@ -274,7 +274,7 @@ namespace CsBifurcation
             // 
             this.mnuFileOpen.Name = "mnuFileOpen";
             this.mnuFileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.mnuFileOpen.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileOpen.Size = new System.Drawing.Size(236, 22);
             this.mnuFileOpen.Text = "Open...";
             this.mnuFileOpen.Click += new System.EventHandler(this.mnuFileOpen_Click);
             // 
@@ -282,38 +282,39 @@ namespace CsBifurcation
             // 
             this.mnuFileSave.Name = "mnuFileSave";
             this.mnuFileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.mnuFileSave.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileSave.Size = new System.Drawing.Size(236, 22);
             this.mnuFileSave.Text = "Save As...";
             this.mnuFileSave.Click += new System.EventHandler(this.mnuFileSave_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(192, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(233, 6);
             // 
             // mnuFileRender
             // 
             this.mnuFileRender.Name = "mnuFileRender";
-            this.mnuFileRender.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileRender.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.mnuFileRender.Size = new System.Drawing.Size(236, 22);
             this.mnuFileRender.Text = "Render Image to Disk...";
             this.mnuFileRender.Click += new System.EventHandler(this.mnuFileRender_Click);
             // 
             // mnuFileAnimate
             // 
             this.mnuFileAnimate.Name = "mnuFileAnimate";
-            this.mnuFileAnimate.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileAnimate.Size = new System.Drawing.Size(236, 22);
             this.mnuFileAnimate.Text = "Create Animation...";
             this.mnuFileAnimate.Click += new System.EventHandler(this.mnuFileAnimate_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(192, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(233, 6);
             // 
             // mnuFileExit
             // 
             this.mnuFileExit.Name = "mnuFileExit";
-            this.mnuFileExit.Size = new System.Drawing.Size(195, 22);
+            this.mnuFileExit.Size = new System.Drawing.Size(236, 22);
             this.mnuFileExit.Text = "Exit";
             this.mnuFileExit.Click += new System.EventHandler(this.mnuFileExit_Click);
             // 
