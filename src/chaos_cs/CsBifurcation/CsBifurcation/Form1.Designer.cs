@@ -67,10 +67,10 @@ namespace CsBifurcation
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuAdvBounds = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAdvAddQuality = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuAdvAutoRedraw = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.tbParam3 = new System.Windows.Forms.TrackBar();
             this.label2 = new System.Windows.Forms.Label();
             this.lblParam3 = new System.Windows.Forms.Label();
@@ -137,6 +137,7 @@ namespace CsBifurcation
             this.lblSettling.Size = new System.Drawing.Size(12, 13);
             this.lblSettling.TabIndex = 4;
             this.lblSettling.Text = "x";
+            this.lblSettling.Click += new System.EventHandler(this.lblSettling_Click);
             // 
             // label3
             // 
@@ -164,6 +165,7 @@ namespace CsBifurcation
             this.lblShading.Size = new System.Drawing.Size(12, 13);
             this.lblShading.TabIndex = 4;
             this.lblShading.Text = "x";
+            this.lblShading.Click += new System.EventHandler(this.lblShading_Click);
             // 
             // tbParam1
             // 
@@ -192,6 +194,7 @@ namespace CsBifurcation
             this.lblParam1.Size = new System.Drawing.Size(15, 13);
             this.lblParam1.TabIndex = 4;
             this.lblParam1.Text = " x";
+            this.lblParam1.Click += new System.EventHandler(this.lblParam1_Click);
             // 
             // tbParam2
             // 
@@ -220,6 +223,7 @@ namespace CsBifurcation
             this.lblParam2.Size = new System.Drawing.Size(15, 13);
             this.lblParam2.TabIndex = 4;
             this.lblParam2.Text = "x ";
+            this.lblParam2.Click += new System.EventHandler(this.lblParam2_Click);
             // 
             // label4
             // 
@@ -424,6 +428,11 @@ namespace CsBifurcation
             this.mnuAdvAddQuality.Text = "Additional Quality...";
             this.mnuAdvAddQuality.Click += new System.EventHandler(this.mnuAdvAddQuality_Click);
             // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(204, 6);
+            // 
             // mnuAdvAutoRedraw
             // 
             this.mnuAdvAutoRedraw.Name = "mnuAdvAutoRedraw";
@@ -442,14 +451,9 @@ namespace CsBifurcation
             // mnuHelpAbout
             // 
             this.mnuHelpAbout.Name = "mnuHelpAbout";
-            this.mnuHelpAbout.Size = new System.Drawing.Size(152, 22);
+            this.mnuHelpAbout.Size = new System.Drawing.Size(107, 22);
             this.mnuHelpAbout.Text = "About";
             this.mnuHelpAbout.Click += new System.EventHandler(this.mnuHelpAbout_Click);
-            // 
-            // toolStripSeparator6
-            // 
-            this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(204, 6);
             // 
             // tbParam3
             // 
@@ -478,6 +482,7 @@ namespace CsBifurcation
             this.lblParam3.Size = new System.Drawing.Size(15, 13);
             this.lblParam3.TabIndex = 4;
             this.lblParam3.Text = " x";
+            this.lblParam3.Click += new System.EventHandler(this.lblParam3_Click);
             // 
             // tbParam4
             // 
@@ -506,6 +511,7 @@ namespace CsBifurcation
             this.lblParam4.Size = new System.Drawing.Size(15, 13);
             this.lblParam4.TabIndex = 4;
             this.lblParam4.Text = " x";
+            this.lblParam4.Click += new System.EventHandler(this.lblParam4_Click);
             // 
             // txtP0
             // 

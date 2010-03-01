@@ -5,17 +5,15 @@
  * Enter arbitrary code in P0, such as C1, rand(), or randneg()
  * Change additionalShading in init code for higher quality.
  * Press left/right and pgup/pgdn to make small changes to C1, C2
+ * click label to manually set value
  * 
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * 
+ * can't set c1 back to 0 by dragging
  * */
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -42,15 +40,6 @@ namespace CsBifurcation
             mnuFileNew_Click(null, null);
         }
 
-        
-
-        
-       
-
-        private void btnGo_Click(object sender, EventArgs e)
-        {
-            Redraw();
-        }
         public void Redraw()
         {
             this.pointPlotBifurcationUserControl1.paramExpression = getUserExpression(this.txtExpression.Text);
@@ -61,9 +50,7 @@ namespace CsBifurcation
             this.pointPlotBifurcationUserControl1.redraw();
         }
 
-
-
-        //transform sin into Math.sin
+        //transform sin into Math.sin, rand()=R.NextDouble()
         protected string getUserExpression(string s)
         {
             CodedomEvaluator.CodedomEvaluator cb = new CodedomEvaluator.CodedomEvaluator();
@@ -71,25 +58,29 @@ namespace CsBifurcation
             //s = Regex.Replace(s, "\\brand\\(\\)\\b", "R.NextDouble()");
             s = Regex.Replace(s, "\\brand\\b", "R.NextDouble");
             s = Regex.Replace(s, "\\brandneg\\(\\)", "((R.NextDouble()-0.5)*2)");
-            
             return s;
+        }
+       
+
+
+        private void btnGo_Click(object sender, EventArgs e)
+        {
+            Redraw();
         }
 
         private void tbSettling_Scroll(object sender, EventArgs e)
         {
-            double d = (tbSettling.Value / 1000.0);
+            double d = (tbSettling.Value / ((double)tbSettling.Maximum));
             int v = (int)Math.Pow(10.0, d * 6);
             lblSettling.Text = v.ToString();
             this.pointPlotBifurcationUserControl1.paramSettle = v;
         }
-
         private void tbShading_Scroll(object sender, EventArgs e)
         {
-            double v = (tbShading.Value / 1000.0);
+            double v = (tbShading.Value / ((double)tbShading.Maximum));
             pointPlotBifurcationUserControl1.paramShading = v;
             lblShading.Text = v.ToString();
         }
-
         private void tbParam1_Scroll(object sender, EventArgs e)
         {
             double v = ((tbParam1.Value / ((double)tbParam1.Maximum)) - 0.5)*2;
@@ -139,32 +130,11 @@ namespace CsBifurcation
             this.pointPlotBifurcationUserControl1.redraw();
         }
 
-        
-
-       
 
 
-        private void mnuFileOpen_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog dlg1 = new OpenFileDialog();
-            dlg1.RestoreDirectory = true;
-            dlg1.Filter = "CsBifurcation files (*.cfg)|*.cfg";
-            if (!(dlg1.ShowDialog() == System.Windows.Forms.DialogResult.OK && dlg1.FileName.Length > 0))
-                return;
-            loadIni(dlg1.FileName);
-        }
 
-        
 
-        private void mnuFileSave_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "CsBifurcation files (*.cfg)|*.cfg";
-            saveFileDialog1.RestoreDirectory = true;
-            if (!(saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
-                return;
-            saveIni(saveFileDialog1.FileName);
-        }
+
         private void loadIni(string sFilename)
         {
             //note: requires absolute path to file.
@@ -193,7 +163,7 @@ namespace CsBifurcation
                 txtExpression.Text = loader.getString("paramExpression");
                 txtP0.Text = loader.getString("paramP0");
                 txtInit.Text = loader.getString("paramInit");
-                
+
             }
             catch (IniFileParsingException err)
             {
@@ -209,12 +179,12 @@ namespace CsBifurcation
             lblParam2.Text = p2.ToString();
             lblSettling.Text = pst.ToString();
             lblShading.Text = ps.ToString();
-            // set sliders, TODO: also set for sliderSettling (known issue) 
-            tbShading.Value = (int)(tbShading.Maximum*ps);
-            tbParam1.Value = (int)(tbParam1.Maximum*(p1 / 2+.5));
-            tbParam2.Value = (int)(tbParam2.Maximum*(p2 / 2+.5));
-            tbParam3.Value = (int)(tbParam3.Maximum*p3);
-            tbParam4.Value = (int)(tbParam4.Maximum*p4);
+            
+            setSliderToValue(ps, tbShading);
+            setSliderToValue(p1, tbParam1);
+            setSliderToValue(p2, tbParam2);
+            setSliderToValue(p3, tbParam3);
+            setSliderToValue(p4, tbParam4);
 
             Redraw();
         }
@@ -250,6 +220,26 @@ namespace CsBifurcation
                 return;
             }
         }
+
+        private void mnuFileOpen_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg1 = new OpenFileDialog();
+            dlg1.RestoreDirectory = true;
+            dlg1.Filter = "CsBifurcation files (*.cfg)|*.cfg";
+            if (!(dlg1.ShowDialog() == System.Windows.Forms.DialogResult.OK && dlg1.FileName.Length > 0))
+                return;
+            loadIni(dlg1.FileName);
+        }
+        private void mnuFileSave_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "CsBifurcation files (*.cfg)|*.cfg";
+            saveFileDialog1.RestoreDirectory = true;
+            if (!(saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
+                return;
+            saveIni(saveFileDialog1.FileName);
+        }
+       
         private void mnuFileAnimate_Click(object sender, EventArgs e)
         {
             double d, c0_0, c0_1, c1_0, c1_1; string s; int nframes;
@@ -319,17 +309,65 @@ namespace CsBifurcation
         }
 
 
+        private void setSliderToValue(double v, TrackBar tb)
+        {
+            int nVal;
+            if (tb==tbSettling)
+                nVal = tb.Value; //don't feel like setting this, would have to log it. TODO: have it set this.
+            if (tb==tbParam1 || tb==tbParam2)
+                nVal = (int)(tb.Maximum*(v / 2+.5));
+            else
+                nVal = (int)(tb.Maximum*v);
+            nVal = Math.Min(tb.Maximum, Math.Max(tb.Minimum, nVal)); //if beyond bounds, push to edge.
+            tb.Value = nVal;
+        }
 
-        
-
-
-
-        
-
-        
-
-
-
+        private bool manSetValue(Label lbl, TrackBar tb, out double v)
+        {
+            v=0.0;
+            string s = InputBoxForm.GetStrInput("Value:", lbl.Text);
+            if (s==null||s==""||!double.TryParse(s, out v)) 
+                return false;
+            setSliderToValue(v, tb);
+            lbl.Text = v.ToString();
+            return true;
+        }
+        private void lblSettling_Click(object sender, EventArgs e)
+        {
+            double v;
+            if (manSetValue(lblSettling, tbSettling, out v)) pointPlotBifurcationUserControl1.paramSettle = (int) v;
+            Redraw();
+        }
+        private void lblShading_Click(object sender, EventArgs e)
+        {
+            double v;
+            if (manSetValue(lblShading, tbShading, out v)) pointPlotBifurcationUserControl1.paramShading = v;
+            Redraw();
+        }
+        private void lblParam1_Click(object sender, EventArgs e)
+        {
+            double v;
+            if (manSetValue(lblParam1, tbParam1, out v)) pointPlotBifurcationUserControl1.param1 = v;
+            Redraw();
+        }
+        private void lblParam2_Click(object sender, EventArgs e)
+        {
+            double v;
+            if (manSetValue(lblParam2, tbParam2, out v)) pointPlotBifurcationUserControl1.param2 = v;
+            Redraw();
+        }
+        private void lblParam3_Click(object sender, EventArgs e)
+        {
+            double v;
+            if (manSetValue(lblParam3, tbParam3, out v)) pointPlotBifurcationUserControl1.param3 = v;
+            Redraw();
+        }
+        private void lblParam4_Click(object sender, EventArgs e)
+        {
+            double v;
+            if (manSetValue(lblParam4, tbParam4, out v)) pointPlotBifurcationUserControl1.param4 = v;
+            Redraw();
+        }
         
     }
 }
