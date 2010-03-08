@@ -8,7 +8,7 @@ namespace CsBifurcation
     public class PlotBitmapBifurcationControl  : PointPlotBitmapUserControl
     {
         public int paramSettle = 200;
-        public double param1, param2,param3,param4, paramShading = 0.1;
+        public double param1, param2,param3,param4, paramShading = 0.1, paramAdditionalIters = 1.0;
         public string paramExpression, paramInit, paramP0;
         public bool bShading=true;
         
@@ -36,9 +36,10 @@ namespace CsBifurcation
             d["fWIDTH"] = width; d["fHEIGHT"] = height;
             d["paramShading"] = paramShading; d["paramSettle"] = paramSettle;
             d["c1"] = param1; d["c2"] = param2; d["c3"] = param3; d["c4"] = param4;
+            d["paramAdditionalIters"] = paramAdditionalIters; //can't be set by code or cfg, use additionalShading
 
             string sTemplate = @"
-            double additionalShading = 1.0; //can be set by code
+            double additionalShading=1.0; //can be set by code
             double shadingAmount = paramShading*0.2 + 0.8;
             int nPointsDrawn = (int)(paramShading * 40)+1;
             int nSettletime = (int)paramSettle;
@@ -51,6 +52,7 @@ namespace CsBifurcation
             int y;
             double p;
             $$INITCODE$$
+            int nIterations = (int) (paramAdditionalIters*additionalShading*10000);
             for (int x = 0; x < width; x++)
             {
                 double r = fx;
@@ -70,7 +72,7 @@ namespace CsBifurcation
                 }
                 fx += dx;
             }";
-            string sItersPer = (bShading)?"(int)(additionalShading*10000)" : "nPointsDrawn";
+            string sItersPer = (bShading)?"nIterations" : "nPointsDrawn";
             string sShadeOperation = (bShading)?"*= shadingAmount;" : "= 0.2;";
             //string sShadeOperation = (bShading)?"-= shadingAmount;" : "= 0.2;";
             //string sShadeOperation = (bShading)?"= (arrAns[y + x * HEIGHT]>shadingAmount)?(arrAns[y + x * HEIGHT]-shadingAmount):shadingAmount;" : "= 0.2;";

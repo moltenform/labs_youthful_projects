@@ -11,7 +11,8 @@
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * automatically increase additionalShading when rendering
+ * todo: in generated code don't use variable names like x,y,i so that user can use them.
+ * todo: more flexible image output? 
  * */
 
 using System;
@@ -250,7 +251,7 @@ namespace CsBifurcation
             {
                 plotCntrl.param1 = c0_0;
                 plotCntrl.param2 = c1_0;
-                plotCntrl.renderToDiskSave(400, 400, sfilename.Replace(".png", "_"+i.ToString()+".png"));
+                plotCntrl.renderToDiskSave(400, 400, sfilename.Replace(".png", "_"+i.ToString("000")+".png"));
                 c0_0 += c0_inc;
                 c1_0 += c1_inc;
             }
@@ -265,8 +266,16 @@ namespace CsBifurcation
         }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
-            //create 3200x3200
-            plotCntrl.renderToDisk(3200,3200);
+            //create a plot 4 times larger. (3200x3200)
+            //time taken should increase by factor of 16.
+            //width increases by factor of 4 already.
+            //because 4 times taller, draw 4 times as many points to maintain the way it looks
+            try
+            {
+                plotCntrl.paramAdditionalIters = 4.0; //mult by 4
+                plotCntrl.renderToDisk(3200, 3200);
+            }
+            finally { plotCntrl.paramAdditionalIters = 1.0; }
         }
 
         private void mnuAdvShades_Click(object sender, EventArgs e) { mnuAdvShades.Checked = true; mnuAdvPoints.Checked=false; Redraw(); }
