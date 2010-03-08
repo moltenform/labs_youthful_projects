@@ -11,7 +11,8 @@
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * can't set c1 back to 0 by dragging
+ * can't set c1 back to 0 by dragging. you can click to set to 0 though.
+ * automatically add to additionalShading when rendering
  * */
 
 using System;
@@ -64,48 +65,29 @@ namespace CsBifurcation
        
 
 
-        private void btnGo_Click(object sender, EventArgs e)
-        {
-            Redraw();
-        }
+        private void btnGo_Click(object sender, EventArgs e) { Redraw(); }
 
-        private void tbSettling_Scroll(object sender, EventArgs e)
-        {
-            double d = (tbSettling.Value / ((double)tbSettling.Maximum));
-            int v = (int)Math.Pow(10.0, d * 6);
-            lblSettling.Text = v.ToString();
-            this.pointPlotBifurcationUserControl1.paramSettle = v;
-        }
-        private void tbShading_Scroll(object sender, EventArgs e)
-        {
-            double v = (tbShading.Value / ((double)tbShading.Maximum));
-            pointPlotBifurcationUserControl1.paramShading = v;
-            lblShading.Text = v.ToString();
-        }
         private void tbParam1_Scroll(object sender, EventArgs e)
         {
-            double v = ((tbParam1.Value / ((double)tbParam1.Maximum)) - 0.5)*2;
-            pointPlotBifurcationUserControl1.param1 = v;
-            lblParam1.Text = v.ToString();
-            if (mnuAdvAutoRedraw.Checked) pointPlotBifurcationUserControl1.redraw();
+            pointPlotBifurcationUserControl1.param1 = onScroll(tbParam1, lblParam1);
+            if (mnuAdvAutoRedraw.Checked)
+                pointPlotBifurcationUserControl1.redraw();
         }
-        private void tbParam2_Scroll(object sender, EventArgs e)
+        private void tbSettling_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.paramSettle = (int)onScroll(tbSettling, lblSettling); }
+        private void tbShading_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.paramShading = onScroll(tbShading, lblShading); }
+        private void tbParam2_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.param2 = onScroll(tbParam2, lblParam2); }
+        private void tbParam3_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.param3 = onScroll(tbParam3, lblParam3); }
+        private void tbParam4_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.param4 = onScroll(tbParam4, lblParam4); }
+        private double onScroll(TrackBar tb, Label lbl)
         {
-            double v = ((tbParam2.Value / ((double)tbParam1.Maximum)) - 0.5)*2;
-            pointPlotBifurcationUserControl1.param2 = v;
-            lblParam2.Text = v.ToString();
-        }
-        private void tbParam3_Scroll(object sender, EventArgs e)
-        {
-            double v = (tbParam3.Value / ((double)tbParam3.Maximum));
-            pointPlotBifurcationUserControl1.param3 = v;
-            lblParam3.Text = v.ToString();
-        }
-        private void tbParam4_Scroll(object sender, EventArgs e)
-        {
-            double v = (tbParam4.Value / ((double)tbParam4.Maximum));
-            pointPlotBifurcationUserControl1.param4 = v;
-            lblParam4.Text = v.ToString();
+            double v = (tb.Value / ((double)tb.Maximum)); // from 0.0 to 1.0
+            if (tb==tbParam1 || tb==tbParam2)
+                v = (v-0.5)*2; //from -1.0 to 1.0
+            else if (tb==tbSettling)
+                v = (int) (Math.Pow(10.0, v * 6));
+
+            lbl.Text = v.ToString();
+            return v;
         }
 
         private bool _getBounds(string sName, double fCurrent, out double dOut)
@@ -370,6 +352,17 @@ namespace CsBifurcation
             double v;
             if (manSetValue(lblParam4, tbParam4, out v)) pointPlotBifurcationUserControl1.param4 = v;
             Redraw();
+        }
+
+        private void advLoopPreface_Click(object sender, EventArgs e)
+        {
+           /* string s = InputBoxForm.GetStrInput("Set loop code:", this.strCodeLoopPreface);
+            if (s == null) 
+                return;
+            this.strCodeLoopPreface = s;
+            //advLoopPreface.Checked = strCodeLoopPreface.Trim() != "";
+             string strCodeLoopPreface = ""; //used to be member var*/
+             
         }
         
     }
