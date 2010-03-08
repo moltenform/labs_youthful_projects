@@ -11,7 +11,6 @@
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * can't set c1 back to 0 by dragging. you can click to set to 0 though.
  * automatically add to additionalShading when rendering
  * */
 
@@ -86,7 +85,7 @@ namespace CsBifurcation
             else if (tb==tbSettling)
                 v = (int) (Math.Pow(8.0, v * 6));
 
-            lbl.Text = v.ToString();
+            lbl.Text = v.ToString("0.####"); //4 decimals or fewer
             return v;
         }
 
@@ -285,7 +284,7 @@ namespace CsBifurcation
 
         private void mnuHelpAbout_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("CsBifurcation\r\nBy Ben Fisher, 2010.\r\n\r\nhttp://halfhourhacks.blogspot.com");
+            MessageBox.Show("CsBifurcation\r\nBy Ben Fisher, 2010.\r\n\r\nhttp://halfhourhacks.blogspot.com\r\n\r\nRefer to readme.txt to discover additional features.");
         }
 
 

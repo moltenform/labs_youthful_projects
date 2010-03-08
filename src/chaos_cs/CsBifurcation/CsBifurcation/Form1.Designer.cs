@@ -93,7 +93,7 @@ namespace CsBifurcation
             // 
             // txtExpression
             // 
-            this.txtExpression.Location = new System.Drawing.Point(541, 136);
+            this.txtExpression.Location = new System.Drawing.Point(568, 151);
             this.txtExpression.Multiline = true;
             this.txtExpression.Name = "txtExpression";
             this.txtExpression.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -103,7 +103,7 @@ namespace CsBifurcation
             // 
             // btnGo
             // 
-            this.btnGo.Location = new System.Drawing.Point(541, 203);
+            this.btnGo.Location = new System.Drawing.Point(568, 218);
             this.btnGo.Name = "btnGo";
             this.btnGo.Size = new System.Drawing.Size(210, 50);
             this.btnGo.TabIndex = 1;
@@ -113,10 +113,10 @@ namespace CsBifurcation
             // 
             // tbSettling
             // 
-            this.tbSettling.Location = new System.Drawing.Point(67, 466);
+            this.tbSettling.Location = new System.Drawing.Point(52, 466);
             this.tbSettling.Maximum = 1000;
             this.tbSettling.Name = "tbSettling";
-            this.tbSettling.Size = new System.Drawing.Size(370, 45);
+            this.tbSettling.Size = new System.Drawing.Size(401, 45);
             this.tbSettling.TabIndex = 3;
             this.tbSettling.Scroll += new System.EventHandler(this.tbSettling_Scroll);
             // 
@@ -150,10 +150,10 @@ namespace CsBifurcation
             // 
             // tbShading
             // 
-            this.tbShading.Location = new System.Drawing.Point(67, 501);
+            this.tbShading.Location = new System.Drawing.Point(52, 501);
             this.tbShading.Maximum = 1000;
             this.tbShading.Name = "tbShading";
-            this.tbShading.Size = new System.Drawing.Size(370, 45);
+            this.tbShading.Size = new System.Drawing.Size(401, 45);
             this.tbShading.TabIndex = 3;
             this.tbShading.Scroll += new System.EventHandler(this.tbShading_Scroll);
             // 
@@ -170,10 +170,10 @@ namespace CsBifurcation
             // tbParam1
             // 
             this.tbParam1.LargeChange = 10;
-            this.tbParam1.Location = new System.Drawing.Point(67, 539);
+            this.tbParam1.Location = new System.Drawing.Point(52, 539);
             this.tbParam1.Maximum = 10000;
             this.tbParam1.Name = "tbParam1";
-            this.tbParam1.Size = new System.Drawing.Size(370, 45);
+            this.tbParam1.Size = new System.Drawing.Size(401, 45);
             this.tbParam1.TabIndex = 3;
             this.tbParam1.Scroll += new System.EventHandler(this.tbParam1_Scroll);
             // 
@@ -199,10 +199,10 @@ namespace CsBifurcation
             // tbParam2
             // 
             this.tbParam2.LargeChange = 10;
-            this.tbParam2.Location = new System.Drawing.Point(67, 572);
+            this.tbParam2.Location = new System.Drawing.Point(52, 572);
             this.tbParam2.Maximum = 10000;
             this.tbParam2.Name = "tbParam2";
-            this.tbParam2.Size = new System.Drawing.Size(370, 45);
+            this.tbParam2.Size = new System.Drawing.Size(401, 45);
             this.tbParam2.TabIndex = 3;
             this.tbParam2.Scroll += new System.EventHandler(this.tbParam2_Scroll);
             // 
@@ -228,7 +228,7 @@ namespace CsBifurcation
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(776, 27);
+            this.label4.Location = new System.Drawing.Point(821, 27);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(87, 13);
             this.label4.TabIndex = 4;
@@ -243,7 +243,7 @@ namespace CsBifurcation
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(863, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(908, 24);
             this.menuStrip1.TabIndex = 14;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -459,17 +459,17 @@ namespace CsBifurcation
             // tbParam3
             // 
             this.tbParam3.LargeChange = 10;
-            this.tbParam3.Location = new System.Drawing.Point(501, 540);
+            this.tbParam3.Location = new System.Drawing.Point(506, 540);
             this.tbParam3.Maximum = 10000;
             this.tbParam3.Name = "tbParam3";
-            this.tbParam3.Size = new System.Drawing.Size(350, 45);
+            this.tbParam3.Size = new System.Drawing.Size(401, 45);
             this.tbParam3.TabIndex = 3;
             this.tbParam3.Scroll += new System.EventHandler(this.tbParam3_Scroll);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(444, 540);
+            this.label2.Location = new System.Drawing.Point(466, 539);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(19, 13);
             this.label2.TabIndex = 4;
@@ -478,7 +478,7 @@ namespace CsBifurcation
             // lblParam3
             // 
             this.lblParam3.AutoSize = true;
-            this.lblParam3.Location = new System.Drawing.Point(443, 553);
+            this.lblParam3.Location = new System.Drawing.Point(464, 552);
             this.lblParam3.Name = "lblParam3";
             this.lblParam3.Size = new System.Drawing.Size(15, 13);
             this.lblParam3.TabIndex = 4;
@@ -488,17 +488,17 @@ namespace CsBifurcation
             // tbParam4
             // 
             this.tbParam4.LargeChange = 10;
-            this.tbParam4.Location = new System.Drawing.Point(501, 572);
+            this.tbParam4.Location = new System.Drawing.Point(506, 572);
             this.tbParam4.Maximum = 10000;
             this.tbParam4.Name = "tbParam4";
-            this.tbParam4.Size = new System.Drawing.Size(350, 45);
+            this.tbParam4.Size = new System.Drawing.Size(401, 45);
             this.tbParam4.TabIndex = 3;
             this.tbParam4.Scroll += new System.EventHandler(this.tbParam4_Scroll);
             // 
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(444, 572);
+            this.label10.Location = new System.Drawing.Point(466, 572);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(19, 13);
             this.label10.TabIndex = 4;
@@ -507,7 +507,7 @@ namespace CsBifurcation
             // lblParam4
             // 
             this.lblParam4.AutoSize = true;
-            this.lblParam4.Location = new System.Drawing.Point(443, 585);
+            this.lblParam4.Location = new System.Drawing.Point(464, 585);
             this.lblParam4.Name = "lblParam4";
             this.lblParam4.Size = new System.Drawing.Size(15, 13);
             this.lblParam4.TabIndex = 4;
@@ -516,7 +516,7 @@ namespace CsBifurcation
             // 
             // txtP0
             // 
-            this.txtP0.Location = new System.Drawing.Point(693, 474);
+            this.txtP0.Location = new System.Drawing.Point(749, 458);
             this.txtP0.Name = "txtP0";
             this.txtP0.Size = new System.Drawing.Size(127, 20);
             this.txtP0.TabIndex = 21;
@@ -524,7 +524,7 @@ namespace CsBifurcation
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(637, 499);
+            this.label9.Location = new System.Drawing.Point(693, 483);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(50, 13);
             this.label9.TabIndex = 20;
@@ -533,7 +533,7 @@ namespace CsBifurcation
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(652, 477);
+            this.label8.Location = new System.Drawing.Point(708, 461);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(29, 13);
             this.label8.TabIndex = 19;
@@ -541,7 +541,7 @@ namespace CsBifurcation
             // 
             // txtInit
             // 
-            this.txtInit.Location = new System.Drawing.Point(693, 497);
+            this.txtInit.Location = new System.Drawing.Point(749, 481);
             this.txtInit.Multiline = true;
             this.txtInit.Name = "txtInit";
             this.txtInit.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -550,7 +550,7 @@ namespace CsBifurcation
             // 
             // plotCntrl
             // 
-            this.plotCntrl.Location = new System.Drawing.Point(12, 27);
+            this.plotCntrl.Location = new System.Drawing.Point(27, 27);
             this.plotCntrl.Name = "plotCntrl";
             this.plotCntrl.Size = new System.Drawing.Size(415, 432);
             this.plotCntrl.TabIndex = 6;
@@ -559,7 +559,7 @@ namespace CsBifurcation
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(863, 623);
+            this.ClientSize = new System.Drawing.Size(908, 623);
             this.Controls.Add(this.txtP0);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label8);
