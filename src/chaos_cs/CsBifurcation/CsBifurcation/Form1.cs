@@ -32,8 +32,9 @@ namespace CsBifurcation
         {
             if (Directory.Exists(@"..\..\cfgs")) 
                 Directory.SetCurrentDirectory(@"..\..\cfgs"); //Test environment
-            else
+            else if (Directory.Exists(@"cfgs"))
                 Directory.SetCurrentDirectory(@"cfgs"); //Release environment
+            // otherwise we can't find the cfgs folder, but we don't need to crash.
 
             InitializeComponent();
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = lblSettling.Text = lblShading.Text = "";
@@ -349,7 +350,7 @@ namespace CsBifurcation
         private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
         {
             double v;
-            string s = InputBoxForm.GetStrInput("The scrollbars allow c1 to be set to -a to a. What value of a?", "1.0");
+            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "1.0");
             if (s==null||s==""||!double.TryParse(s, out v))
                 return;
             this.paramRange = v*2.0; //so that 1.0 becomes range of 2
