@@ -2,7 +2,7 @@
  * only concern: if in program files, won't have write access, need to set up in docs
  * See mouse shortcuts in plotusercontrol.cs
  * Press ctrl+space to redraw
- * Enter arbitrary code in P0, such as C1, rand(), or randneg()
+ * Enter arbitrary code in P0, such as C1, rand(), or randneg(). Enter more expressions afterward!
  * Change additionalShading in init code for higher quality.
  * Press left/right and pgup/pgdn to make small changes to C1, C2
  * click label to manually set value
@@ -10,8 +10,8 @@
  * 
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
- * todo: clicking on plot to zoom in should incorporate textbox changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * automatically add to additionalShading when rendering
+ * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
+ * automatically increase additionalShading when rendering
  * */
 
 using System;
@@ -336,16 +336,11 @@ namespace CsBifurcation
             double v; if (manSetValue(lblParam4, tbParam4, out v)) { plotCntrl.param4 = v; Redraw(); }
         }
 
-        private void advLoopPreface_Click(object sender, EventArgs e)
-        {
-           /* string s = InputBoxForm.GetStrInput("Set loop code:", this.strCodeLoopPreface);
-            if (s == null) 
-                return;
-            this.strCodeLoopPreface = s;
-            //advLoopPreface.Checked = strCodeLoopPreface.Trim() != "";
-             string strCodeLoopPreface = ""; //used to be member var*/
-             
-        }
+        // for a while I considered allowing "loop preface" code that would be
+        // inserted inside of the for loop, for each point (but not iterated). This would allow initial conditions common
+        // to each point, for example to draw for 2d maps like the henon map.
+        // This could be in the Advanced menu, say, with a menu item that would be checked if the value was set.
+        // However, this isn't needed- one can take advantage of the "P0" box to insert additional code. See henon.cfg.
         
     }
 }
