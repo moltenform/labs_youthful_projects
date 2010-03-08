@@ -81,7 +81,7 @@ namespace CsBifurcation
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.txtInit = new System.Windows.Forms.TextBox();
-            this.pointPlotBifurcationUserControl1 = new CsBifurcation.PlotBitmapBifurcationControl();
+            this.plotCntrl = new CsBifurcation.PlotBitmapBifurcationControl();
             ((System.ComponentModel.ISupportInitialize)(this.tbSettling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbShading)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
@@ -548,12 +548,12 @@ namespace CsBifurcation
             this.txtInit.Size = new System.Drawing.Size(147, 43);
             this.txtInit.TabIndex = 18;
             // 
-            // pointPlotBifurcationUserControl1
+            // plotCntrl
             // 
-            this.pointPlotBifurcationUserControl1.Location = new System.Drawing.Point(12, 27);
-            this.pointPlotBifurcationUserControl1.Name = "pointPlotBifurcationUserControl1";
-            this.pointPlotBifurcationUserControl1.Size = new System.Drawing.Size(415, 432);
-            this.pointPlotBifurcationUserControl1.TabIndex = 6;
+            this.plotCntrl.Location = new System.Drawing.Point(12, 27);
+            this.plotCntrl.Name = "plotCntrl";
+            this.plotCntrl.Size = new System.Drawing.Size(415, 432);
+            this.plotCntrl.TabIndex = 6;
             // 
             // Form1
             // 
@@ -564,7 +564,7 @@ namespace CsBifurcation
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.txtInit);
-            this.Controls.Add(this.pointPlotBifurcationUserControl1);
+            this.Controls.Add(this.plotCntrl);
             this.Controls.Add(this.lblParam2);
             this.Controls.Add(this.lblParam4);
             this.Controls.Add(this.lblParam3);
@@ -619,7 +619,7 @@ namespace CsBifurcation
         private System.Windows.Forms.TrackBar tbParam2;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label lblParam2;
-        private PlotBitmapBifurcationControl pointPlotBifurcationUserControl1;
+        private PlotBitmapBifurcationControl plotCntrl;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;

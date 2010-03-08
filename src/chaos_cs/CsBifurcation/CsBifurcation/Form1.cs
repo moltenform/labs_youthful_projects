@@ -44,12 +44,12 @@ namespace CsBifurcation
 
         public void Redraw()
         {
-            this.pointPlotBifurcationUserControl1.paramExpression = getUserExpression(this.txtExpression.Text);
-            this.pointPlotBifurcationUserControl1.paramP0 = getUserExpression(this.txtP0.Text);
-            this.pointPlotBifurcationUserControl1.paramInit = getUserExpression(this.txtInit.Text);
-            this.pointPlotBifurcationUserControl1.bShading = this.mnuAdvShades.Checked;
+            this.plotCntrl.paramExpression = getUserExpression(this.txtExpression.Text);
+            this.plotCntrl.paramP0 = getUserExpression(this.txtP0.Text);
+            this.plotCntrl.paramInit = getUserExpression(this.txtInit.Text);
+            this.plotCntrl.bShading = this.mnuAdvShades.Checked;
 
-            this.pointPlotBifurcationUserControl1.redraw();
+            this.plotCntrl.redraw();
         }
 
         //transform sin into Math.sin, rand()=R.NextDouble()
@@ -69,38 +69,32 @@ namespace CsBifurcation
 
         private void tbParam1_Scroll(object sender, EventArgs e)
         {
-            pointPlotBifurcationUserControl1.param1 = onScroll(tbParam1, lblParam1);
+            plotCntrl.param1 = onScroll(tbParam1, lblParam1);
             if (mnuAdvAutoRedraw.Checked)
-                pointPlotBifurcationUserControl1.redraw();
+                plotCntrl.redraw();
         }
-        private void tbSettling_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.paramSettle = (int)onScroll(tbSettling, lblSettling); }
-        private void tbShading_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.paramShading = onScroll(tbShading, lblShading); }
-        private void tbParam2_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.param2 = onScroll(tbParam2, lblParam2); }
-        private void tbParam3_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.param3 = onScroll(tbParam3, lblParam3); }
-        private void tbParam4_Scroll(object sender, EventArgs e) { pointPlotBifurcationUserControl1.param4 = onScroll(tbParam4, lblParam4); }
+        private void tbSettling_Scroll(object sender, EventArgs e) { plotCntrl.paramSettle = (int)onScroll(tbSettling, lblSettling); }
+        private void tbShading_Scroll(object sender, EventArgs e) { plotCntrl.paramShading = onScroll(tbShading, lblShading); }
+        private void tbParam2_Scroll(object sender, EventArgs e) { plotCntrl.param2 = onScroll(tbParam2, lblParam2); }
+        private void tbParam3_Scroll(object sender, EventArgs e) { plotCntrl.param3 = onScroll(tbParam3, lblParam3); }
+        private void tbParam4_Scroll(object sender, EventArgs e) { plotCntrl.param4 = onScroll(tbParam4, lblParam4); }
         private double onScroll(TrackBar tb, Label lbl)
         {
             double v = (tb.Value / ((double)tb.Maximum)); // from 0.0 to 1.0
             if (tb==tbParam1 || tb==tbParam2)
                 v = (v-0.5)*2; //from -1.0 to 1.0
             else if (tb==tbSettling)
-                v = (int) (Math.Pow(10.0, v * 6));
+                v = (int) (Math.Pow(8.0, v * 6));
 
             lbl.Text = v.ToString();
             return v;
         }
 
-        private bool _getBounds(string sName, double fCurrent, out double dOut)
-        {
-            dOut = 0.0;
-            string s = InputBoxForm.GetStrInput(sName, fCurrent.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="") return false;
-            return double.TryParse(s, out dOut);
-        }
-        private void setBounds()
+        
+        private void getBoundsManually()
         {
             double X0, X1, Y0, Y1, nX0, nX1, nY0, nY1;
-            pointPlotBifurcationUserControl1.getBounds(out X0, out X1, out Y0, out Y1);
+            plotCntrl.getBounds(out X0, out X1, out Y0, out Y1);
 
             if (!_getBounds("Leftmost x", X0, out nX0)) return;
             if (!_getBounds("Rightmost x", X1, out nX1)) return;
@@ -109,10 +103,16 @@ namespace CsBifurcation
 
             if (!(nY1 > nY0 && nX1 > nX0)) { MessageBox.Show("Invalid bounds."); return; }
 
-            this.pointPlotBifurcationUserControl1.setBounds(nX0, nX1, nY0, nY1);
-            this.pointPlotBifurcationUserControl1.redraw();
+            this.plotCntrl.setBounds(nX0, nX1, nY0, nY1);
+            this.plotCntrl.redraw();
         }
-
+        private bool _getBounds(string sName, double fCurrent, out double dOut)
+        {
+            dOut = 0.0;
+            string s = InputBoxForm.GetStrInput(sName, fCurrent.ToString(CultureInfo.InvariantCulture));
+            if (s==null || s=="") return false;
+            return double.TryParse(s, out dOut);
+        }
 
 
 
@@ -126,19 +126,17 @@ namespace CsBifurcation
             try
             {
                 CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, "main");
-
-                //set props
                 double nX0 = loader.getDouble("X0");
                 double nX1 = loader.getDouble("X1");
                 double nY0 = loader.getDouble("Y0");
                 double nY1 = loader.getDouble("Y1");
-                pointPlotBifurcationUserControl1.setBounds(nX0, nX1, nY0, nY1);
-                pointPlotBifurcationUserControl1.param1 = loader.getDouble("param1");
-                pointPlotBifurcationUserControl1.param2 = loader.getDouble("param2");
-                pointPlotBifurcationUserControl1.param3 = loader.getDouble("param3", true);
-                pointPlotBifurcationUserControl1.param4 = loader.getDouble("param4", true);
-                pointPlotBifurcationUserControl1.paramSettle = loader.getInt("paramSettle");
-                pointPlotBifurcationUserControl1.paramShading = loader.getDouble("paramShading");
+                plotCntrl.setBounds(nX0, nX1, nY0, nY1);
+                plotCntrl.param1 = loader.getDouble("param1");
+                plotCntrl.param2 = loader.getDouble("param2");
+                plotCntrl.param3 = loader.getDouble("param3", true);
+                plotCntrl.param4 = loader.getDouble("param4", true);
+                plotCntrl.paramSettle = loader.getInt("paramSettle");
+                plotCntrl.paramShading = loader.getDouble("paramShading");
 
                 //these are transformed, so set the ui instead of the prop. Call to Redraw will retrieve this.
                 mnuAdvShades.Checked = loader.getInt("bShading")!=0;
@@ -155,9 +153,9 @@ namespace CsBifurcation
             }
 
             //set ui
-            double p1 = pointPlotBifurcationUserControl1.param1; double p2 = pointPlotBifurcationUserControl1.param2;
-            double p3 = pointPlotBifurcationUserControl1.param3; double p4 = pointPlotBifurcationUserControl1.param4;
-            double ps = pointPlotBifurcationUserControl1.paramShading; double pst = pointPlotBifurcationUserControl1.paramSettle;
+            double p1 = plotCntrl.param1; double p2 = plotCntrl.param2;
+            double p3 = plotCntrl.param3; double p4 = plotCntrl.param4;
+            double ps = plotCntrl.paramShading; double pst = plotCntrl.paramSettle;
             lblParam1.Text = p1.ToString();
             lblParam2.Text = p2.ToString();
             lblSettling.Text = pst.ToString();
@@ -179,24 +177,21 @@ namespace CsBifurcation
                 CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, "main"); //one section called "main"
 
                 double nX0, nX1, nY0, nY1;
-                pointPlotBifurcationUserControl1.getBounds(out nX0, out nX1, out nY0, out nY1);
+                plotCntrl.getBounds(out nX0, out nX1, out nY0, out nY1);
                 saver.saveDouble("X0", nX0);
                 saver.saveDouble("X1", nX1);
                 saver.saveDouble("Y0", nY0);
                 saver.saveDouble("Y1", nY1);
-
-                saver.saveDouble("param1", pointPlotBifurcationUserControl1.param1);
-                saver.saveDouble("param2", pointPlotBifurcationUserControl1.param2);
-                saver.saveDouble("param3", pointPlotBifurcationUserControl1.param3);
-                saver.saveDouble("param4", pointPlotBifurcationUserControl1.param4);
-                saver.saveInt("paramSettle", pointPlotBifurcationUserControl1.paramSettle);
-                saver.saveDouble("paramShading", pointPlotBifurcationUserControl1.paramShading);
-
+                saver.saveDouble("param1", plotCntrl.param1);
+                saver.saveDouble("param2", plotCntrl.param2);
+                saver.saveDouble("param3", plotCntrl.param3);
+                saver.saveDouble("param4", plotCntrl.param4);
+                saver.saveInt("paramSettle", plotCntrl.paramSettle);
+                saver.saveDouble("paramShading", plotCntrl.paramShading);
                 saver.saveString("paramExpression", txtExpression.Text);
                 saver.saveString("paramInit", txtInit.Text);
                 saver.saveString("paramP0", txtP0.Text);
                 saver.saveInt("bShading", mnuAdvShades.Checked?1:0);
-
                 saver.saveString("programVersion", Version);
             }
             catch (IniFileParsingException err)
@@ -228,7 +223,7 @@ namespace CsBifurcation
         private void mnuFileAnimate_Click(object sender, EventArgs e)
         {
             double d, c0_0, c0_1, c1_0, c1_1; string s; int nframes;
-            double param1=pointPlotBifurcationUserControl1.param1, param2=pointPlotBifurcationUserControl1.param2;
+            double param1=plotCntrl.param1, param2=plotCntrl.param2;
             s = InputBoxForm.GetStrInput("Initial c1:", param1.ToString(CultureInfo.InvariantCulture));
             if (s==null || s=="" || !double.TryParse(s, out d)) return;
             c0_0=d;
@@ -254,9 +249,9 @@ namespace CsBifurcation
 
             for (int i=0; i<nframes; i++)
             {
-                pointPlotBifurcationUserControl1.param1 = c0_0;
-                pointPlotBifurcationUserControl1.param2 = c1_0;
-                pointPlotBifurcationUserControl1.renderToDiskSave(400, 400, sfilename.Replace(".png", "_"+i.ToString()+".png"));
+                plotCntrl.param1 = c0_0;
+                plotCntrl.param2 = c1_0;
+                plotCntrl.renderToDiskSave(400, 400, sfilename.Replace(".png", "_"+i.ToString()+".png"));
                 c0_0 += c0_inc;
                 c1_0 += c1_inc;
             }
@@ -272,7 +267,7 @@ namespace CsBifurcation
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
             //create 3200x3200
-            pointPlotBifurcationUserControl1.renderToDisk(3200,3200);
+            plotCntrl.renderToDisk(3200,3200);
         }
 
         private void mnuAdvShades_Click(object sender, EventArgs e) { mnuAdvShades.Checked = true; mnuAdvPoints.Checked=false; Redraw(); }
@@ -280,12 +275,12 @@ namespace CsBifurcation
         private void mnuViewRedraw_Click(object sender, EventArgs e) { Redraw(); }
         private void mnuAdvAutoRedraw_Click(object sender, EventArgs e) { mnuAdvAutoRedraw.Checked=!mnuAdvAutoRedraw.Checked; }
         private void mnuFileExit_Click(object sender, EventArgs e) { Close(); }
-        private void mnuViewZoomIn_Click(object sender, EventArgs e) { pointPlotBifurcationUserControl1.zoomIn(); }
-        private void mnuViewZoomOut_Click(object sender, EventArgs e) { pointPlotBifurcationUserControl1.zoomOut(); }
-        private void mnuViewZoomUndo_Click(object sender, EventArgs e) { pointPlotBifurcationUserControl1.undoZoom(); }
-        private void mnuViewReset_Click(object sender, EventArgs e) { pointPlotBifurcationUserControl1.resetZoom(); }
+        private void mnuViewZoomIn_Click(object sender, EventArgs e) { plotCntrl.zoomIn(); }
+        private void mnuViewZoomOut_Click(object sender, EventArgs e) { plotCntrl.zoomOut(); }
+        private void mnuViewZoomUndo_Click(object sender, EventArgs e) { plotCntrl.undoZoom(); }
+        private void mnuViewReset_Click(object sender, EventArgs e) { plotCntrl.resetZoom(); }
 
-        private void mnuAdvBounds_Click(object sender, EventArgs e) { setBounds(); }
+        private void mnuAdvBounds_Click(object sender, EventArgs e) { getBoundsManually(); }
         private void mnuAdvAddQuality_Click(object sender, EventArgs e) { MessageBox.Show("To run more iterations, producing better images, add a line to \"init. code\" such as: \r\n\r\nadditionalShading=2.0;"); }
 
         private void mnuHelpAbout_Click(object sender, EventArgs e)
@@ -319,39 +314,27 @@ namespace CsBifurcation
         }
         private void lblSettling_Click(object sender, EventArgs e)
         {
-            double v;
-            if (manSetValue(lblSettling, tbSettling, out v)) pointPlotBifurcationUserControl1.paramSettle = (int) v;
-            Redraw();
+            double v; if (manSetValue(lblSettling, tbSettling, out v)) { plotCntrl.paramSettle = (int)v; Redraw(); }
         }
         private void lblShading_Click(object sender, EventArgs e)
         {
-            double v;
-            if (manSetValue(lblShading, tbShading, out v)) pointPlotBifurcationUserControl1.paramShading = v;
-            Redraw();
+            double v; if (manSetValue(lblShading, tbShading, out v)) { plotCntrl.paramShading = v; Redraw(); }
         }
         private void lblParam1_Click(object sender, EventArgs e)
         {
-            double v;
-            if (manSetValue(lblParam1, tbParam1, out v)) pointPlotBifurcationUserControl1.param1 = v;
-            Redraw();
+            double v; if (manSetValue(lblParam1, tbParam1, out v)) { plotCntrl.param1 = v; Redraw(); }
         }
         private void lblParam2_Click(object sender, EventArgs e)
         {
-            double v;
-            if (manSetValue(lblParam2, tbParam2, out v)) pointPlotBifurcationUserControl1.param2 = v;
-            Redraw();
+            double v; if (manSetValue(lblParam2, tbParam2, out v)) { plotCntrl.param2 = v; Redraw(); }
         }
         private void lblParam3_Click(object sender, EventArgs e)
         {
-            double v;
-            if (manSetValue(lblParam3, tbParam3, out v)) pointPlotBifurcationUserControl1.param3 = v;
-            Redraw();
+            double v; if (manSetValue(lblParam3, tbParam3, out v)) { plotCntrl.param3 = v; Redraw(); }
         }
         private void lblParam4_Click(object sender, EventArgs e)
         {
-            double v;
-            if (manSetValue(lblParam4, tbParam4, out v)) pointPlotBifurcationUserControl1.param4 = v;
-            Redraw();
+            double v; if (manSetValue(lblParam4, tbParam4, out v)) { plotCntrl.param4 = v; Redraw(); }
         }
 
         private void advLoopPreface_Click(object sender, EventArgs e)
