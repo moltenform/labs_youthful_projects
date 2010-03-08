@@ -25,7 +25,14 @@ namespace CsBifurcation
         {
             setBounds(-5, 5, -5, 5);
         }
-        
+        protected override string getAdditionalParameters()
+        {
+            string s = 
+                "\r\nc1="+param1.ToString() + "\r\nc2="+param2.ToString()+
+                "\r\nc3="+param3.ToString() + "\r\nc4="+param4.ToString()+
+                "\r\nshade="+paramShading.ToString() + "\r\nparamSettle="+param4.ToString();
+            return s + base.getAdditionalParameters();
+        }
         
         public override void getData(int width, int height, ref double[] elems)
         {
