@@ -82,6 +82,7 @@ namespace CsBifurcation
             this.label8 = new System.Windows.Forms.Label();
             this.txtInit = new System.Windows.Forms.TextBox();
             this.plotCntrl = new CsBifurcation.PlotBitmapBifurcationControl();
+            this.mnuAdvSetParamRange = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.tbSettling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbShading)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
@@ -389,6 +390,7 @@ namespace CsBifurcation
             this.mnuAdvBounds,
             this.mnuAdvAddQuality,
             this.toolStripSeparator6,
+            this.mnuAdvSetParamRange,
             this.mnuAdvAutoRedraw});
             this.advancedToolStripMenuItem.Name = "advancedToolStripMenuItem";
             this.advancedToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
@@ -419,7 +421,7 @@ namespace CsBifurcation
             // 
             this.mnuAdvBounds.Name = "mnuAdvBounds";
             this.mnuAdvBounds.Size = new System.Drawing.Size(207, 22);
-            this.mnuAdvBounds.Text = "Set Bounds...";
+            this.mnuAdvBounds.Text = "Set View Manually...";
             this.mnuAdvBounds.Click += new System.EventHandler(this.mnuAdvBounds_Click);
             // 
             // mnuAdvAddQuality
@@ -555,6 +557,13 @@ namespace CsBifurcation
             this.plotCntrl.Size = new System.Drawing.Size(415, 432);
             this.plotCntrl.TabIndex = 6;
             // 
+            // mnuAdvSetParamRange
+            // 
+            this.mnuAdvSetParamRange.Name = "mnuAdvSetParamRange";
+            this.mnuAdvSetParamRange.Size = new System.Drawing.Size(207, 22);
+            this.mnuAdvSetParamRange.Text = "Set max c1 and c2...";
+            this.mnuAdvSetParamRange.Click += new System.EventHandler(this.mnuAdvSetParamRange_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -659,6 +668,7 @@ namespace CsBifurcation
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox txtInit;
+        private System.Windows.Forms.ToolStripMenuItem mnuAdvSetParamRange;
     }
 }
 

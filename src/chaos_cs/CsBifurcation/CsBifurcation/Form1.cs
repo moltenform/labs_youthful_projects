@@ -73,6 +73,7 @@ namespace CsBifurcation
             if (mnuAdvAutoRedraw.Checked)
                 plotCntrl.redraw();
         }
+        private double paramRange = 2.0; //by default from -1.0 to 1.0
         private void tbSettling_Scroll(object sender, EventArgs e) { plotCntrl.paramSettle = (int)onScroll(tbSettling, lblSettling); }
         private void tbShading_Scroll(object sender, EventArgs e) { plotCntrl.paramShading = onScroll(tbShading, lblShading); }
         private void tbParam2_Scroll(object sender, EventArgs e) { plotCntrl.param2 = onScroll(tbParam2, lblParam2); }
@@ -82,7 +83,7 @@ namespace CsBifurcation
         {
             double v = (tb.Value / ((double)tb.Maximum)); // from 0.0 to 1.0
             if (tb==tbParam1 || tb==tbParam2)
-                v = (v-0.5)*2; //from -1.0 to 1.0
+                v = (v-0.5)*paramRange; //by default from -1.0 to 1.0
             else if (tb==tbSettling)
                 v = (int) (Math.Pow(8.0, v * 6));
 
@@ -303,7 +304,7 @@ namespace CsBifurcation
             if (tb==tbSettling)
                 nVal = tb.Value; //don't feel like setting this, would have to log it. TODO: have it set this.
             if (tb==tbParam1 || tb==tbParam2)
-                nVal = (int)(tb.Maximum*(v / 2+.5));
+                nVal = (int)(tb.Maximum*(v/paramRange + 0.5));
             else
                 nVal = (int)(tb.Maximum*v);
             nVal = Math.Min(tb.Maximum, Math.Max(tb.Minimum, nVal)); //if beyond bounds, push to edge.
@@ -343,6 +344,17 @@ namespace CsBifurcation
         private void lblParam4_Click(object sender, EventArgs e)
         {
             double v; if (manSetValue(lblParam4, tbParam4, out v)) { plotCntrl.param4 = v; Redraw(); }
+        }
+
+        private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
+        {
+            double v;
+            string s = InputBoxForm.GetStrInput("The scrollbars allow c1 to be set to -a to a. What value of a?", "1.0");
+            if (s==null||s==""||!double.TryParse(s, out v))
+                return;
+            this.paramRange = v*2.0; //so that 1.0 becomes range of 2
+            setSliderToValue(plotCntrl.param1, tbParam1);
+            setSliderToValue(plotCntrl.param2, tbParam2);
         }
 
         // for a while I considered allowing "loop preface" code that would be
