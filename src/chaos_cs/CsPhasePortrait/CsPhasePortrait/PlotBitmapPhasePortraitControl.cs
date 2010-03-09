@@ -31,16 +31,21 @@ namespace CsBifurcation
             setBounds(-5, 5, -5, 5);
         }
 
+        //next: actually make template
         public override void getData(int width, int height, ref double[] arrAns) //template
         {
+            double x, y, x_, y_;
             for (int i = 0; i < arrAns.Length; i++) 
                 arrAns[i] = 1.0; //set all white
 
+            ///can be changed in init:
             int nXpoints = 80, nYpoints = 80;
             double sx0= -2, sx1=2, sy0= -2, sy1=2;
-            double x, y, x_, y_;
+            double additionalDarkening = 1.0;
+            ///
 
             //INIT CODE
+            
 
             //iters represents total iters. we divide by how many points. 
             // In this way, if nXpoints changed, density remains roughly constant.
@@ -49,6 +54,7 @@ namespace CsBifurcation
             double syinc = (nYpoints==1) ? double.MaxValue : (sy1-sy0)/(nYpoints-1);
 
             System.Diagnostics.Debug.Assert(sx1>sx0 && sy1>sy0 && sxinc>0 && syinc>0 && nXpoints>0 && nYpoints>0);
+            double shadeAmount = paramDarkening * additionalDarkening;
             double a = param1, b=param2;
             for (double sx=sx0; sx<=sx1; sx+=sxinc)
             {
@@ -73,7 +79,7 @@ namespace CsBifurcation
                         int px = (int)(width * ((x - X0) / (X1 - X0)));
                         int py = (int)(height - height * ((y - Y0) / (Y1 - Y0)));
                         if (py >= 0 && py < height && px>=0 && px<width)
-                            arrAns[py + px * height] *= paramDarkening;
+                            arrAns[py + px * height] *= shadeAmount;
                     }
                 }
             }

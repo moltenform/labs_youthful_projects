@@ -44,17 +44,19 @@ namespace CsPhasePortrait
 
             //modify layout from previous
             this.SuspendLayout();
+            this.Text = "CsPhasePortrait";
             this.label8.Visible = false; //hide "P0 =" label
             this.txtP0.Visible = false;
             this.label9.Location = new System.Drawing.Point(693 - 100, 483 - 50); //move "init. code" label to left
             this.txtInit.Location = new System.Drawing.Point(749 - 100, 481 - 50); // move "txtInit" to left
             this.txtInit.Size = new System.Drawing.Size(147 + 100, 43 + 50);
             this.mnuAdvShades.Visible = this.mnuAdvPoints.Visible = false;
+            this.mnuAdvAddQuality.Text = "Darkness...";
             this.label3.Text = "Points (k)";
             this.ResumeLayout(false);
 
             this.tbTotalPoints = tbShading; lblTotalPoints=lblShading; //give it another, more accurate, name
-            //use built-in normal trackbar functionality for shading and points
+            //use normal trackbar functionality for shading and points
             this.tbTotalPoints.Minimum = 0; this.tbTotalPoints.Maximum = 10000;
             this.tbSettling.Minimum = 0; this.tbSettling.Maximum = 2000;
 
@@ -305,11 +307,11 @@ namespace CsPhasePortrait
         private void mnuViewReset_Click(object sender, EventArgs e) { plotCntrl.resetZoom(); }
 
         private void mnuAdvBounds_Click(object sender, EventArgs e) { getBoundsManually(); }
-        private void mnuAdvAddQuality_Click(object sender, EventArgs e) { MessageBox.Show("To run more iterations, producing better images, add a line to \"init. code\" such as: \r\n\r\nadditionalShading=2.0;"); }
+        private void mnuAdvAddQuality_Click(object sender, EventArgs e) { MessageBox.Show("To make image darker, add a line to \"init. code\" such as: \r\n\r\nadditionalDarkening=0.5;"); }
 
         private void mnuHelpAbout_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("CsBifurcation\r\nBy Ben Fisher, 2010.\r\n\r\nhttp://halfhourhacks.blogspot.com\r\n\r\nRefer to readme.txt to discover additional features.");
+            MessageBox.Show("CsPhasePortrait\r\nBy Ben Fisher, 2010.\r\n\r\nhttp://halfhourhacks.blogspot.com\r\n\r\nRefer to readme.txt to discover additional features.");
         }
 
 
