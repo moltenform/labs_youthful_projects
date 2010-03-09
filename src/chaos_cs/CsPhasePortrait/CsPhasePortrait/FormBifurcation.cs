@@ -1,19 +1,7 @@
 //compare against rev 233
 /*
- * only concern: if in program files, won't have write access, need to set up in docs
- * See mouse shortcuts in plotusercontrol.cs
- * Press ctrl+space to redraw
- * Enter arbitrary code in P0, such as C1, rand(), or randneg(). Enter more expressions afterward!
- * Change additionalShading in init code for higher quality.
- * Press left/right and pgup/pgdn to make small changes to C1, C2
- * click label to manually set value
- * 
- * 
- * version 217 was a large change.
- * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
- * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * todo: in generated code don't use variable names like x,y,i so that user can use them.
- * todo: more flexible image output? 
+ * problem: rendered pictures are too faint.
+ * this is because the output image is much sparser, shades accumulate on normal but not on render.
  * */
 
 using System;
@@ -100,7 +88,7 @@ namespace CsPhasePortrait
         }
         
 
-        private double paramRange = 8.0; //by default from -4.0 to 4.0
+        private double paramRange = 4.0; //by default from -2.0 to 2.0
         private void tbSettling_Scroll(object sender, EventArgs e) { plotCntrl.paramSettle = (int)onScroll(tbSettling, lblSettling); }
         private void tbTotalPoints_Scroll(object sender, EventArgs e) { plotCntrl.paramTotalIters = (int)onScroll(tbTotalPoints, lblTotalPoints); }
         private void tbParam3_Scroll(object sender, EventArgs e) { plotCntrl.param3 = onScroll(tbParam3, lblParam3); }
@@ -285,13 +273,13 @@ namespace CsPhasePortrait
         }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
-            //create a plot 4 times larger. (3200x3200)
-            //time taken should increase by factor of 16.
-            // so draw 16 times more points to maintain approximately the same density.
+            //create a plot 2 times larger. (1600x1600)
+            //time taken should increase by factor of 4.
+            // so draw 4 times more points to maintain approximately the same density.
             try
             {
-                plotCntrl.paramAdditionalIters = 16; //mult by 4
-                plotCntrl.renderToDisk(3200, 3200);
+                plotCntrl.paramAdditionalIters = 16;
+                plotCntrl.renderToDisk(1600, 1600);
             }
             finally { plotCntrl.paramAdditionalIters = 1; }
         }
@@ -367,7 +355,7 @@ namespace CsPhasePortrait
         private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
         {
             double v;
-            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "4.0");
+            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "2.0");
             if (s==null||s==""||!double.TryParse(s, out v))
                 return;
             this.paramRange = v*2.0; //so that 1.0 becomes range of 2
