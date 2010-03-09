@@ -33,8 +33,6 @@ namespace CsPhasePortrait
         public FormBifurcation()
         {
             
-
-
             if (Directory.Exists(@"..\..\cfgs")) 
                 Directory.SetCurrentDirectory(@"..\..\cfgs"); //Test environment
             else if (Directory.Exists(@"cfgs"))
@@ -43,8 +41,6 @@ namespace CsPhasePortrait
 
             InitializeComponent();
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = lblSettling.Text = lblShading.Text = "";
-            mnuAdvShades.Checked = true; mnuAdvPoints.Checked = false;
-
 
             //modify layout from previous
             this.SuspendLayout();
@@ -53,8 +49,14 @@ namespace CsPhasePortrait
             this.label9.Location = new System.Drawing.Point(693 - 100, 483 - 50); //move "init. code" label to left
             this.txtInit.Location = new System.Drawing.Point(749 - 100, 481 - 50); // move "txtInit" to left
             this.txtInit.Size = new System.Drawing.Size(147 + 100, 43 + 50);
-
+            this.mnuAdvShades.Visible = this.mnuAdvPoints.Visible = false;
+            this.label3.Text = "Points (k)";
             this.ResumeLayout(false);
+
+            this.tbTotalPoints = tbShading; lblTotalPoints=lblShading; //give it another, more accurate, name
+            //use built-in normal trackbar functionality for shading and points
+            this.tbTotalPoints.Minimum = 0; this.tbTotalPoints.Maximum = 10000;
+            this.tbSettling.Minimum = 0; this.tbSettling.Maximum = 2000;
 
             mnuFileNew_Click(null, null);
         }
@@ -62,9 +64,7 @@ namespace CsPhasePortrait
         public void Redraw()
         {
             this.plotCntrl.paramExpression = getUserExpression(this.txtExpression.Text);
-            this.plotCntrl.paramP0 = getUserExpression(this.txtP0.Text);
             this.plotCntrl.paramInit = getUserExpression(this.txtInit.Text);
-            this.plotCntrl.bShading = this.mnuAdvShades.Checked;
 
             this.plotCntrl.redraw();
         }
@@ -90,10 +90,17 @@ namespace CsPhasePortrait
             if (mnuAdvAutoRedraw.Checked)
                 plotCntrl.redraw();
         }
-        private double paramRange = 2.0; //by default from -1.0 to 1.0
+        private void tbParam2_Scroll(object sender, EventArgs e)
+        {
+            plotCntrl.param2 = onScroll(tbParam2, lblParam2);
+            if (mnuAdvAutoRedraw.Checked)
+                plotCntrl.redraw();
+        }
+        
+
+        private double paramRange = 8.0; //by default from -4.0 to 4.0
         private void tbSettling_Scroll(object sender, EventArgs e) { plotCntrl.paramSettle = (int)onScroll(tbSettling, lblSettling); }
-        private void tbShading_Scroll(object sender, EventArgs e) { plotCntrl.paramShading = onScroll(tbShading, lblShading); }
-        private void tbParam2_Scroll(object sender, EventArgs e) { plotCntrl.param2 = onScroll(tbParam2, lblParam2); }
+        private void tbTotalPoints_Scroll(object sender, EventArgs e) { plotCntrl.paramTotalIters = (int)onScroll(tbTotalPoints, lblTotalPoints); }
         private void tbParam3_Scroll(object sender, EventArgs e) { plotCntrl.param3 = onScroll(tbParam3, lblParam3); }
         private void tbParam4_Scroll(object sender, EventArgs e) { plotCntrl.param4 = onScroll(tbParam4, lblParam4); }
         private double onScroll(TrackBar tb, Label lbl)
@@ -101,8 +108,8 @@ namespace CsPhasePortrait
             double v = (tb.Value / ((double)tb.Maximum)); // from 0.0 to 1.0
             if (tb==tbParam1 || tb==tbParam2)
                 v = (v-0.5)*paramRange; //by default from -1.0 to 1.0
-            else if (tb==tbSettling)
-                v = (int) (Math.Pow(8.0, v * 6));
+            else if (tb==tbSettling || tb==tbTotalPoints) 
+                v = tb.Value; //use normal trackbar, no scaling
 
             lbl.Text = v.ToString("0.####"); //4 decimals or fewer
             return v;
@@ -143,7 +150,7 @@ namespace CsPhasePortrait
             IniFileParsing ifParsing = new IniFileParsing(sFilename, true);
             try
             {
-                CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, "main");
+                CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, "main_portrait");
                 double nX0 = loader.getDouble("X0");
                 double nX1 = loader.getDouble("X1");
                 double nY0 = loader.getDouble("Y0");
@@ -154,13 +161,10 @@ namespace CsPhasePortrait
                 plotCntrl.param3 = loader.getDouble("param3", true);
                 plotCntrl.param4 = loader.getDouble("param4", true);
                 plotCntrl.paramSettle = loader.getInt("paramSettle");
-                plotCntrl.paramShading = loader.getDouble("paramShading");
+                plotCntrl.paramTotalIters = loader.getInt("paramTotalIters");
 
                 //these are transformed, so set the ui instead of the prop. Call to Redraw will retrieve this.
-                mnuAdvShades.Checked = loader.getInt("bShading")!=0;
-                mnuAdvPoints.Checked = loader.getInt("bShading")==0;
                 txtExpression.Text = loader.getString("paramExpression");
-                txtP0.Text = loader.getString("paramP0");
                 txtInit.Text = loader.getString("paramInit");
 
             }
@@ -173,17 +177,14 @@ namespace CsPhasePortrait
             //set ui
             double p1 = plotCntrl.param1; double p2 = plotCntrl.param2;
             double p3 = plotCntrl.param3; double p4 = plotCntrl.param4;
-            double ps = plotCntrl.paramShading; double pst = plotCntrl.paramSettle;
-            lblParam1.Text = p1.ToString();
-            lblParam2.Text = p2.ToString();
-            lblSettling.Text = pst.ToString();
-            lblShading.Text = ps.ToString();
-            
-            setSliderToValue(ps, tbShading);
-            setSliderToValue(p1, tbParam1);
-            setSliderToValue(p2, tbParam2);
-            setSliderToValue(p3, tbParam3);
-            setSliderToValue(p4, tbParam4);
+            int npoints = plotCntrl.paramTotalIters; int nsettle = plotCntrl.paramSettle;
+
+            setSliderToValue(npoints, tbTotalPoints, lblTotalPoints);
+            setSliderToValue(nsettle, tbSettling, lblSettling);
+            setSliderToValue(p1, tbParam1, lblParam1);
+            setSliderToValue(p2, tbParam2, lblParam2);
+            setSliderToValue(p3, tbParam3, lblParam3);
+            setSliderToValue(p4, tbParam4, lblParam4);
 
             Redraw();
         }
@@ -192,7 +193,7 @@ namespace CsPhasePortrait
             IniFileParsing ifParsing = new IniFileParsing(sFilename, false); //creates ini if doesn't exist
             try
             {
-                CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, "main"); //one section called "main"
+                CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, "main_portrait"); //one section called "main_portrait"
 
                 double nX0, nX1, nY0, nY1;
                 plotCntrl.getBounds(out nX0, out nX1, out nY0, out nY1);
@@ -205,11 +206,9 @@ namespace CsPhasePortrait
                 saver.saveDouble("param3", plotCntrl.param3);
                 saver.saveDouble("param4", plotCntrl.param4);
                 saver.saveInt("paramSettle", plotCntrl.paramSettle);
-                saver.saveDouble("paramShading", plotCntrl.paramShading);
+                saver.saveInt("paramTotalIters", plotCntrl.paramTotalIters);
                 saver.saveString("paramExpression", txtExpression.Text);
                 saver.saveString("paramInit", txtInit.Text);
-                saver.saveString("paramP0", txtP0.Text);
-                saver.saveInt("bShading", mnuAdvShades.Checked?1:0);
                 saver.saveString("programVersion", Version);
             }
             catch (IniFileParsingException err)
@@ -314,12 +313,14 @@ namespace CsPhasePortrait
         }
 
 
-        private void setSliderToValue(double v, TrackBar tb)
+        private void setSliderToValue(double v, TrackBar tb, Label lbl)
         {
+            lbl.Text = v.ToString("0.####");
+
             int nVal;
-            if (tb==tbSettling)
-                nVal = tb.Value; //don't feel like setting this, would have to log it. TODO: have it set this.
-            if (tb==tbParam1 || tb==tbParam2)
+            if (tb==tbSettling || tb==tbTotalPoints)
+                nVal = (int) v; 
+            else if (tb==tbParam1 || tb==tbParam2)
                 nVal = (int)(tb.Maximum*(v/paramRange + 0.5));
             else
                 nVal = (int)(tb.Maximum*v);
@@ -333,17 +334,16 @@ namespace CsPhasePortrait
             string s = InputBoxForm.GetStrInput("Value:", lbl.Text);
             if (s==null||s==""||!double.TryParse(s, out v)) 
                 return false;
-            setSliderToValue(v, tb);
-            lbl.Text = v.ToString();
+            setSliderToValue(v, tb, lbl);
             return true;
         }
         private void lblSettling_Click(object sender, EventArgs e)
         {
             double v; if (manSetValue(lblSettling, tbSettling, out v)) { plotCntrl.paramSettle = (int)v; Redraw(); }
         }
-        private void lblShading_Click(object sender, EventArgs e)
+        private void lblTotalPoints_Click(object sender, EventArgs e)
         {
-            double v; if (manSetValue(lblShading, tbShading, out v)) { plotCntrl.paramShading = v; Redraw(); }
+            double v; if (manSetValue(lblTotalPoints, tbTotalPoints, out v)) { plotCntrl.paramTotalIters = (int)v; Redraw(); }
         }
         private void lblParam1_Click(object sender, EventArgs e)
         {
@@ -365,12 +365,12 @@ namespace CsPhasePortrait
         private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
         {
             double v;
-            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "1.0");
+            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "4.0");
             if (s==null||s==""||!double.TryParse(s, out v))
                 return;
             this.paramRange = v*2.0; //so that 1.0 becomes range of 2
-            setSliderToValue(plotCntrl.param1, tbParam1);
-            setSliderToValue(plotCntrl.param2, tbParam2);
+            setSliderToValue(plotCntrl.param1, tbParam1, lblParam1);
+            setSliderToValue(plotCntrl.param2, tbParam2, lblParam2);
         }
 
         // for a while I considered allowing "loop preface" code that would be
@@ -379,5 +379,12 @@ namespace CsPhasePortrait
         // This could be in the Advanced menu, say, with a menu item that would be checked if the value was set.
         // However, this isn't needed- one can take advantage of the "P0" box to insert additional code. See henon.cfg.
         
+
+        //in this program, the "shading" trackbar is actually the "total points" trackbar.
+        private void tbShading_Scroll(object sender, EventArgs e) { tbTotalPoints_Scroll(sender, e); }
+        private void lblShading_Click(object sender, EventArgs e) { lblTotalPoints_Click(sender, e); }
+        private TrackBar tbTotalPoints;
+        private Label lblTotalPoints;
+
     }
 }

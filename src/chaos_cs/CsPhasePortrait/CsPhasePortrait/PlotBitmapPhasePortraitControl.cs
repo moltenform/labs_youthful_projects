@@ -7,12 +7,12 @@ namespace CsBifurcation
 {
     public class PlotBitmapPhasePortraitControl  : PointPlotBitmapUserControl
     {
-        public string paramP0; //delete
-        public bool bShading;//delete
-        public double paramShading; //delete
+        //public string paramP0; //delete
+        //public bool bShading;//delete
+        //public double paramShading; //delete
 
 
-        public int paramSettle = 100, paramTotalIters = 640000;
+        public int paramSettle = 100, paramTotalIters = 640; //will be mult by 1000
         public double param1, param2,param3,param4, paramDarkening = 0.9;
         public string paramExpression, paramInit;
         public int paramAdditionalIters = 1; //for rendering
@@ -36,22 +36,23 @@ namespace CsBifurcation
             for (int i = 0; i < arrAns.Length; i++) 
                 arrAns[i] = 1.0; //set all white
 
-            //int nXpoints = 80, nY
-            double sx0= -2, sx1=2, sxinc=0.05, sy0= -2, sy1=2, syinc=0.05;
+            int nXpoints = 80, nYpoints = 80;
+            double sx0= -2, sx1=2, sy0= -2, sy1=2;
             double x, y, x_, y_;
 
             //INIT CODE
 
-            //iters represents total iters. we divide by how many points
-            int nXpoints = (int)((sx1 - sx0)/sxinc)+1;
-            int nYpoints = (int)((sy1 - sy0)/syinc)+1;
-            int nItersPerPoint = (int)Math.Round(((paramTotalIters*paramAdditionalIters) / ((double)nXpoints * nYpoints)));
+            //iters represents total iters. we divide by how many points. 
+            // In this way, if nXpoints changed, density remains roughly constant.
+            int nItersPerPoint = (int)Math.Round(((paramTotalIters*1000.0*paramAdditionalIters) / ((double)nXpoints * nYpoints)));
+            double sxinc = (nXpoints==1) ? double.MaxValue : (sx1-sx0)/(nXpoints-1);
+            double syinc = (nYpoints==1) ? double.MaxValue : (sy1-sy0)/(nYpoints-1);
 
-            System.Diagnostics.Debug.Assert(sx1>sx0 && sy1>sy0 && sxinc>0 && syinc>0);
+            System.Diagnostics.Debug.Assert(sx1>sx0 && sy1>sy0 && sxinc>0 && syinc>0 && nXpoints>0 && nYpoints>0);
             double a = param1, b=param2;
-            for (double sx=sx0; sx<sx1; sx+=sxinc)
+            for (double sx=sx0; sx<=sx1; sx+=sxinc)
             {
-                for (double sy=sy0; sy<sy1; sy+=syinc)
+                for (double sy=sy0; sy<=sy1; sy+=syinc)
                 {
                     x = sx; y=sy;
 
@@ -81,6 +82,7 @@ namespace CsBifurcation
 
         public void getDataOld(int width, int height, ref double[] elems)
         {
+            /*
             if (paramP0.Trim()=="") paramP0 = "0.5";
             //Pass in: X0,X1,Y0,Y1,WIDTH,HEIGHT,paramShading,paramSettle
             Dictionary<string, double> d = new Dictionary<string, double>();
@@ -145,7 +147,7 @@ namespace CsBifurcation
 
             System.Diagnostics.Debug.Assert(out1.Length == width*height);
             elems = out1;
-            
+            */
 
             /*if (!bShading) //redistribute ink? 
             {
@@ -165,8 +167,8 @@ namespace CsBifurcation
         {
             string s = 
                 "\r\nc1="+param1.ToString() + "\r\nc2="+param2.ToString()+
-                "\r\nc3="+param3.ToString() + "\r\nc4="+param4.ToString()+
-                "\r\nshade="+paramShading.ToString() + "\r\nparamSettle="+param4.ToString();
+                "\r\nc3="+param3.ToString() + "\r\nc4="+param4.ToString();
+                
             return s + base.getAdditionalParameters();
         }
     }
