@@ -87,6 +87,8 @@ namespace CsBifurcation
                 Win32Exception wexp = new Win32Exception(Marshal.GetLastWin32Error());
                 throw new IniFileParsingException("win32:" + wexp.Message);
             }*/
+
+            //varified, does throw this when buffer is full. this does occur.
             if (res == MAXLINELENGTH - 1) //see docs: means buffer is full
             {
                 throw new IniFileParsingException("line in configuration file is too long. must be <" + MAXLINELENGTH);

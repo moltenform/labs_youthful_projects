@@ -20,8 +20,7 @@ namespace CsBifurcation
         
         public PlotBitmapFromCodeControl()
         {
-            paramExpression = "x_ = 1 - c1*x*x + y;\r\ny_ = c2*x;";
-            param1 = 1.4; param2 = 0.3;
+            paramExpression = "//$$standardloop\r\nval = fx*fy;\r\n//$$endstandardloop";
         }
 
         protected override int getControlPaintWidth() { return 400; }
@@ -59,6 +58,8 @@ namespace CsBifurcation
             $$CODE$$
             ";
             sTemplate = sTemplate.Replace("$$CODE$$", paramExpression);
+            sTemplate = sTemplate.Replace("//$$standardloop", sStandardLoopBegin);
+            sTemplate = sTemplate.Replace("//$$endstandardloop", sStandardLoopEnd);
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
             double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);
@@ -84,10 +85,19 @@ namespace CsBifurcation
             }
             else
             {
-                if (d>1.0) d=1.0;
-                else if (d<0.0) d=0.0;
-                byte shade = (byte)(255.0 * d);
-                r=g=b=shade;
+                // negative ones are blue. -1 = blue to 0 = black to 1 = white
+                if (d<0.0)
+                {
+                    if (d<-1.0) d=-1.0;
+                    b= (byte)(255.0 * -d); 
+                    r=g=0;
+                }
+                else
+                {
+                    if (d>1.0) d=1.0;
+                    byte shade = (byte)(255.0 * d);
+                    r=g=b=shade;
+                }
             }
         }
 
@@ -99,5 +109,23 @@ namespace CsBifurcation
                 
             return s + base.getAdditionalParameters();
         }
+        public static string sStandardLoopBegin = @" 
+            double val=0;
+            double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+            double fx = X0, fy = Y1; //y counts downwards
+            for (int px = 0; px < width; px+=1)
+            {
+                fy = Y1;
+                for (int py=0; py<height; py++)
+                {
+            ";
+        public static string sStandardLoopEnd = @" 
+                    arrAns[py + px*height] = val;
+                    fy -= dy;
+                }
+                fx += dx;
+            }
+        ";
+
     }
 }

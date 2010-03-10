@@ -100,7 +100,7 @@ namespace chaosExplorerControl
             double fy = ((HEIGHT-e.Y) / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
             this.lblCoords.Text = String.Format( "{0:0.0000} , {1:0.0000}", fx , fy);
         }
-
+        protected virtual void onAltShiftDrag(double nx0, double nx1, double ny0, double ny1) { }
         protected void PointPlotUserControl_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left) 
@@ -119,11 +119,17 @@ namespace chaosExplorerControl
                             this.mnuZoomOut_Click(null, null);
                         return; //prevent 0x0 zoom
                     }
+                   
                     double newX0, newY0, newX1, newY1;
                     newX0 = (ix / ((double)WIDTH)) * (X1 - X0) + X0;
                     newX1 = (ixr / ((double)WIDTH)) * (X1 - X0) + X0;
                     newY0 = (iy / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
                     newY1 = (iyr / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
+                    if (isShiftKey() && isAltKey())
+                    {
+                        onAltShiftDrag(newX0, newX1, newY0, newY1);
+                        return;
+                    }
                     setBounds(newX0, newX1, newY0, newY1);
                     redraw();
 

@@ -49,6 +49,9 @@ namespace CsGeneralBitmap
             mnuSaveScratch.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
             this.advancedToolStripMenuItem.DropDownItems.Insert(1,mnuSaveScratch);
 
+            this.txtExpression.Location = new System.Drawing.Point(568, 151);
+            this.txtExpression.Size = new System.Drawing.Size(209, 61);
+            
 
             this.ResumeLayout(false);
 
@@ -215,11 +218,15 @@ namespace CsGeneralBitmap
                 saver.saveDouble("param4", plotCntrl.param4);
                 saver.saveInt("paramSettle", plotCntrl.paramSettle);
                 saver.saveInt("paramIters", plotCntrl.paramIters);
-                saver.saveString("paramExpression", txtExpression.Text);
+                
                 saver.saveString("programVersion", Version);
 
-                //saver.saveString("TEST", new string('g', 20000));
-                saver.saveString("TEST", new string('g', CsBifurcation.IniFileParsing.MAXLINELENGTH - 1));
+
+                saver.saveString("paramExpression", txtExpression.Text);
+
+                string st = new string('g', CsBifurcation.IniFileParsing.MAXLINELENGTH - 1);
+                System.Diagnostics.Debug.Assert( st.Length  == CsBifurcation.IniFileParsing.MAXLINELENGTH - 1);
+                saver.saveString("TEST", st);
             }
             catch (IniFileParsingException err)
             {
@@ -227,6 +234,12 @@ namespace CsGeneralBitmap
                 return;
             }
         }
+       /* private IEnumerable<string> Chunk(string str, int chunkSize)
+        {
+            for (int i = 0; i < str.Length; i += chunkSize)
+                yield return str.Substring(i, Math.Min(chunkSize, str.Length-i));
+        }*/
+
 
         private void mnuFileOpen_Click(object sender, EventArgs e)
         {
