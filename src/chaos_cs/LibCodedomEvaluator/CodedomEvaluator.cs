@@ -97,7 +97,7 @@ namespace CodedomEvaluator
             return compiler;
         }
         /// <summary>
-        /// Creawte parameters for compiling
+        /// Create parameters for compiling
         /// </summary>
         /// <returns></returns>
         CompilerParameters CreateCompilerParameters()
@@ -177,6 +177,7 @@ namespace CodedomEvaluator
                             try
                             {
                                 object result = mi.Invoke(assemblyInstance, null);
+                                //provide the array as a parameter here?
                                 ret = result;
                             }
                             catch (Exception e)

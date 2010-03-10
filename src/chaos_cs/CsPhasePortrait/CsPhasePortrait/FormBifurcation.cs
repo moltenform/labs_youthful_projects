@@ -4,7 +4,8 @@
  * this is because the output image is much sparser, shades accumulate on normal but not on render.
  * one solution- increase nXpoints, not nIters!
  * todo: use reflection to assign inside the class. not allocate 400x400 every time!!
-reflection to set this!
+   one solution: modify CodedomEvaluator.cs, pass array to method as parameter,currently null: "object result = mi.Invoke(assemblyInstance, null);"
+
  * 
  * todo: fix rendering! increase nXpoints
  * 
@@ -71,10 +72,16 @@ namespace CsPhasePortrait
 
         public void Redraw()
         {
+            //System.Diagnostics.Stopwatch st=new System.Diagnostics.Stopwatch(); //
+            //st.Start(); //
+
             this.plotCntrl.paramExpression = getUserExpression(this.txtExpression.Text);
             this.plotCntrl.paramInit = getUserExpression(this.txtInit.Text);
 
             this.plotCntrl.redraw();
+            
+            //st.Stop();
+            //MessageBox.Show((st.ElapsedMilliseconds / 1000.0).ToString()); //
         }
 
         //transform sin into Math.sin, rand()=R.NextDouble()

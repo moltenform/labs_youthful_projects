@@ -50,8 +50,8 @@ namespace CsGeneralBitmap
             mnuSaveScratch.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
             this.advancedToolStripMenuItem.DropDownItems.Insert(1,mnuSaveScratch);
 
-            this.txtExpression.Location = new System.Drawing.Point(568, 151);
-            this.txtExpression.Size = new System.Drawing.Size(209, 61);
+            this.txtExpression.Location = new System.Drawing.Point(568-75, 151-70);
+            this.txtExpression.Size = new System.Drawing.Size(209+150, 61+70);
             
 
             this.ResumeLayout(false);
@@ -70,9 +70,13 @@ namespace CsGeneralBitmap
 
         public void Redraw()
         {
+            //System.Diagnostics.Stopwatch st=new System.Diagnostics.Stopwatch();
+            //st.Start();
             this.plotCntrl.paramExpression = getUserExpression(this.txtExpression.Text);
            
             this.plotCntrl.redraw();
+            //st.Stop();
+            //MessageBox.Show((st.ElapsedMilliseconds / 1000.0).ToString());
         }
 
         //transform sin into Math.sin, rand()=R.NextDouble()
@@ -225,8 +229,8 @@ namespace CsGeneralBitmap
                 saver.saveString("paramExpression0", (parts.Count>0) ? parts[0]:"");
                 saver.saveString("paramExpression1", (parts.Count>1) ? parts[1]:"");
                 saver.saveString("paramExpression2", (parts.Count>2) ? parts[2]:"");
-                saver.saveString("paramExpression3", (parts.Count>2) ? parts[3]:"");
-                saver.saveString("paramExpression4", (parts.Count>2) ? parts[4]:"");
+                saver.saveString("paramExpression3", (parts.Count>3) ? parts[3]:"");
+                saver.saveString("paramExpression4", (parts.Count>4) ? parts[4]:"");
             }
             catch (IniFileParsingException err)
             {
