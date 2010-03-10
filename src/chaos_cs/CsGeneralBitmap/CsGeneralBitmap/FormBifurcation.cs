@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Globalization;
 using CsBifurcation;
+using System.Collections.Generic;
 
 namespace CsGeneralBitmap
 {
@@ -170,12 +171,10 @@ namespace CsGeneralBitmap
                 plotCntrl.paramSettle = loader.getInt("paramSettle");
                 plotCntrl.paramIters = loader.getInt("paramIters");
 
-                //these are transformed, so set the ui instead of the prop. Call to Redraw will retrieve this.
-                txtExpression.Text = loader.getString("paramExpression");
-
-                string s = loader.getString("TEST");
-                System.Diagnostics.Debug.Assert( s.Length  == CsBifurcation.IniFileParsing.MAXLINELENGTH - 1);
-
+                // Expression is split into 5 parts to allow roughly 20k of code.
+                txtExpression.Text = loader.getString("paramExpression0") + 
+                    loader.getString("paramExpression1") + loader.getString("paramExpression2") +
+                    loader.getString("paramExpression3") + loader.getString("paramExpression4");
             }
             catch (IniFileParsingException err)
             {
@@ -221,12 +220,13 @@ namespace CsGeneralBitmap
                 
                 saver.saveString("programVersion", Version);
 
-
-                saver.saveString("paramExpression", txtExpression.Text);
-
-                string st = new string('g', CsBifurcation.IniFileParsing.MAXLINELENGTH - 1);
-                System.Diagnostics.Debug.Assert( st.Length  == CsBifurcation.IniFileParsing.MAXLINELENGTH - 1);
-                saver.saveString("TEST", st);
+                // Expression is split into 5 parts to allow roughly 20k of code.
+                List<string> parts = new List<string>(splitTextBySize(txtExpression.Text, CsBifurcation.IniFileParsing.MAXLINELENGTH - 2));
+                saver.saveString("paramExpression0", (parts.Count>0) ? parts[0]:"");
+                saver.saveString("paramExpression1", (parts.Count>1) ? parts[1]:"");
+                saver.saveString("paramExpression2", (parts.Count>2) ? parts[2]:"");
+                saver.saveString("paramExpression3", (parts.Count>2) ? parts[3]:"");
+                saver.saveString("paramExpression4", (parts.Count>2) ? parts[4]:"");
             }
             catch (IniFileParsingException err)
             {
@@ -234,11 +234,11 @@ namespace CsGeneralBitmap
                 return;
             }
         }
-       /* private IEnumerable<string> Chunk(string str, int chunkSize)
+        private IEnumerable<string> splitTextBySize(string str, int chunkSize)
         {
             for (int i = 0; i < str.Length; i += chunkSize)
                 yield return str.Substring(i, Math.Min(chunkSize, str.Length-i));
-        }*/
+        }
 
 
         private void mnuFileOpen_Click(object sender, EventArgs e)

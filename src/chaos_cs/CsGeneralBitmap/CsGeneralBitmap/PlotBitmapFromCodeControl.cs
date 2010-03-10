@@ -49,6 +49,7 @@ namespace CsBifurcation
             d["c1"] = param1; d["c2"] = param2; d["c3"] = param3; d["c4"] = param4;
 
             string sTemplate=@"
+            double val, fx, fy; //for standard loop
             bool bIsRendering = fIsRendering > 0;
             double RED = double.NegativeInfinity;
             double BLUE = double.MinValue;
@@ -110,9 +111,9 @@ namespace CsBifurcation
             return s + base.getAdditionalParameters();
         }
         public static string sStandardLoopBegin = @" 
-            double val=0;
+            val=0;
             double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-            double fx = X0, fy = Y1; //y counts downwards
+            fx = X0; fy = Y1; //y counts downwards
             for (int px = 0; px < width; px+=1)
             {
                 fy = Y1;
