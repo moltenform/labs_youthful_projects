@@ -19,9 +19,6 @@ namespace CsGeneralBitmap
         {
             //$$SECTION$$
             
-            //$$standardloop
-            val = fx*fy + Math.Abs(fx);
-            //$$endstandardloop
             //$$SECTION$$
         }
 

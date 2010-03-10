@@ -52,8 +52,8 @@ namespace CsGeneralBitmap
 
             this.txtExpression.Location = new System.Drawing.Point(568-75, 151-70);
             this.txtExpression.Size = new System.Drawing.Size(209+150, 61+70);
+            this.FormClosed += new FormClosedEventHandler(onFormClose);
             
-
             this.ResumeLayout(false);
 
             this.tbParamIters = tbShading; lblParamIters=lblShading; //give it another, more accurate, name
@@ -64,9 +64,7 @@ namespace CsGeneralBitmap
             mnuFileNew_Click(null, null);
         }
 
-       
         
-
 
         public void Redraw()
         {
@@ -420,6 +418,13 @@ namespace CsGeneralBitmap
             System.Diagnostics.Debug.Assert(sections.Length == 3);
             //TODO: do something more intelligent than Trim()?
             this.txtExpression.Text = sections[1].Trim();
+        }
+        private void onFormClose(object sender, FormClosedEventArgs e)
+        {
+            //revert scratch file. Basically so that it's not dirty in svn.
+            if (sScratchFileTemplateData!=null)
+                using (TextWriter tw = new StreamWriter(sScratchFile))
+                    tw.Write(sScratchFileTemplateData.Replace("$$CODE$$", ""));
         }
 
 
