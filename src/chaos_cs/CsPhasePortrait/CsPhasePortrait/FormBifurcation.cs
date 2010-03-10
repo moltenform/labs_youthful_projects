@@ -2,6 +2,12 @@
 /*
  * problem: rendered pictures are too faint.
  * this is because the output image is much sparser, shades accumulate on normal but not on render.
+ * one solution- increase nXpoints, not nIters!
+ * todo: use reflection to assign inside the class. not allocate 400x400 every time!!
+reflection to set this!
+ * 
+ * todo: fix rendering! increase nXpoints
+ * 
  * */
 
 using System;
@@ -47,8 +53,20 @@ namespace CsPhasePortrait
             //use normal trackbar functionality for shading and points
             this.tbTotalPoints.Minimum = 0; this.tbTotalPoints.Maximum = 10000;
             this.tbSettling.Minimum = 0; this.tbSettling.Maximum = 2000;
+            this.plotCntrl.OnAltShiftDrag += new AltShiftDragDelegate(plotCntrl_OnAltShiftDrag);
 
             mnuFileNew_Click(null, null);
+        }
+
+        void plotCntrl_OnAltShiftDrag(double nx0, double nx1, double ny0, double ny1)
+        {
+            string s = "" +
+                "sx0=" + nx0.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
+                "sx1=" + nx1.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
+                "sy0=" + ny0.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
+                "sy1=" + ny1.ToString(CultureInfo.InvariantCulture) + ";\r\n";
+            this.txtInit.Text = s;
+            Redraw();
         }
 
         public void Redraw()
