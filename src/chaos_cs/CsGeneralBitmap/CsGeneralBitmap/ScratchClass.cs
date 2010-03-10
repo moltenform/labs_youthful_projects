@@ -7,8 +7,9 @@ namespace CsGeneralBitmap
     public class ScratchClass
     {
         double val,fx,fy;
+        double c1,c2,c3,c4;
         double X0, X1, Y0, Y1;
-        double paramSettle;
+        int paramSettle, paramIters;
         bool bIsRendering;
         const double RED=0, BLUE=0;
         Random R;
@@ -17,10 +18,10 @@ namespace CsGeneralBitmap
         public void getData()
         {
             //$$SECTION$$
+            
             //$$standardloop
-val = fx*fy + Math.Abs(fx);
-//$$endstandardloop
-
+            val = fx*fy + Math.Abs(fx);
+            //$$endstandardloop
             //$$SECTION$$
         }
 

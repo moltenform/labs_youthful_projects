@@ -44,7 +44,7 @@ namespace CsBifurcation
             Dictionary<string, double> d = new Dictionary<string, double>();
             d["X0"] = X0; d["X1"] = X1; d["Y0"] = Y0; d["Y1"] = Y1;
             d["fWIDTH"] = width; d["fHEIGHT"] = height;
-            d["paramSettle"] = paramSettle;
+            d["fparamSettle"] = paramSettle; d["fparamIters"] = paramIters;
             d["fIsRendering"] = bIsRendering ? 1.0:0.0;
             d["c1"] = param1; d["c2"] = param2; d["c3"] = param3; d["c4"] = param4;
 
@@ -54,6 +54,7 @@ namespace CsBifurcation
             double RED = double.NegativeInfinity;
             double BLUE = double.MinValue;
             int width=(int)fWIDTH, height=(int)fHEIGHT;
+            int paramSettle=(int)fparamSettle, paramIters=(int)fparamIters;
             Random R = new Random();
 
             $$CODE$$

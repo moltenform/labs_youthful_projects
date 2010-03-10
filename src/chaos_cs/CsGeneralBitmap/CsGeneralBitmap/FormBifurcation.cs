@@ -414,7 +414,8 @@ namespace CsGeneralBitmap
                 s = tr.ReadToEnd();
             string[] sections = s.Split(new string[] { "//$$SECTION$$" }, StringSplitOptions.None);
             System.Diagnostics.Debug.Assert(sections.Length == 3);
-            this.txtExpression.Text = sections[1];
+            //TODO: do something more intelligent than Trim()?
+            this.txtExpression.Text = sections[1].Trim();
         }
 
 
