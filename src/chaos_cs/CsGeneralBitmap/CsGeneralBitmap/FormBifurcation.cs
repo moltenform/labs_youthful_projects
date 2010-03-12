@@ -1,5 +1,5 @@
 //compare against rev 233
-/*
+/*have a standardlooptrace for "traces"
  * 
  * 
  * */
@@ -30,6 +30,8 @@ namespace CsGeneralBitmap
 
             InitializeComponent();
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = lblSettling.Text = lblShading.Text = "";
+
+            this.plotCntrl.OnAltShiftDrag += new AltShiftDragDelegate(plotCntrl_OnAltShiftDrag);
 
             //modify layout from previous
             this.SuspendLayout();
@@ -62,6 +64,28 @@ namespace CsGeneralBitmap
             this.tbSettling.Minimum = 0; this.tbSettling.Maximum = 2000;
 
             mnuFileNew_Click(null, null);
+        }
+
+        private bool bAltMode = false;
+        void plotCntrl_OnAltShiftDrag(double nx0, double nx1, double ny0, double ny1)
+        {
+            //switch modes!
+            plotCntrl.param3=nx0; plotCntrl.param4=ny1;
+            setSliderToValue(plotCntrl.param3, tbParam3, lblParam3);
+            setSliderToValue(plotCntrl.param4, tbParam4, lblParam4);
+
+            bAltMode = !bAltMode;
+            string s = this.txtExpression.Text;
+            s=s.Trim();
+            //comment //$$SW indicates that we wrote this, not a human
+            if (s.StartsWith("bSwitch = true;//$$SW\r\n"))
+                s = s.Replace("bSwitch = true;//$$SW\r\n", "");
+            else if (s.StartsWith("bSwitch = false;//$$SW\r\n"))
+                s = s.Replace("bSwitch = false;//$$SW\r\n", "");
+
+            s = "bSwitch = "+(bAltMode?"true":"false") + ";//$$SW\r\n" + s;
+            this.txtExpression.Text = s;
+            Redraw();
         }
 
         
@@ -197,6 +221,7 @@ namespace CsGeneralBitmap
             setSliderToValue(p4, tbParam4, lblParam4);
 
             mnuSaveScratch_Click(null, null); //save into scratch file
+            bAltMode = false;
             Redraw();
         }
         private void saveIni(string sFilename)

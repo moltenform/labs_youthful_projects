@@ -56,6 +56,7 @@ namespace CsBifurcation
             int width=(int)fWIDTH, height=(int)fHEIGHT;
             int paramSettle=(int)fparamSettle, paramIters=(int)fparamIters;
             Random R = new Random();
+            bool bSwitch=false;
 
             $$CODE$$
             ";

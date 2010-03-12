@@ -7,6 +7,7 @@ namespace CsGeneralBitmap
     public class ScratchClass
     {
         double val,fx,fy;
+        bool bSwitch;
         double c1,c2,c3,c4;
         double X0, X1, Y0, Y1;
         int paramSettle, paramIters;
