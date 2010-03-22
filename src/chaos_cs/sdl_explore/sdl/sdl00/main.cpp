@@ -19,7 +19,7 @@ enum {
   SCREENWIDTH = 640,
   SCREENHEIGHT = 480,
   SCREENBPP = 0,
-  SCREENFLAGS = SDL_ANYFORMAT
+  SCREENFLAGS = SDL_ANYFORMAT// | SDL_FULLSCREEN
 } ; 
 void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) ;
 
@@ -69,6 +69,7 @@ SDL_FillRect ( pSurface , NULL , White );
 bool bNeedToLock =  ( SDL_MUSTLOCK ( pSurface ) );
 double curA = -1.1, curB = 1.72;
 double targetA = curA, targetB = curB;
+double oscilState=0.0, oscilFreq=0.1, oscilFreqState=0.0;
 
   //message pump
   for ( ; ; )
@@ -85,12 +86,24 @@ double targetA = curA, targetB = curB;
 		  else if (event.key.keysym.sym == SDLK_LEFT) targetA -= 0.1;
 		  else if (event.key.keysym.sym == SDLK_RIGHT) targetA += 0.1;
 		  else if (event.key.keysym.sym == SDLK_ESCAPE) {targetA=-1.1, targetB = 1.72;}
+		  else if (event.key.keysym.sym == SDLK_F4) {break;}
 	  }
     }
+//the frequency itself oscillates
+if (oscilFreqState>31.415926) oscilFreqState=0.0;
+oscilFreqState+=0.05;
+oscilFreq = 0.05 + sin(oscilFreqState)/200;
+
+if (oscilState>31.415926) oscilState=0.0;
+oscilState+=oscilFreq;
+
 	//curA += (targetA-curA)/200;
 	//curB += (targetB-curB)/200;
-	curA += (targetA-curA)/50;
-	curB += (targetB-curB)/50;
+	curA += (targetA-curA)/10;
+	curB += (targetB-curB)/10;
+
+curA+= sin(oscilState*.7)/3000;
+curB+= cos(oscilState)/3000;
 
 	//if (curA > targetA) curA -= 0.005;
 	//else curA += 0.005;
