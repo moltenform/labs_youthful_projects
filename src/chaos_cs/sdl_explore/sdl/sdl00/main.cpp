@@ -3,6 +3,7 @@
 //http://gpwiki.org/index.php/SDL:Tutorials:Keyboard_Input_using_an_Event_Loop
 //http://www.gameprogrammer.com/fastevents/fastevents1.html
 /* have physics? we're elastically pulled to a point, use arrow keys to set point, has natural oscillation
+//http://www.daniweb.com/code/post968823.html#
 */
 
 #include "SDL.h"
@@ -23,6 +24,7 @@ enum {
 } ; 
 void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) ;
 
+void jump(double *outA, double *outB);
 void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) ;
 SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) ;
 
@@ -38,7 +40,12 @@ return true;
 }
 return false;
 }
-
+void save(double a,double b)
+{
+	FILE*fp = fopen("..\\saved.txt", "a"); //append mode
+	fprintf(fp, "%f,%f\n", a,b);
+	fclose(fp);
+}
 int main( int argc, char* argv[] )
 {
 	X0=-1.75; X1=1.75;Y0=-1.75;Y1=1.75;
@@ -71,6 +78,9 @@ double curA = -1.1, curB = 1.72;
 double targetA = curA, targetB = curB;
 double oscilState=0.0, oscilFreq=0.1, oscilFreqState=0.0;
 
+SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY*/, SDL_DEFAULT_REPEAT_INTERVAL);
+//is there a better way of doing this? One could also have a SDL_KEYDOWN and paired KEYUP, and do stuff in between 
+
   //message pump
   for ( ; ; )
   {
@@ -79,13 +89,15 @@ double oscilState=0.0, oscilFreq=0.1, oscilFreqState=0.0;
     {
       //an event was found
       if ( event.type == SDL_QUIT ) break ;
-	  else if (event.type==SDL_KEYUP)
+	  else if (event.type==SDL_KEYDOWN)
 	  {
-		  if (event.key.keysym.sym == SDLK_UP) targetB += 0.1;
-		  else if (event.key.keysym.sym == SDLK_DOWN) targetB -= 0.1;
-		  else if (event.key.keysym.sym == SDLK_LEFT) targetA -= 0.1;
-		  else if (event.key.keysym.sym == SDLK_RIGHT) targetA += 0.1;
+		  if (event.key.keysym.sym == SDLK_UP) targetB += 0.005;
+		  else if (event.key.keysym.sym == SDLK_DOWN) targetB -= 0.005;
+		  else if (event.key.keysym.sym == SDLK_LEFT) targetA -= 0.005;
+		  else if (event.key.keysym.sym == SDLK_RIGHT) targetA += 0.005;
 		  else if (event.key.keysym.sym == SDLK_ESCAPE) {targetA=-1.1, targetB = 1.72;}
+		  else if (event.key.keysym.sym == SDLK_s) {save(curA,curB);}
+		  else if (event.key.keysym.sym == SDLK_j) {jump(&targetA, &targetB);}
 		  else if (event.key.keysym.sym == SDLK_F4) {break;}
 	  }
     }
@@ -98,18 +110,12 @@ oscilFreq = 0.09 + sin(oscilFreqState)/70;
 if (oscilState>31.415926) oscilState=0.0;
 oscilState+=oscilFreq;
 
-	//curA += (targetA-curA)/200;
-	//curB += (targetB-curB)/200;
 	curA += (targetA-curA)/10;
 	curB += (targetB-curB)/10;
 
-double actualA = curA+ sin(oscilState*.3702342521232353)/250;
-double actualB = curB+ cos(oscilState)/300;
+double actualA = curA+ sin(oscilState*.3702342521232353)/550;
+double actualB = curB+ cos(oscilState)/400;
 
-	//if (curA > targetA) curA -= 0.005;
-	//else curA += 0.005;
-	//if (curB > targetB) curB -= 0.005;
-	//else curB += 0.005;
  
     //lock the surface
     if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
@@ -243,3 +249,47 @@ int nItersPerPoint=20; //10
             }
 
 }
+
+typedef struct node node ;
+struct node {  double vala; double valb;  node* next ; };
+node * NSaved = NULL;
+node* choose_random_node( node* first )
+{
+  int num_nodes = 0 ; // nodes seen so far
+  node* selected = NULL ; // selected node
+  node* pn = NULL ;
+  for( pn = first ; pn != NULL ; pn = pn->next )
+    if(  ( rand() % ++num_nodes  ) == 0 ) selected = pn ;
+  return selected ;
+}
+node* createNode(double a, double b, node *next)
+{
+node* newnode = (node*) malloc(sizeof(node));
+newnode->vala=a; newnode->valb=b;
+newnode->next = NULL;
+return newnode;
+}
+void jump(double *outA, double *outB)
+{
+		//FILE*fdbg = fopen("..\\debug.txt", "a");
+	double a,b;
+	if (NSaved==NULL)
+	{
+		//fprintf(fdbg, "mknew\n"); /////////
+		NSaved = createNode(-1.1, 1.72, NULL);
+		node*cur = NSaved;
+		FILE*fp = fopen("..\\saved.txt", "r");
+		while (fscanf(fp, "%lf,%lf\n", &a,&b)==2)
+		{
+			//fprintf(fdbg, "val%lf,%lf\n",a,b); /////////
+			cur->next = createNode(a,b, NULL);
+			cur = cur->next;
+		}
+		fclose(fp);
+	}
+	node * picked = choose_random_node(NSaved);
+	*outA = picked->vala;
+	*outB = picked->valb;
+			//fprintf(fdbg, "PICKED%f,%f\n",*outA, *outB); /////////
+}
+
