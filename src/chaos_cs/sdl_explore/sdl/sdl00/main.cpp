@@ -4,7 +4,19 @@
 //http://www.gameprogrammer.com/fastevents/fastevents1.html
 /* have physics? we're elastically pulled to a point, use arrow keys to set point, has natural oscillation
 //http://www.daniweb.com/code/post968823.html#
+
+from C# controller:
+ctrl+c copy coords
+ctrl+v set coords from clipboard
+
+
+b	switch mode between
+
+
 */
+
+//floating point comparison. see also <float.h>'s DBL_EPSILON and DBL_MIN. 1e-11 also ok.
+#define VERYCLOSE(x1,x2) (fabs((x1)-(x2))<1e-8)
 
 #include "SDL.h"
 #include <stdio.h>
@@ -12,9 +24,10 @@
 
 #include <memory.h>
 #include <math.h>
+ //epsilon
 #include <windows.h>
 
-#define DOMOVE 1
+//#define DOMOVE 1
 
 double X0,X1,Y0,Y1;
 Uint32 White;
@@ -107,6 +120,7 @@ SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY*/, SDL_DEFAULT_REPEAT_INTERVAL
 		  else if (event.key.keysym.sym == SDLK_j) {jump(&targetA, &targetB);}
 		  else if (event.key.keysym.sym == SDLK_x) {jumpFromController(&targetA, &targetB);}
 		  else if (event.key.keysym.sym == SDLK_F4) {break;}
+		  //if (event.key.keysym.mod && KMOD_CTRL) 
 	  }
     }
 //the frequency itself oscillates
@@ -118,7 +132,7 @@ oscilFreq = 0.09 + sin(oscilFreqState)/70;
 if (oscilState>31.415926) oscilState=0.0;
 oscilState+=oscilFreq;
 
-	curA += (targetA-curA)/10;
+	curA += (targetA-curA)/10; //div by 2 or 10?? less processing if by 10...
 	curB += (targetB-curB)/10;
 
 #ifdef DOMOVE
@@ -130,28 +144,30 @@ double actualB = curB;
 #endif
 
  
-    //lock the surface
-    if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
+   
 
 
 if (LockFramesPerSecond()) 
 {
-	DoCoolStuff(pSurface, sxinc, syinc, actualA,actualB);
-	i=0;
+	if (VERYCLOSE(targetA, actualA) && VERYCLOSE(targetB, actualB))
+	{
+		i=i;
+		//SDL_FillRect ( pSurface , NULL , 0/*black*/ );  //debug by drawing black indicating nothing new is computed.
+	}
+	else
+	{
+		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
+		DoCoolStuff(pSurface, sxinc, syinc, actualA,actualB);
+		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
+	}
 } 
+		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ; //apparently needed every frame, even when not redrawing
 
-
-    //unlock surface
-    if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
-
-    //update surface
-    SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 
 	
-  }//end of message pump
+  }
 
-  //done
-  return ( 0 ) ;
+  return 0;
 }
 void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) 
 {
