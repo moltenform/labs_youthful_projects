@@ -21,11 +21,16 @@ b	switch mode between
 #include "SDL.h"
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <memory.h>
 #include <math.h>
- //epsilon
-#include <windows.h>
+
+#ifdef _MSC_VER //using Msvc
+#include <float.h>
+#define ISFINITE(x) (_finite(x))
+#else
+#define ISFINITE(x) (isfinite(x))
+#endif
+#define ISTOOBIG(x) ((x)<-1e3 || (x)>1e3)
 
 //#define DOMOVE 1
 
@@ -215,7 +220,8 @@ void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1,
 	double x_,x,y;
 
 int paramSettle = 48;
-int nItersPerPoint=20; //10
+//int nItersPerPoint=20; //10
+int nItersPerPoint=40; //10
 
 	SDL_FillRect ( pSurface , NULL , White );  //clear surface quickly
 
@@ -233,12 +239,14 @@ int nItersPerPoint=20; //10
                         x_ = c1*x - y*y;
 						y = c2*y + x*y;
                         x=x_; 
+						if (!(ISFINITE(x)&&ISFINITE(y))) break;
                     }
                     for (int ii=0; ii<nItersPerPoint; ii++)
                     {
                         x_ = c1*x - y*y;
 						y = c2*y + x*y;
                         x=x_; 
+						if (!(ISFINITE(x)&&ISFINITE(y))) break;
 
                         int px = (int)(SCREENWIDTH * ((x - X0) / (X1 - X0)));
                         int py = (int)(SCREENHEIGHT - SCREENHEIGHT * ((y - Y0) / (Y1 - Y0)));
