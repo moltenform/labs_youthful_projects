@@ -90,10 +90,10 @@ double oscilState=0.0, oscilFreq=0.1, oscilFreqState=0.0;
 	  }
     }
 //the frequency itself oscillates
-//if (oscilFreqState>31.415926) oscilFreqState=0.0;
-//oscilFreqState+=0.1;
-//oscilFreq = 0.055 + sin(oscilFreqState)/70;
-oscilFreq = 0.1;
+if (oscilFreqState>31.415926) oscilFreqState=0.0;
+oscilFreqState+=0.01;
+oscilFreq = 0.09 + sin(oscilFreqState)/70;
+//oscilFreq = 0.1;
 
 if (oscilState>31.415926) oscilState=0.0;
 oscilState+=oscilFreq;
@@ -103,8 +103,8 @@ oscilState+=oscilFreq;
 	curA += (targetA-curA)/10;
 	curB += (targetB-curB)/10;
 
-curA+= sin(oscilState*.3702342521232353)/2500;
-curB+= cos(oscilState)/3000;
+double actualA = curA+ sin(oscilState*.3702342521232353)/250;
+double actualB = curB+ cos(oscilState)/300;
 
 	//if (curA > targetA) curA -= 0.005;
 	//else curA += 0.005;
@@ -116,7 +116,7 @@ curB+= cos(oscilState)/3000;
 
 if (LockFramesPerSecond()) 
 {
-	DoCoolStuff(pSurface, sxinc, syinc, curA,curB);
+	DoCoolStuff(pSurface, sxinc, syinc, actualA,actualB);
 	i=0;
 } 
 
