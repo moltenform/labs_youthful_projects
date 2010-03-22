@@ -1,22 +1,3 @@
-//http://www.linuxjournal.com/article/4401?page=0,1
-//http://www.gamedev.net/reference/programming/features/sdl2/page5.asp
-//http://gpwiki.org/index.php/SDL:Tutorials:Keyboard_Input_using_an_Event_Loop
-//http://www.gameprogrammer.com/fastevents/fastevents1.html
-/* have physics? we're elastically pulled to a point, use arrow keys to set point, has natural oscillation
-//http://www.daniweb.com/code/post968823.html#
-
-from C# controller:
-ctrl+c copy coords
-ctrl+v set coords from clipboard
-
-
-b	switch mode between
-
-
-*/
-
-//floating point comparison. see also <float.h>'s DBL_EPSILON and DBL_MIN. 1e-11 also ok.
-#define VERYCLOSE(x1,x2) (fabs((x1)-(x2))<1e-8)
 
 #include "SDL.h"
 #include <stdio.h>
@@ -24,91 +5,83 @@ b	switch mode between
 #include <memory.h>
 #include <math.h>
 
-#ifdef _MSC_VER //using Msvc
-#include <float.h>
-#define ISFINITE(x) (_finite(x))
-#else
-#define ISFINITE(x) (isfinite(x))
-#endif
-#define ISTOOBIG(x) ((x)<-1e3 || (x)>1e3)
+#include "sdl_util.h"
+#include "phaseportrait.h"
+#include "main.h"
+#include "old.h"
 
-//#define DOMOVE 1
 
-double X0,X1,Y0,Y1;
-Uint32 White;
+Uint32 g_white;
 
-#define asssume32BitColor 0
 
-enum {
-  SCREENWIDTH = 640,
-  SCREENHEIGHT = 480,
-  SCREENBPP = 0,
-  SCREENFLAGS = SDL_ANYFORMAT// | SDL_FULLSCREEN
-} ; 
-void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) ;
 
-void jump(double *outA, double *outB);
-void jumpFromController(double *outA, double *outB);
-void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) ;
-SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) ;
 
-inline bool LockFramesPerSecond() //run no faster than 60fps
+
+void setSettling(PhasePortraitSettings * settings, int direction);
+void setShading(PhasePortraitSettings * settings, int direction);
+void setSliding(double * sliding, int direction);
+void setZoom(PhasePortraitSettings * settings, int direction);
+
+
+void oscillate(double curA,double curB,double *outA, double *outB)
 {
-	int framerate=60;
-static float lastTime = 0.0f;
-float currentTime = SDL_GetTicks() * 0.001f;
-if((currentTime - lastTime) > (1.0f / framerate))
-{
-lastTime = currentTime;
-return true;
+	static double statePos=0.0, stateFreq=0.0;
+	if (statePos>31.415926) statePos=0.0;
+	if (stateFreq>31.415926) stateFreq=0.0;
+	stateFreq+=0.01;
+	statePos+=stateFreq;
+
+	//the frequency itself oscillates
+	double oscilFreq = 0.09 + sin(stateFreq)/70;
+	*outA = curA+ sin(statePos*.3702342521232353)/550;
+	*outB = curB+ cos(statePos)/400; 
 }
-return false;
-}
-void save(double a,double b)
-{
-	FILE*fp = fopen("..\\saved.txt", "a"); //append mode
-	fprintf(fp, "%f,%f\n", a,b);
-	fclose(fp);
-}
+
+
+
 int main( int argc, char* argv[] )
 {
-	X0=-1.75; X1=1.75;Y0=-1.75;Y1=1.75;
-	double sx0= -2, sx1=2, sy0= -2, sy1=2;
-//int nXpoints = 60, nYpoints = 60;
-int nXpoints = 40, nYpoints = 40;
-double sxinc = (nXpoints==1) ? 0xffffffff : (sx1-sx0)/(nXpoints-1);
-double syinc = (nYpoints==1) ? 0xffffffff : (sy1-sy0)/(nYpoints-1);
-//GetClipboardData(CLIPFORMAT
+	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
+	double curA=0.0, curB=0.0, targetA=1.0, targetB=1.0;
 
-  //initialize systems
-  SDL_Init ( SDL_INIT_VIDEO ) ;
+	InitialSettings(settings, SCREENWIDTH, SCREENHEIGHT, &targetA, &targetB);
+	
+	//these settings
+	bool breathe = false;
+	double sliding = 10.0;
 
-  //set our at exit function
-  atexit ( SDL_Quit ) ;
-
-  //create a window
-  SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT ,
-                                             SCREENBPP , SCREENFLAGS ) ;
-
-  //declare event variable
-  SDL_Event event ;
+	//set our at exit function
+	atexit ( SDL_Quit ) ; 
+	//initialize systems
+	SDL_Init ( SDL_INIT_VIDEO ) ; 
+	//create a window
+	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , SCREENFLAGS ) ;
+	SDL_Event event ;
+	bool bNeedToLock =  SDL_MUSTLOCK(pSurface);
+	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 
 
-int i=0;
-  White = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
-SDL_FillRect ( pSurface , NULL , White );
+	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 
-bool bNeedToLock =  ( SDL_MUSTLOCK ( pSurface ) );
-double curA = -1.1, curB = 1.72;
-double targetA = curA, targetB = curB;
-double oscilState=0.0, oscilFreq=0.1, oscilFreqState=0.0;
 
-SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY*/, SDL_DEFAULT_REPEAT_INTERVAL);
-//is there a better way of doing this? One could also have a SDL_KEYDOWN and paired KEYUP, and do stuff in between 
 
+	double actualA, actualB;
+		
   //message pump
   for ( ; ; )
   {
+	if (breathe)
+	{
+		oscillate(curA, curB, &actualA, &actualB);
+	}
+	else
+	{
+		actualA = curA; 
+		actualB = curB;
+	}
+	curA += (targetA-curA)/sliding;
+	curB += (targetB-curB)/sliding;
+
     //look for an event
     if ( SDL_PollEvent ( &event ) )
     {
@@ -120,49 +93,48 @@ SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY*/, SDL_DEFAULT_REPEAT_INTERVAL
 		  else if (event.key.keysym.sym == SDLK_DOWN) targetB -= 0.005;
 		  else if (event.key.keysym.sym == SDLK_LEFT) targetA -= 0.005;
 		  else if (event.key.keysym.sym == SDLK_RIGHT) targetA += 0.005;
-		  else if (event.key.keysym.sym == SDLK_ESCAPE) {targetA=-1.1, targetB = 1.72;}
 		  else if (event.key.keysym.sym == SDLK_s) {save(curA,curB);}
-		  else if (event.key.keysym.sym == SDLK_j) {jump(&targetA, &targetB);}
-		  else if (event.key.keysym.sym == SDLK_x) {jumpFromController(&targetA, &targetB);}
-		  else if (event.key.keysym.sym == SDLK_F4) {break;}
-		  //if (event.key.keysym.mod && KMOD_CTRL) 
+		  else if (event.key.keysym.sym == SDLK_ESCAPE) {return 0;}
+		  else if (event.key.keysym.sym == SDLK_F4) {return 0;}
+			if (event.key.keysym.mod & KMOD_ALT)
+			{
+				switch(event.key.keysym.sym)
+				{
+					case SDLK_s: controller_sets_pos(&targetA, &targetB); break;
+					case SDLK_g: controller_gets_pos(targetA, targetB); break;
+					case SDLK_b: breathe = !breathe; break;
+					case SDLK_1: setSettling(settings, 1); break;
+					case SDLK_2: setSettling(settings, -1); break;
+					case SDLK_3: setShading(settings, 1); break;
+					case SDLK_4: setShading(settings, -1); break;
+					case SDLK_5: setSliding(&sliding, 1); break;
+					case SDLK_6: setSliding(&sliding, -1); break;
+					case SDLK_PAGEUP: setZoom(settings, 1); break;
+					case SDLK_PAGEDOWN: setZoom(settings, -1); break;
+					default: break;
+				}
+				//force redraw
+				if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
+				DrawPhasePortrait(pSurface, settings, actualA,actualB);
+				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
+			}
 	  }
     }
-//the frequency itself oscillates
-if (oscilFreqState>31.415926) oscilFreqState=0.0;
-oscilFreqState+=0.01;
-oscilFreq = 0.09 + sin(oscilFreqState)/70;
-//oscilFreq = 0.1;
-
-if (oscilState>31.415926) oscilState=0.0;
-oscilState+=oscilFreq;
-
-	curA += (targetA-curA)/10; //div by 2 or 10?? less processing if by 10...
-	curB += (targetB-curB)/10;
-
-#ifdef DOMOVE
-double actualA = curA+ sin(oscilState*.3702342521232353)/550;
-double actualB = curB+ cos(oscilState)/400;
-#else
-double actualA = curA;
-double actualB = curB;
-#endif
-
- 
-   
 
 
-if (LockFramesPerSecond()) 
+
+
+if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in time, dropping frames? put stuff in here
 {
-	if (VERYCLOSE(targetA, actualA) && VERYCLOSE(targetB, actualB))
+	if (!breathe && VERYCLOSE(targetA, curA) && VERYCLOSE(targetB, curB))
 	{
-		i=i;
+		// don't need to compute anything.
 		//SDL_FillRect ( pSurface , NULL , 0/*black*/ );  //debug by drawing black indicating nothing new is computed.
 	}
 	else
 	{
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		DoCoolStuff(pSurface, sxinc, syinc, actualA,actualB);
+		DrawPhasePortrait(pSurface, settings, actualA,actualB);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 	}
 } 
@@ -174,176 +146,54 @@ if (LockFramesPerSecond())
 
   return 0;
 }
-void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) 
+
+void controller_sets_pos(double *outA, double *outB)
 {
-  //convert color
-  Uint32 col = SDL_MapRGB ( pSurface->format , color.r , color.g , color.b ) ;
-
-  //determine position
-  char* pPosition = ( char* ) pSurface->pixels ;
-
-  //offset by y
-  pPosition += ( pSurface->pitch * y ) ;
-
-  //offset by x
-  pPosition += ( pSurface->format->BytesPerPixel * x ) ;
-
-  //copy pixel data
-  memcpy ( pPosition , &col , pSurface->format->BytesPerPixel ) ;
-}
-SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) 
-{
-  SDL_Color color ;
-  Uint32 col = 0 ;
-
-  //determine position
-  char* pPosition = ( char* ) pSurface->pixels ;
-
-  //offset by y
-  pPosition += ( pSurface->pitch * y ) ;
-
-  //offset by x
-  pPosition += ( pSurface->format->BytesPerPixel * x ) ;
-
-  //copy pixel data
-  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ;
-
-  //convert color
-  SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
-  return ( color ) ;
-}
-
-
-void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) 
-{
-
-	double x_,x,y;
-
-int paramSettle = 48;
-//int nItersPerPoint=20; //10
-int nItersPerPoint=40; //10
-
-	SDL_FillRect ( pSurface , NULL , White );  //clear surface quickly
-
-	double sx0= -2, sx1=2, sy0= -2, sy1=2;
-
-
-	for (double sx=sx0; sx<=sx1; sx+=sxinc)
-            {
-                for (double sy=sy0; sy<=sy1; sy+=syinc)
-                {
-                    x = sx; y=sy;
-
-                    for (int ii=0; ii<paramSettle; ii++)
-                    {
-                        x_ = c1*x - y*y;
-						y = c2*y + x*y;
-                        x=x_; 
-						if (!(ISFINITE(x)&&ISFINITE(y))) break;
-                    }
-                    for (int ii=0; ii<nItersPerPoint; ii++)
-                    {
-                        x_ = c1*x - y*y;
-						y = c2*y + x*y;
-                        x=x_; 
-						if (!(ISFINITE(x)&&ISFINITE(y))) break;
-
-                        int px = (int)(SCREENWIDTH * ((x - X0) / (X1 - X0)));
-                        int py = (int)(SCREENHEIGHT - SCREENHEIGHT * ((y - Y0) / (Y1 - Y0)));
-                        if (py >= 0 && py < SCREENHEIGHT && px>=0 && px<SCREENWIDTH)
-						{
-							//get pixel color, mult by 0.875 (x-x>>3)
-  Uint32 col = 0 ; Uint32 colR;
-  //determine position
-  char* pPosition = ( char* ) pSurface->pixels ;
-  //offset by y
-  pPosition += ( pSurface->pitch * py ) ;
-  //offset by x
-  pPosition += ( pSurface->format->BytesPerPixel * px ) ;
-  //copy pixel data
-  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ;
-
-#if asssume32BitColor
-	//Apparently in format UURRGGBB
-	colR = (col & 0x0000ff00)>>8;
-#else
-  SDL_Color color ;
-  //convert color
-  SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
-  colR = color.r;
-#endif
-							
-							// a quick mult, stops at 7, but whatever
-						//int newcolor = (color.r)-((color.r)>>3);
-						Uint32 newcolor = (colR)-((colR)>>2);
-						//int newcolor = ((color.r)>>2)+((color.r)>>3); //5/8
-//convert color
- 
-
-#if asssume32BitColor
-   Uint32 newcol = (newcolor<<8)+(newcolor<<16)+newcolor;
-#else
-  Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
-#endif
-  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
-
-						}
-                    }
-                }
-            }
-
-}
-
-typedef struct node node ;
-struct node {  double vala; double valb;  node* next ; };
-node * NSaved = NULL;
-node* choose_random_node( node* first )
-{
-  int num_nodes = 0 ; // nodes seen so far
-  node* selected = NULL ; // selected node
-  node* pn = NULL ;
-  for( pn = first ; pn != NULL ; pn = pn->next )
-    if(  ( rand() % ++num_nodes  ) == 0 ) selected = pn ;
-  return selected ;
-}
-node* createNode(double a, double b, node *next)
-{
-node* newnode = (node*) malloc(sizeof(node));
-newnode->vala=a; newnode->valb=b;
-newnode->next = NULL;
-return newnode;
-}
-void jump(double *outA, double *outB)
-{
-		//FILE*fdbg = fopen("..\\debug.txt", "a");
 	double a,b;
-	if (NSaved==NULL)
-	{
-		//fprintf(fdbg, "mknew\n"); /////////
-		NSaved = createNode(-1.1, 1.72, NULL);
-		node*cur = NSaved;
-		FILE*fp = fopen("..\\saved.txt", "r");
-		while (fscanf(fp, "%lf,%lf\n", &a,&b)==2)
-		{
-			//fprintf(fdbg, "val%lf,%lf\n",a,b); /////////
-			cur->next = createNode(a,b, NULL);
-			cur = cur->next;
-		}
-		fclose(fp);
-	}
-	node * picked = choose_random_node(NSaved);
-	*outA = picked->vala;
-	*outB = picked->valb;
-			//fprintf(fdbg, "PICKED%f,%f\n",*outA, *outB); /////////
+	FILE*fp = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\menagerie\\outTrans.txt", "r");
+	fscanf(fp, "%lf\n", &a);
+	fscanf(fp, "%lf", &b);
+	fclose(fp);
+	*outA=a; *outB=b;
 }
-void jumpFromController(double *outA, double *outB)
+void controller_gets_pos(double a, double b)
 {
-double a,b;
-FILE*fp = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\menagerie\\outTrans.txt", "r");
-fscanf(fp, "%lf\n", &a);
-fscanf(fp, "%lf", &b);
-fclose(fp);
-*outA=a; *outB=b;
+	FILE*fp = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\menagerie\\getTrans.txt", "w");
+	fprintf(fp, "%f\n", a);
+	fprintf(fp, "%f", b);
+	fclose(fp);
 }
 
+void setSettling(PhasePortraitSettings * settings, int direction)
+{
+	double scale = (direction<0) ? 0.95 : 1/0.95;
+	settings->settling = roundDouble(settings->settling * scale);
+}
+void setShading(PhasePortraitSettings * settings, int direction)
+{
+	double scale = (direction<0) ? 0.95 : 1/0.95;
+	settings->drawing = roundDouble(settings->drawing * scale);
+	if (settings->drawing <=0) settings->drawing =1;
+}
+void setSliding(double * sliding, int direction)
+{
+	double scale = (direction<0) ? 0.95 : 1/0.95;
+	*sliding = (*sliding * scale);
+}
+void setZoom(PhasePortraitSettings * settings, int direction)
+{
+	double scale = (direction<0) ? 0.95 : 1/0.95;
+	//assume centered around 0!!!
+	settings->x0 *= scale;
+	settings->x1 *= scale;
+	settings->y0 *= scale;
+	settings->y1 *= scale;
+}
 
+int roundDouble(double a)
+{
+	if (fmod(a,1.0)<0.5)
+		return (int)a;
+	else
+		return ((int)a)+1;
+}
