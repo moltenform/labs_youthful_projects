@@ -1,5 +1,9 @@
 //http://www.linuxjournal.com/article/4401?page=0,1
 //http://www.gamedev.net/reference/programming/features/sdl2/page5.asp
+//http://gpwiki.org/index.php/SDL:Tutorials:Keyboard_Input_using_an_Event_Loop
+//http://www.gameprogrammer.com/fastevents/fastevents1.html
+/* have physics? we're elastically pulled to a point, use arrow keys to set point, has natural oscillation
+*/
 
 #include "SDL.h"
 #include <stdio.h>
@@ -17,7 +21,7 @@ enum {
   SCREENBPP = 0,
   SCREENFLAGS = SDL_ANYFORMAT
 } ; 
-void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) ;
+void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) ;
 
 void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) ;
 SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) ;
@@ -63,6 +67,8 @@ int i=0;
 SDL_FillRect ( pSurface , NULL , White );
 
 bool bNeedToLock =  ( SDL_MUSTLOCK ( pSurface ) );
+double curA = -1.1, curB = 1.72;
+double targetA = curA, targetB = curB;
 
   //message pump
   for ( ; ; )
@@ -72,15 +78,26 @@ bool bNeedToLock =  ( SDL_MUSTLOCK ( pSurface ) );
     {
       //an event was found
       if ( event.type == SDL_QUIT ) break ;
+	  else if (event.type==SDL_KEYUP)
+	  {
+		  if (event.key.keysym.sym == SDLK_UP) targetB += 0.1;
+		  else if (event.key.keysym.sym == SDLK_DOWN) targetB -= 0.1;
+		  else if (event.key.keysym.sym == SDLK_LEFT) targetA -= 0.1;
+		  else if (event.key.keysym.sym == SDLK_RIGHT) targetA += 0.1;
+		  else if (event.key.keysym.sym == SDLK_ESCAPE) {targetA=-1.1, targetB = 1.72;}
+	  }
     }
-
+	if (curA > targetA) curA -= 0.005;
+	else curA += 0.005;
+	if (curB > targetB) curB -= 0.005;
+	else curB += 0.005;
  
     //lock the surface
     if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 
 if (LockFramesPerSecond()) 
 {
-	DoCoolStuff(pSurface, sxinc, syinc);
+	DoCoolStuff(pSurface, sxinc, syinc, curA,curB);
 	i=0;
 } 
 
@@ -137,16 +154,16 @@ SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y )
 }
 
 
-void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) 
+void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) 
 {
 
 	double x_,x,y;
-	double c1=-1.1, c2=1.72;
+	//double c1=-1.1, c2=1.72;
 	//c2 -= 0.001;
 static double State=0;
 State+=0.09; if (State>100) State=0;
-c1 = -1.1 + sin(State)/64;
-c2 = 1.72 + cos(State)/64;
+//c1 = c1 + sin(State)/64000;
+//c2 = c1 + cos(State)/64000;
 
 int paramSettle = 48;
 int nItersPerPoint=20; //10
