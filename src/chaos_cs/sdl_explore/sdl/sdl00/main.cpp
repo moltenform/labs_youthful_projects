@@ -5,21 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void DrawImage(SDL_Surface *srcimg, int sx, int sy, int sw, int sh, SDL_Surface *dstimg, int dx, int dy, int alpha = 255) {
-  if ((!srcimg) || (alpha == 0)) return; //If theres no image, or its 100% transparent.
-  SDL_Rect src, dst;
-  
-  src.x = sx;  src.y = sy;  src.w = sw;  src.h = sh;
-  dst.x = dx;  dst.y = dy;  dst.w = src.w;  dst.h = src.h;
-  //if (alpha != 255) SDL_SetAlpha(srcimg, SDL_SRCALPHA, alpha);
-  // - This is incorrect, if alpha is 10, then set to 255, the image alpha will still be 10.
-  SDL_SetAlpha(srcimg, SDL_SRCALPHA, alpha);
-  SDL_BlitSurface(srcimg, &src, dstimg, &dst);
-}
-
-#include "SDL.h"
-#include <stdlib.h>
 #include <memory.h>
+
+double X0,X1,Y0,Y1;
 
 enum {
   SCREENWIDTH = 640,
@@ -27,11 +15,18 @@ enum {
   SCREENBPP = 0,
   SCREENFLAGS = SDL_ANYFORMAT
 } ;
+void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) ;
 
 void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) ;
 SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) ;
 int main( int argc, char* argv[] )
 {
+	X0=-1.75; X1=1.75;Y0=-1.75;Y1=1.75;
+	double sx0= -2, sx1=2, sy0= -2, sy1=2;
+int nXpoints = 40, nYpoints = 40;
+double sxinc = (nXpoints==1) ? 0xffffffff : (sx1-sx0)/(nXpoints-1);
+double syinc = (nYpoints==1) ? 0xffffffff : (sy1-sy0)/(nYpoints-1);
+
   //initialize systems
   SDL_Init ( SDL_INIT_VIDEO ) ;
 
@@ -50,6 +45,8 @@ int main( int argc, char* argv[] )
    //                SDL_MapRGB ( pSurface->format , 255 , 255, 255 ) ) ;
 
 int i=0;
+  Uint32 White = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
+SDL_FillRect ( pSurface , NULL , White );
 
   //message pump
   for ( ; ; )
@@ -71,11 +68,14 @@ int i=0;
     SDL_LockSurface ( pSurface ) ;
 
     //plot pixel at random location
-	for (int j=0; j<200; j++)
+	//for (int j=0; j<900000; j++)
+	//for (int j=0; j<9; j++)
+	SDL_FillRect ( pSurface , NULL , White );
     SetPixel ( pSurface , rand ( ) % SCREENWIDTH , rand ( ) % SCREENHEIGHT , color ) ;
+	DoCoolStuff(pSurface, sxinc, syinc);
 
 i++;
-if (i>3000) {SDL_FillRect ( pSurface , NULL , 0 ); i=0;} //clear surface quickly
+if (i>900) {SDL_FillRect ( pSurface , NULL , White ); i=0;} //clear surface quickly
 
 
     //unlock surface
@@ -127,4 +127,72 @@ SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y )
   //convert color
   SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
   return ( color ) ;
+}
+
+
+void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) 
+{
+	double x_,x,y;
+	double c1=-1.1, c2=1.72;
+int paramSettle = 48;
+int nItersPerPoint=10;
+
+
+	double sx0= -2, sx1=2, sy0= -2, sy1=2;
+
+
+	for (double sx=sx0; sx<=sx1; sx+=sxinc)
+            {
+                for (double sy=sy0; sy<=sy1; sy+=syinc)
+                {
+                    x = sx; y=sy;
+
+                    for (int ii=0; ii<paramSettle; ii++)
+                    {
+                        x_ = c1*x - y*y;
+						y = c2*y + x*y;
+                        x=x_; 
+                    }
+                    for (int ii=0; ii<nItersPerPoint; ii++)
+                    {
+                        x_ = c1*x - y*y;
+						y = c2*y + x*y;
+                        x=x_; 
+
+                        int px = (int)(SCREENWIDTH * ((x - X0) / (X1 - X0)));
+                        int py = (int)(SCREENHEIGHT - SCREENHEIGHT * ((y - Y0) / (Y1 - Y0)));
+                        if (py >= 0 && py < SCREENHEIGHT && px>=0 && px<SCREENWIDTH)
+						{
+							//get pixel color, mult by 0.875 (x-x>>3)
+  SDL_Color color ;
+  Uint32 col = 0 ;
+  //determine position
+  char* pPosition = ( char* ) pSurface->pixels ;
+  //offset by y
+  pPosition += ( pSurface->pitch * py ) ;
+  //offset by x
+  pPosition += ( pSurface->format->BytesPerPixel * px ) ;
+  //copy pixel data
+  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ;
+  //convert color
+  SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
+							
+							// a quick mult, stops at 7, but whatever
+						int newcolor = (color.r)-((color.r)>>3);
+//convert color
+  Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
+  //determine position
+  //char* pPosition = ( char* ) pSurface->pixels ;
+  //offset by y
+  //pPosition += ( pSurface->pitch * py ) ;
+  //offset by x
+  //pPosition += ( pSurface->format->BytesPerPixel * px ) ;
+  //copy pixel data
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+
+						}
+                    }
+                }
+            }
+
 }
