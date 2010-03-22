@@ -90,9 +90,10 @@ double oscilState=0.0, oscilFreq=0.1, oscilFreqState=0.0;
 	  }
     }
 //the frequency itself oscillates
-if (oscilFreqState>31.415926) oscilFreqState=0.0;
-oscilFreqState+=0.05;
-oscilFreq = 0.05 + sin(oscilFreqState)/200;
+//if (oscilFreqState>31.415926) oscilFreqState=0.0;
+//oscilFreqState+=0.1;
+//oscilFreq = 0.055 + sin(oscilFreqState)/70;
+oscilFreq = 0.1;
 
 if (oscilState>31.415926) oscilState=0.0;
 oscilState+=oscilFreq;
@@ -102,7 +103,7 @@ oscilState+=oscilFreq;
 	curA += (targetA-curA)/10;
 	curB += (targetB-curB)/10;
 
-curA+= sin(oscilState*.7)/3000;
+curA+= sin(oscilState*.3702342521232353)/2500;
 curB+= cos(oscilState)/3000;
 
 	//if (curA > targetA) curA -= 0.005;
@@ -176,12 +177,6 @@ void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1,
 {
 
 	double x_,x,y;
-	//double c1=-1.1, c2=1.72;
-	//c2 -= 0.001;
-static double State=0;
-State+=0.09; if (State>100) State=0;
-//c1 = c1 + sin(State)/64000;
-//c2 = c1 + cos(State)/64000;
 
 int paramSettle = 48;
 int nItersPerPoint=20; //10
