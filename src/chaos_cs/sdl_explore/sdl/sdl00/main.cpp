@@ -6,23 +6,40 @@
 #include <stdlib.h>
 
 #include <memory.h>
+#include <math.h>
 
 double X0,X1,Y0,Y1;
+Uint32 White;
 
 enum {
   SCREENWIDTH = 640,
   SCREENHEIGHT = 480,
   SCREENBPP = 0,
   SCREENFLAGS = SDL_ANYFORMAT
-} ;
+} ; 
 void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) ;
 
 void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) ;
 SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) ;
+
+inline bool LockFramesPerSecond() //run no faster than 60fps
+{
+	int framerate=60;
+static float lastTime = 0.0f;
+float currentTime = SDL_GetTicks() * 0.001f;
+if((currentTime - lastTime) > (1.0f / framerate))
+{
+lastTime = currentTime;
+return true;
+}
+return false;
+}
+
 int main( int argc, char* argv[] )
 {
 	X0=-1.75; X1=1.75;Y0=-1.75;Y1=1.75;
 	double sx0= -2, sx1=2, sy0= -2, sy1=2;
+//int nXpoints = 60, nYpoints = 60;
 int nXpoints = 40, nYpoints = 40;
 double sxinc = (nXpoints==1) ? 0xffffffff : (sx1-sx0)/(nXpoints-1);
 double syinc = (nYpoints==1) ? 0xffffffff : (sy1-sy0)/(nYpoints-1);
@@ -40,13 +57,12 @@ double syinc = (nYpoints==1) ? 0xffffffff : (sy1-sy0)/(nYpoints-1);
   //declare event variable
   SDL_Event event ;
 
-  //SDL_Surface* bWhite;
-  //SDL_FillRect ( bWhite , &rect ,
-   //                SDL_MapRGB ( pSurface->format , 255 , 255, 255 ) ) ;
 
 int i=0;
-  Uint32 White = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
+  White = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 SDL_FillRect ( pSurface , NULL , White );
+
+bool bNeedToLock =  ( SDL_MUSTLOCK ( pSurface ) );
 
   //message pump
   for ( ; ; )
@@ -58,33 +74,19 @@ SDL_FillRect ( pSurface , NULL , White );
       if ( event.type == SDL_QUIT ) break ;
     }
 
-    //pick a random color
-    SDL_Color color ;
-    color.r = rand ( ) % 256 ;
-    color.g = rand ( ) % 256 ;
-    color.b = rand ( ) % 256 ;
-
+ 
     //lock the surface
-    SDL_LockSurface ( pSurface ) ;
+    if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 
-    //plot pixel at random location
-	//for (int j=0; j<900000; j++)
-	//for (int j=0; j<9; j++)
-    //SetPixel ( pSurface , rand ( ) % SCREENWIDTH , rand ( ) % SCREENHEIGHT , color ) ;
-
-	//SDL_FillRect ( pSurface , NULL , White );
-
-i++;
-if (i>1) {
-
-	SDL_FillRect ( pSurface , NULL , White );  //clear surface quickly
+if (LockFramesPerSecond()) 
+{
 	DoCoolStuff(pSurface, sxinc, syinc);
 	i=0;
 } 
 
 
     //unlock surface
-    SDL_UnlockSurface ( pSurface ) ;
+    if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
     //update surface
     SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
@@ -137,12 +139,19 @@ SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y )
 
 void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) 
 {
+
 	double x_,x,y;
-	static double c1=-1.1, c2=1.72;
-	c2 -= 0.001;
+	double c1=-1.1, c2=1.72;
+	//c2 -= 0.001;
+static double State=0;
+State+=0.09; if (State>100) State=0;
+c1 = -1.1 + sin(State)/64;
+c2 = 1.72 + cos(State)/64;
+
 int paramSettle = 48;
 int nItersPerPoint=20; //10
 
+	SDL_FillRect ( pSurface , NULL , White );  //clear surface quickly
 
 	double sx0= -2, sx1=2, sy0= -2, sy1=2;
 
@@ -184,7 +193,9 @@ int nItersPerPoint=20; //10
   SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
 							
 							// a quick mult, stops at 7, but whatever
-						int newcolor = (color.r)-((color.r)>>3);
+						//int newcolor = (color.r)-((color.r)>>3);
+						int newcolor = (color.r)-((color.r)>>2);
+						//int newcolor = ((color.r)>>2)+((color.r)>>3); //5/8
 //convert color
   Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
   //determine position
