@@ -12,9 +12,14 @@
 
 #include <memory.h>
 #include <math.h>
+#include <windows.h>
+
+#define DOMOVE 1
 
 double X0,X1,Y0,Y1;
 Uint32 White;
+
+#define asssume32BitColor 0
 
 enum {
   SCREENWIDTH = 640,
@@ -25,6 +30,7 @@ enum {
 void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc, double c1, double c2 ) ;
 
 void jump(double *outA, double *outB);
+void jumpFromController(double *outA, double *outB);
 void SetPixel ( SDL_Surface* pSurface , int x , int y , SDL_Color color ) ;
 SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y ) ;
 
@@ -54,6 +60,7 @@ int main( int argc, char* argv[] )
 int nXpoints = 40, nYpoints = 40;
 double sxinc = (nXpoints==1) ? 0xffffffff : (sx1-sx0)/(nXpoints-1);
 double syinc = (nYpoints==1) ? 0xffffffff : (sy1-sy0)/(nYpoints-1);
+//GetClipboardData(CLIPFORMAT
 
   //initialize systems
   SDL_Init ( SDL_INIT_VIDEO ) ;
@@ -98,6 +105,7 @@ SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY*/, SDL_DEFAULT_REPEAT_INTERVAL
 		  else if (event.key.keysym.sym == SDLK_ESCAPE) {targetA=-1.1, targetB = 1.72;}
 		  else if (event.key.keysym.sym == SDLK_s) {save(curA,curB);}
 		  else if (event.key.keysym.sym == SDLK_j) {jump(&targetA, &targetB);}
+		  else if (event.key.keysym.sym == SDLK_x) {jumpFromController(&targetA, &targetB);}
 		  else if (event.key.keysym.sym == SDLK_F4) {break;}
 	  }
     }
@@ -113,12 +121,18 @@ oscilState+=oscilFreq;
 	curA += (targetA-curA)/10;
 	curB += (targetB-curB)/10;
 
+#ifdef DOMOVE
 double actualA = curA+ sin(oscilState*.3702342521232353)/550;
 double actualB = curB+ cos(oscilState)/400;
+#else
+double actualA = curA;
+double actualB = curB;
+#endif
 
  
     //lock the surface
     if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
+
 
 if (LockFramesPerSecond()) 
 {
@@ -215,8 +229,7 @@ int nItersPerPoint=20; //10
                         if (py >= 0 && py < SCREENHEIGHT && px>=0 && px<SCREENWIDTH)
 						{
 							//get pixel color, mult by 0.875 (x-x>>3)
-  SDL_Color color ;
-  Uint32 col = 0 ;
+  Uint32 col = 0 ; Uint32 colR;
   //determine position
   char* pPosition = ( char* ) pSurface->pixels ;
   //offset by y
@@ -225,22 +238,29 @@ int nItersPerPoint=20; //10
   pPosition += ( pSurface->format->BytesPerPixel * px ) ;
   //copy pixel data
   memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ;
+
+#if asssume32BitColor
+	//Apparently in format UURRGGBB
+	colR = (col & 0x0000ff00)>>8;
+#else
+  SDL_Color color ;
   //convert color
   SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
+  colR = color.r;
+#endif
 							
 							// a quick mult, stops at 7, but whatever
 						//int newcolor = (color.r)-((color.r)>>3);
-						int newcolor = (color.r)-((color.r)>>2);
+						Uint32 newcolor = (colR)-((colR)>>2);
 						//int newcolor = ((color.r)>>2)+((color.r)>>3); //5/8
 //convert color
+ 
+
+#if asssume32BitColor
+   Uint32 newcol = (newcolor<<8)+(newcolor<<16)+newcolor;
+#else
   Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
-  //determine position
-  //char* pPosition = ( char* ) pSurface->pixels ;
-  //offset by y
-  //pPosition += ( pSurface->pitch * py ) ;
-  //offset by x
-  //pPosition += ( pSurface->format->BytesPerPixel * px ) ;
-  //copy pixel data
+#endif
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 
 						}
@@ -292,4 +312,14 @@ void jump(double *outA, double *outB)
 	*outB = picked->valb;
 			//fprintf(fdbg, "PICKED%f,%f\n",*outA, *outB); /////////
 }
+void jumpFromController(double *outA, double *outB)
+{
+double a,b;
+FILE*fp = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\menagerie\\outTrans.txt", "r");
+fscanf(fp, "%lf\n", &a);
+fscanf(fp, "%lf", &b);
+fclose(fp);
+*outA=a; *outB=b;
+}
+
 
