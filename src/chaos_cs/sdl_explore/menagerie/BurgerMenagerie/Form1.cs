@@ -19,8 +19,8 @@ namespace BurgerManagerie
         public Form1()
         {
             InitializeComponent();
-            //Bitmap b = new Bitmap(;
-            pictureBox1.Load(sFolder+"thefig.png");
+            //pictureBox1.Load(sFolder+"thefig.png");
+            pictureBox1.Load(sFolder+"Alloutzoombottomleft.png");
         }
         private int paramSettle=400 ;
 
@@ -236,9 +236,13 @@ namespace BurgerManagerie
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             int ix = e.X, iy=e.Y;
-            iy = 450-iy;
+            int iwidth = pictureBox1.Image.Width;
+            int iheight = pictureBox1.Image.Height;
+            iy = iheight-iy;
             double X0, X1, Y0, Y1;
-            if (ix>450)
+
+            X0=-1; X1=0.25; Y0=1.5; Y1=1.75;
+            /*if (ix>450)
             {
                 X0=-1; X1=1; Y0=0.5; Y1=2.5;
                 ix-=450;
@@ -246,9 +250,9 @@ namespace BurgerManagerie
             else
             {
                 X0=-3.5; X1=-1; Y0=0.5; Y1=2.5;
-            }
-            double fx = (ix/450.0) * (X1-X0) + X0;
-            double fy = (iy/450.0) * (Y1-Y0) + Y0;
+            }*/
+            double fx = (ix/(double)iwidth) * (X1-X0) + X0;
+            double fy = (iy/(double)iheight) * (Y1-Y0) + Y0;
             Clipboard.SetText("a="+fx.ToString() + ";b="+fy.ToString()+";");
 
             //MessageBox.Show("1");
