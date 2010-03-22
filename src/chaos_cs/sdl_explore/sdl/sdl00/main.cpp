@@ -45,6 +45,12 @@ int main( int argc, char* argv[] )
   //declare event variable
   SDL_Event event ;
 
+  //SDL_Surface* bWhite;
+  //SDL_FillRect ( bWhite , &rect ,
+   //                SDL_MapRGB ( pSurface->format , 255 , 255, 255 ) ) ;
+
+int i=0;
+
   //message pump
   for ( ; ; )
   {
@@ -65,13 +71,20 @@ int main( int argc, char* argv[] )
     SDL_LockSurface ( pSurface ) ;
 
     //plot pixel at random location
+	for (int j=0; j<200; j++)
     SetPixel ( pSurface , rand ( ) % SCREENWIDTH , rand ( ) % SCREENHEIGHT , color ) ;
+
+i++;
+if (i>3000) {SDL_FillRect ( pSurface , NULL , 0 ); i=0;} //clear surface quickly
+
 
     //unlock surface
     SDL_UnlockSurface ( pSurface ) ;
 
     //update surface
     SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
+
+	
   }//end of message pump
 
   //done
