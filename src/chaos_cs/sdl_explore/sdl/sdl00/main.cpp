@@ -87,10 +87,15 @@ double targetA = curA, targetB = curB;
 		  else if (event.key.keysym.sym == SDLK_ESCAPE) {targetA=-1.1, targetB = 1.72;}
 	  }
     }
-	if (curA > targetA) curA -= 0.005;
-	else curA += 0.005;
-	if (curB > targetB) curB -= 0.005;
-	else curB += 0.005;
+	//curA += (targetA-curA)/200;
+	//curB += (targetB-curB)/200;
+	curA += (targetA-curA)/50;
+	curB += (targetB-curB)/50;
+
+	//if (curA > targetA) curA -= 0.005;
+	//else curA += 0.005;
+	//if (curB > targetB) curB -= 0.005;
+	//else curB += 0.005;
  
     //lock the surface
     if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
