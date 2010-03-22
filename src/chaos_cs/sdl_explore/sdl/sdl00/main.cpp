@@ -70,12 +70,17 @@ SDL_FillRect ( pSurface , NULL , White );
     //plot pixel at random location
 	//for (int j=0; j<900000; j++)
 	//for (int j=0; j<9; j++)
-	SDL_FillRect ( pSurface , NULL , White );
-    SetPixel ( pSurface , rand ( ) % SCREENWIDTH , rand ( ) % SCREENHEIGHT , color ) ;
-	DoCoolStuff(pSurface, sxinc, syinc);
+    //SetPixel ( pSurface , rand ( ) % SCREENWIDTH , rand ( ) % SCREENHEIGHT , color ) ;
+
+	//SDL_FillRect ( pSurface , NULL , White );
 
 i++;
-if (i>900) {SDL_FillRect ( pSurface , NULL , White ); i=0;} //clear surface quickly
+if (i>1) {
+
+	SDL_FillRect ( pSurface , NULL , White );  //clear surface quickly
+	DoCoolStuff(pSurface, sxinc, syinc);
+	i=0;
+} 
 
 
     //unlock surface
@@ -133,9 +138,10 @@ SDL_Color GetPixel ( SDL_Surface* pSurface , int x , int y )
 void DoCoolStuff ( SDL_Surface* pSurface, double sxinc, double syinc ) 
 {
 	double x_,x,y;
-	double c1=-1.1, c2=1.72;
+	static double c1=-1.1, c2=1.72;
+	c2 -= 0.001;
 int paramSettle = 48;
-int nItersPerPoint=10;
+int nItersPerPoint=20; //10
 
 
 	double sx0= -2, sx1=2, sy0= -2, sy1=2;
