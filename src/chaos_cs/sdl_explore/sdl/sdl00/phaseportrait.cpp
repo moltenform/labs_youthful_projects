@@ -3,12 +3,13 @@ henon set is:
 x_ = 1 - c1*x*x + y;
 						y = c2*x;
 						x=x_;*/
-
+#define BIFURC 0
 #include "phaseportrait.h"
 #include <math.h>
 
 void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB)
 {
+#if !BIFURC
 	settings->x0 = -1.75;
 	settings->x1 = 1.75;
 	settings->y0 = -1.75;
@@ -21,6 +22,20 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 	settings->seedsPerAxis = 40;
 	settings->settling = 48;
 	settings->drawing = 20;
+#else
+	settings->x0 = -1.78771125;
+	settings->x1 = -1.49943375;
+	settings->y0 = -1.2853075;
+	settings->y1 = 3.144875;
+	settings->width = width;
+	settings->height = height;
+
+	*outA=0.5402;
+	*outB= 0.2994;
+	settings->seedsPerAxis = 40;
+	settings->settling = 20;
+	settings->drawing = 100;
+#endif
 }
 
 void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 ) 
@@ -166,14 +181,15 @@ void DrawBifurc( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c
         
 				double r = fx;
                 p = 0.45;
-                for (int i = 0; i < 30; i++)
+                for (int i = 0; i < settings->settling; i++)
                 {
-                   p=r*p*(1-p)*c1;
+                   //p=r*p*(1-p)*c1;
+					p=r*p*(1 - c1*p) + c2*sin(r*p*p);
                 }
 
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < settings->drawing; i++)
                 {
-                   p=r*p*(1-p)*c1;
+					p=r*p*(1 - c1*p) + c2*sin(r*p*p);
 
                     py = (int)(height - height * ((p - Y0) / (Y1 - Y0)));
                     if (py >= 0 && py < height)

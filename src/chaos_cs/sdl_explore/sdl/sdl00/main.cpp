@@ -134,8 +134,8 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	else
 	{
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		//DrawPhasePortrait(pSurface, settings, actualA,actualB);
-		DrawBifurc(pSurface, settings, actualA,actualB);
+		DrawPhasePortrait(pSurface, settings, actualA,actualB);
+		//DrawBifurc(pSurface, settings, actualA,actualB);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 	}
 } 
@@ -182,12 +182,16 @@ void setSliding(double * sliding, int direction)
 }
 void setZoom(PhasePortraitSettings * settings, int direction)
 {
-	double scale = (direction<0) ? 0.95 : 1/0.95;
-	//assume centered around 0!!!
-	settings->x0 *= scale;
-	settings->x1 *= scale;
-	settings->y0 *= scale;
-	settings->y1 *= scale;
+	double scale = (direction<0) ? .999 : -.999; //note this
+	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
+	double newX0 = X0- (X1-X0)*scale;
+    double newX1 = X1+ (X1-X0)*scale;
+    double newY0 = Y0- (Y1-Y0)*scale;
+    double newY1 = Y1+ (Y1-Y0)*scale;
+	settings->x0 = newX0;
+	settings->x1 = newX1;
+	settings->y0 = newY0;
+	settings->y1 = newY1;
 }
 
 int roundDouble(double a)

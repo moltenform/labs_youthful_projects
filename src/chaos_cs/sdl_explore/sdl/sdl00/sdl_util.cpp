@@ -9,7 +9,7 @@ some references:
 
 bool LockFramesPerSecond() //run no faster than x fps
 {
-	int framerate=60;
+	int framerate=20; //60
 static float lastTime = 0.0f;
 float currentTime = SDL_GetTicks() * 0.001f;
 if((currentTime - lastTime) > (1.0f / framerate))
