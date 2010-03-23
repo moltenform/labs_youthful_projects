@@ -5,6 +5,8 @@
 #include <string.h>
 #include <math.h>
 
+//http://www.krazydad.com/makecolors.php
+
 int main(int argc, char *argv[])
 {
 	char * filein;
@@ -41,10 +43,16 @@ int main(int argc, char *argv[])
 	{
 		fread( &hits, sizeof(int), 1, fin);
 		
-		int val = (int)(sqrt((double)hits)) * 6;
-		if (val>maxV) {maxV=val;}
-		if (val>255){oversat++; val=255;} if (val<0) val=0;
-		char r,g,b; r=g=b= (char) val;
+		//get a value between 0 and 1
+		double val = sqrt((double)hits) / 42.0;
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		
+		//turn into color
+		char r,g,b; 
+#define PI 3.14159265
+		r = (char)( 127*sin(PI*val + 4.0*PI/3.0) + 128);
+		g = (char)( 127*sin(PI*val + 0) + 128);
+		b = (char)( 127*sin(PI*val + 2.0*PI/3.0) + 128);
 		
 		//fprintf(fout, "%d %d (%d)\n", hits, val, r);
 		fputc( r, fout);
