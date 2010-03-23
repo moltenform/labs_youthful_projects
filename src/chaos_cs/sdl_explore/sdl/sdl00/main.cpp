@@ -134,12 +134,12 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	else
 	{
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		DrawPhasePortrait(pSurface, settings, actualA,actualB);
+		//DrawPhasePortrait(pSurface, settings, actualA,actualB);
+		DrawBifurc(pSurface, settings, actualA,actualB);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 	}
 } 
 		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ; //apparently needed every frame, even when not redrawing
-
 
 	
   }
