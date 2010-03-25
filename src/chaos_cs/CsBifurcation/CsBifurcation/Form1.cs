@@ -38,6 +38,12 @@ namespace CsBifurcation
             InitializeComponent();
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = lblSettling.Text = lblShading.Text = "";
             mnuAdvShades.Checked = true; mnuAdvPoints.Checked = false;
+
+            ToolStripMenuItem mnuAdvancedRenderSize = new System.Windows.Forms.ToolStripMenuItem();
+            mnuAdvancedRenderSize.Text = "Render size...";
+            mnuAdvancedRenderSize.Click += new EventHandler(mnuAdvancedRenderSize_Click);
+            this.advancedToolStripMenuItem.DropDownItems.Insert(1, mnuAdvancedRenderSize);
+
             
             mnuFileNew_Click(null, null);
         }
@@ -97,22 +103,15 @@ namespace CsBifurcation
             double X0, X1, Y0, Y1, nX0, nX1, nY0, nY1;
             plotCntrl.getBounds(out X0, out X1, out Y0, out Y1);
 
-            if (!_getBounds("Leftmost x", X0, out nX0)) return;
-            if (!_getBounds("Rightmost x", X1, out nX1)) return;
-            if (!_getBounds("Lowest y", Y0, out nY0)) return;
-            if (!_getBounds("Greatest y", Y1, out nY1)) return;
+            if (!InputBoxForm.GetDouble("Leftmost x", X0, out nX0)) return;
+            if (!InputBoxForm.GetDouble("Rightmost x", X1, out nX1)) return;
+            if (!InputBoxForm.GetDouble("Lowest y", Y0, out nY0)) return;
+            if (!InputBoxForm.GetDouble("Greatest y", Y1, out nY1)) return;
 
             if (!(nY1 > nY0 && nX1 > nX0)) { MessageBox.Show("Invalid bounds."); return; }
 
             this.plotCntrl.setBounds(nX0, nX1, nY0, nY1);
             this.plotCntrl.redraw();
-        }
-        private bool _getBounds(string sName, double fCurrent, out double dOut)
-        {
-            dOut = 0.0;
-            string s = InputBoxForm.GetStrInput(sName, fCurrent.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="") return false;
-            return double.TryParse(s, out dOut);
         }
 
 
@@ -223,22 +222,15 @@ namespace CsBifurcation
        
         private void mnuFileAnimate_Click(object sender, EventArgs e)
         {
-            double d, c0_0, c0_1, c1_0, c1_1; string s; int nframes;
+            double c0_0, c0_1, c1_0, c1_1; int nframes;
             double param1=plotCntrl.param1, param2=plotCntrl.param2;
-            s = InputBoxForm.GetStrInput("Initial c1:", param1.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c0_0=d;
-            s = InputBoxForm.GetStrInput("Final c1:", param1.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c0_1=d;
-            s = InputBoxForm.GetStrInput("Initial c2:", param2.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c1_0=d;
-            s = InputBoxForm.GetStrInput("Final c2:", param2.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c1_1=d;
-            s = InputBoxForm.GetStrInput("Number of frames:", "50");
-            if (s==null || s=="" || !int.TryParse(s, out nframes)) return;
+
+            if (!InputBoxForm.GetDouble("Initial c1:", param1, out c0_0)) return;
+            if (!InputBoxForm.GetDouble("Final c1:", param1, out c0_1)) return;
+            if (!InputBoxForm.GetDouble("Initial c2:", param2, out c1_0)) return;
+            if (!InputBoxForm.GetDouble("Final c2:", param2, out c1_1)) return;
+            if (!InputBoxForm.GetInt("Number of frames:", 50, out nframes)) return;
+            
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "png files (*.png)|*.png";
             saveFileDialog1.RestoreDirectory = true;
@@ -265,6 +257,11 @@ namespace CsBifurcation
             else
                 Redraw();
         }
+        private int nRenderWidth = 3200, nRenderHeight=3200;
+        private void mnuAdvancedRenderSize_Click(object sender, EventArgs e)
+        {
+
+        }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
             //create a plot 4 times larger. (3200x3200)
@@ -273,8 +270,8 @@ namespace CsBifurcation
             //because 4 times taller, draw 4 times as many points to maintain the way it looks
             try
             {
-                plotCntrl.paramAdditionalIters = 4.0; //mult by 4
-                plotCntrl.renderToDisk(3200, 3200);
+                plotCntrl.paramAdditionalIters = nRenderHeight/((double)400); //by default, 4.0;
+                plotCntrl.renderToDisk(nRenderWidth, nRenderHeight);
             }
             finally { plotCntrl.paramAdditionalIters = 1.0; }
         }
@@ -313,9 +310,9 @@ namespace CsBifurcation
 
         private bool manSetValue(Label lbl, TrackBar tb, out double v)
         {
+            double current; if (!double.TryParse(lbl.Text, out current)) current=0.0;
             v=0.0;
-            string s = InputBoxForm.GetStrInput("Value:", lbl.Text);
-            if (s==null||s==""||!double.TryParse(s, out v)) 
+            if (!InputBoxForm.GetDouble("Value:", current, out v))
                 return false;
             setSliderToValue(v, tb);
             lbl.Text = v.ToString();
@@ -349,9 +346,9 @@ namespace CsBifurcation
         private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
         {
             double v;
-            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "1.0");
-            if (s==null||s==""||!double.TryParse(s, out v))
-                return;
+            if (!InputBoxForm.GetDouble("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", 1.0, out v))
+                 return;
+               
             this.paramRange = v*2.0; //so that 1.0 becomes range of 2
             setSliderToValue(plotCntrl.param1, tbParam1);
             setSliderToValue(plotCntrl.param2, tbParam2);
