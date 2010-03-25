@@ -21,6 +21,20 @@ namespace CsBifurcation
             else
                 return null;
         }
+        public static bool GetDouble(string strPrompt, double fCurrent, out double value)
+        {
+            value = 0.0;
+            string s = GetStrInput(strPrompt, fCurrent.ToString());
+            if (s==null||s=="") return false;
+            return double.TryParse(s, out value);
+        }
+        public static bool GetInt(string strPrompt, int nCurrent, out int value)
+        {
+            value = 0;
+            string s = GetStrInput(strPrompt, nCurrent.ToString());
+            if (s==null||s=="") return false;
+            return int.TryParse(s, out value);
+        }
 
         private System.ComponentModel.Container components;
         private System.Windows.Forms.Button btnCancel;

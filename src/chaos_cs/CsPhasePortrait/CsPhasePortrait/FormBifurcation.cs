@@ -130,29 +130,22 @@ namespace CsPhasePortrait
             return v;
         }
 
-        
         private void getBoundsManually()
         {
             double X0, X1, Y0, Y1, nX0, nX1, nY0, nY1;
             plotCntrl.getBounds(out X0, out X1, out Y0, out Y1);
 
-            if (!_getBounds("Leftmost x", X0, out nX0)) return;
-            if (!_getBounds("Rightmost x", X1, out nX1)) return;
-            if (!_getBounds("Lowest y", Y0, out nY0)) return;
-            if (!_getBounds("Greatest y", Y1, out nY1)) return;
+            if (!InputBoxForm.GetDouble("Leftmost x", X0, out nX0)) return;
+            if (!InputBoxForm.GetDouble("Rightmost x", X1, out nX1)) return;
+            if (!InputBoxForm.GetDouble("Lowest y", Y0, out nY0)) return;
+            if (!InputBoxForm.GetDouble("Greatest y", Y1, out nY1)) return;
 
             if (!(nY1 > nY0 && nX1 > nX0)) { MessageBox.Show("Invalid bounds."); return; }
 
             this.plotCntrl.setBounds(nX0, nX1, nY0, nY1);
             this.plotCntrl.redraw();
         }
-        private bool _getBounds(string sName, double fCurrent, out double dOut)
-        {
-            dOut = 0.0;
-            string s = InputBoxForm.GetStrInput(sName, fCurrent.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="") return false;
-            return double.TryParse(s, out dOut);
-        }
+        
 
 
 
@@ -251,25 +244,18 @@ namespace CsPhasePortrait
                 return;
             saveIni(saveFileDialog1.FileName);
         }
-       
+
         private void mnuFileAnimate_Click(object sender, EventArgs e)
         {
-            double d, c0_0, c0_1, c1_0, c1_1; string s; int nframes;
+            double c0_0, c0_1, c1_0, c1_1; int nframes;
             double param1=plotCntrl.param1, param2=plotCntrl.param2;
-            s = InputBoxForm.GetStrInput("Initial c1:", param1.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c0_0=d;
-            s = InputBoxForm.GetStrInput("Final c1:", param1.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c0_1=d;
-            s = InputBoxForm.GetStrInput("Initial c2:", param2.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c1_0=d;
-            s = InputBoxForm.GetStrInput("Final c2:", param2.ToString(CultureInfo.InvariantCulture));
-            if (s==null || s=="" || !double.TryParse(s, out d)) return;
-            c1_1=d;
-            s = InputBoxForm.GetStrInput("Number of frames:", "50");
-            if (s==null || s=="" || !int.TryParse(s, out nframes)) return;
+
+            if (!InputBoxForm.GetDouble("Initial c1:", param1, out c0_0)) return;
+            if (!InputBoxForm.GetDouble("Final c1:", param1, out c0_1)) return;
+            if (!InputBoxForm.GetDouble("Initial c2:", param2, out c1_0)) return;
+            if (!InputBoxForm.GetDouble("Final c2:", param2, out c1_1)) return;
+            if (!InputBoxForm.GetInt("Number of frames:", 50, out nframes)) return;
+
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "png files (*.png)|*.png";
             saveFileDialog1.RestoreDirectory = true;
@@ -343,11 +329,12 @@ namespace CsPhasePortrait
             tb.Value = nVal;
         }
 
+        
         private bool manSetValue(Label lbl, TrackBar tb, out double v)
         {
+            double current; if (!double.TryParse(lbl.Text, out current)) current=0.0;
             v=0.0;
-            string s = InputBoxForm.GetStrInput("Value:", lbl.Text);
-            if (s==null||s==""||!double.TryParse(s, out v)) 
+            if (!InputBoxForm.GetDouble("Value:", current, out v))
                 return false;
             setSliderToValue(v, tb, lbl);
             return true;
@@ -380,13 +367,15 @@ namespace CsPhasePortrait
         private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
         {
             double v;
-            string s = InputBoxForm.GetStrInput("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", "2.0");
-            if (s==null||s==""||!double.TryParse(s, out v))
+            double defaultRange=2.0;
+            if (!InputBoxForm.GetDouble("The trackbars allow c1 to be set to a value between -a to a. Choose value of a:", defaultRange, out v))
                 return;
-            this.paramRange = v*2.0; //so that 1.0 becomes range of 2
+
+            this.paramRange = v*2.0; //so that 2.0 becomes range of 4
             setSliderToValue(plotCntrl.param1, tbParam1, lblParam1);
             setSliderToValue(plotCntrl.param2, tbParam2, lblParam2);
         }
+        
 
         // for a while I considered allowing "loop preface" code that would be
         // inserted inside of the for loop, for each point (but not iterated). This would allow initial conditions common
