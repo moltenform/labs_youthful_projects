@@ -41,6 +41,10 @@ namespace CsGeneralBitmap
             this.mnuAdvShades.Visible = this.mnuAdvPoints.Visible = false;
             this.mnuAdvAddQuality.Visible = false;
             this.label3.Text = "Iters";
+            ToolStripMenuItem mnuAdvancedRenderSize = new System.Windows.Forms.ToolStripMenuItem();
+            mnuAdvancedRenderSize.Text = "Render Size...";
+            mnuAdvancedRenderSize.Click += new EventHandler(mnuAdvancedRenderSize_Click);
+            this.advancedToolStripMenuItem.DropDownItems.Insert(4, mnuAdvancedRenderSize);
             ToolStripMenuItem mnuLoadScratch = new System.Windows.Forms.ToolStripMenuItem();
             mnuLoadScratch.Text = "Load scratch";
             mnuLoadScratch.Click += new EventHandler(mnuLoadScratch_Click);
@@ -317,12 +321,20 @@ namespace CsGeneralBitmap
             else
                 Redraw();
         }
+        private int nRenderWidth = 3200, nRenderHeight=3200;
+        private void mnuAdvancedRenderSize_Click(object sender, EventArgs e)
+        {
+            int width, height;
+            if (!InputBoxForm.GetInt("Render Width:", nRenderWidth, out width)) return;
+            if (!InputBoxForm.GetInt("Render Height:", nRenderHeight, out height)) return;
+            if (width>0 && height>0) { nRenderHeight=height; nRenderWidth=width; }
+        }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
             try
             {
                 plotCntrl.bIsRendering = true;
-                plotCntrl.renderToDisk(3200, 3200);
+                plotCntrl.renderToDisk(nRenderWidth, nRenderHeight);
             }
             finally { plotCntrl.bIsRendering = false; }
         }

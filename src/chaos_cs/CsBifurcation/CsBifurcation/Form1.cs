@@ -11,7 +11,6 @@
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * todo: more flexible image output? 
  * */
 
 using System;
@@ -40,11 +39,10 @@ namespace CsBifurcation
             mnuAdvShades.Checked = true; mnuAdvPoints.Checked = false;
 
             ToolStripMenuItem mnuAdvancedRenderSize = new System.Windows.Forms.ToolStripMenuItem();
-            mnuAdvancedRenderSize.Text = "Render size...";
+            mnuAdvancedRenderSize.Text = "Render Size...";
             mnuAdvancedRenderSize.Click += new EventHandler(mnuAdvancedRenderSize_Click);
-            this.advancedToolStripMenuItem.DropDownItems.Insert(1, mnuAdvancedRenderSize);
+            this.advancedToolStripMenuItem.DropDownItems.Insert(4, mnuAdvancedRenderSize);
 
-            
             mnuFileNew_Click(null, null);
         }
 
@@ -260,14 +258,17 @@ namespace CsBifurcation
         private int nRenderWidth = 3200, nRenderHeight=3200;
         private void mnuAdvancedRenderSize_Click(object sender, EventArgs e)
         {
-
+            int width,height;
+            if (!InputBoxForm.GetInt("Render Width:", nRenderWidth, out width)) return;
+            if (!InputBoxForm.GetInt("Render Height:", nRenderHeight, out height)) return;
+            if (width>0 && height>0) { nRenderHeight=height; nRenderWidth=width; }
         }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
-            //create a plot 4 times larger. (3200x3200)
+            //assume rendering at (3200x3200).
             //time taken should increase by factor of 16.
             //width increases by factor of 4 already.
-            //because 4 times taller, draw 4 times as many points to maintain the way it looks
+            //because 4 times taller, draw 4 times as many points to attempt maintain the way it looks
             try
             {
                 plotCntrl.paramAdditionalIters = nRenderHeight/((double)400); //by default, 4.0;

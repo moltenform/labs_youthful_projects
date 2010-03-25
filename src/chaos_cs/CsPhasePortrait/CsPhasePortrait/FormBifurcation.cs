@@ -37,6 +37,11 @@ namespace CsPhasePortrait
             InitializeComponent();
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = lblSettling.Text = lblShading.Text = "";
 
+            ToolStripMenuItem mnuAdvancedRenderSize = new System.Windows.Forms.ToolStripMenuItem();
+            mnuAdvancedRenderSize.Text = "Render Size...";
+            mnuAdvancedRenderSize.Click += new EventHandler(mnuAdvancedRenderSize_Click);
+            this.advancedToolStripMenuItem.DropDownItems.Insert(4, mnuAdvancedRenderSize);
+
             //modify layout from previous
             this.SuspendLayout();
             this.Text = "CsPhasePortrait";
@@ -282,15 +287,23 @@ namespace CsPhasePortrait
             else
                 Redraw();
         }
+        private int nRenderWidth = 1600, nRenderHeight=1600;
+        private void mnuAdvancedRenderSize_Click(object sender, EventArgs e)
+        {
+            int width, height;
+            if (!InputBoxForm.GetInt("Render Width:", nRenderWidth, out width)) return;
+            if (!InputBoxForm.GetInt("Render Height:", nRenderHeight, out height)) return;
+            if (width>0 && height>0) { nRenderHeight=height; nRenderWidth=width; }
+        }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
-            //create a plot 2 times larger. (1600x1600)
+            //assume creating a plot. (1600x1600)
             //time taken should increase by factor of 4.
             // so draw 4 times more points to maintain approximately the same density.
             try
             {
-                plotCntrl.paramAdditionalIters = 16;
-                plotCntrl.renderToDisk(1600, 1600);
+                plotCntrl.paramAdditionalIters = (int) ((nRenderWidth/((double)400)) * (nRenderHeight/((double)400)));
+                plotCntrl.renderToDisk(nRenderWidth, nRenderHeight);
             }
             finally { plotCntrl.paramAdditionalIters = 1; }
         }
