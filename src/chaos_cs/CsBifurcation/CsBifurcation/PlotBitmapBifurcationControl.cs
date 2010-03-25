@@ -54,30 +54,30 @@ namespace CsBifurcation
             for (int i = 0; i < arrAns.Length; i++) arrAns[i] = 1.0; //set all white
 
             Random R = new Random();
-            double dx = (X1 - X0) / width;
+            double _dx = (X1 - X0) / width;
             double fx = X0;
-            int y;
+            int _y;
             double p;
             $$INITCODE$$
             int nIterations = (int) (paramAdditionalIters*additionalShading*10000);
-            for (int x = 0; x < width; x++)
+            for (int _x = 0; _x < width; _x++)
             {
                 double r = fx;
                 p = $$PNAUGHTEXPRESSION$$;
-                for (int i = 0; i < nSettletime; i++)
+                for (int _i = 0; _i < nSettletime; _i++)
                 {
                    $$CODE$$
                 }
 
-                for (int i = 0; i < $$NITERS$$; i++)
+                for (int _i = 0; _i < $$NITERS$$; _i++)
                 {
                     $$CODE$$
 
-                    y = (int)(height - height * ((p - Y0) / (Y1 - Y0)));
-                    if (y >= 0 && y < height)
-                        arrAns[y + x * height] $$SHADEOPERATION$$
+                    _y = (int)(height - height * ((p - Y0) / (Y1 - Y0)));
+                    if (_y >= 0 && _y < height)
+                        arrAns[_y + _x * height] $$SHADEOPERATION$$
                 }
-                fx += dx;
+                fx += _dx;
             }";
             string sItersPer = (bShading)?"nIterations" : "nPointsDrawn";
             string sShadeOperation = (bShading)?"*= shadingAmount;" : "= 0.2;";

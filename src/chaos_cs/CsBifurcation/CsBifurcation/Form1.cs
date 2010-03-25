@@ -9,9 +9,8 @@
  * 
  * 
  * version 217 was a large change.
- * todo: threading, previews, zoom animations, undo stack, click lbl to fine-tune value. nudge view left/right?
+ * todo: threading, previews, zoom animations, undo stack. nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
- * todo: in generated code don't use variable names like x,y,i so that user can use them.
  * todo: more flexible image output? 
  * */
 
