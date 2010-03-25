@@ -27,7 +27,7 @@ namespace chaosExplorerControl
         private int WIDTH, HEIGHT; // subclasses should not be concerned about these physical dimensions.
         public static readonly double RATIO = 1.0; //ratio of WIDTH to HEIGHT, regardless of stretching
         protected double X0, X1, Y0, Y1;
-        protected double prevX0, prevX1, prevY0, prevY1;
+        private Stack<StructViewbounds> undoStack = new Stack<StructViewbounds>();
         protected ClsLineRectangle rubberbanding = new ClsLineRectangle();
         protected virtual int getControlPaintWidth() { return 250; } //the physical size of it, in pixels, for drawing main version.
         protected virtual int getControlPaintHeight() { return 250; } //the physical size of it, in pixels, for drawing main version.
@@ -45,6 +45,7 @@ namespace chaosExplorerControl
             setInitialBounds();
             //this.resetZoom(); Have it called by client
         }
+
 
         public static bool isAltKey() { return ((Control.ModifierKeys & Keys.Alt)!=0); }
         public static bool isShiftKey() { return ((Control.ModifierKeys & Keys.Shift)!=0); }
@@ -77,7 +78,7 @@ namespace chaosExplorerControl
 
         public void setBounds(double newX0,double newX1, double newY0, double newY1)
         {
-            prevX0 = X0; prevX1=X1; prevY0=Y0; prevY1=Y1;
+            undoStack.Push(new StructViewbounds(X0, X1, Y0, Y1));
             X0 = newX0; X1 = newX1; Y0 = newY0; Y1 = newY1;
             System.Diagnostics.Debug.Assert(Y1 > Y0 && X1 > X0);
         }
@@ -88,9 +89,14 @@ namespace chaosExplorerControl
 
         public void undoZoom()
         {
-            setBounds(prevX0, prevX1, prevY0, prevY1);
-            
-            System.Diagnostics.Debug.Assert(Y1 > Y0 && X1 > X0);
+            if (undoStack.Count > 0)
+            {
+                StructViewbounds prev= undoStack.Pop();
+                X0 = prev.x0; X1 = prev.x1; Y0 = prev.y0; Y1 = prev.y1;
+                //don't call setBounds(). that'd put it back on the stack.
+                System.Diagnostics.Debug.Assert(Y1 > Y0 && X1 > X0);
+                redraw();
+            }
         }
         
 
@@ -143,7 +149,6 @@ namespace chaosExplorerControl
                 else
                 {
                     this.undoZoom();
-                    redraw();
                 }
             }
             else if (e.Button == MouseButtons.Middle)
@@ -160,6 +165,7 @@ namespace chaosExplorerControl
         
         public void resetZoom()
         {
+            this.undoStack.Clear();
             setInitialBounds();
             redraw();
         }
@@ -232,7 +238,6 @@ namespace chaosExplorerControl
         private void mnuZoomUndo_Click(object sender, EventArgs e)
         {
             undoZoom();
-            redraw();
         }
        
     }
@@ -310,5 +315,10 @@ namespace chaosExplorerControl
             PointPlotUserControl thisform = (PointPlotUserControl)sender;
             ControlPaint.DrawReversibleFrame(thisform.RectangleToScreen(SelectRect), Color.Black, FrameStyle.Dashed);
         }
+    }
+    class StructViewbounds
+    {
+        public double x0, x1, y0, y1;
+        public StructViewbounds(double x0, double x1, double y0, double y1) { this.x0=x0; this.x1=x1; this.y0=y0; this.y1=y1; }
     }
 }
