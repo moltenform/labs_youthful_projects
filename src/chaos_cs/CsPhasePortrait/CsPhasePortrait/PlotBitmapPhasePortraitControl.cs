@@ -245,6 +245,7 @@ namespace CsBifurcation
 ";
             sTemplate = sTemplate.Replace("$$CODE$$", paramExpression);
             sTemplate = sTemplate.Replace("$$INITCODE$$", paramInit);
+            //System.Windows.Forms.Clipboard.SetText(sTemplate);///
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
             double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);
