@@ -2,6 +2,18 @@
  //less /proc/cpuinfo
  //runs debian. sudo apt-get install libc6-dev
  // menag.exe out.dat d 64 64 -3.5 1.5 1.5 2
+ //~ menag.exe out\out.dat d 128 128 -3.4 1.1 1.3 2.05
+ /*
+ to run in background:
+ >screen
+ (ok when message pops up)
+ > ./menag.out theout.dat d 128 128 -3.4 1.1 1.3 2.05
+ (press Ctrl+a, d)
+ says Screen detached. now can log out.
+ to reconnect, type
+ >screen -r
+ Sweet.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +36,10 @@ int gridpixels, int seeds, int settling, int drawing
 */
 #include "menag.h"
 
-void drawPhasePortrait(FigureSettings* settings, double a, double b, int arrAns[])
+int drawPhasePortrait(FigureSettings* settings, double a, double b, int arrAns[])
 {
 	double sx,sy; int i,ii;//loop vars
+	int totalUniquePoints = 0;
 	int arrWidth = settings->phaseFigureWidth;
 	int arrHeight = settings->phaseFigureHeight;
 	//clear array
@@ -61,10 +74,12 @@ void drawPhasePortrait(FigureSettings* settings, double a, double b, int arrAns[
 				int px = (int)(arrWidth * ((x - X0) / (X1 - X0)));
 				int py = (int)(arrHeight - arrHeight * ((y - Y0) / (Y1 - Y0)));
 				if (py >= 0 && py < arrHeight && px>=0 && px<arrWidth)
-				    arrAns[py + px * arrHeight]++;
+				    if (arrAns[py + px * arrHeight]==0)
+				    { arrAns[py + px * arrHeight]=1; totalUniquePoints++;}
 			}
 	}
 	}
+	return totalUniquePoints;
 }
 
 void createMenagerie(char*filename, FigureSettings* settings)
@@ -77,26 +92,24 @@ void createMenagerie(char*filename, FigureSettings* settings)
 	int arrWidth = settings->phaseFigureWidth; int arrHeight = settings->phaseFigureHeight;
 	int * arrAns = malloc(sizeof(int)*arrWidth*arrHeight);
 	
-	double fx, fy; int px, py, i;
+	double fx, fy; int px, py; int total;
 	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
 	double dx = (X1 - X0) / (settings->width), dy = (Y1 - Y0) / (settings->height);
-	fx = X0; fy = Y1; //fy counts downwards
+	fx = X0; fy = Y0; //fy counts upwards
 	for (py=0; py<(settings->height); py++)
 	{
 	fx = X0;
 	for (px = 0; px < (settings->width); px++)
 	{
-	    drawPhasePortrait(settings, fx, fy, arrAns);
-	    int total = 0;
-	    for (i=0; i<arrWidth*arrHeight; i++)
-		if (arrAns[i]!=0) 
-		    total++;
-	    
+		if (fx<-1.65 && fy>1.63)
+			total = 0;//1700; //hack:shortcut
+		else
+			total = drawPhasePortrait(settings, fx, fy, arrAns);
 		fwrite(&total, sizeof(int), 1, fout);
 		//~ fprintf(fout, "%d\n", total);
 	    fx += dx;
 	}
-	fy -= dy;
+	fy += dy;
 	printf("percent %f\n",py/((double)settings->height));
 	}
 	

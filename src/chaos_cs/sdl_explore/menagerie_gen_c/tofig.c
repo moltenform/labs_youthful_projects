@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 	
 	int i, hits;
 	int maxV = 0, oversat=0;
+	char r,g,b; 
 	for (i=0; i<width*height; i++)
 	{
 		fread( &hits, sizeof(int), 1, fin);
@@ -48,11 +49,18 @@ int main(int argc, char *argv[])
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		
 		//turn into color
-		char r,g,b; 
+		
 #define PI 3.14159265
-		r = (char)( 127*sin(PI*val + 4.0*PI/3.0) + 128);
-		g = (char)( 127*sin(PI*val + 0) + 128);
-		b = (char)( 127*sin(PI*val + 2.0*PI/3.0) + 128);
+		//~ r = (char)( 100*sin(PI*val + 4.0*PI/3.0) + 100);
+		//~ g = 0; //(char)( 50*sin(PI*val + 0) + 50);
+		//~ b = (char)( 50*sin(PI*val + 0 ) +50);
+		
+		//~ r=g=b= (char) (val*255);
+		val = val*2 - 1; //from -1 to 1
+		if (val>=0)
+			b=255, r=g= (char) ((1-val)*255);
+		else
+			r=g=b= (char) ((val+1)*255);
 		
 		//fprintf(fout, "%d %d (%d)\n", hits, val, r);
 		fputc( r, fout);
