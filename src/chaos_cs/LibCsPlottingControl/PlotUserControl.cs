@@ -36,6 +36,7 @@ namespace chaosExplorerControl
             InitializeComponent();
             WIDTH = getControlPaintWidth(); 
             HEIGHT = getControlPaintHeight();
+            lblCoords.Width = WIDTH;
 
             this.MouseDown += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseDown);
             this.MouseMove += new MouseEventHandler(rubberbanding.clsLineRectangle_OnMouseMove);
@@ -122,7 +123,7 @@ namespace chaosExplorerControl
                     if (ixr-ix <= 0 || iyr-iy<=0)
                     {
                         if (ixr-ix == 0 &&  iyr-iy==0 && isShiftKey())
-                            this.mnuZoomOut_Click(null, null);
+                            zoomOut();
                         return; //prevent 0x0 zoom
                     }
                    
@@ -165,17 +166,12 @@ namespace chaosExplorerControl
         
         public void resetZoom()
         {
-            this.undoStack.Clear();
             setInitialBounds();
+            this.undoStack.Clear();
             redraw();
         }
         
-        private void mnuCopyParams_Click(object sender, EventArgs e)
-        {
-            string s = String.Format("Xleft {0} Xright{1} Ytop {2} Ybottom {3}\r\n", X0, X1, Y0, Y1);
-            s+= getAdditionalParameters();
-            Clipboard.SetText(s);
-        }
+        
         
         public void renderToDisk(int width, int height)
         {
@@ -187,25 +183,8 @@ namespace chaosExplorerControl
             renderToDiskSave(width, height, saveFileDialog1.FileName);
         }
 
-        private void mnuRender_Click(object sender, EventArgs e) { this.renderToDisk(WIDTH*4, HEIGHT*4); }
-        private void mnuRenderLarge_Click(object sender, EventArgs e) { this.renderToDisk(WIDTH*8, HEIGHT*8); }
-        private void mnuReset_Click_1(object sender, EventArgs e) { resetZoom(); }
 
-        private void mnuZmWiden_Click(object sender, EventArgs e)
-        {
-            double newX0 = X0+ (X1-X0)/4;
-            double newX1 = X1- (X1-X0)/4;
-            setBounds(newX0, newX1, Y0, Y1);
-            redraw();
-        }
-
-        private void mnuZmHeighten_Click(object sender, EventArgs e)
-        {
-            double newY0 = Y0- (Y1-Y0)/4;
-            double newY1 = Y1+ (Y1-Y0)/4;
-            setBounds(X0, X1, newY0, newY1);
-            redraw();
-        }
+        
         public void zoomIn()
         {
             double newX0, newY0, newX1, newY1;
@@ -226,19 +205,7 @@ namespace chaosExplorerControl
             setBounds(newX0, newX1, newY0, newY1);
             redraw();
         }
-        private void mnuZoomIn_Click(object sender, EventArgs e)
-        {
-            zoomIn();
-        }
-        private void mnuZoomOut_Click(object sender, EventArgs e)
-        {
-            zoomOut();
-        }
-
-        private void mnuZoomUndo_Click(object sender, EventArgs e)
-        {
-            undoZoom();
-        }
+        
        
     }
 

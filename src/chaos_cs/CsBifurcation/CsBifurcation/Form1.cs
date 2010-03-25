@@ -11,6 +11,7 @@
  * version 217 was a large change.
  * todo: threading, previews, zoom animations, nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
+ * in the future one could have a seperate "render mode", with different AdditionalShading, but for now can type in comment in init. code
  * */
 
 using System;
