@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CsAutomate.cs" />
+    <Compile Include="DrawMenagerie.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
