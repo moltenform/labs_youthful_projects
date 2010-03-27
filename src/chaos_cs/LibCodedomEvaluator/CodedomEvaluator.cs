@@ -111,6 +111,7 @@ namespace CodedomEvaluator
             compilerParams.ReferencedAssemblies.Add("mscorlib.dll");
             compilerParams.ReferencedAssemblies.Add("System.dll");
             compilerParams.ReferencedAssemblies.Add("System.Windows.Forms.dll");
+            //note: reference to System.Windows.Forms.dll allows Clipboard and MessageBox
 
             //add any aditional references needed
             //            foreach (string refAssembly in code.References)

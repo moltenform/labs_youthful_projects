@@ -1,6 +1,6 @@
 //compare against rev 233
 /*have a standardlooptrace for "traces"
- * 
+ * note alert() and clipboardset()
  * 
  * */
 
@@ -114,6 +114,8 @@ namespace CsGeneralBitmap
             //s = Regex.Replace(s, "\\brand\\(\\)\\b", "R.NextDouble()");
             //s = Regex.Replace(s, "\\brand\\b", "R.NextDouble");
             //s = Regex.Replace(s, "\\brandneg\\(\\)", "((R.NextDouble()-0.5)*2)");
+            s = Regex.Replace(s, "\\balert\\b", "System.Windows.Forms.MessageBox.Show");
+            s = Regex.Replace(s, "\\bclipboardset\\b", "System.Windows.Forms.Clipboard.SetText");
             return s;
         }
        

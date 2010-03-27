@@ -60,6 +60,7 @@ Keyboard shortcuts
 Tips and Tricks
 -----------
 * rand() returns a random number 0.0 to 1.0. randneg() is from -1.0 to 1.0.
+* alert("hello") and clipboardset("45")
 * click the value of c1 (to the left of the trackbar) to manually set its value
 * you can enter an arbitrary expression for P0, such as c1, rand(), or randneg().
 * Change additionalShading in init. code for higher quality. Useful when rendering.

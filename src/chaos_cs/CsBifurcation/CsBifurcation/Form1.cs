@@ -2,7 +2,7 @@
  * only concern: if in program files, won't have write access, need to set up in docs
  * See mouse shortcuts in plotusercontrol.cs
  * Press ctrl+space to redraw
- * Enter arbitrary code in P0, such as C1, rand(), or randneg(). Enter more expressions afterward!
+ * Enter arbitrary code in P0, such as C1, rand(), or randneg(). In init. code: alert() and clipboardset()
  * Change additionalShading in init code for higher quality.
  * Press left/right and pgup/pgdn to make small changes to C1, C2
  * click label to manually set value
@@ -65,6 +65,8 @@ namespace CsBifurcation
             //s = Regex.Replace(s, "\\brand\\(\\)\\b", "R.NextDouble()");
             s = Regex.Replace(s, "\\brand\\b", "R.NextDouble");
             s = Regex.Replace(s, "\\brandneg\\(\\)", "((R.NextDouble()-0.5)*2)");
+            s = Regex.Replace(s, "\\balert\\b", "System.Windows.Forms.MessageBox.Show");
+            s = Regex.Replace(s, "\\bclipboardset\\b", "System.Windows.Forms.Clipboard.SetText");
             return s;
         }
        
