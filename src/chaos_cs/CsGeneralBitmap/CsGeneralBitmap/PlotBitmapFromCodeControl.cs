@@ -14,7 +14,6 @@ namespace CsBifurcation
         public bool bIsRendering; 
 
         public event AltShiftDragDelegate OnAltShiftDrag;
-        public const double BLUE = double.MinValue;
         public const double RED = double.NegativeInfinity;
         //negative values blue. will cycle possibly.
         
@@ -52,7 +51,6 @@ namespace CsBifurcation
             double val, fx, fy; //for standard loop
             bool bIsRendering = fIsRendering > 0;
             double RED = double.NegativeInfinity;
-            double BLUE = double.MinValue;
             int width=(int)fWIDTH, height=(int)fHEIGHT;
             int paramSettle=(int)fparamSettle, paramIters=(int)fparamIters;
             Random R = new Random();
@@ -78,11 +76,7 @@ namespace CsBifurcation
 
         public override void getcolors(double d, out byte r, out byte g, out byte b)
         {
-            if (d==BLUE)
-            {
-                r=0; g=0; b=255;
-            }
-            else if (double.IsNegativeInfinity(d))
+            if (double.IsNegativeInfinity(d))
             {
                 r=255; g=0; b=0;
             }

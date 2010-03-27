@@ -12,7 +12,7 @@ namespace CsGeneralBitmap
         double X0, X1, Y0, Y1;
         int paramSettle, paramIters;
         bool bIsRendering;
-        const double RED=0, BLUE=0;
+        const double RED=0;
         Random R;
 
         int width; int height; double[] arrAns;
