@@ -289,6 +289,7 @@ namespace CsPhasePortrait
                 loadIni(sFilename); // requires absolute path.
             else
                 Redraw();
+            this.plotCntrl.clearUndo();
         }
         private int nRenderWidth = 1600, nRenderHeight=1600;
         private void mnuAdvancedRenderSize_Click(object sender, EventArgs e)

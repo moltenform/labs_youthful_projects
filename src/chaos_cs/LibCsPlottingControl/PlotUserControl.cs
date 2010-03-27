@@ -76,7 +76,7 @@ namespace chaosExplorerControl
 
 
 
-
+        
         public void setBounds(double newX0,double newX1, double newY0, double newY1)
         {
             undoStack.Push(new StructViewbounds(X0, X1, Y0, Y1));
@@ -98,6 +98,10 @@ namespace chaosExplorerControl
                 System.Diagnostics.Debug.Assert(Y1 > Y0 && X1 > X0);
                 redraw();
             }
+        }
+        public void clearUndo()
+        {
+            undoStack.Clear();
         }
         
 

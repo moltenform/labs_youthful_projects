@@ -322,6 +322,7 @@ namespace CsGeneralBitmap
                 loadIni(sFilename); // requires absolute path.
             else
                 Redraw();
+            this.plotCntrl.clearUndo();
         }
         private int nRenderWidth = 3200, nRenderHeight=3200;
         private void mnuAdvancedRenderSize_Click(object sender, EventArgs e)
