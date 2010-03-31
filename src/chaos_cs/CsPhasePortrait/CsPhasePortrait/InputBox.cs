@@ -36,7 +36,7 @@ namespace CsBifurcation
             return int.TryParse(s, out value);
         }
 
-        private System.ComponentModel.Container components;
+        private System.ComponentModel.Container components=null;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Label label1;
