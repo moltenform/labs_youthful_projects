@@ -120,5 +120,11 @@ namespace chaosExplorerControl
             this.bitmapRender.Save(sFilename);
            
         }
+        public void copyImage()
+        {
+            if (this.bitmap==null) 
+                drawPlot();
+            Clipboard.SetImage(this.bitmap);
+        }
     }
 }

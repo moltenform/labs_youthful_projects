@@ -299,6 +299,7 @@ namespace CsPhasePortrait
             if (!InputBoxForm.GetInt("Render Height:", nRenderHeight, out height)) return;
             if (width>0 && height>0) { nRenderHeight=height; nRenderWidth=width; }
         }
+        private void mnuFileCopyImage(object sender, EventArgs e) { this.plotCntrl.copyImage(); }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
             //assume creating a plot. (1600x1600)
