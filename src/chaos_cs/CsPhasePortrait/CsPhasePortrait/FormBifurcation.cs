@@ -62,6 +62,12 @@ namespace CsPhasePortrait
             this.tbSettling.Minimum = 0; this.tbSettling.Maximum = 2000;
             this.plotCntrl.OnAltShiftDrag += new AltShiftDragDelegate(plotCntrl_OnAltShiftDrag);
 
+            ToolStripMenuItem mnuFileCopy = new System.Windows.Forms.ToolStripMenuItem();
+            mnuFileCopy.Text = "Copy Image";
+            mnuFileCopy.Click += new EventHandler(mnuFileCopyImage);
+            mnuFileCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.C)));
+            this.fileToolStripMenuItem.DropDownItems.Insert(4, mnuFileCopy);
+
             mnuFileNew_Click(null, null);
         }
 
