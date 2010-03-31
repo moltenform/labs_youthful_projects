@@ -44,6 +44,12 @@ namespace CsBifurcation
             mnuAdvancedRenderSize.Click += new EventHandler(mnuAdvancedRenderSize_Click);
             this.advancedToolStripMenuItem.DropDownItems.Insert(4, mnuAdvancedRenderSize);
 
+            ToolStripMenuItem mnuFileCopy = new System.Windows.Forms.ToolStripMenuItem();
+            mnuFileCopy.Text = "Copy Image";
+            mnuFileCopy.Click += new EventHandler(mnuFileCopyImage);
+            mnuFileCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.C)));
+            this.fileToolStripMenuItem.DropDownItems.Insert(4, mnuFileCopy);
+
             mnuFileNew_Click(null, null);
         }
 
@@ -267,6 +273,7 @@ namespace CsBifurcation
             if (!InputBoxForm.GetInt("Render Height:", nRenderHeight, out height)) return;
             if (width>0 && height>0) { nRenderHeight=height; nRenderWidth=width; }
         }
+        private void mnuFileCopyImage(object sender, EventArgs e) { this.plotCntrl.copyImage(); }
         private void mnuFileRender_Click(object sender, EventArgs e)
         {
             //assume rendering at (3200x3200).
