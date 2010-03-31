@@ -2,6 +2,8 @@
 /*have a standardlooptrace for "traces"
  * note alert() and clipboardset()
  * 
+ * todo: clean up manual color. throw errors if both val and rval are used. make this more robust.
+ * perhaps manual color should be an explicit option rather than automatically seeing "rval".
  * */
 
 using System;
