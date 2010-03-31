@@ -171,7 +171,7 @@ namespace chaosExplorerControl
         public void resetZoom()
         {
             setInitialBounds();
-            this.undoStack.Clear();
+            //this.undoStack.Clear(); //decided it is better not to clear undo stack.
             redraw();
         }
         

@@ -216,6 +216,7 @@ namespace CsBifurcation
             if (!(dlg1.ShowDialog() == System.Windows.Forms.DialogResult.OK && dlg1.FileName.Length > 0))
                 return;
             loadIni(dlg1.FileName);
+            this.plotCntrl.clearUndo();
         }
         private void mnuFileSave_Click(object sender, EventArgs e)
         {
