@@ -11,7 +11,8 @@ namespace CsBifurcation
         public int paramSettle = 100, paramIters = 640;
         public double param1, param2,param3,param4;
         public string paramExpression;
-        public bool bIsRendering; 
+        public bool bIsRendering;
+        public bool bIsManualColor=false;
 
         public event AltShiftDragDelegate OnAltShiftDrag;
         public const double RED = double.NegativeInfinity;
@@ -49,6 +50,7 @@ namespace CsBifurcation
 
             string sTemplate=@"
             double val, fx, fy; //for standard loop
+            double rval,gval,bval;
             bool bIsRendering = fIsRendering > 0;
             double RED = double.NegativeInfinity;
             int width=(int)fWIDTH, height=(int)fHEIGHT;
@@ -58,9 +60,20 @@ namespace CsBifurcation
 
             $$CODE$$
             ";
-            sTemplate = sTemplate.Replace("$$CODE$$", paramExpression);
-            sTemplate = sTemplate.Replace("//$$standardloop", sStandardLoopBegin);
-            sTemplate = sTemplate.Replace("//$$endstandardloop", sStandardLoopEnd);
+            if (System.Text.RegularExpressions.Regex.IsMatch(paramExpression, "\\brval\\b"))
+            {
+                sTemplate = sTemplate.Replace("$$CODE$$", paramExpression);
+                sTemplate = sTemplate.Replace("//$$standardloop", sStandardLoopBegin);
+                sTemplate = sTemplate.Replace("//$$endstandardloop", sStandardColorLoopEnd);
+                bIsManualColor = true;
+            }
+            else
+            {
+                sTemplate = sTemplate.Replace("$$CODE$$", paramExpression);
+                sTemplate = sTemplate.Replace("//$$standardloop", sStandardLoopBegin);
+                sTemplate = sTemplate.Replace("//$$endstandardloop", sStandardLoopEnd);
+                bIsManualColor = false;
+            }
             string strErr = "";
             CodedomEvaluator.CodedomEvaluator cde = new CodedomEvaluator.CodedomEvaluator();
             double[] out1 = cde.mathEvalArray(sTemplate, d, width*height, out strErr);
@@ -80,13 +93,20 @@ namespace CsBifurcation
             {
                 r=255; g=0; b=0;
             }
+            else if (bIsManualColor && d>63.9 /*64*/ && d<16777280.0+64.0)
+            {
+                int rgb = (int)(d-64);
+                r = (byte)((rgb & 0x00ff0000)>>16);
+                g = (byte)((rgb & 0x0000ff00)>>8);
+                b = (byte)((rgb & 0x000000ff));
+            }
             else
             {
                 // negative ones are blue. -1 = blue to 0 = black to 1 = white
                 if (d<0.0)
                 {
                     if (d<-1.0) d=-1.0;
-                    b= (byte)(255.0 * -d); 
+                    b= (byte)(255.0 * -d);
                     r=g=0;
                 }
                 else
@@ -118,6 +138,16 @@ namespace CsBifurcation
             ";
         public static string sStandardLoopEnd = @" 
                     arrAns[py + px*height] = val;
+                    fy -= dy;
+                }
+                fx += dx;
+            }
+        ";
+        public static string sStandardColorLoopEnd = @" 
+                    int iR=((int)(rval*256)) & 0xff;
+                    int iG=((int)(gval*256))& 0xff;
+                    int iB=((int)(bval*256))& 0xff;
+                    arrAns[py + px*height] = (double)((iR<<16)+(iG<<8)+iB)+64;
                     fy -= dy;
                 }
                 fx += dx;
