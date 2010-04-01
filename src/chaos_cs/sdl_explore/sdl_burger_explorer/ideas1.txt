@@ -1,0 +1,50 @@
+
+I'd like to have a menu bar in an sdl program?
+And simple dialogs...
+but Windows could maybe do that...
+	(write another program?)
+
+
+have windows program, and set hwnd..
+that'd be...cool...
+http://www.gamedev.net/community/forums/topic.asp?topic_id=375112
+
+scripting shell
+
+http://sdl.beuc.net/sdl.wiki/FAQ_GUI
+
+
+turn on/off the menagerie view.
+generate the menagerie in real time??? That'd be possible. cool in fact.
+and blit it every time (can be turned on/off)
+can scroll? no, just have it Ctrl-click to zoom in, Shift-click to zoom out
+sliding/breathing is something it could launch. (by running itself with different params)
+
+
+Ctrl-scrollwheel to zoom the view
+
+
+
+------
+for windows, use these c# stuff
+for linux, just edit the text files.
+
+------
+;sdlexplore v1| 1.3|1.5|1.6|1.8|2
+;a comment here
+;a second comment here
+
+[main_portrait]
+X0=0.579529157741712
+----------
+
+Generate a random color while the right mouse button is depressed. Keeping the mouse down will cause the colors to cycle. MOUSE-LEFT-P returns T when the right mouse button is depressed.
+
+       (when (sdl:mouse-left-p)
+         (setf *random-color* (sdl:color :r (random 255) :g (random 255) :b (random 255))))
+
+if mousedown
+	
+http://www.gamedev.net/community/forums/topic.asp?topic_id=306498
+
+also an 
