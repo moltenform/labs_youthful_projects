@@ -38,12 +38,14 @@ int gridpixels, int seeds, int settling, int drawing
 
 int drawPhasePortrait(FigureSettings* settings, double a, double b, int arrAns[])
 {
-	double sx,sy; int i,ii;//loop vars
+	double sx,sy; int ii;//loop vars
 	int totalUniquePoints = 0;
 	int arrWidth = settings->phaseFigureWidth;
 	int arrHeight = settings->phaseFigureHeight;
 	//clear array
-	for (i=0; i<arrWidth*arrHeight;i++) arrAns[i]=0;
+	//for (i=0; i<arrWidth*arrHeight;i++) arrAns[i]=0;
+	memset(arrAns, 0, sizeof(int)*arrWidth*arrHeight);
+	
 	double X0=settings->phasex0, X1=settings->phasex1, Y0=settings->phasey0, Y1=settings->phasey1;
 	double x, y, x_;
 	
