@@ -6,7 +6,6 @@ x_ = 1 - c1*x*x + y;
 #define BIFURC 0
 #include "SDL.h"
 #include "phaseportrait.h"
-#include "basic.h"
 
 #include <math.h>
 

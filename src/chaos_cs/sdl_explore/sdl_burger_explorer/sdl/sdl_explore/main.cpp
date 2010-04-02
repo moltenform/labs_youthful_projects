@@ -7,11 +7,10 @@
 #include <memory.h>
 #include <math.h>
 
+#include "common.h"
 #include "sdl_util.h"
 #include "phaseportrait.h"
-#include "basic.h"
 #include "menagerie.h"
-#include "main.h"
 #include "io.h"
 
 
@@ -204,44 +203,11 @@ bIgnoreRightMousedown = false;
 		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ; //apparently needed every frame, even when not redrawing
 
 	
-  }
-
-  return 0;
+	}
+	return 0;
 }
 
-void controller_sets_pos(double *outA, double *outB)
-{
-	double a,b;
-	FILE*fp = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\menagerie\\outTrans.txt", "r");
-	fscanf(fp, "%lf\n", &a);
-	fscanf(fp, "%lf", &b);
-	fclose(fp);
-	*outA=a; *outB=b;
-}
-void controller_gets_pos(double a, double b)
-{
-	FILE*fp = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\menagerie\\getTrans.txt", "w");
-	fprintf(fp, "%f\n", a);
-	fprintf(fp, "%f", b);
-	fclose(fp);
-}
 
-void setSettling(PhasePortraitSettings * settings, int direction)
-{
-	double scale = (direction<0) ? 0.95 : 1/0.95;
-	settings->settling = roundDouble(settings->settling * scale);
-}
-void setShading(PhasePortraitSettings * settings, int direction)
-{
-	double scale = (direction<0) ? 0.95 : 1/0.95;
-	settings->drawing = roundDouble(settings->drawing * scale);
-	if (settings->drawing <=0) settings->drawing =1;
-}
-void setSliding(double * sliding, int direction)
-{
-	double scale = (direction<0) ? 0.95 : 1/0.95;
-	*sliding = (*sliding * scale);
-}
 void setZoom(PhasePortraitSettings * settings, int direction)
 {
 	double scale = (direction<0) ? .999 : -.999; //note this
@@ -256,21 +222,4 @@ void setZoom(PhasePortraitSettings * settings, int direction)
 	settings->y1 = newY1;
 }
 
-int roundDouble(double a)
-{
-	if (fmod(a,1.0)<0.5)
-		return (int)a;
-	else
-		return ((int)a)+1;
-}
 
-void IntPlotCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY)
-{
-	*outX = (mouse_x-PlotX)/((double)PlotWidth)*(settings->browsex1-settings->browsex0) + settings->browsex0;
-	*outY = ((PlotHeight-mouse_y)-0)/((double)PlotHeight)*(settings->browsey1-settings->browsey0) + settings->browsey0;
-}
-void DoubleCoordsToInt(PhasePortraitSettings*settings, double fx, double fy, int* outX, int* outY)
-{
-	*outX = (int)(PlotWidth * (fx- settings->browsex0) / (settings->browsex1 - settings->browsex0) + PlotX);
-	*outY = PlotHeight - (int)(PlotHeight * (fy- settings->browsey0) / (settings->browsey1 - settings->browsey0) + 0);
-}

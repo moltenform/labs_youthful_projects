@@ -1,6 +1,6 @@
 #include "SDL.h"
 #include "phaseportrait.h"
-#include "basic.h"
+#include "common.h"
 #include <math.h>
 
 
