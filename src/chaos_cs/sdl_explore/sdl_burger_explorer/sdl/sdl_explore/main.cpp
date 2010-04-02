@@ -43,6 +43,7 @@ void tryZoom(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*sett
 	settings->browsex1 = fmousex + fwidth/2;
 	settings->browsey0 = fmousey - fheight/2;
 	settings->browsey1 = fmousey + fheight/2;
+	SDL_Delay(700); //prevent fast zoom!
 }
 
 
@@ -82,7 +83,7 @@ SDL_Surface* pHomeSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, Plot
 SDL_Surface* pOtherSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 SDL_Surface* pSmallerSurface;
  if (bManagerie)
-	 DrawMenagerie(pHomeSurface, settings); //it's really slow...
+	 DrawMenagerie(pHomeSurface, settings); 
  
  pSmallerSurface = pHomeSurface;
  
@@ -200,6 +201,8 @@ if ((buttons & SDL_BUTTON_RMASK) && !bIgnoreRightMousedown)
 {
 //reset view
 InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
+ if (bManagerie)
+	 DrawMenagerie(pHomeSurface, settings);
 bIgnoreRightMousedown = true;
 }
 else

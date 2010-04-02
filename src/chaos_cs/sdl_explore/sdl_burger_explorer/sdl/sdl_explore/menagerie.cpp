@@ -27,16 +27,26 @@ int height=PlotHeight;
 double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
 	
     double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-    fx = X0; fy = Y0; //y counts downwards
+    fx = X0; fy = Y1; //y counts downwards
     
 	for (int py=0; py<height; py++)
 	{
 		fx = X0;
 		for (int px = 0; px < width; px++)
 		{
+int hits;
+if (fx<chy_x0 || fx>chy_x1 || fy<chy_y0 || fy>chy_y1)
+hits=0;
+else
+{
+	int indexx = (int) (chy_width * (fx-chy_x0)/(chy_x1-chy_x0));
+	int indexy = (int) (chy_height * (fy-chy_y0)/(chy_y1-chy_y0));
+	hits = alldata[ indexy*chy_width + indexx];
+}
+
 			
 		//int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
-		double val = fx+fy; //sqrt((double)hits);// / 20.0;
+		double val = sqrt((double)hits)/40;// / 20.0;
 		//double val = sqrt((double)hits)/10;// / 20.0;
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1
@@ -56,7 +66,7 @@ memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
 			fx += dx;
 		}
 
-		fy += dy;
+		fy -= dy;
 	}
 
 

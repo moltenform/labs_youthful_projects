@@ -14,8 +14,8 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 {
 	settings->browsex0 = -2;
 	settings->browsex1 = 2;
-	settings->browsey0 = -2;
-	settings->browsey1 = 2;
+	settings->browsey0 = -.5;
+	settings->browsey1 = 3.5;
 #if !BIFURC
 	settings->x0 = -1.75;
 	settings->x1 = 1.75;
@@ -52,7 +52,7 @@ inline void plotpoint(SDL_Surface* pSurface, int px, int py)
   char* pPosition = ( char* ) pSurface->pixels ; //determine position
   pPosition += ( pSurface->pitch * py ); //offset by y
   pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
-  Uint32 newcol = 0;
+  Uint32 newcol = 0x00ff0000; //0;
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 }
 void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 ) 
