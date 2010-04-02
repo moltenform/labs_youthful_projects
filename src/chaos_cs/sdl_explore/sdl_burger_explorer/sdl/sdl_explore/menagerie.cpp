@@ -1,7 +1,77 @@
 #include "SDL.h"
-#include "main.h"
 #include "phaseportrait.h"
+#include "basic.h"
 #include <math.h>
+
+
+double chy_x0 = -3.4, chy_x1=1.1, chy_y0=1.45, chy_y1=2.05;
+int chy_width=3072, chy_height=1536;
+unsigned short * alldata = NULL;
+void loadData()
+{
+	if (alldata != NULL) return;
+	FILE * f = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\sdl_burger_explorer\\chy.dat", "rb");
+	if (!f) {int die = 0; exit(2);}
+	alldata = (unsigned short *) malloc( sizeof(unsigned short)*chy_width*chy_height);
+	//for (int i=0; i<chy_width*chy_height; i++)
+	fread(alldata, sizeof(unsigned short), chy_width*chy_height, f);
+	fclose(f);
+}
+
+void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+{
+	double fx,fy;
+	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
+int height=PlotHeight;
+	int width=PlotWidth;
+double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
+	
+    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+    fx = X0; fy = Y0; //y counts downwards
+    
+	for (int py=0; py<height; py++)
+	{
+		fx = X0;
+		for (int px = 0; px < width; px++)
+		{
+			
+		//int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
+		double val = fx+fy; //sqrt((double)hits);// / 20.0;
+		//double val = sqrt((double)hits)/10;// / 20.0;
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = val*2 - 1; //from -1 to 1
+		Uint32 r,g,b;
+		if (val>=0)
+			b=255, r=g= (Uint32) ((1-val)*255.0);
+		else
+			r=g=b= (Uint32) ((val+1)*255.0);
+
+char* pPosition = ( char* ) pSmallSurface->pixels ; //determine position
+pPosition += ( pSmallSurface->pitch * py ); //offset by y
+pPosition += ( pSmallSurface->format->BytesPerPixel * px ); //offset by x
+Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
+memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
+
+
+			fx += dx;
+		}
+
+		fy += dy;
+	}
+
+
+	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
+}
+
+
+
+
+
+
+
+
+
+
 
 typedef struct
 {
@@ -23,12 +93,11 @@ MenagerieSettings* managerieSettings = &mSettings;
 
 int _drawPhasePortrait(MenagerieSettings* settings, double a, double b, int arrAns[])
 {
-	double sx,sy; int i,ii;//loop vars
+	double sx,sy; int ii;//loop vars
 	int totalUniquePoints = 0;
 	int arrWidth = settings->phaseFigureWidth;
 	int arrHeight = settings->phaseFigureHeight;
 	//clear array
-	//int zero = 0;
 	memset(arrAns, 0, sizeof(int)*arrWidth*arrHeight);
 	double X0=settings->phasex0, X1=settings->phasex1, Y0=settings->phasey0, Y1=settings->phasey1;
 	double x, y, x_;
@@ -70,7 +139,7 @@ int _drawPhasePortrait(MenagerieSettings* settings, double a, double b, int arrA
 	return totalUniquePoints;
 }
 
-void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+void DrawMenagerieOld( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
 {
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
 	int* arr = (int*) malloc( sizeof(int)*managerieSettings->phaseFigureWidth*managerieSettings->phaseFigureHeight);

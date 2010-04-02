@@ -2,7 +2,7 @@
 #pragma once
 
 #include "SDL.h"
-#include "main.h"
+
 
 typedef struct
 {

@@ -4,7 +4,10 @@ x_ = 1 - c1*x*x + y;
 						y = c2*x;
 						x=x_;*/
 #define BIFURC 0
+#include "SDL.h"
 #include "phaseportrait.h"
+#include "basic.h"
+
 #include <math.h>
 
 void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB)
@@ -44,6 +47,8 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 
 inline void plotpoint(SDL_Surface* pSurface, int px, int py)
 {
+ if (!(px>=PlotX && px<=PlotX+PlotWidth && py>=0 && py<=PlotHeight))
+	 return;
   char* pPosition = ( char* ) pSurface->pixels ; //determine position
   pPosition += ( pSurface->pitch * py ); //offset by y
   pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
@@ -52,25 +57,43 @@ inline void plotpoint(SDL_Surface* pSurface, int px, int py)
 }
 void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 ) 
 {
+	//find zero, zero
+	int xzero, yzero;
+	DoubleCoordsToInt(settings, 0.0, 0.0, &xzero, &yzero);
+
 	for (int y=0; y<PlotHeight; y++)
 		plotpoint(pSurface, PlotX, y);
-	for (int y=0; y<PlotHeight; y++)
-		plotpoint(pSurface, PlotX+(PlotWidth/2), y);
+	if (xzero>PlotX && xzero<PlotX+PlotWidth)
+		for (int y=0; y<PlotHeight; y++)
+			plotpoint(pSurface, (xzero), y);
 	for (int y=0; y<PlotHeight; y++)
 		plotpoint(pSurface, PlotX+PlotWidth, y);
 
+	for (double f=-4; f<5; f+=1)
+	{
+		int xtic, ytic;
+		DoubleCoordsToInt(settings, f,f, &xtic, &ytic);
+		if (xzero>PlotX && xzero<PlotX+PlotWidth)
+		for (int y=yzero-5; y<yzero+5; y++)
+			plotpoint(pSurface, (xtic), y);
+		if (yzero>=0&& yzero<=PlotHeight)
+		for (int x=xzero-5; x<xzero+5; x++)
+			plotpoint(pSurface, x, ytic);
+	}
+
+
 	for (int x=PlotX; x<PlotWidth+PlotX; x++)
 		plotpoint(pSurface, x, 1);
-	for (int x=PlotX; x<PlotWidth+PlotX; x++)
-		plotpoint(pSurface, x, PlotHeight/2);
+	if (yzero>=0&& yzero<=PlotHeight)
+		for (int x=PlotX; x<PlotWidth+PlotX; x++)
+			plotpoint(pSurface, x, yzero);
 	for (int x=PlotX; x<PlotWidth+PlotX; x++)
 		plotpoint(pSurface, x, PlotHeight);
 	
-	int ia = (int)(PlotWidth * (c1- settings->browsex0) / (settings->browsex1 - settings->browsex0) + PlotX);
-	int ib = (int)PlotHeight - (PlotHeight * (c2- settings->browsey0) / (settings->browsey1 - settings->browsey0) + 0);
+	int ia, ib;
+	DoubleCoordsToInt(settings, c1, c2, &ia, &ib);
 	for (int x=ia-4; x<ia+5; x++)
 		for (int y=ib-4; y<ib+5; y++)
-			if (x>PlotX && x<PlotX+PlotWidth && y>0 && y<PlotHeight)
 				plotpoint(pSurface, x, y);
 	
 }

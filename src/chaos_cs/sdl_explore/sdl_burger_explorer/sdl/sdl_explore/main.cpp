@@ -1,7 +1,6 @@
 #pragma warning (disable:4996)
+//about fopen, scanf
 
-
-//disabled warning 4996
 #include "SDL.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +9,7 @@
 
 #include "sdl_util.h"
 #include "phaseportrait.h"
+#include "basic.h"
 #include "menagerie.h"
 #include "main.h"
 #include "old.h"
@@ -20,7 +20,7 @@ Uint32 g_white;
 
 //int PlotHeight=400, PlotWidth=400, PlotX = 400;
 int PlotHeight=200, PlotWidth=200, PlotX = 400;
-
+int PhaseHeight = 384, PhaseWidth = 384;
 
 void setSettling(PhasePortraitSettings * settings, int direction);
 void setShading(PhasePortraitSettings * settings, int direction);
@@ -28,18 +28,21 @@ void setSliding(double * sliding, int direction);
 void setZoom(PhasePortraitSettings * settings, int direction);
 
 
-void oscillate(double curA,double curB,double *outA, double *outB)
-{
-	static double statePos=0.0, stateFreq=0.0;
-	if (statePos>31.415926) statePos=0.0;
-	if (stateFreq>31.415926) stateFreq=0.0;
-	stateFreq+=0.01;
-	statePos+=stateFreq;
 
-	//the frequency itself oscillates
-	double oscilFreq = 0.09 + sin(stateFreq)/70;
-	*outA = curA+ sin(statePos*.3702342521232353)/550;
-	*outB = curB+ cos(statePos)/400; 
+void tryZoom(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings)
+{
+	if (!(mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight))
+		return;
+	
+	double fmousex, fmousey;
+	IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
+	double fwidth=settings->browsex1-settings->browsex0, fheight=settings->browsex1-settings->browsex0;
+	if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
+	else {fwidth *= 0.8; fheight*=0.8;}
+	settings->browsex0 = fmousex - fwidth/2;
+	settings->browsex1 = fmousex + fwidth/2;
+	settings->browsey0 = fmousey - fheight/2;
+	settings->browsey1 = fmousey + fheight/2;
 }
 
 
@@ -47,14 +50,13 @@ void oscillate(double curA,double curB,double *outA, double *outB)
 int main( int argc, char* argv[] )
 {
 	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
-	double curA=0.0, curB=0.0, targetA=1.0, targetB=1.0;
+	double curA=0.0, curB=0.0, prevA=1,prevB=1;
 
-	InitialSettings(settings, 384, 384, &targetA, &targetB);
+	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	
 	//these settings
-	bool breathe = false;
 	bool bManagerie = true;
-	double sliding = 10.0;
+	if (bManagerie) loadData();
 
 	//set our at exit function
 	atexit ( SDL_Quit ) ; 
@@ -66,12 +68,12 @@ int main( int argc, char* argv[] )
 	bool bNeedToLock =  SDL_MUSTLOCK(pSurface);
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 
+	bool bIgnoreMousedown = false, bIgnoreRightMousedown=false;
 
 	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 
 SDL_FillRect ( pSurface , NULL , g_white );
 
-	double actualA, actualB;
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
 
@@ -89,19 +91,8 @@ SDL_Surface* pSmallerSurface;
  int mouse_x,mouse_y;
 
   //message pump
-  for ( ; ; )
-  {
-	if (breathe)
-	{
-		oscillate(curA, curB, &actualA, &actualB);
-	}
-	else
-	{
-		actualA = curA; 
-		actualB = curB;
-	}
-	curA += (targetA-curA)/sliding;
-	curB += (targetB-curB)/sliding;
+for ( ; ; )
+{
 
     //look for an event
     if ( SDL_PollEvent ( &event ) )
@@ -111,10 +102,10 @@ SDL_Surface* pSmallerSurface;
       //else if ( event.type == SDL_MOUSEBUTTONDOWN ) break ;
 	  else if (event.type==SDL_KEYDOWN)
 	  {
-		  if (event.key.keysym.sym == SDLK_UP) targetB += 0.005;
-		  else if (event.key.keysym.sym == SDLK_DOWN) targetB -= 0.005;
-		  else if (event.key.keysym.sym == SDLK_LEFT) targetA -= 0.005;
-		  else if (event.key.keysym.sym == SDLK_RIGHT) targetA += 0.005;
+		  if (event.key.keysym.sym == SDLK_UP) curB += 0.005;
+		  else if (event.key.keysym.sym == SDLK_DOWN) curB -= 0.005;
+		  else if (event.key.keysym.sym == SDLK_LEFT) curA -= 0.005;
+		  else if (event.key.keysym.sym == SDLK_RIGHT) curA += 0.005;
 		  else if (event.key.keysym.sym == SDLK_s) {save(curA,curB);}
 		  else if (event.key.keysym.sym == SDLK_ESCAPE) {return 0;}
 		  else if (event.key.keysym.sym == SDLK_F4) {return 0;}
@@ -122,7 +113,7 @@ SDL_Surface* pSmallerSurface;
 			{
 				switch(event.key.keysym.sym)
 				{
-					case SDLK_s: controller_sets_pos(&targetA, &targetB); break;
+					/*case SDLK_s: controller_sets_pos(&targetA, &targetB); break;
 					case SDLK_g: controller_gets_pos(targetA, targetB); break;
 					case SDLK_b: breathe = !breathe; break;
 					case SDLK_1: setSettling(settings, 1); break;
@@ -132,12 +123,12 @@ SDL_Surface* pSmallerSurface;
 					case SDLK_5: setSliding(&sliding, 1); break;
 					case SDLK_6: setSliding(&sliding, -1); break;
 					case SDLK_PAGEUP: setZoom(settings, 1); break;
-					case SDLK_PAGEDOWN: setZoom(settings, -1); break;
+					case SDLK_PAGEDOWN: setZoom(settings, -1); break;*/
 					default: break;
 				}
 				//force redraw
 				if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-				DrawPhasePortrait(pSurface, settings, actualA,actualB);
+				DrawPhasePortrait(pSurface, settings, curA,curB);
 				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 			}
 	  }
@@ -152,7 +143,7 @@ SDL_Surface* pSmallerSurface;
 
 if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in time, dropping frames? put stuff in here
 {
-	if (!breathe && VERYCLOSE(targetA, curA) && VERYCLOSE(targetB, curB))
+	if (prevA==curA && prevB == curB)
 	{
 		// don't need to compute anything.
 		//SDL_FillRect ( pSurface , NULL , 0/*black*/ );  //debug by drawing black indicating nothing new is computed.
@@ -160,34 +151,61 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	else
 	{
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-		BlitMenagerie(pSurface, pSmallerSurface); 
+		if (bManagerie) BlitMenagerie(pSurface, pSmallerSurface); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		DrawPhasePortrait(pSurface, settings, actualA,actualB);
-		DrawPlotGrid(pSurface,settings, actualA,actualB);
+		DrawPhasePortrait(pSurface, settings, curA,curB);
+		DrawPlotGrid(pSurface,settings, curA,curB);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 	}
-
-
+	prevA=curA; prevB=curB;
 
 		SDL_PumpEvents();
 		int mod = SDL_GetModState();
 
-		if ((mod & KMOD_CTRL )&&(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON_LMASK)) {
-		  SDL_GetMouseState(&mouse_x, &mouse_y);
-if (mouse_x_prev!= mouse_x || mouse_y_prev!= mouse_y)
-{
-//targetA = mouse_x/200.0;
-//targetB = mouse_y/200.0;
-if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight)
-{
-	targetA = (mouse_x-PlotX)/((double)PlotWidth)*(settings->browsex1-settings->browsex0) + settings->browsex0;
-	targetB = ((PlotHeight-mouse_y)-0)/((double)PlotHeight)*(settings->browsey1-settings->browsey0) + settings->browsey0;
-}
-}
 
-mouse_x_prev = mouse_x;
-mouse_y_prev = mouse_y;
-		} } 
+int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+if ((buttons & SDL_BUTTON_LMASK) && !bIgnoreMousedown)
+{
+	if (mod & KMOD_CTRL ) //a control click. zoom in.
+	{
+		tryZoom(1, mouse_x, mouse_y, settings);
+		bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
+		prevA=99; //force redraw
+		if (bManagerie) DrawMenagerie(pHomeSurface, settings);
+	}
+	else if (mod & KMOD_SHIFT ) //a shift click. zoom out.
+	{
+		tryZoom(-1, mouse_x, mouse_y, settings);
+		bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
+		prevA=99; //force redraw
+		if (bManagerie) DrawMenagerie(pHomeSurface, settings);
+	}
+	else
+	{
+		// clicking and dragging:
+		if (mouse_x_prev!= mouse_x || mouse_y_prev!= mouse_y)
+		{
+			if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight)
+				IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &curA, &curB);
+		}
+		mouse_x_prev = mouse_x;
+		mouse_y_prev = mouse_y;
+	}
+}
+else
+bIgnoreMousedown = false;
+
+
+if ((buttons & SDL_BUTTON_RMASK) && !bIgnoreRightMousedown)
+{
+//reset view
+InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
+bIgnoreRightMousedown = true;
+}
+else
+bIgnoreRightMousedown = false;
+
+}
 
 		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ; //apparently needed every frame, even when not redrawing
 
@@ -250,4 +268,15 @@ int roundDouble(double a)
 		return (int)a;
 	else
 		return ((int)a)+1;
+}
+
+void IntPlotCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY)
+{
+	*outX = (mouse_x-PlotX)/((double)PlotWidth)*(settings->browsex1-settings->browsex0) + settings->browsex0;
+	*outY = ((PlotHeight-mouse_y)-0)/((double)PlotHeight)*(settings->browsey1-settings->browsey0) + settings->browsey0;
+}
+void DoubleCoordsToInt(PhasePortraitSettings*settings, double fx, double fy, int* outX, int* outY)
+{
+	*outX = (int)(PlotWidth * (fx- settings->browsex0) / (settings->browsex1 - settings->browsex0) + PlotX);
+	*outY = PlotHeight - (int)(PlotHeight * (fy- settings->browsey0) / (settings->browsey1 - settings->browsey0) + 0);
 }

@@ -178,6 +178,18 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\basic.h"
+				>
+			</File>
+			<File
+				RelativePath=".\breathe.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\breathe.h"
+				>
+			</File>
+			<File
 				RelativePath=".\io.cpp"
 				>
 			</File>
