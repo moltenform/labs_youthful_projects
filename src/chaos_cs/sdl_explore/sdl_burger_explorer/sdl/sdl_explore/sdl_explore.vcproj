@@ -221,14 +221,6 @@
 				RelativePath=".\phaseportrait.h"
 				>
 			</File>
-			<File
-				RelativePath=".\sdl_util.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\sdl_util.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

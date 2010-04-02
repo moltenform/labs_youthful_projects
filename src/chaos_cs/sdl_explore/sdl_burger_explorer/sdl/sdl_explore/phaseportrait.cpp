@@ -1,8 +1,9 @@
 /*
 henon set is:
 x_ = 1 - c1*x*x + y;
-						y = c2*x;
-						x=x_;*/
+y = c2*x;
+x=x_;*/
+
 #define BIFURC 0
 #include "SDL.h"
 #include "phaseportrait.h"

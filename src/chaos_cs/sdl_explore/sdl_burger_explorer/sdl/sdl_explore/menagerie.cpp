@@ -13,7 +13,6 @@ void loadData()
 	FILE * f = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\sdl_burger_explorer\\chy.dat", "rb");
 	if (!f) {int die = 0; exit(2);}
 	alldata = (unsigned short *) malloc( sizeof(unsigned short)*chy_width*chy_height);
-	//for (int i=0; i<chy_width*chy_height; i++)
 	fread(alldata, sizeof(unsigned short), chy_width*chy_height, f);
 	fclose(f);
 }
@@ -22,9 +21,9 @@ void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings)
 {
 	double fx,fy;
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
-int height=PlotHeight;
+	int height=PlotHeight;
 	int width=PlotWidth;
-double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
+	double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
 	
     double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
     fx = X0; fy = Y1; //y counts downwards
@@ -46,8 +45,8 @@ else
 
 			
 		//int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
-		double val = sqrt((double)hits)/40;// / 20.0;
-		//double val = sqrt((double)hits)/10;// / 20.0;
+		double val = sqrt((double)hits)/40;
+
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1
 		Uint32 r,g,b;
@@ -88,8 +87,8 @@ typedef struct
 	int seedsPerAxis;
 	int settling;
 	int drawing;
-	int phaseFigureWidth; //
-	int phaseFigureHeight; //
+	int phaseFigureWidth; 
+	int phaseFigureHeight;
 	double phasex0;
 	double phasex1;
 	double phasey0;
@@ -200,14 +199,14 @@ void DrawMenagerieOld( SDL_Surface* pSmallSurface, PhasePortraitSettings*setting
 
 void BlitMenagerie(SDL_Surface* pSurface,SDL_Surface* pSmallSurface)
 {
-SDL_Rect src, dest;
-src.x = 0;
-src.y = 0;
-src.w = PlotWidth;
-src.h = PlotHeight;
-dest.x = PlotX;
-dest.y = 0;
-dest.w = PlotWidth;
-dest.h = PlotHeight; 
-SDL_BlitSurface(pSmallSurface, &src, pSurface, &dest);
+	SDL_Rect src, dest;
+	src.x = 0;
+	src.y = 0;
+	src.w = PlotWidth;
+	src.h = PlotHeight;
+	dest.x = PlotX;
+	dest.y = 0;
+	dest.w = PlotWidth;
+	dest.h = PlotHeight; 
+	SDL_BlitSurface(pSmallSurface, &src, pSurface, &dest);
 }

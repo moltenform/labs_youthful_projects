@@ -8,7 +8,6 @@ void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double
 void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB);
 void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );
 void DrawBasins( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );
-void DrawBifurc( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );
 
 #define ISTOOBIG(x) ((x)<-1e3 || (x)>1e3)
 //floating point comparison. see also <float.h>'s DBL_EPSILON and DBL_MIN. 1e-11 also ok.

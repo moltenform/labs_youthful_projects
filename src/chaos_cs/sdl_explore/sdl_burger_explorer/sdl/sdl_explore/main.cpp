@@ -8,42 +8,21 @@
 #include <math.h>
 
 #include "common.h"
-#include "sdl_util.h"
 #include "phaseportrait.h"
 #include "menagerie.h"
 #include "io.h"
 
+//cause redraw by making prevA out of date.
+#define ForceRedraw() prevA=99
+#define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
 
-Uint32 g_white;
 
-
-//int PlotHeight=400, PlotWidth=400, PlotX = 400;
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
 int PhaseHeight = 384, PhaseWidth = 384;
+Uint32 g_white;
 
-void setSettling(PhasePortraitSettings * settings, int direction);
-void setShading(PhasePortraitSettings * settings, int direction);
-void setSliding(double * sliding, int direction);
-void setZoom(PhasePortraitSettings * settings, int direction);
-
-
-
-void tryZoom(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings)
-{
-	if (!(mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight))
-		return;
-	
-	double fmousex, fmousey;
-	IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
-	double fwidth=settings->browsex1-settings->browsex0, fheight=settings->browsex1-settings->browsex0;
-	if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
-	else {fwidth *= 0.8; fheight*=0.8;}
-	settings->browsex0 = fmousex - fwidth/2;
-	settings->browsex1 = fmousex + fwidth/2;
-	settings->browsey0 = fmousey - fheight/2;
-	settings->browsey1 = fmousey + fheight/2;
-	SDL_Delay(700); //prevent fast zoom!
-}
+void zoomPortrait(int direction, PhasePortraitSettings * settings);
+void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
 
 
 
@@ -51,55 +30,48 @@ int main( int argc, char* argv[] )
 {
 	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
 	double curA=0.0, curB=0.0, prevA=1,prevB=1;
-
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	
 	//these settings
-	bool bManagerie = true;
-	if (bManagerie) loadData();
+	bool bMenagerie = true;
+	if (bMenagerie) loadData();
 
-	//set our at exit function
+
 	atexit ( SDL_Quit ) ; 
-	//initialize systems
 	SDL_Init ( SDL_INIT_VIDEO ) ; 
-	//create a window
+	//create main window
 	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , SCREENFLAGS ) ;
-	SDL_Event event ;
+	SDL_Event event;
 	bool bNeedToLock =  SDL_MUSTLOCK(pSurface);
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 
-	bool bIgnoreMousedown = false, bIgnoreRightMousedown=false;
-
-	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
-
-SDL_FillRect ( pSurface , NULL , g_white );
 
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+	int mouse_x,mouse_y, mouse_x_prev=0,mouse_y_prev=0;
+	bool bIgnoreMousedown = false, bIgnoreRightMousedown=false;
 
-
-	//cache the home menagerie.
-SDL_Surface* pHomeSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
-SDL_Surface* pOtherSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
-SDL_Surface* pSmallerSurface;
- if (bManagerie)
-	 DrawMenagerie(pHomeSurface, settings); 
- 
- pSmallerSurface = pHomeSurface;
+	//cache the home menagerie?
+	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
+	if (bMenagerie)
+		DrawMenagerie(pSmallerSurface, settings); 
  
 
- int mouse_x_prev=0,mouse_y_prev=0;
- int mouse_x,mouse_y;
 
-  //message pump
-for ( ; ; )
+	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
+	SDL_FillRect ( pSurface , NULL , g_white );
+
+
+while(true)
 {
-
     //look for an event
     if ( SDL_PollEvent ( &event ) )
     {
       //an event was found
       if ( event.type == SDL_QUIT ) break ;
-      //else if ( event.type == SDL_MOUSEBUTTONDOWN ) break ;
+      else if ( event.type == SDL_MOUSEBUTTONDOWN )
+	  {
+			break;
+	  }
 	  else if (event.type==SDL_KEYDOWN)
 	  {
 		switch(event.key.keysym.sym)
@@ -119,8 +91,8 @@ for ( ; ; )
 			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB); break;
 			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB); break;
 			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
-			case SDLK_PAGEUP: break;
-			case SDLK_PAGEDOWN: break;
+			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
+			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
 			case SDLK_1: break;
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: return 0; break;
@@ -142,7 +114,7 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	else
 	{
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-		if (bManagerie) BlitMenagerie(pSurface, pSmallerSurface); 
+		if (bMenagerie) BlitMenagerie(pSurface, pSmallerSurface); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		DrawPhasePortrait(pSurface, settings, curA,curB);
 		DrawPlotGrid(pSurface,settings, curA,curB);
@@ -159,17 +131,17 @@ if ((buttons & SDL_BUTTON_LMASK) && !bIgnoreMousedown)
 {
 	if (mod & KMOD_CTRL ) //a control click. zoom in.
 	{
-		tryZoom(1, mouse_x, mouse_y, settings);
+		tryZoomPlot(1, mouse_x, mouse_y, settings);
 		bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
-		prevA=99; //force redraw
-		if (bManagerie) DrawMenagerie(pHomeSurface, settings);
+		ForceRedraw();
+		RedrawMenag();
 	}
 	else if (mod & KMOD_SHIFT ) //a shift click. zoom out.
 	{
-		tryZoom(-1, mouse_x, mouse_y, settings);
+		tryZoomPlot(-1, mouse_x, mouse_y, settings);
 		bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
-		prevA=99; //force redraw
-		if (bManagerie) DrawMenagerie(pHomeSurface, settings);
+		ForceRedraw();
+		RedrawMenag();
 	}
 	else
 	{
@@ -191,8 +163,7 @@ if ((buttons & SDL_BUTTON_RMASK) && !bIgnoreRightMousedown)
 {
 //reset view
 InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
- if (bManagerie)
-	 DrawMenagerie(pHomeSurface, settings);
+RedrawMenag();
 bIgnoreRightMousedown = true;
 }
 else
@@ -208,18 +179,34 @@ bIgnoreRightMousedown = false;
 }
 
 
-void setZoom(PhasePortraitSettings * settings, int direction)
+
+
+void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings)
 {
-	double scale = (direction<0) ? .999 : -.999; //note this
-	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
-	double newX0 = X0- (X1-X0)*scale;
-    double newX1 = X1+ (X1-X0)*scale;
-    double newY0 = Y0- (Y1-Y0)*scale;
-    double newY1 = Y1+ (Y1-Y0)*scale;
-	settings->x0 = newX0;
-	settings->x1 = newX1;
-	settings->y0 = newY0;
-	settings->y1 = newY1;
+	if (!(mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight))
+		return;
+	
+	double fmousex, fmousey;
+	IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
+	double fwidth=settings->browsex1-settings->browsex0, fheight=settings->browsex1-settings->browsex0;
+	if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
+	else {fwidth *= 0.8; fheight*=0.8;}
+	settings->browsex0 = fmousex - fwidth/2;
+	settings->browsex1 = fmousex + fwidth/2;
+	settings->browsey0 = fmousey - fheight/2;
+	settings->browsey1 = fmousey + fheight/2;
+	SDL_Delay(700); //prevent repeatedly zooming!
 }
-
-
+void zoomPortrait(int direction, PhasePortraitSettings * settings )
+{
+	double fcenterx, fcentery;
+	fcenterx= (settings->x1+settings->x0)/2;
+	fcentery= (settings->y1+settings->y0)/2;
+	double fwidth=settings->x1-settings->x0, fheight=settings->x1-settings->x0;
+	if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
+	else {fwidth *= 0.8; fheight*=0.8;}
+	settings->x0 = fcenterx - fwidth/2;
+	settings->x1 = fcenterx + fwidth/2;
+	settings->y0 = fcentery - fheight/2;
+	settings->y1 = fcentery + fheight/2;
+}
