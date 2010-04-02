@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 
 
-	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+	//SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 	int mouse_x,mouse_y, mouse_x_prev=0,mouse_y_prev=0;
 	bool bIgnoreMousedown = false, bIgnoreRightMousedown=false;
 
@@ -68,10 +68,6 @@ while(true)
     {
       //an event was found
       if ( event.type == SDL_QUIT ) break ;
-      else if ( event.type == SDL_MOUSEBUTTONDOWN )
-	  {
-			break;
-	  }
 	  else if (event.type==SDL_KEYDOWN)
 	  {
 		switch(event.key.keysym.sym)
@@ -99,6 +95,35 @@ while(true)
 			default: break;
 		}
 	  }
+	  else if ( event.type == SDL_MOUSEMOTION )
+	  {
+		  int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+		  if ((buttons & SDL_BUTTON_LMASK))
+			if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight)
+				IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &curA, &curB);
+	  }
+      else if ( event.type == SDL_MOUSEBUTTONDOWN )
+	  {
+			//only called once per click
+			int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+			int mod = SDL_GetModState();
+
+			//control click = zoom in, shift click=zoom out
+			if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
+			{
+				int direction = (mod & KMOD_CTRL) ? 1 : -1;
+				tryZoomPlot(direction, mouse_x, mouse_y, settings);
+				bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
+				ForceRedraw();
+				RedrawMenag();
+			}
+			else if (buttons & SDL_BUTTON_RMASK)
+			{
+				InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
+				ForceRedraw();
+				RedrawMenag();
+			}
+	  }
     }
 
 
@@ -109,7 +134,8 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	if (prevA==curA && prevB == curB)
 	{
 		// don't need to compute anything.
-		//SDL_FillRect ( pSurface , NULL , 0/*black*/ );  //debug by drawing black indicating nothing new is computed.
+		//debug by drawing black indicating nothing new is computed.
+		//SDL_FillRect ( pSurface , NULL , 0/*black*/ );
 	}
 	else
 	{
@@ -122,57 +148,8 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	}
 	prevA=curA; prevB=curB;
 
-		SDL_PumpEvents();
-		int mod = SDL_GetModState();
-
-
-int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-if ((buttons & SDL_BUTTON_LMASK) && !bIgnoreMousedown)
-{
-	if (mod & KMOD_CTRL ) //a control click. zoom in.
-	{
-		tryZoomPlot(1, mouse_x, mouse_y, settings);
-		bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
-		ForceRedraw();
-		RedrawMenag();
-	}
-	else if (mod & KMOD_SHIFT ) //a shift click. zoom out.
-	{
-		tryZoomPlot(-1, mouse_x, mouse_y, settings);
-		bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
-		ForceRedraw();
-		RedrawMenag();
-	}
-	else
-	{
-		// clicking and dragging:
-		if (mouse_x_prev!= mouse_x || mouse_y_prev!= mouse_y)
-		{
-			if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight)
-				IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &curA, &curB);
-		}
-		mouse_x_prev = mouse_x;
-		mouse_y_prev = mouse_y;
-	}
 }
-else
-bIgnoreMousedown = false;
-
-
-if ((buttons & SDL_BUTTON_RMASK) && !bIgnoreRightMousedown)
-{
-//reset view
-InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
-RedrawMenag();
-bIgnoreRightMousedown = true;
-}
-else
-bIgnoreRightMousedown = false;
-
-}
-
-		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ; //apparently needed every frame, even when not redrawing
-
+		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;  //apparently needed every frame, even when not redrawing
 	
 	}
 	return 0;
@@ -195,7 +172,7 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*
 	settings->browsex1 = fmousex + fwidth/2;
 	settings->browsey0 = fmousey - fheight/2;
 	settings->browsey1 = fmousey + fheight/2;
-	SDL_Delay(700); //prevent repeatedly zooming!
+	//SDL_Delay(700); //prevent repeatedly zooming!
 }
 void zoomPortrait(int direction, PhasePortraitSettings * settings )
 {
