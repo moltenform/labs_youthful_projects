@@ -71,6 +71,7 @@ namespace CsGeneralBitmap
             this.txtExpression.Size = new System.Drawing.Size(209+150, 61+70);
             this.FormClosed += new FormClosedEventHandler(onFormClose);
             
+
             this.ResumeLayout(false);
 
             this.tbParamIters = tbShading; lblParamIters=lblShading; //give it another, more accurate, name
@@ -78,8 +79,14 @@ namespace CsGeneralBitmap
             this.tbParamIters.Minimum = 0; this.tbParamIters.Maximum = 10000;
             this.tbSettling.Minimum = 0; this.tbSettling.Maximum = 2000;
 
+            this.AllowDrop = true;
+            this.DragEnter += new DragEventHandler(Form1_DragEnter);
+            this.DragDrop += new DragEventHandler(Form1_DragDrop);
+
             mnuFileNew_Click(null, null);
         }
+
+        
 
         private bool bAltMode = false;
         void plotCntrl_OnAltShiftDrag(double nx0, double nx1, double ny0, double ny1)
@@ -474,5 +481,18 @@ namespace CsGeneralBitmap
         private TrackBar tbParamIters;
         private Label lblParamIters;
 
+        void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length>0)
+                loadIni(files[0]);
+        }
+        void Form1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
+                e.Effect = DragDropEffects.Copy;
+            else
+                e.Effect = DragDropEffects.None;
+        }
     }
 }

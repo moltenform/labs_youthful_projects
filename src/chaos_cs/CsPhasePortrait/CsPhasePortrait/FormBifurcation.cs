@@ -68,6 +68,10 @@ namespace CsPhasePortrait
             mnuFileCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.C)));
             this.fileToolStripMenuItem.DropDownItems.Insert(4, mnuFileCopy);
 
+            this.AllowDrop = true;
+            this.DragEnter += new DragEventHandler(Form1_DragEnter);
+            this.DragDrop += new DragEventHandler(Form1_DragDrop);
+
             mnuFileNew_Click(null, null);
         }
 
@@ -415,5 +419,18 @@ namespace CsPhasePortrait
         private TrackBar tbTotalPoints;
         private Label lblTotalPoints;
 
+        void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length>0)
+                loadIni(files[0]);
+        }
+        void Form1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
+                e.Effect = DragDropEffects.Copy;
+            else
+                e.Effect = DragDropEffects.None;
+        }
     }
 }

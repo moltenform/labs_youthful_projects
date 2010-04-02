@@ -12,6 +12,8 @@
  * todo: threading, previews, zoom animations, nudge view left/right?
  * todo: clicking on plot to zoom in should incorporate textbox/slider changes? Eliminate view menu, plotcontrol to have only public methods no ui?
  * in the future one could have a seperate "render mode", with different AdditionalShading, but for now can type in comment in init. code
+ * 
+ * note that you can't drag/drop files from a non-elevated program to an elevated program.
  * */
 
 using System;
@@ -50,8 +52,14 @@ namespace CsBifurcation
             mnuFileCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.C)));
             this.fileToolStripMenuItem.DropDownItems.Insert(4, mnuFileCopy);
 
+            this.AllowDrop = true;
+            this.DragEnter += new DragEventHandler(Form1_DragEnter);
+            this.DragDrop += new DragEventHandler(Form1_DragDrop);
+
             mnuFileNew_Click(null, null);
         }
+
+        
 
         public void Redraw()
         {
@@ -372,6 +380,19 @@ namespace CsBifurcation
         // to each point, for example to draw for 2d maps like the henon map.
         // This could be in the Advanced menu, say, with a menu item that would be checked if the value was set.
         // However, this isn't needed- one can take advantage of the "P0" box to insert additional code. See henon.cfg.
-        
+
+        void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length>0)
+                loadIni(files[0]);
+        }
+        void Form1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
+                e.Effect = DragDropEffects.Copy;
+            else
+                e.Effect = DragDropEffects.None;
+        }
     }
 }
