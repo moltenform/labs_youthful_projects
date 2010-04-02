@@ -12,14 +12,14 @@
 #include "basic.h"
 #include "menagerie.h"
 #include "main.h"
-#include "old.h"
+#include "io.h"
 
 
 Uint32 g_white;
 
 
 //int PlotHeight=400, PlotWidth=400, PlotX = 400;
-int PlotHeight=200, PlotWidth=200, PlotX = 400;
+int PlotHeight=300, PlotWidth=300, PlotX = 400;
 int PhaseHeight = 384, PhaseWidth = 384;
 
 void setSettling(PhasePortraitSettings * settings, int direction);
@@ -103,40 +103,31 @@ for ( ; ; )
       //else if ( event.type == SDL_MOUSEBUTTONDOWN ) break ;
 	  else if (event.type==SDL_KEYDOWN)
 	  {
-		  if (event.key.keysym.sym == SDLK_UP) curB += 0.005;
-		  else if (event.key.keysym.sym == SDLK_DOWN) curB -= 0.005;
-		  else if (event.key.keysym.sym == SDLK_LEFT) curA -= 0.005;
-		  else if (event.key.keysym.sym == SDLK_RIGHT) curA += 0.005;
-		  else if (event.key.keysym.sym == SDLK_s) {save(curA,curB);}
-		  else if (event.key.keysym.sym == SDLK_ESCAPE) {return 0;}
-		  else if (event.key.keysym.sym == SDLK_F4) {return 0;}
-			if (event.key.keysym.mod & KMOD_ALT)
-			{
-				switch(event.key.keysym.sym)
-				{
-					/*case SDLK_s: controller_sets_pos(&targetA, &targetB); break;
-					case SDLK_g: controller_gets_pos(targetA, targetB); break;
-					case SDLK_b: breathe = !breathe; break;
-					case SDLK_1: setSettling(settings, 1); break;
-					case SDLK_2: setSettling(settings, -1); break;
-					case SDLK_3: setShading(settings, 1); break;
-					case SDLK_4: setShading(settings, -1); break;
-					case SDLK_5: setSliding(&sliding, 1); break;
-					case SDLK_6: setSliding(&sliding, -1); break;
-					case SDLK_PAGEUP: setZoom(settings, 1); break;
-					case SDLK_PAGEDOWN: setZoom(settings, -1); break;*/
-					default: break;
-				}
-				//force redraw
-				if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-				DrawPhasePortrait(pSurface, settings, curA,curB);
-				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
-			}
+		switch(event.key.keysym.sym)
+		{
+			case SDLK_UP: curB += 0.005; break;
+			case SDLK_DOWN: curB -= 0.005; break;
+			case SDLK_LEFT: curA -= 0.005; break;
+			case SDLK_RIGHT: curA += 0.005; break;
+			default: break;
+		}
 	  }
-	  
-	  
-	  
-		
+	  else if (event.type==SDL_KEYUP)
+	  {
+		switch(event.key.keysym.sym)
+		{
+			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB); break;
+			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB); break;
+			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB); break;
+			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
+			case SDLK_PAGEUP: break;
+			case SDLK_PAGEDOWN: break;
+			case SDLK_1: break;
+			case SDLK_ESCAPE: return 0; break;
+			case SDLK_F4: return 0; break;
+			default: break;
+		}
+	  }
     }
 
 
