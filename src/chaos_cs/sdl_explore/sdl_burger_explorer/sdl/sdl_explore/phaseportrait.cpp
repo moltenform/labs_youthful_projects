@@ -112,7 +112,6 @@ void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, d
 	double x_,x,y;
 	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
 
-	//
 
 	for (double sx=sx0; sx<=sx1; sx+=sxinc)
             {

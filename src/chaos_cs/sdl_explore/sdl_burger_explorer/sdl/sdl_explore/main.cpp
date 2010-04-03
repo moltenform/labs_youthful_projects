@@ -44,11 +44,7 @@ int main( int argc, char* argv[] )
 	SDL_Event event;
 	bool bNeedToLock =  SDL_MUSTLOCK(pSurface);
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
-
-
-	//SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-	int mouse_x,mouse_y, mouse_x_prev=0,mouse_y_prev=0;
-	bool bIgnoreMousedown = false, bIgnoreRightMousedown=false;
+	int mouse_x,mouse_y;
 
 	//cache the home menagerie?
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
@@ -113,11 +109,10 @@ while(true)
 			{
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				tryZoomPlot(direction, mouse_x, mouse_y, settings);
-				bIgnoreMousedown = true; //ignore subsequent events until mouse released, so we don't repeatedly zoom
 				ForceRedraw();
 				RedrawMenag();
 			}
-			else if (buttons & SDL_BUTTON_RMASK)
+			else if (buttons & SDL_BUTTON_RMASK) //right-click resets
 			{
 				InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 				ForceRedraw();
@@ -172,7 +167,6 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*
 	settings->browsex1 = fmousex + fwidth/2;
 	settings->browsey0 = fmousey - fheight/2;
 	settings->browsey1 = fmousey + fheight/2;
-	//SDL_Delay(700); //prevent repeatedly zooming!
 }
 void zoomPortrait(int direction, PhasePortraitSettings * settings )
 {
