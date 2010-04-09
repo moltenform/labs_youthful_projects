@@ -96,11 +96,13 @@ typedef struct
 } MenagerieSettings;
 
 //MenagerieSettings mSettings = {20,400,16, 100,100, -3.75,0.75,-2.1,2.1};
-MenagerieSettings mSettings = {10,100,16, 100,100, -3.75,0.75,-2.1,2.1};
+//MenagerieSettings mSettings = {10,100,16, 100,100, -3.75,0.75,-2.1,2.1};
+//MenagerieSettings mSettings = {10,50,16, 256,256, -3.75,0.75,-2.1,2.1};
+MenagerieSettings mSettings = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1};
 MenagerieSettings* managerieSettings = &mSettings;
 
 
-int _drawPhasePortrait(MenagerieSettings* settings, double a, double b, int arrAns[])
+int _drawPhasePortrait(MenagerieSettings* settings, double c1, double c2, int arrAns[])
 {
 	double sx,sy; int ii;//loop vars
 	int totalUniquePoints = 0;
@@ -125,15 +127,13 @@ int _drawPhasePortrait(MenagerieSettings* settings, double a, double b, int arrA
 
 			for (ii=0; ii<(settings->settling); ii++)
 			{
-				x_ = a*x - y*y;
-				y = b*y + x*y;
+				MAPEXPRESSION;
 				x = x_;
 				if ((ISTOOBIG(x)||ISTOOBIG(y))) break;
 			}
 			for (ii=0; ii<(settings->drawing); ii++)
 			{
-				x_ = a*x - y*y;
-				y = b*y + x*y;
+				MAPEXPRESSION;
 				x = x_;
 				if ((ISTOOBIG(x)||ISTOOBIG(y))) break;
 
@@ -180,13 +180,12 @@ void DrawMenagerieOld( SDL_Surface* pSmallSurface, PhasePortraitSettings*setting
 		else
 			r=g=b= (Uint32) ((val+1)*255.0);
 			
-  
-  char* pPosition = ( char* ) pSmallSurface->pixels ; //determine position
-  pPosition += ( pSmallSurface->pitch * py ); //offset by y
-  pPosition += ( pSmallSurface->format->BytesPerPixel * px ); //offset by x
+
+ char *  pPosition = ( char* ) pSmallSurface->pixels ; //determine position
+  pPosition += ( pSmallSurface->pitch * (py) ); //offset by y
+  pPosition += ( pSmallSurface->format->BytesPerPixel * (px) ); //offset by x
   Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
   memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
-
 
             fy -= dy;
         }
@@ -194,6 +193,62 @@ void DrawMenagerieOld( SDL_Surface* pSmallSurface, PhasePortraitSettings*setting
     }
 
 	free(arr);
+	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
+}
+
+int *arr=NULL;
+void DrawMenagerieQuick( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+{
+	SDL_FillRect ( pSmallSurface , NULL , g_white );
+	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
+	if (arr==NULL)
+		arr = (int*) malloc( sizeof(int)*managerieSettings->phaseFigureWidth*managerieSettings->phaseFigureHeight);
+
+	double fx,fy;
+
+	int height=PlotHeight;
+	int width=PlotWidth;
+
+	double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
+	
+    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+    fx = X0; fy = Y1; //y counts downwards
+	 char* pPosition;
+    for (int px = 0; px < width; px+=4)
+    {
+        fy = Y1;
+        for (int py=0; py<height; py+=4)
+        {
+			//fx,fy
+		int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
+
+		//double val = fx+fy; //sqrt((double)hits);// / 20.0;
+		double val = sqrt((double)hits)/10;// / 20.0;
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = val*2 - 1; //from -1 to 1
+		Uint32 r,g,b;
+		if (val>=0)
+			b=255, r=g= (Uint32) ((1-val)*255.0);
+		else
+			r=g=b= (Uint32) ((val+1)*255.0);
+			
+  
+for (int ncy=0; ncy<4; ncy++){
+for (int ncx=0; ncx<4; ncx++){
+
+  pPosition = ( char* ) pSmallSurface->pixels ; //determine position
+  pPosition += ( pSmallSurface->pitch * (py+ncy) ); //offset by y
+  pPosition += ( pSmallSurface->format->BytesPerPixel * (px+ncx) ); //offset by x
+  Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
+  memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
+}}
+
+
+            fy -= dy*4;
+        }
+        fx += dx*4;
+    }
+
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
 }
 

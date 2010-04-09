@@ -1,14 +1,9 @@
-/*
-henon set is:
-x_ = 1 - c1*x*x + y;
-y = c2*x;
-x=x_;*/
 
-#define BIFURC 0
 #include "SDL.h"
 #include "phaseportrait.h"
 
 #include <math.h>
+void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) ;
 
 void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB)
 {
@@ -16,7 +11,7 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 	settings->browsex1 = 2;
 	settings->browsey0 = -.5;
 	settings->browsey1 = 3.5;
-#if !BIFURC
+
 	settings->x0 = -1.75;
 	settings->x1 = 1.75;
 	settings->y0 = -1.75;
@@ -28,21 +23,8 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 	*outB= 1.72;
 	settings->seedsPerAxis = 40;
 	settings->settling = 48;
-	settings->drawing = 20;
-#else
-	settings->x0 = -1.78771125;
-	settings->x1 = -1.49943375;
-	settings->y0 = -1.2853075;
-	settings->y1 = 3.144875;
-	settings->width = width;
-	settings->height = height;
-
-	*outA=0.5402;
-	*outB= 0.2994;
-	settings->seedsPerAxis = 40;
-	settings->settling = 20;
-	settings->drawing = 100;
-#endif
+	settings->drawing = 20; //also, # of iters for the Basins mode.
+	settings->drawBasin = 0;
 }
 
 inline void plotpoint(SDL_Surface* pSurface, int px, int py)
@@ -100,6 +82,7 @@ void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double
 
 void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 ) 
 {
+	if (settings->drawBasin) return DrawBasinQuick(pSurface,settings,c1,c2);
 	double sx0= -2, sx1=2, sy0= -2, sy1=2;
 
 	int nXpoints=settings->seedsPerAxis;
@@ -121,16 +104,14 @@ void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, d
 
 					for (int ii=0; ii<(settings->settling); ii++)
                     {
-                        x_ = c1*x - y*y;
-						y = c2*y + x*y;
+						MAPEXPRESSION;
                         x=x_; 
 						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
                     }
 					for (int ii=0; ii<(settings->drawing); ii++)
                     {
-						x_ = c1*x - y*y;
-						y = c2*y + x*y;
-                        x=x_; 
+						MAPEXPRESSION;
+                        x=x_;
 						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 
                         int px = (int)(width * ((x - X0) / (X1 - X0)));
@@ -164,5 +145,63 @@ void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, d
 }
 
 
+void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) 
+{
+	if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
+
+	double fx,fy, x_,x,y;
+
+	int height=settings->height;
+	int width=settings->width;
+	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
+	
+    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+    fx = X0; fy = Y1; //y counts downwards
+	 char* pPosition;
+    for (int py=0; py<height; py+=4)
+        {
+			fx=X0;
+	 for (int px = 0; px < width; px+=4)
+    {
+        
+        x=fx; y=fy;
+		for (int i=0; i<settings->drawing; i++)
+		{
+			MAPEXPRESSION;
+            x=x_;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+		}
+		double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
+		if (y<0) distance *= -1;
+
+		//double val = fx+fy; //sqrt((double)hits);// / 20.0;
+		double val = distance; //sqrt((double)hits)/10;// / 20.0;
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = val*2 - 1; //from -1 to 1
+		Uint32 r,g,b;
+		if (val>=0)
+			b=255, r=g= (Uint32) ((1-val)*255.0);
+		else
+			r=g=b= (Uint32) ((val+1)*255.0);
+			
+  
+for (int ncy=0; ncy<4; ncy++){
+for (int ncx=0; ncx<4; ncx++){
+
+  pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * (py+ncy) ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * (px+ncx) ); //offset by x
+  Uint32 newcol = SDL_MapRGB ( pSurface->format , r , g , b ) ;
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+}}
+
+
+        fx += dx*4;
+        }
+            fy -= dy*4;
+    }
+
+	if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
+}
 
 

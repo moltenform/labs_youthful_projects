@@ -11,10 +11,11 @@
 #include "phaseportrait.h"
 #include "menagerie.h"
 #include "io.h"
+#include "breathe.h"
 
 //cause redraw by making prevA out of date.
 #define ForceRedraw() prevA=99
-#define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
+#define RedrawMenag() {if (bMenagerie) DrawMenagerieQuick(pSmallerSurface, settings);}
 
 
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
@@ -33,7 +34,7 @@ int main( int argc, char* argv[] )
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	
 	//these settings
-	bool bMenagerie = true;
+	bool bMenagerie = false;
 	if (bMenagerie) loadData();
 
 
@@ -83,6 +84,8 @@ while(true)
 			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB); break;
 			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB); break;
 			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
+			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, curA,curB);ForceRedraw();} break;
+			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
 			case SDLK_1: break;

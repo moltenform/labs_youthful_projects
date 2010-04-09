@@ -9,6 +9,7 @@ char * HELPEROUTPUTFILE = "helper_out.txt";
 void saveData(PhasePortraitSettings * settings, char * filename, double a,double b)
 {
 	FILE * f = fopen(filename, "w");
+	if (!f) return;
 	fprintf(f,";version,1,w,%d,h,%d,x0,%f,x1,%f,y0,%f,y1,%f,a,%f,b,%f,",
 		settings->width,settings->height,
 		settings->x0, settings->x1, settings->y0, settings->y1,
@@ -24,6 +25,7 @@ void saveData(PhasePortraitSettings * settings, char * filename, double a,double
 void loadData(PhasePortraitSettings * settings, char * filename, double *outA, double *outB)
 {
 	FILE * f = fopen(filename, "r");
+	if (!f) return;
 	int version;
 	fscanf(f,";version,%d,w,%d,h,%d,x0,%lf,x1,%lf,y0,%lf,y1,%lf,a,%lf,b,%lf,",
 		&version,
@@ -52,7 +54,7 @@ bool didUserCancel()
 	if (fscanf(fop, "%d", &tmp)>0) bSuccess=false;
 	else bSuccess=true;
 	fclose(fop);
-	return bSuccess;
+	return !bSuccess;
 }
 void onOpen(PhasePortraitSettings * settings, double *a,double *b)
 {
@@ -68,6 +70,7 @@ void onGetExact(PhasePortraitSettings * settings, double *a,double *b)
 	if (!didUserCancel())
 	{
 		FILE * f = fopen(HELPEROUTPUTFILE, "r");
+		if (!f) return;
 		fscanf(f, "out:%lf,%lf", a,b);
 		fclose(f);
 	}
@@ -78,6 +81,7 @@ void onGetMoreOptions(PhasePortraitSettings * settings, double *a,double *b)
 	if (!didUserCancel())
 	{
 		FILE * f = fopen(HELPEROUTPUTFILE, "r");
+		if (!f) return;
 		fscanf(f, "out:%d,%d,%d", &settings->seedsPerAxis,&settings->settling, &settings->drawing);
 		fclose(f);
 	}
