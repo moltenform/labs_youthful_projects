@@ -87,4 +87,16 @@ void onGetMoreOptions(PhasePortraitSettings * settings, double *a,double *b)
 	}
 }
 
+void loadFkeyPreset(int key, bool bshift, bool balt, PhasePortraitSettings * settings, double *a,double *b)
+{
+	// ANSI C standard: forward slashes ok in file names even in windows
+	char stemplate[]="presets/%d%s.cfg";
+
+	char path[256] = {0};
+	if (key>12||key<0) return;
+	char * comb = (bshift ? "s" : (balt ? "b" : ""));
+	_snprintf(path, sizeof(path), stemplate, key, comb);
+	loadData(settings, path, a, b);
+}
+
 

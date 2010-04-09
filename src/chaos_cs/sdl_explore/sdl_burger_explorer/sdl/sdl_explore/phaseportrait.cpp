@@ -182,6 +182,7 @@ void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, doub
 			//double diffx = (x) - (c1*x - y*y);
 			//double diffy = (y) - (c2*y + x*y);
             val = sqrt(abs(x));
+			if (y<0) val*=.8;
 		}
 
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;

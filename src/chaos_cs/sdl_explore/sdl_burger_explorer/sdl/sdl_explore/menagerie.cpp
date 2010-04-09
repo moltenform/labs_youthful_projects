@@ -9,18 +9,18 @@ int chy_width=3072, chy_height=1536;
 unsigned short * alldata = NULL;
 void loadData()
 {
+	if (DYNAMICMENAGERIE) return;
 	if (alldata != NULL) return;
-	FILE * f = fopen("C:\\pydev\\mainsvn\\chaos_cs\\sdl_explore\\sdl_burger_explorer\\chy.dat", "rb");
+	FILE * f = fopen("data/chy.dat", "rb");
 	if (!f) {int die = 0; exit(2);}
 	alldata = (unsigned short *) malloc( sizeof(unsigned short)*chy_width*chy_height);
 	fread(alldata, sizeof(unsigned short), chy_width*chy_height, f);
 	fclose(f);
 }
 
-void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+void DrawMenagerieFromPrecomputed( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
 {
 	double fx,fy;
-	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
 	int height=PlotHeight;
 	int width=PlotWidth;
 	double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
@@ -67,9 +67,6 @@ memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
 
 		fy -= dy;
 	}
-
-
-	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
 }
 
 
@@ -148,9 +145,8 @@ int _drawPhasePortrait(MenagerieSettings* settings, double c1, double c2, int ar
 	return totalUniquePoints;
 }
 
-void DrawMenagerieOld( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+void DrawMenagerieHighQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
 {
-	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
 	int* arr = (int*) malloc( sizeof(int)*managerieSettings->phaseFigureWidth*managerieSettings->phaseFigureHeight);
 
 	double fx,fy;
@@ -193,14 +189,13 @@ void DrawMenagerieOld( SDL_Surface* pSmallSurface, PhasePortraitSettings*setting
     }
 
 	free(arr);
-	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
 }
 
 int *arr=NULL;
-void DrawMenagerieQuick( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+void DrawMenagerieLowQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
 {
-	SDL_FillRect ( pSmallSurface , NULL , g_white );
-	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
+	//SDL_FillRect ( pSmallSurface , NULL , g_white );
+	
 	if (arr==NULL)
 		arr = (int*) malloc( sizeof(int)*managerieSettings->phaseFigureWidth*managerieSettings->phaseFigureHeight);
 
@@ -249,7 +244,17 @@ for (int ncx=0; ncx<4; ncx++){
         fx += dx*4;
     }
 
+}
+
+void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+{
+	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
+	if (DYNAMICMENAGERIE)
+		DrawMenagerieLowQuality(pSmallSurface, settings);
+	else
+		DrawMenagerieFromPrecomputed(pSmallSurface,settings);
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
+
 }
 
 void BlitMenagerie(SDL_Surface* pSurface,SDL_Surface* pSmallSurface)

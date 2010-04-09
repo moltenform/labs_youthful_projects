@@ -7,7 +7,7 @@
 #include <memory.h>
 #include <math.h>
 
-#include "common.h"
+#include "common.h" //see DYNAMICMENAGERIE setting
 #include "phaseportrait.h"
 #include "menagerie.h"
 #include "io.h"
@@ -15,7 +15,7 @@
 
 //cause redraw by making prevA out of date.
 #define ForceRedraw() prevA=99
-#define RedrawMenag() {if (bMenagerie) DrawMenagerieQuick(pSmallerSurface, settings);}
+#define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
 
 
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
@@ -34,7 +34,6 @@ int main( int argc, char* argv[] )
 	//these settings
 	bool bMenagerie = true;
 	if (bMenagerie) loadData();
-
 
 	atexit ( SDL_Quit ) ; 
 	SDL_Init ( SDL_INIT_VIDEO ) ; 
@@ -91,7 +90,10 @@ while(true)
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
 			case SDLK_SPACE: displayInstructions(pSurface, settings); ForceRedraw(); break;
 			case SDLK_1: break;
-			default: break;
+			default: 
+				if (event.key.keysym.sym >= SDLK_F1 && event.key.keysym.sym <= SDLK_F10) {
+					loadFkeyPreset(event.key.keysym.sym - SDLK_F1 + 1,(event.key.keysym.mod & KMOD_SHIFT)!=0,(event.key.keysym.mod & KMOD_ALT)!=0, settings, &curA, &curB); ForceRedraw(); }
+				break;
 		}
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )

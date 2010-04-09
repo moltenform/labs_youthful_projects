@@ -11,7 +11,7 @@ enum {
 
   FPS = 20 //limit frames per second
 } ;
-
+#define DYNAMICMENAGERIE 0
 typedef struct
 {
 	int width;
@@ -31,6 +31,7 @@ typedef struct
 	int drawing;
 	int drawBasin;
 } PhasePortraitSettings;
+
 
 //called an "extern" so that it's declared many times and defined once.
 extern Uint32 g_white; 
