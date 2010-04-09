@@ -2,12 +2,17 @@
 
 #include "sdl.h"
 
+#define FULLSCREEN 0 
+
 enum {
   SCREENWIDTH = 800,
   SCREENHEIGHT = 600,
   SCREENBPP = 0,
-  //SCREENFLAGS = SDL_ANYFORMAT,// | SDL_FULLSCREEN
+#if FULLSCREEN
   SCREENFLAGS = SDL_ANYFORMAT | SDL_FULLSCREEN,
+#else
+  SCREENFLAGS = SDL_ANYFORMAT,
+#endif
 
   FPS = 20 //limit frames per second
 } ;

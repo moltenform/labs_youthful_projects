@@ -22,10 +22,11 @@ namespace CsHelper
 
         class TheProgram
         {
-            //convieniently, c's system is blocking and waits for us to quit.
+            //convieniently, c's system() is blocking and waits for us to quit.
 
-            static string INPUTFILE = "helper_in.txt";
-            static string OUTPUTFILE = "helper_out.txt";
+            static string INPUTFILE = "data\\helper_in.txt";
+            static string OUTPUTFILE = "data\\helper_out.txt";
+            static string TEMPLATEFILE = "data\\save_template.txt";
             public static void TheMain(string[] args)
             {
                 if (args.Length != 2)
@@ -48,7 +49,7 @@ namespace CsHelper
                         if ((saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
                         {
                             string sInputData = readFromFile(INPUTFILE);
-                            string sTemplate = readFromFile("save_template.cfg");
+                            string sTemplate = readFromFile(TEMPLATEFILE);
                             sTemplate = sTemplate.Replace("%data%", sInputData);
                             string[] sParts = sInputData.Split(new char[] { ',' });
                             if (sParts.Length > 29)

@@ -13,10 +13,9 @@
 #include "io.h"
 #include "breathe.h"
 
-//cause redraw by making prevA out of date.
-#define ForceRedraw() prevA=99
 #define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
-
+#define ForceRedraw() {RedrawMenag(); prevA=99;}
+//cause redraw by making prevA out of date. Because using precomputed menag, it's cheap to redraw it too.
 
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
 int PhaseHeight = 384, PhaseWidth = 384;
@@ -79,9 +78,9 @@ while(true)
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: return 0; break;
 			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB); break;
-			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB); break;
-			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB); break;
-			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
+			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB);ForceRedraw(); break;
+			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB);ForceRedraw(); break;
+			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB);ForceRedraw(); break;
 			case SDLK_F11: fullscreen(pSurface, false, settings, &curA,&curB); ForceRedraw(); break;
 			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, true, settings, &curA,&curB);ForceRedraw();} break;
@@ -92,7 +91,8 @@ while(true)
 			case SDLK_1: break;
 			default: 
 				if (event.key.keysym.sym >= SDLK_F1 && event.key.keysym.sym <= SDLK_F10) {
-					loadFkeyPreset(event.key.keysym.sym - SDLK_F1 + 1,(event.key.keysym.mod & KMOD_SHIFT)!=0,(event.key.keysym.mod & KMOD_ALT)!=0, settings, &curA, &curB); ForceRedraw(); }
+					loadFkeyPreset(event.key.keysym.sym - SDLK_F1 + 1,(event.key.keysym.mod & KMOD_SHIFT)!=0,(event.key.keysym.mod & KMOD_ALT)!=0, settings, &curA, &curB);
+					ForceRedraw(); }
 				break;
 		}
 	  }

@@ -3,8 +3,8 @@
 #include "phaseportrait.h"
 
 
-char * HELPERINPUTFILE = "helper_in.txt";
-char * HELPEROUTPUTFILE = "helper_out.txt";
+char * HELPERINPUTFILE = "data/helper_in.txt";
+char * HELPEROUTPUTFILE = "data/helper_out.txt";
 
 void saveData(PhasePortraitSettings * settings, char * filename, double a,double b)
 {

@@ -100,13 +100,13 @@ int displayInstructions(SDL_Surface* pSurface, PhasePortraitSettings * settings)
 	SDL_Event event;
 	SDL_Surface *temp=NULL;
 	if (pInstructions1==NULL) {
-		temp = SDL_LoadBMP("instr1.bmp"); 
+		temp = SDL_LoadBMP("data/instr1.bmp"); 
 		if (temp==NULL) return -1;
 		pInstructions1 = SDL_DisplayFormat(temp);
 		SDL_FreeSurface(temp);
 	}
 	if (pInstructions2==NULL) {
-		temp = SDL_LoadBMP("instr2.bmp"); 
+		temp = SDL_LoadBMP("data/instr2.bmp"); 
 		if (temp==NULL) return -1;
 		pInstructions2 = SDL_DisplayFormat(temp);
 		SDL_FreeSurface(temp);
