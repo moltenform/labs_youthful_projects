@@ -34,7 +34,7 @@ int main( int argc, char* argv[] )
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	
 	//these settings
-	bool bMenagerie = false;
+	bool bMenagerie = true;
 	if (bMenagerie) loadData();
 
 
@@ -47,12 +47,11 @@ int main( int argc, char* argv[] )
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 	int mouse_x,mouse_y;
 
-	//cache the home menagerie?
+	//cache the home menagerie? might not be a bad idea.
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	if (bMenagerie)
 		DrawMenagerie(pSmallerSurface, settings); 
  
-
 
 	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 	SDL_FillRect ( pSurface , NULL , g_white );
@@ -84,7 +83,7 @@ while(true)
 			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB); break;
 			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB); break;
 			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
-			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, curA,curB);ForceRedraw();} break;
+			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
