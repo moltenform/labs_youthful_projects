@@ -144,9 +144,9 @@ namespace CsBifurcation
             }
         ";
         public static string sStandardColorLoopEnd = @" 
-                    int iR=((int)(rval*256)) & 0xff;
-                    int iG=((int)(gval*256))& 0xff;
-                    int iB=((int)(bval*256))& 0xff;
+                    int iR=((int)(rval*255)) & 0xff;
+                    int iG=((int)(gval*255))& 0xff;
+                    int iB=((int)(bval*255))& 0xff;
                     arrAns[py + px*height] = (double)((iR<<16)+(iG<<8)+iB)+64;
                     fy -= dy;
                 }
