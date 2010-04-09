@@ -15,7 +15,6 @@ int dofullscreen(SDL_Surface* pSurface, bool breathe, PhasePortraitSettings * se
 
 	SDL_Event event;
 	double sliding = 10.0;
-	
 
 while (true)
 {
@@ -158,16 +157,12 @@ return 0;
 
 void oscillate(double curA,double curB,double *outA, double *outB)
 {
-	static double statePos=0.0, stateFreq=0.0;
-	if (statePos>31.415926) statePos=0.0;
-	if (stateFreq>31.415926) stateFreq=0.0;
-	stateFreq+=0.01;
-	statePos+=stateFreq;
+	static double t=0;
+	t+=0.13;
+	if (t>3141.5926) t=0.0;
 
-	//the frequency itself oscillates
-	double oscilFreq = 0.09 + sin(stateFreq)/70;
-	*outA = curA+ sin(statePos*.3702342521232353)/550;
-	*outB = curB+ cos(statePos)/400; 
+	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/200;
+	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/263;
 }
 int fullscreen(SDL_Surface* pSurface, bool breathe, PhasePortraitSettings * settings, double *ptrtargetA, double *ptrtargetB)
 {
