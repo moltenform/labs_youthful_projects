@@ -8,7 +8,7 @@
 
 void oscillate(double curA,double curB,double *outA, double *outB);
 
-//should return current a and b!
+
 int dofullscreen(SDL_Surface* pSurface, bool breathe, PhasePortraitSettings * settings, double *targetA, double *targetB)
 {
 	double curA=0.0, curB=0.0;
@@ -40,36 +40,24 @@ while (true)
 	  }
 	else if (event.type==SDL_KEYUP)
 	  {
-		  if (event.key.keysym.sym==SDLK_LALT || event.key.keysym.sym==SDLK_RALT) {}
-		  else if ((event.key.keysym.mod == 0) && event.key.keysym.sym!=SDLK_f) {return 0; break;}
-		  //else ;
-		/*switch(event.key.keysym.sym)
+		switch(event.key.keysym.sym)
 		{
-			case SDLK_UP: break;
-			case SDLK_DOWN: break;
-			case SDLK_LEFT: break;
-			case SDLK_RIGHT: break;
-			case SDLK_f: break;
-			case SDLK_RALT: break;
-			case SDLK_LALT: break;
-			case SDLK_RSHIFT: break;
-			case SDLK_LSHIFT: break;
-			
-			case SDLK_SPACE:
-			case SDLK_ESCAPE:
-			case SDLK_RETURN: 
-			case SDLK_F11: 
-			case SDLK_BACKSPACE: 
-			case SDLK_DELETE: 
-			case SDLK_HOME: 
-			case SDLK_q: 
+			case SDLK_UP:
+			case SDLK_DOWN: 
+			case SDLK_LEFT: 
+			case SDLK_RIGHT:
+			case SDLK_f: 
+			case SDLK_RALT:
+			case SDLK_LALT:
+			case SDLK_RSHIFT: 
+			case SDLK_LSHIFT:
+			case SDLK_RCTRL:
+			case SDLK_LCTRL:
+				break;
+			default: 
 				return 0; //return back to the other screen!
 				break;
-			 
-			default: 
-				//return 0; //return back to the other screen!
-				break;
-		}*/
+		}
 	}
 	}
 
@@ -103,6 +91,68 @@ while (true)
 	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;  //apparently needed every frame, even when not redrawing
 
 }
+return 0;
+}
+
+SDL_Surface* pInstructions1=NULL;
+SDL_Surface* pInstructions2=NULL;
+int displayInstructions(SDL_Surface* pSurface, PhasePortraitSettings * settings)
+{
+	SDL_Event event;
+	SDL_Surface *temp=NULL;
+	if (pInstructions1==NULL) {
+		temp = SDL_LoadBMP("instr1.bmp"); 
+		if (temp==NULL) return -1;
+		pInstructions1 = SDL_DisplayFormat(temp);
+		SDL_FreeSurface(temp);
+	}
+	if (pInstructions2==NULL) {
+		temp = SDL_LoadBMP("instr2.bmp"); 
+		if (temp==NULL) return -1;
+		pInstructions2 = SDL_DisplayFormat(temp);
+		SDL_FreeSurface(temp);
+	}
+	SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
+	SDL_Rect dest;
+	dest.x = 50;
+	dest.y = 50;
+	dest.w = pInstructions1->w;
+	dest.h = pInstructions1->h;
+	SDL_BlitSurface(pInstructions1, NULL, pSurface, &dest);
+	dest.x = PlotX;
+	dest.y = PlotHeight+15;
+	dest.w = pInstructions2->w;
+	dest.h = pInstructions2->h;
+	SDL_BlitSurface(pInstructions2, NULL, pSurface, &dest);
+	DrawPlotGrid(pSurface,settings, 999,999);
+
+	while (true)
+	{
+	if ( SDL_PollEvent ( &event ) )
+	{
+	//an event was found
+	if ( event.type == SDL_QUIT ) return 0;
+	else if (event.type==SDL_MOUSEBUTTONDOWN) return 0;
+	else if (event.type==SDL_KEYUP)
+	  {
+		switch(event.key.keysym.sym)
+		{
+			case SDLK_SPACE: 
+			case SDLK_RALT:
+			case SDLK_LALT:
+			case SDLK_RSHIFT: 
+			case SDLK_LSHIFT:
+			case SDLK_RCTRL:
+			case SDLK_LCTRL:
+				break;
+			default: 
+				return 0; //return back to the other screen!
+				break;
+		}
+	}
+	}
+	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
+	}
 return 0;
 }
 

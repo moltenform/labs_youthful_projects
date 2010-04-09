@@ -79,17 +79,19 @@ while(true)
 	  {
 		switch(event.key.keysym.sym)
 		{
+			case SDLK_ESCAPE: return 0; break;
+			case SDLK_F4: return 0; break;
 			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB); break;
 			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB); break;
 			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB); break;
 			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
+			case SDLK_F11: fullscreen(pSurface, false, settings, &curA,&curB); ForceRedraw(); break;
 			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
+			case SDLK_SPACE: displayInstructions(pSurface, settings); ForceRedraw(); break;
 			case SDLK_1: break;
-			case SDLK_ESCAPE: return 0; break;
-			case SDLK_F4: return 0; break;
 			default: break;
 		}
 	  }
