@@ -6,7 +6,8 @@ enum {
   SCREENWIDTH = 800,
   SCREENHEIGHT = 600,
   SCREENBPP = 0,
-  SCREENFLAGS = SDL_ANYFORMAT,// | SDL_FULLSCREEN
+  //SCREENFLAGS = SDL_ANYFORMAT,// | SDL_FULLSCREEN
+  SCREENFLAGS = SDL_ANYFORMAT | SDL_FULLSCREEN,
 
   FPS = 20 //limit frames per second
 } ;
@@ -33,10 +34,11 @@ typedef struct
 
 //called an "extern" so that it's declared many times and defined once.
 extern Uint32 g_white; 
-extern int PlotHeight, PlotWidth, PlotX;
+extern int PlotHeight, PlotWidth, PlotX, PhaseWidth, PhaseHeight;
  
 
 void IntPlotCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY);
 void DoubleCoordsToInt(PhasePortraitSettings*settings, double fx, double fy, int* outX, int* outY);
+void IntPhaseCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY);
 bool LockFramesPerSecond();
 

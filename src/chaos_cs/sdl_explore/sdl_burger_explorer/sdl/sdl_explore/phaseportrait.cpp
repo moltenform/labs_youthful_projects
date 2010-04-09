@@ -144,7 +144,8 @@ void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, d
     }
 }
 
-
+//#define SCALEDOWN 4
+#define SCALEDOWN 1
 void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) 
 {
 	if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
@@ -158,10 +159,10 @@ void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, doub
     double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
     fx = X0; fy = Y1; //y counts downwards
 	 char* pPosition;
-    for (int py=0; py<height; py+=4)
+    for (int py=0; py<height; py+=SCALEDOWN)
         {
 			fx=X0;
-	 for (int px = 0; px < width; px+=4)
+	 for (int px = 0; px < width; px+=SCALEDOWN)
     {
         
         x=fx; y=fy;
@@ -171,22 +172,29 @@ void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, doub
             x=x_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 		}
-		double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
+		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
 		if (y<0) distance *= -1;
+		double val = distance;*/
+		double val;
+		if (ISTOOBIG(x)||ISTOOBIG(y))
+			val=1.0;
+		else{
+			//double diffx = (x) - (c1*x - y*y);
+			//double diffy = (y) - (c2*y + x*y);
+            val = sqrt(abs(x));
+		}
 
-		//double val = fx+fy; //sqrt((double)hits);// / 20.0;
-		double val = distance; //sqrt((double)hits)/10;// / 20.0;
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1
 		Uint32 r,g,b;
-		if (val>=0)
-			b=255, r=g= (Uint32) ((1-val)*255.0);
+		if (val<=0)
+			b=255, r=g= (Uint32) ((1+val)*255.0);
 		else
-			r=g=b= (Uint32) ((val+1)*255.0);
+			r=g=b= (Uint32) ((1-val)*255.0);
 			
   
-for (int ncy=0; ncy<4; ncy++){
-for (int ncx=0; ncx<4; ncx++){
+for (int ncy=0; ncy<SCALEDOWN; ncy++){
+for (int ncx=0; ncx<SCALEDOWN; ncx++){
 
   pPosition = ( char* ) pSurface->pixels ; //determine position
   pPosition += ( pSurface->pitch * (py+ncy) ); //offset by y
@@ -196,9 +204,9 @@ for (int ncx=0; ncx<4; ncx++){
 }}
 
 
-        fx += dx*4;
+        fx += dx*SCALEDOWN;
         }
-            fy -= dy*4;
+            fy -= dy*SCALEDOWN;
     }
 
 	if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;

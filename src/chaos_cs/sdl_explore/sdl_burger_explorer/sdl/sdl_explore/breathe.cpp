@@ -14,7 +14,7 @@ int dofullscreen(SDL_Surface* pSurface, bool breathe, PhasePortraitSettings * se
 	double curA=0.0, curB=0.0;
 
 	SDL_Event event;
-	double sliding = 10.0;
+	double sliding = (settings->drawBasin) ? 2 : 10.0;
 
 while (true)
 {

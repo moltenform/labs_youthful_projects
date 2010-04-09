@@ -25,8 +25,6 @@ Uint32 g_white;
 void zoomPortrait(int direction, PhasePortraitSettings * settings);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
 
-
-
 int main( int argc, char* argv[] )
 {
 	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
@@ -87,6 +85,7 @@ while(true)
 			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB); break;
 			case SDLK_F11: fullscreen(pSurface, false, settings, &curA,&curB); ForceRedraw(); break;
 			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, &curA,&curB);ForceRedraw();} break;
+			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, true, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
@@ -159,10 +158,9 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings)
 {
-	if (!(mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight))
-		return;
-	
 	double fmousex, fmousey;
+	if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>0 && mouse_y<PlotHeight)
+	{
 	IntPlotCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
 	double fwidth=settings->browsex1-settings->browsex0, fheight=settings->browsex1-settings->browsex0;
 	if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
@@ -171,6 +169,18 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*
 	settings->browsex1 = fmousex + fwidth/2;
 	settings->browsey0 = fmousey - fheight/2;
 	settings->browsey1 = fmousey + fheight/2;
+	}
+	else if (mouse_x>0 && mouse_x<PhaseWidth && mouse_y>0 && mouse_y<PhaseHeight)
+	{
+	IntPhaseCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
+	double fwidth=settings->x1-settings->x0, fheight=settings->x1-settings->x0;
+	if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
+	else {fwidth *= 0.8; fheight*=0.8;}
+	settings->x0 = fmousex - fwidth/2;
+	settings->x1 = fmousex + fwidth/2;
+	settings->y0 = fmousey - fheight/2;
+	settings->y1 = fmousey + fheight/2;
+	}
 }
 void zoomPortrait(int direction, PhasePortraitSettings * settings )
 {
