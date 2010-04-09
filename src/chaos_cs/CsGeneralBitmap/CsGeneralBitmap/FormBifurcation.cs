@@ -454,7 +454,16 @@ namespace CsGeneralBitmap
             }
 
             using (TextWriter tw = new StreamWriter(sScratchFile))
-                tw.Write(sScratchFileTemplateData.Replace("$$CODE$$", this.txtExpression.Text));
+            {
+                string search = "//$$SECTION$$";
+                string replace = "//$$SECTION$$\r\n"+this.txtExpression.Text;
+                int i = sScratchFileTemplateData.IndexOf(search);
+                //replace first occurence
+                if (i!=-1)
+                    tw.Write(sScratchFileTemplateData.Remove(i, search.Length).Insert(i, replace));
+                else
+                    tw.Write(sScratchFileTemplateData);
+            }
         }
         void mnuLoadScratch_Click(object sender, EventArgs e)
         {
