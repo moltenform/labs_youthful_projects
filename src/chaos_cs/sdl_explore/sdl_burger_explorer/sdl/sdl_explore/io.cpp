@@ -2,11 +2,10 @@
 
 #include "phaseportrait.h"
 
+const char * HELPERINPUTFILE = "data/helper_in.txt";
+const char * HELPEROUTPUTFILE = "data/helper_out.txt";
 
-char * HELPERINPUTFILE = "data/helper_in.txt";
-char * HELPEROUTPUTFILE = "data/helper_out.txt";
-
-void saveData(PhasePortraitSettings * settings, char * filename, double a,double b)
+void saveData(PhasePortraitSettings * settings, const char * filename, double a,double b)
 {
 	FILE * f = fopen(filename, "w");
 	if (!f) return;
@@ -22,7 +21,7 @@ void saveData(PhasePortraitSettings * settings, char * filename, double a,double
 	fclose(f);
 }
 
-void loadData(PhasePortraitSettings * settings, char * filename, double *outA, double *outB)
+void loadData(PhasePortraitSettings * settings, const char * filename, double *outA, double *outB)
 {
 	FILE * f = fopen(filename, "r");
 	if (!f) return;
@@ -94,8 +93,11 @@ void loadFkeyPreset(int key, BOOL bshift, BOOL balt, PhasePortraitSettings * set
 
 	char path[256] = {0};
 	if (key>12||key<0) return;
-	char * comb = (bshift ? "s" : (balt ? "b" : ""));
-	_snprintf(path, sizeof(path), stemplate, key, comb);
+	const char * comb = (bshift ? "s" : (balt ? "b" : ""));
+#if WIN32
+#define snprintf _snprintf
+#endif
+	snprintf(path, sizeof(path), stemplate, key, comb);
 	loadData(settings, path, a, b);
 }
 
