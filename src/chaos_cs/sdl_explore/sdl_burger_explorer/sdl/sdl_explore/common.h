@@ -1,8 +1,15 @@
 #pragma once
 
-#include "sdl.h"
+#if WIN32
+#include "SDL.h"
+#else
+#include "SDL/SDL.h"
+#endif
 
 #define FULLSCREEN 0 
+#define BOOL int
+#define TRUE 1
+#define FALSE 0
 
 enum {
   SCREENWIDTH = 800,
@@ -46,5 +53,5 @@ extern int PlotHeight, PlotWidth, PlotX, PhaseWidth, PhaseHeight;
 void IntPlotCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY);
 void DoubleCoordsToInt(PhasePortraitSettings*settings, double fx, double fy, int* outX, int* outY);
 void IntPhaseCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY);
-bool LockFramesPerSecond();
+BOOL LockFramesPerSecond();
 

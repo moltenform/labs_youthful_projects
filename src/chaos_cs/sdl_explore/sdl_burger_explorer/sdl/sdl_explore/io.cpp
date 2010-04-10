@@ -45,14 +45,14 @@ void onSave(PhasePortraitSettings * settings, double a,double b)
 	saveData(settings, HELPERINPUTFILE, a,b);
 	system("cshelper s");
 }
-bool didUserCancel()
+BOOL didUserCancel()
 {
-	int tmp; bool bSuccess=false;
+	int tmp; BOOL bSuccess=FALSE;
 	//if the file begins with an integer, user hit cancel
 	FILE * fop = fopen(HELPEROUTPUTFILE, "r");
 	
-	if (fscanf(fop, "%d", &tmp)>0) bSuccess=false;
-	else bSuccess=true;
+	if (fscanf(fop, "%d", &tmp)>0) bSuccess=FALSE;
+	else bSuccess=TRUE;
 	fclose(fop);
 	return !bSuccess;
 }
@@ -87,7 +87,7 @@ void onGetMoreOptions(PhasePortraitSettings * settings, double *a,double *b)
 	}
 }
 
-void loadFkeyPreset(int key, bool bshift, bool balt, PhasePortraitSettings * settings, double *a,double *b)
+void loadFkeyPreset(int key, BOOL bshift, BOOL balt, PhasePortraitSettings * settings, double *a,double *b)
 {
 	// ANSI C standard: forward slashes ok in file names even in windows
 	char stemplate[]="presets/%d%s.cfg";

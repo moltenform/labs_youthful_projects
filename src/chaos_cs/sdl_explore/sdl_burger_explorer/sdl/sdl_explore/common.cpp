@@ -25,7 +25,7 @@ some sdl references:
 //http://www.gameprogrammer.com/fastevents/fastevents1.html
 */
 
-bool LockFramesPerSecond() //run no faster than x fps
+BOOL LockFramesPerSecond() //run no faster than x fps
 {
 	int framerate=FPS;
 	static float lastTime = 0.0f;
@@ -33,8 +33,8 @@ bool LockFramesPerSecond() //run no faster than x fps
 	if((currentTime - lastTime) > (1.0f / framerate))
 	{
 		lastTime = currentTime;
-		return true;
+		return TRUE;
 	}
-	return false;
+	return FALSE;
 }
 

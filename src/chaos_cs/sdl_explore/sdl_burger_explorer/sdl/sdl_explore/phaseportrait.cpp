@@ -1,5 +1,5 @@
 
-#include "SDL.h"
+
 #include "phaseportrait.h"
 
 #include <math.h>
@@ -27,7 +27,7 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 	settings->drawBasin = 0;
 }
 
-inline void plotpoint(SDL_Surface* pSurface, int px, int py)
+/*inline*/ void plotpoint(SDL_Surface* pSurface, int px, int py)
 {
  if (!(px>=PlotX && px<=PlotX+PlotWidth && py>=0 && py<=PlotHeight))
 	 return;

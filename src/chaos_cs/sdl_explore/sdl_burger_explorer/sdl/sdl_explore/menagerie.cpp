@@ -1,4 +1,3 @@
-#include "SDL.h"
 #include "phaseportrait.h"
 #include "common.h"
 #include <math.h>

@@ -1,7 +1,6 @@
 #pragma warning (disable:4996)
 //about fopen, scanf
 
-#include "SDL.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -31,7 +30,7 @@ int main( int argc, char* argv[] )
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	
 	//these settings
-	bool bMenagerie = true;
+	BOOL bMenagerie = TRUE;
 	if (bMenagerie) loadData();
 
 	atexit ( SDL_Quit ) ; 
@@ -39,7 +38,7 @@ int main( int argc, char* argv[] )
 	//create main window
 	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , SCREENFLAGS ) ;
 	SDL_Event event;
-	bool bNeedToLock =  SDL_MUSTLOCK(pSurface);
+	BOOL bNeedToLock =  SDL_MUSTLOCK(pSurface);
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 	int mouse_x,mouse_y;
 
@@ -53,7 +52,7 @@ int main( int argc, char* argv[] )
 	SDL_FillRect ( pSurface , NULL , g_white );
 
 
-while(true)
+while(TRUE)
 {
     //look for an event
     if ( SDL_PollEvent ( &event ) )
@@ -81,9 +80,9 @@ while(true)
 			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB);ForceRedraw(); break;
 			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB);ForceRedraw(); break;
 			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB);ForceRedraw(); break;
-			case SDLK_F11: fullscreen(pSurface, false, settings, &curA,&curB); ForceRedraw(); break;
-			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, false, settings, &curA,&curB);ForceRedraw();} break;
-			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, true, settings, &curA,&curB);ForceRedraw();} break;
+			case SDLK_F11: fullscreen(pSurface, FALSE, settings, &curA,&curB); ForceRedraw(); break;
+			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, FALSE, settings, &curA,&curB);ForceRedraw();} break;
+			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, TRUE, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;

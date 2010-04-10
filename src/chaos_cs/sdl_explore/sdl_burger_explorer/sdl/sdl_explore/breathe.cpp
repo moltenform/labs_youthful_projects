@@ -1,7 +1,6 @@
 
 #include "breathe.h"
 #include "common.h"
-#include "sdl.h"
 #include "phaseportrait.h"
 #include <math.h>
 
@@ -9,14 +8,14 @@
 void oscillate(double curA,double curB,double *outA, double *outB);
 
 
-int dofullscreen(SDL_Surface* pSurface, bool breathe, PhasePortraitSettings * settings, double *targetA, double *targetB)
+int dofullscreen(SDL_Surface* pSurface, BOOL breathe, PhasePortraitSettings * settings, double *targetA, double *targetB)
 {
 	double curA=0.0, curB=0.0;
 
 	SDL_Event event;
 	double sliding = (settings->drawBasin) ? 2 : 10.0;
 
-while (true)
+while (TRUE)
 {
 	curA += (*targetA-curA)/sliding;
 	curB += (*targetB-curB)/sliding;
@@ -125,7 +124,7 @@ int displayInstructions(SDL_Surface* pSurface, PhasePortraitSettings * settings)
 	SDL_BlitSurface(pInstructions2, NULL, pSurface, &dest);
 	DrawPlotGrid(pSurface,settings, 999,999);
 
-	while (true)
+	while (TRUE)
 	{
 	if ( SDL_PollEvent ( &event ) )
 	{
@@ -164,7 +163,7 @@ void oscillate(double curA,double curB,double *outA, double *outB)
 	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/200;
 	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/263;
 }
-int fullscreen(SDL_Surface* pSurface, bool breathe, PhasePortraitSettings * settings, double *ptrtargetA, double *ptrtargetB)
+int fullscreen(SDL_Surface* pSurface, BOOL breathe, PhasePortraitSettings * settings, double *ptrtargetA, double *ptrtargetB)
 {
 	int prev = settings->width;
 	settings->width = settings->height = 600;
