@@ -17,6 +17,26 @@ BOOL Dialog_GetDouble(const char* prompt, double previous, SDL_Surface* pSurface
 	return worked != 0;
 }
 
+//displays message until user presses any key.
+void Dialog_Message(const char* prompt, SDL_Surface* pSurface)
+{
+	SDL_FillRect ( pSurface , NULL , g_white );
+	ShowText( prompt, 30, 30, pSurface);
+	ShowText( "Press return to continue.", 30, 100, pSurface);
+	SDL_Event event;
+	while (TRUE)
+	{
+		if ( SDL_PollEvent ( &event ) )
+		{
+			if ( event.type == SDL_QUIT ) break; 
+			else if (event.type==SDL_KEYUP && event.key.keysym.sym == SDLK_RETURN) break;
+			else if (event.type==SDL_KEYUP && event.key.keysym.sym == SDLK_KP_ENTER) break;
+			else if (event.type==SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE) break;
+		}
+		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ; 
+	}
+}
+
 //user responsible for freeing. return null on cancel, or empty string.
 char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSurface)
 {
@@ -44,10 +64,6 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 			ShowText(buffer, 50, 100, pSurface);
 			ShowText("Press Enter, or Escape to cancel.", 30, 400, pSurface);
 			dirty = FALSE;
-
-			char tmpbuf[256];
-			snprintf(tmpbuf, sizeof(tmpbuf), "curreentlength:%d", currentLength);
-			ShowText(tmpbuf, 30, 400, pSurface);
 		}
 
 		if ( SDL_PollEvent ( &event ) )
@@ -55,11 +71,11 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 			if ( event.type == SDL_QUIT ) { cancelled=TRUE; break; }
 			else if (event.type==SDL_KEYUP)
 			{
-				  if (/*event.key.keysym.sym == ENTER ||*/ event.key.keysym.sym == SDLK_RETURN)
+				  if (event.key.keysym.sym == SDLK_KP_ENTER || event.key.keysym.sym == SDLK_RETURN)
 				  { cancelled=FALSE; break; }
 				  else if (event.key.keysym.sym == SDLK_ESCAPE)
 				  { cancelled=TRUE; break; }
-				  /*else if (event.key.keysym.sym == SDLK_BACKSPACE)
+				  else if (event.key.keysym.sym == SDLK_BACKSPACE)
 				  {
 					  if (event.key.keysym.mod & KMOD_CTRL) {
 						buffer[0]='_';
@@ -70,17 +86,14 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 						  buffer[currentLength--]='\0';
 						  buffer[currentLength]='_';
 					  }
-					dirty=TRUE;
-				  }*/
+					  dirty=TRUE;
+				  }
 				  else if (event.key.keysym.sym >= 32 && event.key.keysym.sym <= 126)
 				  {
 						buffer[currentLength]=event.key.keysym.sym;
 						buffer[currentLength+1]='_';
-						buffer[currentLength+2]='\0';
+						buffer[currentLength+2]='\0'; //just to be sure.
 						currentLength++;
-						//currentLength++;
-						//buffer[currentLength]='_';
-						//buffer[currentLength+1]='\0';
 						dirty=TRUE;
 				  }
 			}
@@ -105,6 +118,7 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 
 //from http://ubuntu-gamedev.pbworks.com/Using%20Bitmap%20Fonts%20with%20SDL
 //ported to C by Ben Fisher, 2010
+//added line with case '.': // .
 
 SDL_Surface* g_pFontList = NULL;
 BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
@@ -119,8 +133,13 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 	// That way we can alter fonts without the need for recompilcation
 
 	if (!g_pFontList) {
+		//check if the file is there, and assert null if not. TODO: why doesn't this check work?
+		FILE *tmp = fopen("data/font_source2.bmp", "rb");
+		if (!tmp) {assert(0); return -1;}
+		fclose(tmp);
+
 		SDL_Surface* temp = SDL_LoadBMP("data/font_source2.bmp"); 
-		if (temp==NULL) { assert(0); return -1;}
+		if (!temp) { assert(0); return -1;}
 		g_pFontList = SDL_DisplayFormat(temp);
 		SDL_FreeSurface(temp);
 
@@ -152,6 +171,14 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 				break;
 			case 0x2D: // -
 				tmp_rect.x = 184;
+				tmp_rect.w = 8;
+				tmp_rect.h = 19;
+				tmp_rect.y = 0;
+				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
+				rect.x += tmp_rect.w;
+				break;
+			case '.': // .
+				tmp_rect.x = 199;
 				tmp_rect.w = 8;
 				tmp_rect.h = 19;
 				tmp_rect.y = 0;
@@ -510,6 +537,7 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
 				rect.x += tmp_rect.w;
 				break;
+			
 			case 0x5C: // /
 				tmp_rect.x = 873;
 				tmp_rect.w = 9;
