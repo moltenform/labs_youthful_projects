@@ -5,6 +5,9 @@
 #else
 #include "SDL/SDL.h"
 #endif
+#if WIN32
+#define snprintf _snprintf
+#endif
 
 #define FULLSCREEN 0 
 #define BOOL int
