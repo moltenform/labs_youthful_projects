@@ -36,7 +36,11 @@ int main( int argc, char* argv[] )
 	atexit ( SDL_Quit ) ; 
 	SDL_Init ( SDL_INIT_VIDEO ) ; 
 	//create main window
-	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , SCREENFLAGS ) ;
+	Uint32 flags = SCREENFLAGS;
+	if (argc > 1 && strcmp(argv[1],"full")==0)
+		flags |= SDL_FULLSCREEN;
+	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , flags) ;
+
 	SDL_Event event;
 	BOOL bNeedToLock =  SDL_MUSTLOCK(pSurface);
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);

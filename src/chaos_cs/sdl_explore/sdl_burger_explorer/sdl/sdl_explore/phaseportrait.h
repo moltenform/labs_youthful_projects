@@ -6,6 +6,7 @@
 
 #define HENON x_ = 1 - c1*x*x + y; y = c2*x;
 #define BURGER x_ = c1*x - y*y; y= c2*y + x*y;
+#define BURGERCHH x_ = fabs(c1*x - y*y); y= c2*y + x*y;
 #define MAPEXPRESSION BURGER
 
 void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );
