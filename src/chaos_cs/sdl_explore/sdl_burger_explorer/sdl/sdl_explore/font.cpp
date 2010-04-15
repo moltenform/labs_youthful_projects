@@ -2,10 +2,10 @@
 #include <assert.h>
 #include "font.h"
 
-BOOL Dialog_GetDouble(const char* prompt, double previous, SDL_Surface* pSurface, double *out)
+BOOL Dialog_GetDouble(const char* prompt, SDL_Surface* pSurface, double *out)
 {
 	char tmpbuf[256];
-	snprintf(tmpbuf, sizeof(tmpbuf), "Value was previously:%f", previous);
+	snprintf(tmpbuf, sizeof(tmpbuf), "Value was previously:%f", *out);
 	char* ret = Dialog_GetText(prompt, tmpbuf, pSurface);
 	if (!ret) 
 		return FALSE;
@@ -13,6 +13,20 @@ BOOL Dialog_GetDouble(const char* prompt, double previous, SDL_Surface* pSurface
 	int worked = sscanf(ret, "%lf", &d);
 	if (worked)
 		*out = d;
+	free(ret);
+	return worked != 0;
+}
+BOOL Dialog_GetInt(const char* prompt, SDL_Surface* pSurface, int *out)
+{
+	char tmpbuf[256];
+	snprintf(tmpbuf, sizeof(tmpbuf), "Value was previously:%d", *out);
+	char* ret = Dialog_GetText(prompt, tmpbuf, pSurface);
+	if (!ret) 
+		return FALSE;
+	int n;
+	int worked = sscanf(ret, "%d", &n);
+	if (worked)
+		*out = n;
 	free(ret);
 	return worked != 0;
 }

@@ -17,6 +17,29 @@ BOOL saveData(PhasePortraitSettings * settings, const char * filename, double a,
 	fprintf(f,"seeds,%d,settle,%d,drawing,%d" ,
 		settings->seedsPerAxis, settings->settling, settings->drawing);
 	
+//Now add compatibility for cs phaseportrait
+	fprintf(f, "\n\n"
+		";saved from sdl_explore\n"
+		";the following is just so that it can be opened in cs_phase_portrait\n"
+		"[main_portrait]\n"
+		"X0=%f\n"
+		"X1=%f\n"
+		"Y0=%f\n"
+		"Y1=%f\n"
+		, settings->x0, settings->x1, settings->y0, settings->y1
+		);
+	fprintf(f, "\n"
+		"param1=%f\n"
+		"param2=%f\n"
+		"param3=0\n"
+		"param4=0\n"
+		"paramSettle=%d\n"
+		"paramTotalIters=400\n"
+		"paramExpression=%s\n"
+		"paramInit=//saved from sdl_explore\n"
+		"programVersion=0.0.1"
+		, a,b, settings->settling, MAPEXPRESSIONTEXT
+		);
 	fclose(f);
 	return TRUE;
 }
@@ -102,28 +125,19 @@ void onOpen(PhasePortraitSettings * settings, double *a,double *b, BOOL backward
 
 void onGetExact(PhasePortraitSettings * settings, double *a,double *b, SDL_Surface *pSurface)
 {
-	if (!Dialog_GetDouble("Enter a value for a:",*a,pSurface,a))
+	if (!Dialog_GetDouble("Enter a value for a:",pSurface,a))
 		return;
-	if (!Dialog_GetDouble("Enter a value for b:",*b,pSurface,b))
+	if (!Dialog_GetDouble("Enter a value for b:",pSurface,b))
 		return;
 }
-void onGetMoreOptions(PhasePortraitSettings * settings)
+void onGetMoreOptions(PhasePortraitSettings * settings, SDL_Surface *pSurface)
 {
-	/*if (!Dialog_GetDouble("Enter a value for seeds per axis:",*a,pSurface,a))
+	if (!Dialog_GetInt("Enter a value for seeds per axis:",pSurface,&settings->seedsPerAxis))
 		return;
-	if (!Dialog_GetDouble("Enter a value for settling:",*b,pSurface,b))
+	if (!Dialog_GetInt("Enter a value for settling:",pSurface,&settings->settling))
 		return;
-	if (!Dialog_GetDouble("Enter a value for how many points to draw:",*b,pSurface,b))
+	if (!Dialog_GetInt("Enter a value for how many points to draw:",pSurface,&settings->drawing))
 		return;
-
-	system("cshelper ;");
-	if (!didUserCancel())
-	{
-		FILE * f = fopen(HELPEROUTPUTFILE, "r");
-		if (!f) return;
-		fscanf(f, "out:%d,%d,%d", &settings->seedsPerAxis,&settings->settling, &settings->drawing);
-		fclose(f);
-	}*/
 }
 
 void loadFkeyPreset(int key, BOOL bshift, BOOL balt, PhasePortraitSettings * settings, double *a,double *b)
