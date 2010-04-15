@@ -140,7 +140,7 @@ void onGetMoreOptions(PhasePortraitSettings * settings, SDL_Surface *pSurface)
 		return;
 }
 
-void loadFkeyPreset(int key, BOOL bshift, BOOL balt, PhasePortraitSettings * settings, double *a,double *b)
+void loadPreset(int key, BOOL bshift, BOOL balt, PhasePortraitSettings * settings, double *a,double *b)
 {//take from num keys, not fkeys, since those include f4 which should quit.
 
 	// ANSI C standard: forward slashes ok in file names even in windows

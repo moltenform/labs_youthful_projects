@@ -12,6 +12,16 @@
 #include "io.h"
 #include "breathe.h"
 #include "font.h"
+/*
+Todo: basins save to cfg
+clean up key event code in main.cpp
+could have Menag cache for common values, in mem, and then resets
+genetic algorithm for finding interesting areas
+dynamic compilation?
+bug where clicking always causes zooming in
+show filename when opening?
+Remove a frame: turns it blank. overwrites file with empty string. "blank" 
+*/
 
 #define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
 #define ForceRedraw() {RedrawMenag(); prevA=99;}
@@ -36,7 +46,7 @@ int main( int argc, char* argv[] )
 		loadData(settings, argv[1], &curA, &curB);
 	
 	//these settings
-	BOOL bMenagerie = FALSE;
+	BOOL bMenagerie = TRUE;
 	if (bMenagerie) loadMenagerieData();
 
 	atexit ( SDL_Quit ) ; 
@@ -73,10 +83,10 @@ while(TRUE)
 	  {
 		switch(event.key.keysym.sym)
 		{
-			case SDLK_UP: curB += 0.005; break;
-			case SDLK_DOWN: curB -= 0.005; break;
-			case SDLK_LEFT: curA -= 0.005; break;
-			case SDLK_RIGHT: curA += 0.005; break;
+			case SDLK_UP: curB += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
+			case SDLK_DOWN: curB -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
+			case SDLK_LEFT: curA -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
+			case SDLK_RIGHT: curA += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
 			default: break;
 		}
 	  }
@@ -89,13 +99,11 @@ while(TRUE)
 			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB, pSurface); ForceRedraw(); break;
 			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB, (event.key.keysym.mod & KMOD_SHIFT)!=0);ForceRedraw(); break;
 			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB, pSurface);ForceRedraw(); break;
-			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) /*onGetMoreOptions(settings,&curA,&curB);*/ForceRedraw(); break;
+			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings, pSurface);ForceRedraw(); break;
 			case SDLK_F11: fullscreen(pSurface, FALSE, settings, &curA,&curB); ForceRedraw(); break;
 			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, FALSE, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, TRUE, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
-			case SDLK_9: Dialog_GetText("hey there","Previous value was: 4",pSurface);ForceRedraw(); break;
-			case SDLK_8: ForceRedraw(); break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
 			case SDLK_SPACE: 
@@ -103,10 +111,9 @@ while(TRUE)
 			case SDLK_F1: 
 			case SDLK_KP_ENTER: 
 				displayInstructions(pSurface, settings); ForceRedraw(); break;
-			case SDLK_1: break;
 			default: 
-				if (event.key.keysym.sym >= SDLK_F1 && event.key.keysym.sym <= SDLK_F10) {
-					loadFkeyPreset(event.key.keysym.sym - SDLK_F1 + 1,(event.key.keysym.mod & KMOD_SHIFT)!=0,(event.key.keysym.mod & KMOD_ALT)!=0, settings, &curA, &curB);
+				if (event.key.keysym.sym >= SDLK_0 && event.key.keysym.sym <= SDLK_9) {
+					loadPreset(event.key.keysym.sym - SDLK_0,(event.key.keysym.mod & KMOD_SHIFT)!=0,(event.key.keysym.mod & KMOD_ALT)!=0, settings, &curA, &curB);
 					ForceRedraw(); }
 				break;
 		}
@@ -160,12 +167,14 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 		DrawPhasePortrait(pSurface, settings, curA,curB);
 		DrawPlotGrid(pSurface,settings, curA,curB);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
+
+		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;  //put it only here?
 		
 	}
 	prevA=curA; prevB=curB;
 
 }
-		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;  //apparently needed every frame, even when not redrawing
+		//SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;  //is this needed every frame, even when not redrawing?
 	
 	}
 	return 0;
