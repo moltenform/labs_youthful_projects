@@ -23,7 +23,7 @@ Uint32 g_white;
 
 void zoomPortrait(int direction, PhasePortraitSettings * settings);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
-void getSpecificAB(double *a, double *b, SDL_Surface *pSurface);
+int displayInstructions(SDL_Surface* pSurface,PhasePortraitSettings * settings);
 
 int main( int argc, char* argv[] )
 {
@@ -98,7 +98,11 @@ while(TRUE)
 			case SDLK_8: ForceRedraw(); break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
-			case SDLK_SPACE: displayInstructions(pSurface, settings); ForceRedraw(); break;
+			case SDLK_SPACE: 
+			case SDLK_RETURN: 
+			case SDLK_F1: 
+			case SDLK_KP_ENTER: 
+				displayInstructions(pSurface, settings); ForceRedraw(); break;
 			case SDLK_1: break;
 			default: 
 				if (event.key.keysym.sym >= SDLK_F1 && event.key.keysym.sym <= SDLK_F10) {
@@ -208,4 +212,90 @@ void zoomPortrait(int direction, PhasePortraitSettings * settings )
 	settings->x1 = fcenterx + fwidth/2;
 	settings->y0 = fcentery - fheight/2;
 	settings->y1 = fcentery + fheight/2;
+}
+
+int displayInstructions(SDL_Surface* pSurface, PhasePortraitSettings * settings)
+{
+	SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
+	
+	
+	ShowText(
+		"Features\n"
+		"---------\n"
+		"\n"
+		"Ctrl+S\n"
+		"Ctrl+O\n"
+		"\n"
+		"Alt+F\n"
+		"Alt+B\n"
+		"Alt+G\n"
+		"\n"
+		"Ctrl+'\n"
+		"Ctrl+;\n"
+		"PgUp\n"
+		"PgDn\n"
+		"Space\n"
+		"Esc\n"
+		"\n"
+		"\n"
+		"Arrow keys\n"
+		"Ctrl-click\n"
+		"Shift-click\n"
+		"Right-click\n"
+		, 30, 30, pSurface);
+	ShowText(
+		"\n"
+		"\n"
+		"\n"
+		"Save\n"
+		"Open, cycling through saved files.\n"
+		"\n"
+		"Full screen\n"
+		"Breathing\n"
+		"Show Basins\n"
+		"\n"
+		"Set exact values\n"
+		"More settings\n"
+		"Zoom in\n"
+		"Zoom out\n"
+		"Show this screen\n"
+		"Close this screen\n"
+		"\n"
+		"\n"
+		"Move around\n"
+		"Zoom in\n"
+		"Zoom out\n"
+		"Reset view\n"
+		, 190, 30, pSurface);
+	//DrawPlotGrid(pSurface,settings, 999,999);
+
+	SDL_Event event;
+	while (TRUE)
+	{
+	if ( SDL_PollEvent ( &event ) )
+	{
+	//an event was found
+	if ( event.type == SDL_QUIT ) return 0;
+	else if (event.type==SDL_MOUSEBUTTONDOWN) return 0;
+	else if (event.type==SDL_KEYUP)
+	  {
+		switch(event.key.keysym.sym)
+		{
+			case SDLK_SPACE: 
+			case SDLK_RALT:
+			case SDLK_LALT:
+			case SDLK_RSHIFT: 
+			case SDLK_LSHIFT:
+			case SDLK_RCTRL:
+			case SDLK_LCTRL:
+				break;
+			default: 
+				return 0; //return back to the other screen!
+				break;
+		}
+	}
+	}
+	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
+	}
+	return 0;
 }

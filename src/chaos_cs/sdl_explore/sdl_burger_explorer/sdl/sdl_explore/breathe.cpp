@@ -1,6 +1,7 @@
 
 #include "breathe.h"
 #include "common.h"
+#include "font.h"
 #include "phaseportrait.h"
 #include <math.h>
 
@@ -92,67 +93,6 @@ while (TRUE)
 return 0;
 }
 
-SDL_Surface* pInstructions1=NULL;
-SDL_Surface* pInstructions2=NULL;
-int displayInstructions(SDL_Surface* pSurface, PhasePortraitSettings * settings)
-{
-	SDL_Event event;
-	SDL_Surface *temp=NULL;
-	if (pInstructions1==NULL) {
-		temp = SDL_LoadBMP("data/instr1.bmp"); 
-		if (temp==NULL) return -1;
-		pInstructions1 = SDL_DisplayFormat(temp);
-		SDL_FreeSurface(temp);
-	}
-	if (pInstructions2==NULL) {
-		temp = SDL_LoadBMP("data/instr2.bmp"); 
-		if (temp==NULL) return -1;
-		pInstructions2 = SDL_DisplayFormat(temp);
-		SDL_FreeSurface(temp);
-	}
-	SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-	SDL_Rect dest;
-	dest.x = 50;
-	dest.y = 50;
-	dest.w = pInstructions1->w;
-	dest.h = pInstructions1->h;
-	SDL_BlitSurface(pInstructions1, NULL, pSurface, &dest);
-	dest.x = PlotX;
-	dest.y = PlotHeight+15;
-	dest.w = pInstructions2->w;
-	dest.h = pInstructions2->h;
-	SDL_BlitSurface(pInstructions2, NULL, pSurface, &dest);
-	DrawPlotGrid(pSurface,settings, 999,999);
-
-	while (TRUE)
-	{
-	if ( SDL_PollEvent ( &event ) )
-	{
-	//an event was found
-	if ( event.type == SDL_QUIT ) return 0;
-	else if (event.type==SDL_MOUSEBUTTONDOWN) return 0;
-	else if (event.type==SDL_KEYUP)
-	  {
-		switch(event.key.keysym.sym)
-		{
-			case SDLK_SPACE: 
-			case SDLK_RALT:
-			case SDLK_LALT:
-			case SDLK_RSHIFT: 
-			case SDLK_LSHIFT:
-			case SDLK_RCTRL:
-			case SDLK_LCTRL:
-				break;
-			default: 
-				return 0; //return back to the other screen!
-				break;
-		}
-	}
-	}
-	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
-	}
-return 0;
-}
 
 void oscillate(double curA,double curB,double *outA, double *outB)
 {

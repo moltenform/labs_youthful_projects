@@ -138,7 +138,7 @@ SDL_Surface* g_pFontList = NULL;
 BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 {
 	// this one doesn't choose font.
-	return ShowTextAdvanced(text, 0, pos_x, pos_y, pScreen);
+	return ShowTextAdvanced(text, 1, pos_x, pos_y, pScreen);
 }
 BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surface* pScreen)
 {
@@ -174,6 +174,10 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 			case 0x20:
 				rect.x += 10;
 				break;
+			case '\n':
+				rect.x = pos_x;
+				rect.y += 20;
+				break;
 			case 0x21: // !
 				tmp_rect.x = 4;
 				tmp_rect.w = 6;
@@ -190,7 +194,31 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
 				rect.x += tmp_rect.w;
 				break;
-			case ',': // ,
+			case '\'': 
+				tmp_rect.x = 199-15*7;
+				tmp_rect.w = 8;
+				tmp_rect.h = 19;
+				tmp_rect.y = 0;
+				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
+				rect.x += tmp_rect.w;
+				break;
+			case '*': 
+				tmp_rect.x = 199-15*4;
+				tmp_rect.w = 8;
+				tmp_rect.h = 19;
+				tmp_rect.y = 0;
+				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
+				rect.x += tmp_rect.w;
+				break;
+			case '+':
+				tmp_rect.x = 199-15*3;
+				tmp_rect.w = 8;
+				tmp_rect.h = 19;
+				tmp_rect.y = 0;
+				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
+				rect.x += tmp_rect.w;
+				break;
+			case ',':
 				tmp_rect.x = 199-15-15;
 				tmp_rect.w = 8;
 				tmp_rect.h = 19;
@@ -198,7 +226,7 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
 				rect.x += tmp_rect.w;
 				break;
-			case '.': // .
+			case '.': 
 				tmp_rect.x = 199;
 				tmp_rect.w = 8;
 				tmp_rect.h = 19;
