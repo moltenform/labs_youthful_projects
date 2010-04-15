@@ -3,6 +3,15 @@
 #include <assert.h>
 #include "font.h"
 
+BOOL Dialog_GetBool(const char* prompt, SDL_Surface* pSurface)
+{
+	char* ret = Dialog_GetText(prompt, "Type y or n.", pSurface);
+	if (!ret) 
+		return FALSE;
+	BOOL wasTrue = strcmp(ret,"y")==0 || strcmp(ret,"yes")==0;
+	free(ret);
+	return wasTrue;
+}
 BOOL Dialog_GetDouble(const char* prompt, SDL_Surface* pSurface, double *out)
 {
 	char tmpbuf[256];

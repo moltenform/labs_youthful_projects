@@ -12,6 +12,7 @@
 #include "io.h"
 #include "breathe.h"
 #include "font.h"
+#include "animate.h"
 /*
 Todo: basins save to cfg
 clean up key event code in main.cpp
@@ -49,6 +50,7 @@ Uint32 g_white;
 void zoomPortrait(int direction, PhasePortraitSettings * settings);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
 int displayInstructions(SDL_Surface* pSurface,PhasePortraitSettings * settings);
+BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt,BOOL bShift, SDL_Surface*pSurface, PhasePortraitSettings*settings, double *outA, double *outB);
 
 int main( int argc, char* argv[] )
 {
@@ -89,11 +91,9 @@ int main( int argc, char* argv[] )
 
 while(TRUE)
 {
-    //look for an event
     if ( SDL_PollEvent ( &event ) )
     {
-      //an event was found
-      if ( event.type == SDL_QUIT ) break ;
+      if ( event.type == SDL_QUIT ) return 0;
 	  else if (event.type==SDL_KEYDOWN)
 	  {
 		switch(event.key.keysym.sym)
@@ -102,36 +102,18 @@ while(TRUE)
 			case SDLK_DOWN: curB -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
 			case SDLK_LEFT: curA -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
 			case SDLK_RIGHT: curA += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
+			case SDLK_ESCAPE: return 0; break;
+			case SDLK_F4: if (event.key.keysym.mod & KMOD_ALT) return 0; break;
 			default: break;
 		}
 	  }
 	  else if (event.type==SDL_KEYUP)
 	  {
-		switch(event.key.keysym.sym)
-		{
-			case SDLK_ESCAPE: return 0; break;
-			case SDLK_F4: return 0; break;
-			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB, pSurface); ForceRedraw(); break;
-			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB, (event.key.keysym.mod & KMOD_SHIFT)!=0);ForceRedraw(); break;
-			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB, pSurface);ForceRedraw(); break;
-			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings, pSurface);ForceRedraw(); break;
-			case SDLK_F11: fullscreen(pSurface, FALSE, settings, &curA,&curB); ForceRedraw(); break;
-			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, FALSE, settings, &curA,&curB);ForceRedraw();} break;
-			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, TRUE, settings, &curA,&curB);ForceRedraw();} break;
-			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
-			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
-			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
-			case SDLK_SPACE: 
-			case SDLK_RETURN: 
-			case SDLK_F1: 
-			case SDLK_KP_ENTER: 
-				displayInstructions(pSurface, settings); ForceRedraw(); break;
-			default: 
-				if (event.key.keysym.sym >= SDLK_0 && event.key.keysym.sym <= SDLK_9) {
-					loadPreset(event.key.keysym.sym - SDLK_0,(event.key.keysym.mod & KMOD_SHIFT)!=0,(event.key.keysym.mod & KMOD_ALT)!=0, settings, &curA, &curB);
-					ForceRedraw(); }
-				break;
-		}
+		  BOOL needtodraw = onKeyUp(event.key.keysym.sym, (event.key.keysym.mod & KMOD_CTRL)!=0,
+			  (event.key.keysym.mod & KMOD_ALT)!=0,(event.key.keysym.mod & KMOD_SHIFT)!=0, 
+				pSurface, settings, &curA, &curB);
+		
+		  if (needtodraw) ForceRedraw();
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -152,13 +134,11 @@ while(TRUE)
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				tryZoomPlot(direction, mouse_x, mouse_y, settings);
 				ForceRedraw();
-				RedrawMenag();
 			}
 			else if (buttons & SDL_BUTTON_RMASK) //right-click resets
 			{
 				InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 				ForceRedraw();
-				RedrawMenag();
 			}
 	  }
     }
@@ -195,7 +175,45 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	return 0;
 }
 
+BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, PhasePortraitSettings*settings, double *outA, double *outB)
+{
+	BOOL needtodraw = TRUE;
+	//some of these needlessly set needtodraw, but whatever.
+	switch (key)
+	{
+		case SDLK_s: if (bControl) onSave(settings,*outA,*outB, pSurface);  break;
+		case SDLK_o: if (bControl) onOpen(settings,outA,outB, bShift); break;
+		case SDLK_QUOTE: if (bControl) onGetExact(settings,outA,outB, pSurface); break;
+		case SDLK_SEMICOLON: if (bControl) onGetMoreOptions(settings, pSurface); break;
+		case SDLK_F11: fullscreen(pSurface, FALSE, settings, outA,outB);  break;
+		case SDLK_f: if (bAlt) {fullscreen(pSurface, FALSE, settings, outA,outB);} break;
+		case SDLK_b: if (bAlt) {fullscreen(pSurface, TRUE, settings, outA,outB);} break;
+		case SDLK_g: if (bAlt) {settings->drawBasin = !settings->drawBasin;} break;
+		case SDLK_PAGEUP: zoomPortrait(1,settings);  break;
+		case SDLK_PAGEDOWN: zoomPortrait(-1,settings);  break;
+		case SDLK_BACKSPACE: if (bControl&&bShift&&Dialog_GetBool("Delete all frames?",pSurface)) deleteFrames(); break;
+		case SDLK_SPACE: 
+		case SDLK_RETURN: 
+		case SDLK_KP_ENTER: 
+			displayInstructions(pSurface, settings);  break;
+		default: 
+			if (key>=SDLK_F1 && key <= SDLK_F9) 
+				loadPreset(key+1 - SDLK_F1,bShift,bAlt, settings, outA, outB);
+				 
+			else if (key >= SDLK_1 && key <= SDLK_9)
+			{
+				if (bAlt) openFrame(key-SDLK_0, settings, outA,outB);
+				else if (bControl&&bShift&&Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_0);
+				else if (bControl) saveToFrame(key-SDLK_0, settings, *outA,*outB);
+			}
+			else 
+				needtodraw = FALSE;
+			break;
+	}
 
+
+	return needtodraw;
+}
 
 
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings)

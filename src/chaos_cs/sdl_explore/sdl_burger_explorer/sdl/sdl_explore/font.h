@@ -7,3 +7,4 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 void Dialog_Message(const char* prompt, SDL_Surface* pSurface);
 BOOL Dialog_GetDouble(const char* prompt, SDL_Surface* pSurface, double *out);
 BOOL Dialog_GetInt(const char* prompt, SDL_Surface* pSurface, int *out);
+BOOL Dialog_GetBool(const char* prompt, SDL_Surface* pSurface);
