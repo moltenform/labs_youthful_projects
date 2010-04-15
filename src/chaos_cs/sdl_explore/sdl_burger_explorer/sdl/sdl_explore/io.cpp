@@ -14,8 +14,8 @@ BOOL saveData(PhasePortraitSettings * settings, const char * filename, double a,
 		a,b);
 	fprintf(f,"browsex0,%f,browsex1,%f,browsey0,%f,browsey1,%f," ,
 		settings->browsex0, settings->browsex1, settings->browsey0, settings->browsey1);
-	fprintf(f,"seeds,%d,settle,%d,drawing,%d" ,
-		settings->seedsPerAxis, settings->settling, settings->drawing);
+	fprintf(f,"seeds,%d,settle,%d,drawing,%d,basins,%d" ,
+		settings->seedsPerAxis, settings->settling, settings->drawing, settings->drawBasin);
 	
 //Now add compatibility for cs phaseportrait
 	fprintf(f, "\n\n"
@@ -58,7 +58,7 @@ BOOL loadData(PhasePortraitSettings * settings, const char * filename, double *o
 		&settings->browsex0, &settings->browsex1, &settings->browsey0, &settings->browsey1);
 	fscanf(f,"seeds,%d,settle,%d,drawing,%d" ,
 		&settings->seedsPerAxis, &settings->settling, &settings->drawing);
-	
+	fscanf(f,",basins,%d", &settings->drawBasin);
 	fclose(f);
 	return TRUE;
 }

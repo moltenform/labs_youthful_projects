@@ -15,28 +15,13 @@
 #include "animate.h"
 /*
 Todo: basins save to cfg
-clean up key event code in main.cpp
 could have Menag cache for common values, in mem, and then resets
 genetic algorithm for finding interesting areas
 dynamic compilation?
 bug where clicking always causes zooming in
 show filename when opening?
-Remove a frame: turns it blank. overwrites file with empty string. "blank" 
 
-frames are saved, so don't worry about quitting/
-reopening!
-
-alt-1 goes to frame 1
-ctrl-1 saves to 1
-ctrl-shift-1 to clear frame 1. deleting it.
-ctrl-shift-backspace to clear animation
-alt-0 to play through the animation (in own loop)
-ctrl-alt-0 to save animation bmps!
-(asks for # of frames)
-
-ctrl-shift-s to save animation.
-otherwise, is irrespective of open file and so on,
-i.e. opening a new file won't clear animation.
+opening a new file, or quitting app, won't clear animation.
 */
 
 #define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
@@ -46,6 +31,7 @@ i.e. opening a new file won't clear animation.
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
 int PhaseHeight = 384, PhaseWidth = 384;
 Uint32 g_white;
+int framesPerKeyframe = 100;
 
 void zoomPortrait(int direction, PhasePortraitSettings * settings);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
@@ -63,7 +49,7 @@ int main( int argc, char* argv[] )
 		loadData(settings, argv[1], &curA, &curB);
 	
 	//these settings
-	BOOL bMenagerie = TRUE;
+	BOOL bMenagerie = FALSE;
 	if (bMenagerie) loadMenagerieData();
 
 	atexit ( SDL_Quit ) ; 
@@ -181,8 +167,8 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	//some of these needlessly set needtodraw, but whatever.
 	switch (key)
 	{
-		case SDLK_s: if (bControl) onSave(settings,*outA,*outB, pSurface);  break;
-		case SDLK_o: if (bControl) onOpen(settings,outA,outB, bShift); break;
+		case SDLK_s: if (bControl&&bAlt) saveAllKeyframes(pSurface); else if (bControl) onSave(settings,*outA,*outB, pSurface);  break;
+		case SDLK_o: if (bControl&&bAlt) openAllKeyframes(pSurface); else if (bControl) onOpen(settings,outA,outB, bShift); break;
 		case SDLK_QUOTE: if (bControl) onGetExact(settings,outA,outB, pSurface); break;
 		case SDLK_SEMICOLON: if (bControl) onGetMoreOptions(settings, pSurface); break;
 		case SDLK_F11: fullscreen(pSurface, FALSE, settings, outA,outB);  break;
@@ -191,7 +177,14 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_g: if (bAlt) {settings->drawBasin = !settings->drawBasin;} break;
 		case SDLK_PAGEUP: zoomPortrait(1,settings);  break;
 		case SDLK_PAGEDOWN: zoomPortrait(-1,settings);  break;
-		case SDLK_BACKSPACE: if (bControl&&bShift&&Dialog_GetBool("Delete all frames?",pSurface)) deleteFrames(); break;
+		case SDLK_BACKSPACE: if (bControl&&bShift&&Dialog_GetBool("Delete all frames?",pSurface)) {deleteFrames();*outA=*outB=0;} break;
+		case SDLK_0: 
+			if (bAlt) {
+				if (Dialog_GetBool("Render animation?",pSurface)) dowriteanimation(pSurface, framesPerKeyframe); 
+			} else 
+				dotestanimation(pSurface, framesPerKeyframe); 
+			break;
+		case SDLK_MINUS: if (bAlt) Dialog_GetInt("Frames per key frame:",pSurface,&framesPerKeyframe); break;
 		case SDLK_SPACE: 
 		case SDLK_RETURN: 
 		case SDLK_KP_ENTER: 
@@ -203,7 +196,7 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 			else if (key >= SDLK_1 && key <= SDLK_9)
 			{
 				if (bAlt) openFrame(key-SDLK_0, settings, outA,outB);
-				else if (bControl&&bShift&&Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_0);
+				else if (bControl&&bShift&&Dialog_GetBool("Delete frame?",pSurface)) {deleteFrame(key-SDLK_0); openFrame(0, settings, outA,outB);}
 				else if (bControl) saveToFrame(key-SDLK_0, settings, *outA,*outB);
 			}
 			else 
