@@ -9,6 +9,12 @@
 #define BURGERCHH x_ = fabs(c1*x - y*y); y= c2*y + x*y;
 #define MAPEXPRESSION BURGER
 
+#define HENONTEXT " x_ = 1 - c1*x*x + y;$@ y_ = c2*x;"
+#define BURGERTEXT "x_ = c1*x - y*y;$@ y_ = c2*y + x*y;"
+#define BURGERCHHTEXT "x_ = abs(c1*x - y*y);$@ y_ = c2*y + x*y;"
+#define MAPEXPRESSIONTEXT BURGERTEXT
+
+
 void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );
 void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB);
 void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );

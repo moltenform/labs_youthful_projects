@@ -2,16 +2,17 @@
 #include "common.h"
 #include <math.h>
 #include "assert.h"
+#include "font.h"
 
 double chy_x0 = -3.4, chy_x1=1.1, chy_y0=1.45, chy_y1=2.05;
 int chy_width=3072, chy_height=1536;
 unsigned short * alldata = NULL;
-void loadData()
+void loadMenagerieData()
 {
 	if (DYNAMICMENAGERIE) return;
 	if (alldata != NULL) return;
 	FILE * f = fopen("data/chy.dat", "rb");
-	if (!f) {assert(0);}
+	if (!f) { assert(0); exit(1); }
 	alldata = (unsigned short *) malloc( sizeof(unsigned short)*chy_width*chy_height);
 	fread(alldata, sizeof(unsigned short), chy_width*chy_height, f);
 	fclose(f);

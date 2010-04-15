@@ -11,6 +11,7 @@
 #include "menagerie.h"
 #include "io.h"
 #include "breathe.h"
+#include "font.h"
 
 #define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
 #define ForceRedraw() {RedrawMenag(); prevA=99;}
@@ -22,22 +23,27 @@ Uint32 g_white;
 
 void zoomPortrait(int direction, PhasePortraitSettings * settings);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
+void getSpecificAB(double *a, double *b, SDL_Surface *pSurface);
 
 int main( int argc, char* argv[] )
 {
+
 	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
-	double curA=0.0, curB=0.0, prevA=1,prevB=1;
+	double curA=0.0, curB=0.0, prevA=99,prevB=99;
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
+	//load a file if parameter given.
+	if (argc > 1 && strcmp(argv[1],"full")!=0)
+		loadData(settings, argv[1], &curA, &curB);
 	
 	//these settings
-	BOOL bMenagerie = TRUE;
-	if (bMenagerie) loadData();
+	BOOL bMenagerie = FALSE;
+	if (bMenagerie) loadMenagerieData();
 
 	atexit ( SDL_Quit ) ; 
 	SDL_Init ( SDL_INIT_VIDEO ) ; 
 	//create main window
 	Uint32 flags = SCREENFLAGS;
-	if (argc > 1 && strcmp(argv[1],"full")==0)
+	if ((argc > 1 && strcmp(argv[1],"full")==0)||(argc > 2 && strcmp(argv[2],"full")==0))
 		flags |= SDL_FULLSCREEN;
 	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , flags) ;
 
@@ -80,14 +86,16 @@ while(TRUE)
 		{
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: return 0; break;
-			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB); break;
-			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB);ForceRedraw(); break;
-			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB);ForceRedraw(); break;
-			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) onGetMoreOptions(settings,&curA,&curB);ForceRedraw(); break;
+			case SDLK_s: if (event.key.keysym.mod & KMOD_CTRL) onSave(settings,curA,curB, pSurface); ForceRedraw(); break;
+			case SDLK_o: if (event.key.keysym.mod & KMOD_CTRL) onOpen(settings,&curA,&curB, (event.key.keysym.mod & KMOD_SHIFT)!=0);ForceRedraw(); break;
+			case SDLK_QUOTE: if (event.key.keysym.mod & KMOD_CTRL) onGetExact(settings,&curA,&curB, pSurface);ForceRedraw(); break;
+			case SDLK_SEMICOLON: if (event.key.keysym.mod & KMOD_CTRL) /*onGetMoreOptions(settings,&curA,&curB);*/ForceRedraw(); break;
 			case SDLK_F11: fullscreen(pSurface, FALSE, settings, &curA,&curB); ForceRedraw(); break;
 			case SDLK_f: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, FALSE, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_b: if (event.key.keysym.mod & KMOD_ALT) {fullscreen(pSurface, TRUE, settings, &curA,&curB);ForceRedraw();} break;
 			case SDLK_g: if (event.key.keysym.mod & KMOD_ALT) {settings->drawBasin = !settings->drawBasin;ForceRedraw();} break;
+			case SDLK_9: Dialog_GetText("hey there","Previous value was: 4",pSurface);ForceRedraw(); break;
+			case SDLK_8: ForceRedraw(); break;
 			case SDLK_PAGEUP: zoomPortrait(1,settings); ForceRedraw(); break;
 			case SDLK_PAGEDOWN: zoomPortrait(-1,settings); ForceRedraw(); break;
 			case SDLK_SPACE: displayInstructions(pSurface, settings); ForceRedraw(); break;
@@ -148,6 +156,7 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 		DrawPhasePortrait(pSurface, settings, curA,curB);
 		DrawPlotGrid(pSurface,settings, curA,curB);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
+		
 	}
 	prevA=curA; prevB=curB;
 

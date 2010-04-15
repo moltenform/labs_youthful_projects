@@ -62,7 +62,7 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 				ShowText( previous, 30, 50, pSurface);
 			ShowText(">", 30, 100, pSurface);
 			ShowText(buffer, 50, 100, pSurface);
-			ShowText("Press Enter, or Escape to cancel.", 30, 400, pSurface);
+			ShowText("Press Enter when finished, or press Escape to cancel.", 30, 400, pSurface);
 			dirty = FALSE;
 		}
 
@@ -77,16 +77,16 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 				  { cancelled=TRUE; break; }
 				  else if (event.key.keysym.sym == SDLK_BACKSPACE)
 				  {
-					  if (event.key.keysym.mod & KMOD_CTRL) {
+					if (event.key.keysym.mod & KMOD_CTRL) {
 						buffer[0]='_';
 						buffer[1]='\0';
 						currentLength = 0;
-					  }
-					  else if (currentLength>0) {
-						  buffer[currentLength--]='\0';
-						  buffer[currentLength]='_';
-					  }
-					  dirty=TRUE;
+					}
+					else if (currentLength>0) {
+						buffer[currentLength--]='\0';
+						buffer[currentLength]='_';
+						}
+					dirty=TRUE;
 				  }
 				  else if (event.key.keysym.sym >= 32 && event.key.keysym.sym <= 126)
 				  {
@@ -133,13 +133,12 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 	// That way we can alter fonts without the need for recompilcation
 
 	if (!g_pFontList) {
-		//check if the file is there, and assert null if not. TODO: why doesn't this check work?
-		FILE *tmp = fopen("data/font_source2.bmp", "rb");
-		if (!tmp) {assert(0); return -1;}
-		fclose(tmp);
+		//check if the file is there, and exit if not.
+		if (!doesFileExist("data/font_source2.bmp"))
+			{assert(0); exit(1);}
 
 		SDL_Surface* temp = SDL_LoadBMP("data/font_source2.bmp"); 
-		if (!temp) { assert(0); return -1;}
+		if (!temp) { assert(0); exit(1);}
 		g_pFontList = SDL_DisplayFormat(temp);
 		SDL_FreeSurface(temp);
 
@@ -171,6 +170,14 @@ BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surf
 				break;
 			case 0x2D: // -
 				tmp_rect.x = 184;
+				tmp_rect.w = 8;
+				tmp_rect.h = 19;
+				tmp_rect.y = 0;
+				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
+				rect.x += tmp_rect.w;
+				break;
+			case ',': // ,
+				tmp_rect.x = 199-15-15;
 				tmp_rect.w = 8;
 				tmp_rect.h = 19;
 				tmp_rect.y = 0;

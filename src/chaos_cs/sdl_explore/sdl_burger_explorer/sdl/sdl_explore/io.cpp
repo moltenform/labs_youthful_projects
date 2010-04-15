@@ -1,14 +1,13 @@
 #pragma warning (disable:4996)
 
 #include "phaseportrait.h"
+#include "common.h"
+#include "font.h"
 
-const char * HELPERINPUTFILE = "data/helper_in.txt";
-const char * HELPEROUTPUTFILE = "data/helper_out.txt";
-
-void saveData(PhasePortraitSettings * settings, const char * filename, double a,double b)
+BOOL saveData(PhasePortraitSettings * settings, const char * filename, double a,double b)
 {
 	FILE * f = fopen(filename, "w");
-	if (!f) return;
+	if (!f) return FALSE;
 	fprintf(f,";version,1,w,%d,h,%d,x0,%f,x1,%f,y0,%f,y1,%f,a,%f,b,%f,",
 		settings->width,settings->height,
 		settings->x0, settings->x1, settings->y0, settings->y1,
@@ -19,12 +18,13 @@ void saveData(PhasePortraitSettings * settings, const char * filename, double a,
 		settings->seedsPerAxis, settings->settling, settings->drawing);
 	
 	fclose(f);
+	return TRUE;
 }
 
-void loadData(PhasePortraitSettings * settings, const char * filename, double *outA, double *outB)
+BOOL loadData(PhasePortraitSettings * settings, const char * filename, double *outA, double *outB)
 {
 	FILE * f = fopen(filename, "r");
-	if (!f) return;
+	if (!f) return FALSE;
 	int version;
 	fscanf(f,";version,%d,w,%d,h,%d,x0,%lf,x1,%lf,y0,%lf,y1,%lf,a,%lf,b,%lf,",
 		&version,
@@ -37,45 +37,85 @@ void loadData(PhasePortraitSettings * settings, const char * filename, double *o
 		&settings->seedsPerAxis, &settings->settling, &settings->drawing);
 	
 	fclose(f);
+	return TRUE;
 }
 
-void onSave(PhasePortraitSettings * settings, double a,double b)
+void onSave(PhasePortraitSettings * settings, double a,double b, SDL_Surface *pSurface)
 {
-	saveData(settings, HELPERINPUTFILE, a,b);
-	system("cshelper s");
-}
-BOOL didUserCancel()
-{
-	int tmp; BOOL bSuccess=FALSE;
-	//if the file begins with an integer, user hit cancel
-	FILE * fop = fopen(HELPEROUTPUTFILE, "r");
-	
-	if (fscanf(fop, "%d", &tmp)>0) bSuccess=FALSE;
-	else bSuccess=TRUE;
-	fclose(fop);
-	return !bSuccess;
-}
-void onOpen(PhasePortraitSettings * settings, double *a,double *b)
-{
-	system("cshelper o");
-	
-	if (!didUserCancel())
-		loadData(settings, HELPEROUTPUTFILE, a, b);
-}
-
-void onGetExact(PhasePortraitSettings * settings, double *a,double *b)
-{
-	system("cshelper :");
-	if (!didUserCancel())
+	while (TRUE)
 	{
-		FILE * f = fopen(HELPEROUTPUTFILE, "r");
-		if (!f) return;
-		fscanf(f, "out:%lf,%lf", a,b);
-		fclose(f);
+		char*ret = Dialog_GetText("Save file as:", NULL, pSurface);
+		if (!ret) return;
+		char buf[256];
+		snprintf(buf, sizeof(buf), "saves/%s.cfg", ret);
+		//does this file exist?
+		if (doesFileExist(buf))
+		{
+			Dialog_Message("Already a file that name.", pSurface);
+			continue;
+		}
+		else
+		{
+			BOOL didsave = saveData(settings, buf, a,b);
+			if (didsave)
+			{
+				//update index
+				FILE*findex=fopen("saves/index","a");
+				if (!findex) return;
+				fprintf(findex, "%s\n", buf);
+				fclose(findex);
+				return;
+			}
+			else
+			{
+				Dialog_Message("Could not save under that name.", pSurface);
+				continue;
+			}
+		}
 	}
 }
-void onGetMoreOptions(PhasePortraitSettings * settings, double *a,double *b)
+
+void onOpen(PhasePortraitSettings * settings, double *a,double *b, BOOL backwards)
 {
+	static int whichShuffle = 0;
+	if (!backwards) whichShuffle++;
+	else whichShuffle = (whichShuffle==0)?0:whichShuffle-1;
+
+	char buf[256];
+	FILE * findex = fopen("saves/index","r");
+	if (!findex) return;
+	for(int i=0; i<whichShuffle+1; i++ )
+	{
+		if (fgets(buf, sizeof(buf), findex) == NULL)
+		{
+			whichShuffle = 0;
+			rewind(findex);
+			fgets(buf, sizeof(buf), findex);
+			break;
+		}
+	}
+	//remove newline char
+	if (strlen(buf)>0) buf[strlen(buf)-1]='\0';
+	printf("cur%d fi %s \n", whichShuffle, buf);
+	loadData(settings, buf, a,b);
+}
+
+void onGetExact(PhasePortraitSettings * settings, double *a,double *b, SDL_Surface *pSurface)
+{
+	if (!Dialog_GetDouble("Enter a value for a:",*a,pSurface,a))
+		return;
+	if (!Dialog_GetDouble("Enter a value for b:",*b,pSurface,b))
+		return;
+}
+void onGetMoreOptions(PhasePortraitSettings * settings)
+{
+	/*if (!Dialog_GetDouble("Enter a value for seeds per axis:",*a,pSurface,a))
+		return;
+	if (!Dialog_GetDouble("Enter a value for settling:",*b,pSurface,b))
+		return;
+	if (!Dialog_GetDouble("Enter a value for how many points to draw:",*b,pSurface,b))
+		return;
+
 	system("cshelper ;");
 	if (!didUserCancel())
 	{
@@ -83,20 +123,19 @@ void onGetMoreOptions(PhasePortraitSettings * settings, double *a,double *b)
 		if (!f) return;
 		fscanf(f, "out:%d,%d,%d", &settings->seedsPerAxis,&settings->settling, &settings->drawing);
 		fclose(f);
-	}
+	}*/
 }
 
 void loadFkeyPreset(int key, BOOL bshift, BOOL balt, PhasePortraitSettings * settings, double *a,double *b)
-{
+{//take from num keys, not fkeys, since those include f4 which should quit.
+
 	// ANSI C standard: forward slashes ok in file names even in windows
 	char stemplate[]="presets/%d%s.cfg";
 
 	char path[256] = {0};
 	if (key>12||key<0) return;
 	const char * comb = (bshift ? "s" : (balt ? "b" : ""));
-#if WIN32
-#define snprintf _snprintf
-#endif
+
 	snprintf(path, sizeof(path), stemplate, key, comb);
 	loadData(settings, path, a, b);
 }

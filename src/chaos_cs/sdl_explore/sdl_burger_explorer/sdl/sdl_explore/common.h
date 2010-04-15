@@ -56,5 +56,6 @@ extern int PlotHeight, PlotWidth, PlotX, PhaseWidth, PhaseHeight;
 void IntPlotCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY);
 void DoubleCoordsToInt(PhasePortraitSettings*settings, double fx, double fy, int* outX, int* outY);
 void IntPhaseCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY);
+BOOL doesFileExist(const char *fname);
 BOOL LockFramesPerSecond();
 
