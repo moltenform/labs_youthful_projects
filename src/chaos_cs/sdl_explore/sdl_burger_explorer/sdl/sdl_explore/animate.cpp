@@ -2,6 +2,7 @@
 #include "common.h"
 #include "animate.h"
 #include "io.h"
+#include "phaseportrait.h"
 
 void deleteFrame(int frame)
 {
@@ -25,11 +26,12 @@ void saveToFrame(int frame, PhasePortraitSettings * settings, double a, double b
 	saveData(settings, buf, a,b);
 }
 
-void openFrame(int frame, PhasePortraitSettings * settings, const char * filename, double *outA, double *outB)
+//returns false if the frame is blank (because fscanf will fail, causing loadData to return false.)
+BOOL openFrame(int frame, PhasePortraitSettings * settings, double *outA, double *outB)
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "saves/frame0%d.cfg", frame);
-	loadData(settings, buf, outA, outB);
+	return loadData(settings, buf, outA, outB);
 }
 
 void getFrameInterp(double fwhere, PhasePortraitSettings * settings1, double a1, double b1, PhasePortraitSettings * settings2, double a2, double b2, PhasePortraitSettings * settingsOut, double *aOut, double *bOut)
@@ -51,10 +53,8 @@ int dotestanimation(SDL_Surface* pSurface)
 	double a1, b1;
 	double a2, b2;
 	double curA, curB;
-	BOOL bStart = loadData(framesettings1, "saves/frame00.cfg", &a1, &b1);
-	if (!bStart) goto outsideloop; 
-	bStart = loadData(framesettings2, "saves/frame01.cfg", &a2, &b2);
-	if (!bStart) goto outsideloop; 
+	if (! openFrame(0, framesettings1, &a1, &b1)) goto outsideloop;
+	if (! openFrame(1, framesettings2, &a2, &b2)) goto outsideloop;
 	double t = 0.0;
 	int currentFrame = 0;
 
@@ -69,17 +69,6 @@ while (TRUE)
 	//an event was found
 	if ( event.type == SDL_QUIT ) goto outsideloop;
 	else if (event.type==SDL_MOUSEBUTTONDOWN) goto outsideloop;
-	else if (event.type==SDL_KEYDOWN){
-			
-		switch(event.key.keysym.sym)
-		{
-			case SDLK_UP: *targetB += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			case SDLK_DOWN: *targetB -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			case SDLK_LEFT: *targetA -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			case SDLK_RIGHT: *targetA += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			default: break;
-		}
-	  }
 	else if (event.type==SDL_KEYUP)
 	  {
 		switch(event.key.keysym.sym)
@@ -117,7 +106,11 @@ while (TRUE)
 		{
 			currentFrame++;
 			//try to get next frame
-			BOOL isNextFrame = 
+			BOOL isNextFrame = openFrame(currentFrame+1, framesettings2, &a2, &b2);
+			if (!isNextFrame) 
+				goto outsideloop;
+			openFrame(currentFrame, framesettings1, &a1, &b1);
+			t=0;
 
 		}
 	}

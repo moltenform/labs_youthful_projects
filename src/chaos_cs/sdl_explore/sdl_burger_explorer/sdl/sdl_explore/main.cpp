@@ -21,6 +21,21 @@ dynamic compilation?
 bug where clicking always causes zooming in
 show filename when opening?
 Remove a frame: turns it blank. overwrites file with empty string. "blank" 
+
+frames are saved, so don't worry about quitting/
+reopening!
+
+alt-1 goes to frame 1
+ctrl-1 saves to 1
+ctrl-shift-1 to clear frame 1. deleting it.
+ctrl-shift-backspace to clear animation
+alt-0 to play through the animation (in own loop)
+ctrl-alt-0 to save animation bmps!
+(asks for # of frames)
+
+ctrl-shift-s to save animation.
+otherwise, is irrespective of open file and so on,
+i.e. opening a new file won't clear animation.
 */
 
 #define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}

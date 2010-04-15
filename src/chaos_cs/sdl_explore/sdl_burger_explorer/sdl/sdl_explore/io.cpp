@@ -49,11 +49,11 @@ BOOL loadData(PhasePortraitSettings * settings, const char * filename, double *o
 	FILE * f = fopen(filename, "r");
 	if (!f) return FALSE;
 	int version;
-	fscanf(f,";version,%d,w,%d,h,%d,x0,%lf,x1,%lf,y0,%lf,y1,%lf,a,%lf,b,%lf,",
+	if (fscanf(f,";version,%d,w,%d,h,%d,x0,%lf,x1,%lf,y0,%lf,y1,%lf,a,%lf,b,%lf,",
 		&version,
 		&settings->width,&settings->height,
 		&settings->x0, &settings->x1, &settings->y0, &settings->y1,
-		outA, outB);
+		outA, outB)==0) return FALSE;
 	fscanf(f,"browsex0,%lf,browsex1,%lf,browsey0,%lf,browsey1,%lf," ,
 		&settings->browsex0, &settings->browsex1, &settings->browsey0, &settings->browsey1);
 	fscanf(f,"seeds,%d,settle,%d,drawing,%d" ,
