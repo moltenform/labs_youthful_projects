@@ -77,12 +77,23 @@ namespace CsPhasePortrait
 
         void plotCntrl_OnAltShiftDrag(double nx0, double nx1, double ny0, double ny1)
         {
-            string s = "" +
+            string s = "//$SWAltShiftSection\r\n" +
                 "sx0=" + nx0.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
                 "sx1=" + nx1.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
                 "sy0=" + ny0.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
-                "sy1=" + ny1.ToString(CultureInfo.InvariantCulture) + ";\r\n";
-            this.txtInit.Text = s;
+                "sy1=" + ny1.ToString(CultureInfo.InvariantCulture) + ";\r\n"+
+            "//$SWAltShiftSection";
+            string sCurrent = this.txtInit.Text;
+            if (sCurrent.Contains("//$SWAltShiftSection"))
+            {
+                string[] parts = sCurrent.Split(new string[] { "//$SWAltShiftSection" }, StringSplitOptions.None);
+                if (parts.Length != 3) { MessageBox.Show("Invalid occurance of '//$SWAltShiftSection'."); return; }
+                this.txtInit.Text = parts[0] + s + parts[2];
+            }
+            else
+            {
+                this.txtInit.Text = this.txtInit.Text + "\r\n" + s;
+            }
             Redraw();
         }
 
