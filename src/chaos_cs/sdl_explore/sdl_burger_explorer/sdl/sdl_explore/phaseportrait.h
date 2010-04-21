@@ -7,12 +7,13 @@
 #define HENON x_ = 1 - c1*x*x + y; y = c2*x;
 #define BURGER x_ = c1*x - y*y; y= c2*y + x*y;
 #define BURGERCHH x_ = fabs(c1*x - y*y); y= c2*y + x*y;
-#define MAPEXPRESSION BURGER
+#define NEW if (rand()&0x01) {x_ = c1*x - y*y; y= c2*y + x*y;} else {x_ = c1*2*x - y*y; y= c2*3*y + x*y;}
+#define MAPEXPRESSION HENON
 
 #define HENONTEXT " x_ = 1 - c1*x*x + y;$@ y_ = c2*x;"
 #define BURGERTEXT "x_ = c1*x - y*y;$@ y_ = c2*y + x*y;"
 #define BURGERCHHTEXT "x_ = abs(c1*x - y*y);$@ y_ = c2*y + x*y;"
-#define MAPEXPRESSIONTEXT BURGERTEXT
+#define MAPEXPRESSIONTEXT HENONTEXT
 
 
 void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 );

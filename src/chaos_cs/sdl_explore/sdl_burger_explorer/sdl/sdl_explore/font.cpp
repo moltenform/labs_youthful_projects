@@ -8,7 +8,7 @@ BOOL Dialog_GetBool(const char* prompt, SDL_Surface* pSurface)
 	char* ret = Dialog_GetText(prompt, "Type y or n.", pSurface);
 	if (!ret) 
 		return FALSE;
-	BOOL wasTrue = strcmp(ret,"y")==0 || strcmp(ret,"yes")==0;
+	BOOL wasTrue = StringsEqual(ret,"y") || StringsEqual(ret,"yes");
 	free(ret);
 	return wasTrue;
 }
@@ -128,7 +128,7 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;  //apparently needed every frame, even when not redrawing
 
 	}
-	if (cancelled || strcmp(buffer,"_")==0 || strcmp(buffer,"")==0) 
+	if (cancelled || StringsEqual(buffer,"_") || StringsEqual(buffer,"")) 
 	{
 		free(buffer); 
 		return NULL;

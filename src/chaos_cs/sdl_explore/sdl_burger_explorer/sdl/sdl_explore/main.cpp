@@ -53,7 +53,7 @@ int main( int argc, char* argv[] )
 	double curA=0.0, curB=0.0, prevA=99,prevB=99, prevPlotX1=99, prevPlotY1=99;
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	//load a file if parameter given.
-	if (argc > 1 && strcmp(argv[1],"full")!=0)
+	if (argc > 1 && !StringsEqual(argv[1],"full"))
 		loadData(settings, argv[1], &curA, &curB);
 	
 	//these settings
@@ -65,7 +65,7 @@ int main( int argc, char* argv[] )
 	SDL_Init ( SDL_INIT_VIDEO ) ; 
 	//create main window
 	Uint32 flags = SCREENFLAGS;
-	if ((argc > 1 && strcmp(argv[1],"full")==0)||(argc > 2 && strcmp(argv[2],"full")==0))
+	if ((argc > 1 && StringsEqual(argv[1],"full"))||(argc > 2 && StringsEqual(argv[2],"full")))
 		flags |= SDL_FULLSCREEN;
 	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , flags) ;
 
@@ -191,6 +191,7 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_f: if (bAlt) {fullscreen(pSurface, FALSE, settings, outA,outB);} break;
 		case SDLK_b: if (bAlt) {fullscreen(pSurface, TRUE, settings, outA,outB);} break;
 		case SDLK_g: if (bAlt) {settings->drawBasin = !settings->drawBasin;} break;
+		case SDLK_r: if (bControl) { /*  */ } break;
 		case SDLK_PAGEUP: zoomPortrait(1,settings);  break;
 		case SDLK_PAGEDOWN: zoomPortrait(-1,settings);  break;
 		case SDLK_BACKSPACE: if (bControl&&bShift&&Dialog_GetBool("Delete all frames?",pSurface)) {deleteFrames();*outA=*outB=0;} break;
