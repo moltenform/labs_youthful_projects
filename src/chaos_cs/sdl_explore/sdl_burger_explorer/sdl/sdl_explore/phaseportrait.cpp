@@ -7,6 +7,27 @@ void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, doub
 
 void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB)
 {
+	settings->seedsPerAxis = 40;
+	settings->settling = 48;
+	settings->drawing = 20; //also, # of iters for the Basins mode.
+	settings->drawBasin = 0;
+
+	if (StringsEqual( MAPEXPRESSIONTEXT, HENONTEXT)) {
+	settings->browsex0 = -1;
+	settings->browsex1 = 3; //non sqr axes?
+	settings->browsey0 = -1;
+	settings->browsey1 = 1;
+
+	settings->x0 = -1.75;
+	settings->x1 = 1.75;
+	settings->y0 = -1.75;
+	settings->y1 = 1.75;
+	settings->width = width;
+	settings->height = height;
+
+	*outA=-1.1;
+	*outB= 1.72;
+	} else {
 	settings->browsex0 = -2;
 	settings->browsex1 = 2;
 	settings->browsey0 = -.5;
@@ -21,10 +42,7 @@ void InitialSettings(PhasePortraitSettings*settings, int width, int height, doub
 
 	*outA=-1.1;
 	*outB= 1.72;
-	settings->seedsPerAxis = 40;
-	settings->settling = 48;
-	settings->drawing = 20; //also, # of iters for the Basins mode.
-	settings->drawBasin = 0;
+	}
 }
 
 /*inline*/ void plotpoint(SDL_Surface* pSurface, int px, int py)

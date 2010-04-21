@@ -249,10 +249,11 @@ for (int ncx=0; ncx<4; ncx++){
 void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
 {
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
-	if (DYNAMICMENAGERIE)
-		DrawMenagerieLowQuality(pSmallSurface, settings);
-	else
+	//if the burger's map, use precomputed. else dynamically compute.
+	if (StringsEqual(MAPEXPRESSIONTEXT, BURGERTEXT))
 		DrawMenagerieFromPrecomputed(pSmallSurface,settings);
+	else
+		DrawMenagerieLowQuality(pSmallSurface, settings);
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
 
 }

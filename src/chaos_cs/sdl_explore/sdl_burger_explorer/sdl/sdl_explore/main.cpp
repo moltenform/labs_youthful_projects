@@ -14,18 +14,26 @@
 #include "font.h"
 #include "animate.h"
 /*
-Todo: basins save to cfg
-could have Menag cache for common values, in mem, and then resets
+Todo: 
+could have Menag cache for common values, in memory, and then resets. save cache to disk too.
 genetic algorithm for finding interesting areas
 dynamic compilation?
 bug where clicking always causes zooming in
 show filename when opening?
 
 opening a new file, or quitting app, won't clear animation.
+--have multiple plots. save coords in an array. should have an array of x0/x1/y0/y1
+--use getexepath() to not worry about relative path? then drag/drop into it?
+--
+
+Henon ribbon. quadrangle with starting values.
+3 plots, good for those other 2d bitmap things, possibly the 2d random.
+6 plots, for general phase portrait.
+
 */
 
 #define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
-#define ForceRedraw() {RedrawMenag(); prevA=99;}
+#define ForceRedraw() {/*RedrawMenag();*/ prevA=99;}
 //cause redraw by making prevA out of date. Because using precomputed menag, it's cheap to redraw it too.
 
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
@@ -42,15 +50,16 @@ int main( int argc, char* argv[] )
 {
 
 	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
-	double curA=0.0, curB=0.0, prevA=99,prevB=99;
+	double curA=0.0, curB=0.0, prevA=99,prevB=99, prevPlotX1=99, prevPlotY1=99;
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
 	//load a file if parameter given.
 	if (argc > 1 && strcmp(argv[1],"full")!=0)
 		loadData(settings, argv[1], &curA, &curB);
 	
 	//these settings
-	BOOL bMenagerie = FALSE;
-	if (bMenagerie) loadMenagerieData();
+	BOOL bMenagerie = TRUE;
+	if (bMenagerie && StringsEqual(MAPEXPRESSIONTEXT, BURGERTEXT)) 
+		loadMenagerieData();
 
 	atexit ( SDL_Quit ) ; 
 	SDL_Init ( SDL_INIT_VIDEO ) ; 
@@ -65,7 +74,7 @@ int main( int argc, char* argv[] )
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 	int mouse_x,mouse_y;
 
-	//cache the home menagerie? might not be a bad idea.
+	//cache the home menagerie?
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	if (bMenagerie)
 		DrawMenagerie(pSmallerSurface, settings); 
@@ -142,6 +151,13 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	}
 	else
 	{
+		if (prevPlotX1 != settings->browsex1 || prevPlotY1 != settings->browsey1)
+		{
+			// recompute the figure
+			RedrawMenag();
+			prevPlotX1 = settings->browsex1; prevPlotY1 = settings->browsey1; 
+		}
+		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
 		if (bMenagerie) BlitMenagerie(pSurface, pSmallerSurface); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;

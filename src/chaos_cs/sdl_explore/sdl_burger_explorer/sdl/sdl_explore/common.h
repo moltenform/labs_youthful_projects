@@ -13,6 +13,7 @@
 #define BOOL int
 #define TRUE 1
 #define FALSE 0
+#define StringsEqual(s1, s2) (strcmp((s1),(s2))==0)
 
 enum {
   SCREENWIDTH = 800,
