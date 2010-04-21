@@ -51,6 +51,7 @@ namespace CsBifurcation
             mnuFileCopy.Click += new EventHandler(mnuFileCopyImage);
             mnuFileCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.C)));
             this.fileToolStripMenuItem.DropDownItems.Insert(4, mnuFileCopy);
+            this.mnuViewZoomUndo.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Z)));
 
             this.AllowDrop = true;
             this.DragEnter += new DragEventHandler(Form1_DragEnter);

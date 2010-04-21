@@ -34,6 +34,7 @@ namespace CsGeneralBitmap
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = lblSettling.Text = lblShading.Text = "";
 
             this.plotCntrl.OnAltShiftDrag += new AltShiftDragDelegate(plotCntrl_OnAltShiftDrag);
+            this.mnuViewZoomUndo.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control|System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Z)));
 
             //modify layout from previous
             this.SuspendLayout();
