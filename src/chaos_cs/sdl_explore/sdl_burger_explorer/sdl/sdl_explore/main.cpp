@@ -30,9 +30,10 @@ Henon ribbon. quadrangle with starting values.
 3 plots, good for those other 2d bitmap things, possibly the 2d random.
 6 plots, for general phase portrait.
 
+opening in csphaseportrait should be THE SAME - so set accordingly.
 */
 
-#define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings);}
+#define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings, FALSE);}
 #define ForceRedraw() {/*RedrawMenag();*/ prevA=99;}
 //cause redraw by making prevA out of date. Because using precomputed menag, it's cheap to redraw it too.
 
@@ -74,11 +75,12 @@ int main( int argc, char* argv[] )
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 	int mouse_x,mouse_y;
 
-	//cache the home menagerie?
+	//cache the home menagerie? 
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	if (bMenagerie)
-		DrawMenagerie(pSmallerSurface, settings); 
- 
+		DrawMenagerie(pSmallerSurface, settings, FALSE); 
+	//and set this.
+	prevPlotX1 = settings->browsex1; prevPlotY1 = settings->browsey1;
 
 	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 	SDL_FillRect ( pSurface , NULL , g_white );
@@ -109,6 +111,8 @@ while(TRUE)
 				pSurface, settings, &curA, &curB);
 		
 		  if (needtodraw) ForceRedraw();
+		  if (event.key.keysym.sym == SDLK_r && (event.key.keysym.mod & KMOD_CTRL))
+			  DrawMenagerie(pSmallerSurface, settings, TRUE);
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -191,7 +195,6 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_f: if (bAlt) {fullscreen(pSurface, FALSE, settings, outA,outB);} break;
 		case SDLK_b: if (bAlt) {fullscreen(pSurface, TRUE, settings, outA,outB);} break;
 		case SDLK_g: if (bAlt) {settings->drawBasin = !settings->drawBasin;} break;
-		case SDLK_r: if (bControl) { /*  */ } break;
 		case SDLK_PAGEUP: zoomPortrait(1,settings);  break;
 		case SDLK_PAGEDOWN: zoomPortrait(-1,settings);  break;
 		case SDLK_BACKSPACE: if (bControl&&bShift&&Dialog_GetBool("Delete all frames?",pSurface)) {deleteFrames();*outA=*outB=0;} break;

@@ -92,11 +92,14 @@ typedef struct
 	double phasey1;
 } MenagerieSettings;
 
+//note the bounds here: should it be square? should it change based on which map?
 //MenagerieSettings mSettings = {20,400,16, 100,100, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettings = {10,100,16, 100,100, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettings = {10,50,16, 256,256, -3.75,0.75,-2.1,2.1};
 MenagerieSettings mSettings = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1};
 MenagerieSettings* managerieSettings = &mSettings;
+MenagerieSettings mSettingsHigher = {10,150,16, 256,256, -3.75,0.75,-2.1,2.1};
+MenagerieSettings* managerieSettingsHigher = &mSettingsHigher;
 
 
 int _drawPhasePortrait(MenagerieSettings* settings, double c1, double c2, int arrAns[])
@@ -145,51 +148,7 @@ int _drawPhasePortrait(MenagerieSettings* settings, double c1, double c2, int ar
 	return totalUniquePoints;
 }
 
-void DrawMenagerieHighQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
-{
-	int* arr = (int*) malloc( sizeof(int)*managerieSettings->phaseFigureWidth*managerieSettings->phaseFigureHeight);
 
-	double fx,fy;
-
-	int height=PlotHeight;
-	int width=PlotWidth;
-
-	double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
-	
-    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-    fx = X0; fy = Y1; //y counts downwards
-    for (int px = 0; px < width; px++)
-    {
-        fy = Y1;
-        for (int py=0; py<height; py++)
-        {
-			//fx,fy
-		int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
-
-		//double val = fx+fy; //sqrt((double)hits);// / 20.0;
-		double val = sqrt((double)hits)/10;// / 20.0;
-		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
-		val = val*2 - 1; //from -1 to 1
-		Uint32 r,g,b;
-		if (val>=0)
-			b=255, r=g= (Uint32) ((1-val)*255.0);
-		else
-			r=g=b= (Uint32) ((val+1)*255.0);
-			
-
- char *  pPosition = ( char* ) pSmallSurface->pixels ; //determine position
-  pPosition += ( pSmallSurface->pitch * (py) ); //offset by y
-  pPosition += ( pSmallSurface->format->BytesPerPixel * (px) ); //offset by x
-  Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
-  memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
-
-            fy -= dy;
-        }
-        fx += dx;
-    }
-
-	free(arr);
-}
 
 int *arr=NULL;
 void DrawMenagerieLowQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
@@ -214,10 +173,7 @@ void DrawMenagerieLowQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*
         fy = Y1;
         for (int py=0; py<height; py+=4)
         {
-			//fx,fy
 		int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
-
-		//double val = fx+fy; //sqrt((double)hits);// / 20.0;
 		double val = sqrt((double)hits)/10;// / 20.0;
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1
@@ -226,7 +182,6 @@ void DrawMenagerieLowQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*
 			b=255, r=g= (Uint32) ((1-val)*255.0);
 		else
 			r=g=b= (Uint32) ((val+1)*255.0);
-			
   
 for (int ncy=0; ncy<4; ncy++){
 for (int ncx=0; ncx<4; ncx++){
@@ -237,23 +192,69 @@ for (int ncx=0; ncx<4; ncx++){
   Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
   memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
 }}
-
-
             fy -= dy*4;
         }
         fx += dx*4;
     }
-
 }
 
-void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+int *arrHigher=NULL;
+#define HQSTEPSIZE 1
+void DrawMenagerieHigherQuality( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
+{
+	if (arrHigher==NULL)
+		arrHigher = (int*) malloc( sizeof(int)*managerieSettingsHigher->phaseFigureWidth*managerieSettingsHigher->phaseFigureHeight);
+
+	double fx,fy;
+
+	int height=PlotHeight;
+	int width=PlotWidth;
+
+	double X0=settings->browsex0, X1=settings->browsex1, Y0=settings->browsey0, Y1=settings->browsey1;
+	
+    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+    fx = X0; fy = Y1; //y counts downwards
+	 char* pPosition;
+    for (int px = 0; px < width; px+=HQSTEPSIZE)
+    {
+        fy = Y1;
+        for (int py=0; py<height; py+=HQSTEPSIZE)
+        {
+		int hits= _drawPhasePortrait(managerieSettingsHigher, fx,fy,arrHigher);
+		double val = sqrt((double)hits)/15;
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = val*2 - 1; //from -1 to 1
+		Uint32 r,g,b;
+		if (val>=0)
+			b=255, r=g= (Uint32) ((1-val)*255.0);
+		else
+			r=g=b= (Uint32) ((val+1)*255.0);
+  
+for (int ncy=0; ncy<HQSTEPSIZE; ncy++){
+for (int ncx=0; ncx<HQSTEPSIZE; ncx++){
+
+  pPosition = ( char* ) pSmallSurface->pixels ; //determine position
+  pPosition += ( pSmallSurface->pitch * (py+ncy) ); //offset by y
+  pPosition += ( pSmallSurface->format->BytesPerPixel * (px+ncx) ); //offset by x
+  Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
+  memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
+}}
+            fy -= dy*HQSTEPSIZE;
+        }
+        fx += dx*HQSTEPSIZE;
+    }
+}
+
+void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings, BOOL bHigherQuality) 
 {
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
 	//if the burger's map, use precomputed. else dynamically compute.
 	if (StringsEqual(MAPEXPRESSIONTEXT, BURGERTEXT))
 		DrawMenagerieFromPrecomputed(pSmallSurface,settings);
-	else
+	else if (!bHigherQuality)
 		DrawMenagerieLowQuality(pSmallSurface, settings);
+	else
+		DrawMenagerieHigherQuality(pSmallSurface, settings);
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_UnlockSurface ( pSmallSurface ) ;
 
 }
