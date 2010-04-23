@@ -15,7 +15,7 @@
 #include "animate.h"
 /*
 Todo: 
-could have Menag cache for common values, in memory, and then resets. save cache to disk too.
+could have Menag cache for common values, in memory, and then resets. should save cache to disk too.
 genetic algorithm for finding interesting areas
 dynamic compilation?
 bug where clicking always causes zooming in
@@ -31,6 +31,7 @@ Henon ribbon. quadrangle with starting values.
 6 plots, for general phase portrait.
 
 opening in csphaseportrait should be THE SAME - so set accordingly.
+fixed point detection 
 */
 
 #define ForceRedraw() { prevA=99;}

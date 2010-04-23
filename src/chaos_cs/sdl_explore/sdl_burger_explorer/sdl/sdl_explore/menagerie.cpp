@@ -4,7 +4,6 @@
 #include "assert.h"
 #include "font.h"
 
-double chy_x0 = -3.4, chy_x1=1.1, chy_y0=1.45, chy_y1=2.05;
 int chy_width=3072, chy_height=1536;
 unsigned short * alldata = NULL;
 void loadMenagerieData()
@@ -20,6 +19,7 @@ void loadMenagerieData()
 
 void DrawMenagerieFromPrecomputed( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings) 
 {
+double chy_x0 = -3.4, chy_x1=1.1, chy_y0=1.45, chy_y1=2.05;
 	double fx,fy;
 	int height=PlotHeight;
 	int width=PlotWidth;
@@ -42,9 +42,6 @@ else
 	int indexy = (int) (chy_height * (fy-chy_y0)/(chy_y1-chy_y0));
 	hits = alldata[ indexy*chy_width + indexx];
 }
-
-			
-		//int hits= _drawPhasePortrait(managerieSettings, fx,fy,arr);
 		double val = sqrt((double)hits)/40;
 
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
@@ -91,22 +88,26 @@ typedef struct
 	double phasey0;
 	double phasey1;
 } MenagerieSettings;
-
-
 //if symmetrical, we could make phasey0 0, but that wouldn't really be more efficient.
+
+MenagerieSettings mSettings = {5,150,16, 384,384, -3,1,-3,3};
+MenagerieSettings mSettingsHigher = {5,150,16, 384,384, -3,1,-3,3};
+
+
 
 //note the bounds here: should it be square? should it change based on which map? ?
 //MenagerieSettings mSettings = {20,400,16, 100,100, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettings = {10,100,16, 100,100, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettings = {10,50,16, 256,256, -3.75,0.75,-2.1,2.1};
-MenagerieSettings mSettings = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1}; //{5,150,16, 1024,1024, -6,6,-6,6};
-MenagerieSettings* managerieSettings = &mSettings;
+//MenagerieSettings mSettings = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1}; //{5,150,16, 1024,1024, -6,6,-6,6};
+//
 //MenagerieSettings mSettingsHigher = {10,150,16, 256,256, -3.75,0.75,-2.1,2.1};
-MenagerieSettings mSettingsHigher = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1};
+//MenagerieSettings mSettingsHigher = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettingsHigher = {5,150,16, 1024,1024, -6,6,-6,6};
 //MenagerieSettings mSettingsHigher = {5,150,16, 256,256, -6,6,-6,6};
+//
+MenagerieSettings* managerieSettings = &mSettings;
 MenagerieSettings* managerieSettingsHigher = &mSettingsHigher;
-
 
 int _drawPhasePortrait(MenagerieSettings* settings, double c1, double c2, int arrAns[])
 {
@@ -124,8 +125,6 @@ int _drawPhasePortrait(MenagerieSettings* settings, double c1, double c2, int ar
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	
-//return (int)(a*12 + b*12);
-
 	for (sx=sx0; sx<=sx1; sx+=sxinc) {
 	for (sy=sy0; sy<=sy1; sy+=syinc)
 	{
