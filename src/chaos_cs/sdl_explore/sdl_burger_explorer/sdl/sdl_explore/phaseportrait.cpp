@@ -5,44 +5,30 @@
 #include <math.h>
 void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) ;
 
-void InitialSettings(PhasePortraitSettings*settings, int width, int height, double *outA, double *outB)
+BOOL g_bMapIsSymmetricalXAxis=FALSE;
+void exprSettings(double startingC1,double startingC2, double browsex0, double browsex1, double browsey0, double browsey1, double x0, double x1, double y0, double y1,BOOL bSymmetrical,PhasePortraitSettings*ps, double*pa, double*pb)
 {
-	settings->seedsPerAxis = 40;
-	settings->settling = 48;
-	settings->drawing = 20; //also, # of iters for the Basins mode.
-	settings->drawBasin = 0;
+	ps->browsex0 = browsex0; ps->browsex1 = browsex1; ps->browsey0=browsey0; ps->browsey1 = browsey1;
+	ps->x0 = x0; ps->x1 = x1; ps->y0=y0; ps->y1 = y1;
+	*pa = startingC1; *pb = startingC2;
+	g_bMapIsSymmetricalXAxis = bSymmetrical;
+}
 
-	if (StringsEqual( MAPEXPRESSIONTEXT, HENONTEXT)) {
-	settings->browsex0 = -1;
-	settings->browsex1 = 3; //non sqr axes?
-	settings->browsey0 = -1;
-	settings->browsey1 = 1;
 
-	settings->x0 = -1.75;
-	settings->x1 = 1.75;
-	settings->y0 = -1.75;
-	settings->y1 = 1.75;
-	settings->width = width;
-	settings->height = height;
-
-	*outA=-1.1;
-	*outB= 1.72;
-	} else {
-	settings->browsex0 = -2;
-	settings->browsex1 = 2;
-	settings->browsey0 = -.5;
-	settings->browsey1 = 3.5;
-
-	settings->x0 = -1.75;
-	settings->x1 = 1.75;
-	settings->y0 = -1.75;
-	settings->y1 = 1.75;
-	settings->width = width;
-	settings->height = height;
-
-	*outA=-1.1;
-	*outB= 1.72;
-	}
+void InitialSettings(PhasePortraitSettings*ps, int width, int height, double *pa, double *pb)
+{
+	ps->seedsPerAxis = 40;
+	ps->settling = 48;
+	ps->drawing = 20; //also, # of iters for the Basins mode.
+	ps->drawBasin = 0;
+	ps->width = width;
+	ps->height = height;
+	//will be overwritten later, but just to be sure:
+	ps->browsex0 = 0; ps->browsex1 = 1; ps->browsey0=0; ps->browsey1 = 1;
+	ps->x0 = 0; ps->x1 = 1; ps->y0=0; ps->y1 = 1;
+	
+	// this will call exprSettings with ps,pa,pb, setting pa and pb and so on.
+	INITEXPRESSION;
 }
 
 /*inline*/ void plotpoint(SDL_Surface* pSurface, int px, int py)

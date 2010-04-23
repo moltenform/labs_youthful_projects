@@ -38,7 +38,7 @@ BOOL saveData(PhasePortraitSettings * settings, const char * filename, double a,
 		"paramExpression=%s\n"
 		"paramInit=//saved from sdl_explore\n"
 		"programVersion=0.0.1"
-		, a,b, settings->settling, MAPEXPRESSIONTEXT
+		, a,b, settings->settling, MAPEXPRESSIONTEXT "\n y_=y;"
 		);
 	fclose(f);
 	return TRUE;

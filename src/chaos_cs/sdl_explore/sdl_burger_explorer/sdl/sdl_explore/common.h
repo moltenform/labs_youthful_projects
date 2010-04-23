@@ -27,7 +27,6 @@ enum {
 
   FPS = 20 //limit frames per second
 } ;
-#define DYNAMICMENAGERIE 0
 typedef struct
 {
 	int width;

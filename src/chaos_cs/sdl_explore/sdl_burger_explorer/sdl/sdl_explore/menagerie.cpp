@@ -9,7 +9,7 @@ int chy_width=3072, chy_height=1536;
 unsigned short * alldata = NULL;
 void loadMenagerieData()
 {
-	if (DYNAMICMENAGERIE) return;
+	if (! StringsEqual(MAPEXPRESSIONTEXT, STRINGIFY(BURGER))) return;
 	if (alldata != NULL) return;
 	FILE * f = fopen("data/chy.dat", "rb");
 	if (!f) { assert(0); exit(1); }
@@ -92,13 +92,19 @@ typedef struct
 	double phasey1;
 } MenagerieSettings;
 
-//note the bounds here: should it be square? should it change based on which map?
+
+//if symmetrical, we could make phasey0 0, but that wouldn't really be more efficient.
+
+//note the bounds here: should it be square? should it change based on which map? ?
 //MenagerieSettings mSettings = {20,400,16, 100,100, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettings = {10,100,16, 100,100, -3.75,0.75,-2.1,2.1};
 //MenagerieSettings mSettings = {10,50,16, 256,256, -3.75,0.75,-2.1,2.1};
-MenagerieSettings mSettings = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1};
+MenagerieSettings mSettings = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1}; //{5,150,16, 1024,1024, -6,6,-6,6};
 MenagerieSettings* managerieSettings = &mSettings;
-MenagerieSettings mSettingsHigher = {10,150,16, 256,256, -3.75,0.75,-2.1,2.1};
+//MenagerieSettings mSettingsHigher = {10,150,16, 256,256, -3.75,0.75,-2.1,2.1};
+MenagerieSettings mSettingsHigher = {5,150,16, 256,256, -3.75,0.75,-2.1,2.1};
+//MenagerieSettings mSettingsHigher = {5,150,16, 1024,1024, -6,6,-6,6};
+//MenagerieSettings mSettingsHigher = {5,150,16, 256,256, -6,6,-6,6};
 MenagerieSettings* managerieSettingsHigher = &mSettingsHigher;
 
 
@@ -249,7 +255,7 @@ void DrawMenagerie( SDL_Surface* pSmallSurface, PhasePortraitSettings*settings, 
 {
 	if (SDL_MUSTLOCK(pSmallSurface)) SDL_LockSurface ( pSmallSurface ) ;
 	//if the burger's map, use precomputed. else dynamically compute.
-	if (StringsEqual(MAPEXPRESSIONTEXT, BURGERTEXT))
+	if (StringsEqual(MAPEXPRESSIONTEXT, STRINGIFY(BURGER)))
 		DrawMenagerieFromPrecomputed(pSmallSurface,settings);
 	else if (!bHigherQuality)
 		DrawMenagerieLowQuality(pSmallSurface, settings);

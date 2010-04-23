@@ -6,7 +6,7 @@
 #include <memory.h>
 #include <math.h>
 
-#include "common.h" //see DYNAMICMENAGERIE setting
+#include "common.h"
 #include "phaseportrait.h"
 #include "menagerie.h"
 #include "io.h"
@@ -33,9 +33,8 @@ Henon ribbon. quadrangle with starting values.
 opening in csphaseportrait should be THE SAME - so set accordingly.
 */
 
-#define RedrawMenag() {if (bMenagerie) DrawMenagerie(pSmallerSurface, settings, FALSE);}
-#define ForceRedraw() {/*RedrawMenag();*/ prevA=99;}
-//cause redraw by making prevA out of date. Because using precomputed menag, it's cheap to redraw it too.
+#define ForceRedraw() { prevA=99;}
+//cause redraw by making prevA out of date.
 
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
 int PhaseHeight = 384, PhaseWidth = 384;
@@ -47,9 +46,13 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*
 int displayInstructions(SDL_Surface* pSurface,PhasePortraitSettings * settings);
 BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt,BOOL bShift, SDL_Surface*pSurface, PhasePortraitSettings*settings, double *outA, double *outB);
 
+
+
+
+
 int main( int argc, char* argv[] )
 {
-
+	BOOL bOneTimeBetterMenagerie = FALSE;
 	PhasePortraitSettings ssettings; PhasePortraitSettings * settings = &ssettings;
 	double curA=0.0, curB=0.0, prevA=99,prevB=99, prevPlotX1=99, prevPlotY1=99;
 	InitialSettings(settings, PhaseHeight, PhaseWidth, &curA, &curB);
@@ -57,13 +60,10 @@ int main( int argc, char* argv[] )
 	if (argc > 1 && !StringsEqual(argv[1],"full"))
 		loadData(settings, argv[1], &curA, &curB);
 	
-	//these settings
-	BOOL bMenagerie = TRUE;
-	if (bMenagerie && StringsEqual(MAPEXPRESSIONTEXT, BURGERTEXT)) 
-		loadMenagerieData();
+	loadMenagerieData();
 
-	atexit ( SDL_Quit ) ; 
-	SDL_Init ( SDL_INIT_VIDEO ) ; 
+	atexit ( SDL_Quit ) ;
+	SDL_Init ( SDL_INIT_VIDEO ) ;
 	//create main window
 	Uint32 flags = SCREENFLAGS;
 	if ((argc > 1 && StringsEqual(argv[1],"full"))||(argc > 2 && StringsEqual(argv[2],"full")))
@@ -77,8 +77,7 @@ int main( int argc, char* argv[] )
 
 	//cache the home menagerie? 
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, PlotWidth, PlotHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
-	if (bMenagerie)
-		DrawMenagerie(pSmallerSurface, settings, FALSE); 
+	DrawMenagerie(pSmallerSurface, settings, FALSE); 
 	//and set this.
 	prevPlotX1 = settings->browsex1; prevPlotY1 = settings->browsey1;
 
@@ -112,7 +111,7 @@ while(TRUE)
 		
 		  if (needtodraw) ForceRedraw();
 		  if (event.key.keysym.sym == SDLK_r && (event.key.keysym.mod & KMOD_CTRL))
-			  DrawMenagerie(pSmallerSurface, settings, TRUE);
+			  bOneTimeBetterMenagerie = TRUE;
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -155,15 +154,17 @@ if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in ti
 	}
 	else
 	{
-		if (prevPlotX1 != settings->browsex1 || prevPlotY1 != settings->browsey1)
+		if (prevPlotX1 != settings->browsex1 || prevPlotY1 != settings->browsey1 || bOneTimeBetterMenagerie)
 		{
 			// recompute the figure
-			RedrawMenag();
+			DrawMenagerie(pSmallerSurface, settings, bOneTimeBetterMenagerie);
+			if (bOneTimeBetterMenagerie) 
+				bOneTimeBetterMenagerie = FALSE;
 			prevPlotX1 = settings->browsex1; prevPlotY1 = settings->browsey1; 
 		}
 		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-		if (bMenagerie) BlitMenagerie(pSurface, pSmallerSurface); 
+		BlitMenagerie(pSurface, pSmallerSurface); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		DrawPhasePortrait(pSurface, settings, curA,curB);
 		DrawPlotGrid(pSurface,settings, curA,curB);
