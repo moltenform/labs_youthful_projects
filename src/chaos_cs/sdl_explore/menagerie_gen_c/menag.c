@@ -13,6 +13,10 @@
  to reconnect, type
  >screen -r
  Sweet.
+ 
+ Burger Menagerie Good: 128 64 -3.4 1.1 1.45 2.05 
+ Burger Menagerie Zoom1: 128 64 -0.83359375 0.144921875 1.688671875 1.819140625
+ Burger Menagerie Zoom2: 128 64 -3.03525390625 -2.13291015625  1.490625  1.61171875
  */
 
 #include <stdio.h>
@@ -35,6 +39,10 @@ double x0, double x1, double y0, double y1,
 int gridpixels, int seeds, int settling, int drawing
 */
 #include "menag.h"
+
+#define BURGER  x_ = a*x - y*y; y = b*y + x*y;
+#define HENON   x_ = 1 -a*x*x + y; y = b*x;
+#define MAPEXPRESSION HENON
 
 int drawPhasePortrait(FigureSettings* settings, double a, double b, int arrAns[])
 {
@@ -59,19 +67,24 @@ int drawPhasePortrait(FigureSettings* settings, double a, double b, int arrAns[]
 	{
 			x = sx; y=sy;
 
-			for (ii=0; ii<(settings->settling); ii++)
+			for (ii=0; ii<(settings->settling/4); ii++)
 			{
-				x_ = a*x - y*y;
-				y = b*y + x*y;
+				MAPEXPRESSION;
+				x = x_;
+				MAPEXPRESSION;
+				x = x_;
+				MAPEXPRESSION;
+				x = x_;
+				MAPEXPRESSION;
+				//~ if (fabs(x-x_)<0.00001) break; //we're at a fixed pt?
 				x = x_;
 				if (!(ISFINITE(x)&&ISFINITE(y))) break;
 			}
 			for (ii=0; ii<(settings->drawing); ii++)
 			{
-				x_ = a*x - y*y;
-				y = b*y + x*y;
-				x = x_;
 				if (!(ISFINITE(x)&&ISFINITE(y))) break;
+				MAPEXPRESSION;
+				x = x_;
 
 				int px = (int)(arrWidth * ((x - X0) / (X1 - X0)));
 				int py = (int)(arrHeight - arrHeight * ((y - Y0) / (Y1 - Y0)));
@@ -112,6 +125,7 @@ void createMenagerie(char*filename, FigureSettings* settings)
 	    fx += dx;
 	}
 	fy += dy;
+	if (py & 0x8)
 	printf("percent %f\n",py/((double)settings->height));
 	}
 	
@@ -140,12 +154,21 @@ int main(int argc, char *argv[])
 	inputSettings->y1 = atof(argv[8]);
 	
 	//default values
+	//~ inputSettings->seedsPerAxis=20;
 	inputSettings->seedsPerAxis=20;
-	inputSettings-> settling = 400;
+	//~ inputSettings-> settling = 400;
+	inputSettings-> settling = 150;
 	inputSettings-> drawing = 16;
-	inputSettings-> phaseFigureWidth=100; inputSettings-> phaseFigureHeight=100;
+	//~ inputSettings-> phaseFigureWidth=100; inputSettings-> phaseFigureHeight=100;
+	inputSettings-> phaseFigureWidth=128; inputSettings-> phaseFigureHeight=128;
+#if 0
 	inputSettings->phasex0 = -3.75; inputSettings->phasex1 = 0.75; 
 	inputSettings->phasey0 = -2.1; inputSettings->phasey1 = 2.1;
+#else
+	inputSettings->phasex0 = -3; inputSettings->phasex1 = 3; 
+	inputSettings->phasey0 = -3; inputSettings->phasey1 = 3;
+
+#endif
 	 //since always symmetrical, use phasey0 as -.1 to 2.1? to 4.1? just have better resolution ?
 	createMenagerie(filename, inputSettings);
 	free(inputSettings);
