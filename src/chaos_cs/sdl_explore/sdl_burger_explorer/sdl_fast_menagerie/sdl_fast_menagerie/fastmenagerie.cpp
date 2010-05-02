@@ -31,13 +31,42 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 
 }
 
-void FastFastMenagerie(MenagFastSettings*ps, SDL_Surface* pSmallSurface)
-{
-	SDL_FillRect ( pSmallSurface , NULL , 343223 ); 
-	
 
+typedef struct { MenagFastSettings*settings; int whichHalf; } ThreadStructure;
+ThreadStructure threadStruct1 = {NULL, 0};
+ThreadStructure threadStruct2 = {NULL, 1};
+
+void constructMenagerieSurface(MenagFastSettings*ps, SDL_Surface* pSmallSurface)
+{
+	SDL_FillRect ( pSmallSurface , NULL , rand() ); 
 }
 
+int CalcFastFastMenagerie(void* data)
+{
+	MenagFastSettings*settings = ((ThreadStructure*)data)->settings;
+	int whichHalf = ((ThreadStructure*)data)->whichHalf;
+	//SDL_FillRect ( pSmallSurface , NULL , 343223 ); 
+	
+	SDL_Delay(3000);
+
+	if (whichHalf)
+		g_BusyThread2 = FALSE;
+	else
+		g_BusyThread1 = FALSE;
+	return 0;
+}
+
+void startMenagCalculation(MenagFastSettings*ps, int direction)
+{
+	g_BusyThread1 = g_BusyThread2 = TRUE;
+
+	//direction is 1: zooming in, -1: zooming out, 0: not a zoom.
+	threadStruct1.settings = ps; 
+	threadStruct2.settings = ps; 
+	SDL_Thread *thread1 = SDL_CreateThread(CalcFastFastMenagerie, &threadStruct1);
+	SDL_Thread *thread2 =  SDL_CreateThread(CalcFastFastMenagerie, &threadStruct2);
+	//SDL_WaitThread(thread1, NULL);
+}
 
 
 void BlitMenagerie(SDL_Surface* pSurface,SDL_Surface* pSmallSurface)

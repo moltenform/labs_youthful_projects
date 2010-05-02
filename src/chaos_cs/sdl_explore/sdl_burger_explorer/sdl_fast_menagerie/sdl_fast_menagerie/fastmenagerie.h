@@ -2,8 +2,9 @@
 #include <emmintrin.h>
 
 void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, double *pb);
-void FastFastMenagerie(MenagFastSettings*ps, SDL_Surface* pSmallSurface);
-extern bool g_BusyThread1, g_BusyThread2;
+extern BOOL g_BusyThread1, g_BusyThread2;
+void constructMenagerieSurface(MenagFastSettings*ps, SDL_Surface* pSmallSurface);
+void startMenagCalculation(MenagFastSettings*ps, int direction);
 
 #define henonSetup \
 	_m128 mConstOne = _mm_set1_ps(1.0f); \

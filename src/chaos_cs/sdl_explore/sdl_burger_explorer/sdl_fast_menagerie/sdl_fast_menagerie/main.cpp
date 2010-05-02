@@ -27,7 +27,8 @@ int main( int argc, char* argv[] )
 	InitialSettings(settings, MenagHeight, MenagWidth, &curA, &curB);
 	curA=99, curB=99; //don't show the indicator at first, for aesthetic reasons
 
-	double prevA=0, prevB=0,  prevPlotX0=0, prevPlotX1=0, prevPlotY0=0, prevPlotY1=0;
+	//double prevA=0, prevB=0,  prevPlotX0=0, prevPlotX1=0, prevPlotY0=0, prevPlotY1=0;
+	BOOL shouldRedraw = FALSE, waitingForCompletion=FALSE;
 	SDL_Event event;
 
 	atexit ( SDL_Quit ) ;
@@ -45,6 +46,7 @@ int main( int argc, char* argv[] )
 		if ( SDL_PollEvent ( &event ) )
 		{
 			if ( event.type == SDL_QUIT ) return 0;
+			else if (event.type==SDL_KEYDOWN && event.key.keysym.sym==SDLK_ESCAPE) return 0;
 			else if (event.type==SDL_KEYUP)
 			{
 				if (event.key.keysym.sym==SDLK_F4 && event.key.keysym.mod & KMOD_ALT)
@@ -53,7 +55,7 @@ int main( int argc, char* argv[] )
 					(event.key.keysym.mod & KMOD_ALT)!=0,(event.key.keysym.mod & KMOD_SHIFT)!=0, 
 					pSurface, settings, &curA, &curB);
 				//ususally we'll know if we need to redraw because A and B will change
-				if (redraw) prevA = 98; 
+				shouldRedraw = redraw;
 			}
 			else if ( event.type == SDL_MOUSEBUTTONDOWN )
 			{
@@ -65,39 +67,54 @@ int main( int argc, char* argv[] )
 				//control click = zoom in, shift click=zoom out
 				if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
 				{
+					if (!g_BusyThread1 && !g_BusyThread2) {
+				SDL_FillRect ( pMenagSurface , NULL , 0);
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				tryZoomPlot(direction, mouse_x, mouse_y, settings);
+				startMenagCalculation(settings, direction);
+				waitingForCompletion = TRUE;
+				shouldRedraw = TRUE;
+					}
 				}
 				else if (buttons & SDL_BUTTON_RMASK) //right-click resets
 				{
+					if (!g_BusyThread1 && !g_BusyThread2) {
+				SDL_FillRect ( pMenagSurface, NULL , 0 );
 				InitialSettings(settings, MenagHeight, MenagWidth, &curA, &curB);
+				startMenagCalculation(settings, 0);
 				curA=99, curB=99; //get rid of cursor, phase plot
+				waitingForCompletion = TRUE;
+				shouldRedraw = TRUE;
+					}
 				}
 				else //normal-click draws phase diagram
 				{
 				tryDrawPhasePortrait(mouse_x, mouse_y, settings, &curA, &curB);
+				shouldRedraw = TRUE;
 				}
 			}
 		}
 
 		if (LockFramesPerSecond())
 		{
-			BOOL bNeedsNewMenag = prevPlotX0!=settings->browsex0||prevPlotX1!=settings->browsex1||prevPlotY0!=settings->browsey0||prevPlotY1!=settings->browsey1;
-			BOOL bNeedsNewPhasePlot = prevA!=curA || prevB != curB;
-			if (!bNeedsNewMenag && !bNeedsNewPhasePlot)
+			if (waitingForCompletion && (!g_BusyThread1 && !g_BusyThread2))
 			{
-			// don't need to compute anything.
-			//SDL_FillRect ( pSurface , NULL , 0 );
+				constructMenagerieSurface(settings, pMenagSurface);
+				waitingForCompletion = FALSE;
+				shouldRedraw = TRUE;
+			}
+
+
+			//BOOL bNeedsNewMenag = prevPlotX0!=settings->browsex0||prevPlotX1!=settings->browsex1||prevPlotY0!=settings->browsey0||prevPlotY1!=settings->browsey1;
+			//BOOL bNeedsNewPhasePlot = prevA!=curA || prevB != curB;
+			if (!shouldRedraw)
+			{
+				// don't need to compute anything.
+				//SDL_FillRect ( pSurface , NULL , 0 );
+				//SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 			}
 			else
 			{
-				if (bNeedsNewMenag)
-				{
-				// recompute the figure
-				FastFastMenagerie(settings, pMenagSurface);
-				prevPlotX0 = settings->browsex0; prevPlotX1 = settings->browsex1; 
-				prevPlotY0 = settings->browsey0; prevPlotY1 = settings->browsey1; 
-				}
 
 				SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
 				BlitMenagerie(pSurface, pMenagSurface); 
@@ -105,10 +122,10 @@ int main( int argc, char* argv[] )
 				DrawPhasePortrait(pSurface, settings, curA,curB);
 				DrawPlotGrid(pSurface,settings, curA,curB);
 				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
-				prevA = curA;
-				prevB = curB;
+				//prevA = curA; prevB = curB;
 
 				SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
+				shouldRedraw = FALSE;
 
 			}
 		}
