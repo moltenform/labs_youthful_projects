@@ -46,11 +46,13 @@ void DrawPlotGrid( SDL_Surface* pSurface, MenagFastSettings*settings, double c1,
 	
 }
 //PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 40,48,20, 0};
-PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 15,100,100, 0};
+//PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 15,100,100, 0};
+PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 1,100,3000, 0};
 
 void DrawPhasePortrait( SDL_Surface* pSurface, MenagFastSettings*mfastsettings, double c1, double c2 ) 
 {
-	double sx0= -2, sx1=2, sy0= -2, sy1=2;
+	//double sx0= -2, sx1=2, sy0= -2, sy1=2;
+	double sx0= 0.01, sx1=2, sy0= 0.01, sy1=2;
 	PhasePortraitSettings * settings = &thephasesettings;
 
 	int nXpoints=settings->seedsPerAxis;

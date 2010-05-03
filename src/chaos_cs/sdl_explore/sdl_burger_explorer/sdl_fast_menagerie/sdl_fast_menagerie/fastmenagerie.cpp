@@ -4,7 +4,8 @@
 #include "fastmenagerie.h"
 #include "float_cast.h"
 
-int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread, int*outWidth, int*outHeight);
+//int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread);
 BOOL g_BusyThread1 = FALSE;
 BOOL g_BusyThread2 = FALSE;
 void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, double *pb)
@@ -62,8 +63,15 @@ int CalcFastFastMenagerie(void* data)
 		fx=X0;
 		for (int px = 0; px < MenagWidth; px+=1)
 		{
-			double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
-			val = sqrt(val)/30;
+			//double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
+			//val = sqrt(val)/30;
+			//double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
+			//val = val/300.0; //fmod(val, 1.0);
+			double val =0;
+			int mwidth, mheight;
+			alternateCountPhasePlot(settings, fx,fy, whichHalf, &mwidth, &mheight);
+			val = val/300.0; //fmod(val, 1.0);
+			//val = val/3;//sqrt(val)/3;
 			//double dd = (px+py)/100.0;
 			//double val = fx*fy + fabs(fx); //(px+py)/10;
 			if (val>1.0) val=1.0; if (val<0.0) val=0.0;
@@ -74,6 +82,10 @@ int CalcFastFastMenagerie(void* data)
 				b=255, r=g= lrint( ((1+val)*255.0));
 			else
 				r=g=b= lrint ((1-val)*255.0);
+
+			r = mwidth;
+			b = mheight;
+			g = 0;
 			localarrayOfResults[py*MenagWidth + px] = //lrint(255*dd);
 			SDL_MapRGB ( g_pixelFormat , r,g,b ) ;
 	//arrayOfResults[py*MenagWidth + px] = (int) ((fx+fy)*4000);
@@ -146,11 +158,14 @@ void BlitMenagerie(SDL_Surface* pSurface,SDL_Surface* pSmallSurface)
 	SDL_BlitSurface(pSmallSurface, &src, pSurface, &dest);
 }
 
-
+/*
+Next: find the "width" (left most and rightmost) point of the attractor.
+*/
 
 int CURRENTID1=35,CURRENTID2=35; //note that this should be threadsafe
-int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread)
+int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread, int*outWidth, int*outHeight)
 {
+	*outWidth = *outWidth=0;
 	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
 	int*arr = whichThread? arrThread1:arrThread2;
 	double x,x_,y;
@@ -159,6 +174,8 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
 	BOOL hasbeennegative=FALSE;
 	BOOL hasbeenpos=FALSE;
+	int rightmost=0, leftmost=PHASEW+2;
+	int biggesty=0, smallesty=PHASEH+2;
 
 	for (int i=0; i<50/4; i++)
 	{
@@ -167,7 +184,7 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		if (ISTOOBIG(x) || ISTOOBIG(y))
-			return counted;
+			return 0;//counted;
 	}
 	//drawing time.
 	for (int i=0; i<1000/2; i++) //see how changes if drawing increases?
@@ -187,13 +204,22 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 		    { arr[px + py_times_256 ]=CURRENTID; counted++;}
 
 		if (ISTOOBIG(x) || ISTOOBIG(y))
-			return counted;
-		if (y<0) hasbeennegative=TRUE;
-		if (y>0) hasbeenpos=TRUE;
+			return 0;//counted;
+		//if (y<0) hasbeennegative=TRUE;
+		//if (y>0) hasbeenpos=TRUE;
+		if (px>rightmost) rightmost=px;
+		if (px<leftmost) leftmost=px;
+		int py = py_times_256/256;
+		if (py<smallesty) smallesty=py;
+		if (py>biggesty) biggesty=py;
 	}
-	if (hasbeenpos&&hasbeennegative) return 200;
+	/*if (hasbeenpos&&hasbeennegative) return 200;
 	if (hasbeennegative) return 500;
-	if (hasbeenpos) return 300;
+	if (hasbeenpos) return 300;*/
+	*outWidth = (rightmost-leftmost);
+	*outHeight = (biggesty-smallesty);
+	return (biggesty-smallesty);// + (rightmost-leftmost);
+	//return 100;
 	//return hasbeennegative?500:200;
 	//return counted;
 }
