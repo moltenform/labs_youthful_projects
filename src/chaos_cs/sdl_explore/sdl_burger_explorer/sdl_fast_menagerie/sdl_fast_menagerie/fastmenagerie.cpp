@@ -13,20 +13,20 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 	ps->menagSettling = 48;
 	ps->menagDrawing = 20; //also, # of iters for the Basins mode.
 	ps->browsex0 = 0; ps->browsex1 = 1; ps->browsey0=0; ps->browsey1 = 1;
-	ps->x0 = 0; ps->x1 = 1; ps->y0=0; ps->y1 = 1;
+	//ps->x0 = 0; ps->x1 = 1; ps->y0=0; ps->y1 = 1;
 	
 	if (StringsEqual(STRINGIFY(MAPEXPRESSION), STRINGIFY(BURGER)))
 	{
 		*pa = -1.1; *pb = 1.72;
 		ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
-		ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
+		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;
 	}
 	else //HENON MAP
 	{
 		*pa = 1.4; *pb = 0.3;
 		ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-1; ps->browsey1 = 3;
-		ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
+		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
 		ps->seedx0 = -3; ps->seedx1 = 3; ps->seedy0=-3 ; ps->seedy1 = 3;
 		
 	}
@@ -38,7 +38,7 @@ typedef struct { MenagFastSettings*settings; int whichHalf; } ThreadStructure;
 ThreadStructure threadStruct1 = {NULL, 0};
 ThreadStructure threadStruct2 = {NULL, 1};
 int * arrayOfResults=NULL;
-
+SDL_PixelFormat * g_pixelFormat = NULL;
 
 
 int CalcFastFastMenagerie(void* data)
@@ -46,22 +46,36 @@ int CalcFastFastMenagerie(void* data)
 	MenagFastSettings*settings = ((ThreadStructure*)data)->settings;
 	int whichHalf = ((ThreadStructure*)data)->whichHalf;
 	int * localarrayOfResults = (whichHalf)? arrayOfResults : arrayOfResults + (MenagHeight/2)*MenagWidth;
-	double X0=settings->x0, X1=settings->x1;
-	double Y0 = (whichHalf)? settings->browsey0 : (settings->browsey0+settings->browsey1)/2;
-	double Y1 = (whichHalf)?(settings->browsey0+settings->browsey1)/2 : settings->browsey1;
+	double X0=settings->browsex0, X1=settings->browsex1;
+	double Y0=settings->browsey0, Y1=settings->browsey1;
+	//double Y0 = (whichHalf)? settings->browsey0 : (settings->browsey0+settings->browsey1)/2;
+	//double Y1 = (whichHalf)?(settings->browsey0+settings->browsey1)/2 : settings->browsey1;
 	
 	double dx = (X1 - X0) / MenagWidth, dy = (Y1 - Y0) / MenagHeight;
-	double fx = X0, fy = Y1; //y counts downwards
-	
+	double fx = X0, fy = Y1; //y counts down?
+	//if (!whichHalf) fy = (settings->browsey0+settings->browsey1)/2;
+	if (!whichHalf) fy -= (settings->browsey1 - settings->browsey0)/2;
+	else fy = Y1;
+
 	for (int py=0; py<MenagHeight/2; py+=1) //Note the /2!
 	{
 		fx=X0;
 		for (int px = 0; px < MenagWidth; px+=1)
 		{
-			//int ret = alternateCountPhasePlot(settings, fx,fy, whichHalf);
-			//double dd = ret/100.0;
-			//if (dd>1.0) dd=1.0; if (dd<0.0) dd=0.0;
-			localarrayOfResults[py*MenagWidth + px] = (whichHalf)? 34534 : 94534; //lrint(256*dd);
+			//double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
+			//val = val/1000;
+			//double dd = (px+py)/100.0;
+			double val = fx*fy + fabs(fx); //(px+py)/10;
+			if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+			val = val*2 - 1; //from -1 to 1
+			val = -val;
+			Uint32 r,g,b;
+			if (val<=0)
+				b=255, r=g= lrint( ((1+val)*255.0));
+			else
+				r=g=b= lrint ((1-val)*255.0);
+			localarrayOfResults[py*MenagWidth + px] = //lrint(255*dd);
+			SDL_MapRGB ( g_pixelFormat , r,g,b ) ;
 	//arrayOfResults[py*MenagWidth + px] = (int) ((fx+fy)*4000);
 
 		fx += dx;
@@ -101,8 +115,9 @@ int * arrThread1 = NULL;
 int * arrThread2 = NULL;
 #define PHASEW 256
 #define PHASEH 256
-void startMenagCalculation(MenagFastSettings*ps, int direction)
+void startMenagCalculation(MenagFastSettings*ps, int direction, SDL_PixelFormat * pixelFormat)
 {
+	g_pixelFormat = pixelFormat;
 	g_BusyThread1 = g_BusyThread2 = TRUE;
 	if (arrayOfResults==NULL) arrayOfResults = (int*) malloc(sizeof(int)*MenagHeight*MenagWidth);
 	if (arrThread1==NULL) arrThread1 = (int*)malloc(sizeof(int)*PHASEW * PHASEH);
@@ -139,7 +154,7 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
 	int*arr = whichThread? arrThread1:arrThread2;
 	double x,x_,y;
-	x=0.0; y=0.0; //experimental. it's true.
+	x=0.01; y=0.01; //experimental. it's true.
 	int counted=0;
 	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
 	
@@ -154,10 +169,10 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 	{
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		int px = lrint(PHASEW * ((x - X0) / (X1 - X0)));
-		int py = lrint(PHASEH * ((y - Y0) / (Y1 - Y0)));
-		if (py >= 0 && py < PHASEH && px>=0 && px<PHASEW)
-		    if (arr[py + px * PHASEH]!=CURRENTID)
-		    { arr[py + px * PHASEH]=CURRENTID; counted++;}
+		int py = lrint(PHASEW*PHASEH * ((y - Y0) / (Y1 - Y0)));
+		if (py >= 0 && py < PHASEH*PHASEW && px>=0 && px<PHASEW)
+		    if (arr[px + py ]!=CURRENTID)
+		    { arr[px + py ]=CURRENTID; counted++;}
 	}
 
 	return counted;

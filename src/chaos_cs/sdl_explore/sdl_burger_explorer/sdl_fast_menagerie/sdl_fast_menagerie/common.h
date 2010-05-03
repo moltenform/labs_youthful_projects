@@ -29,10 +29,10 @@ enum {
 } ;
 typedef struct
 {
-	double x0;
+	/*double x0;
 	double x1;
 	double y0;
-	double y1;
+	double y1;*/
 
 	double browsex0;
 	double browsex1;

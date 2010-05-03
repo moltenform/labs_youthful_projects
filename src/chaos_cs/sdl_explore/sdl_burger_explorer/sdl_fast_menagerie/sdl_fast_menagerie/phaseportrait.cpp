@@ -34,6 +34,7 @@ void DrawPlotGrid( SDL_Surface* pSurface, MenagFastSettings*settings, double c1,
 	for (int x=PlotX; x<PlotWidth+PlotX; x++)
 		plotpoint(pSurface, x, PlotHeight, red);
 	
+	//draw crosshairs
 	int ia, ib;
 	DoubleMenagCoordsToInt(settings, c1, c2, &ia, &ib);
 	for (int x=ia-4; x<ia+5; x++)

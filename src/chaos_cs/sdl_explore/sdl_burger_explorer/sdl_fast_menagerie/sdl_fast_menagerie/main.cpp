@@ -71,7 +71,7 @@ int main( int argc, char* argv[] )
 				SDL_FillRect ( pMenagSurface , NULL , 0);
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				tryZoomPlot(direction, mouse_x, mouse_y, settings);
-				startMenagCalculation(settings, direction);
+				startMenagCalculation(settings, direction, pSurface->format);
 				waitingForCompletion = TRUE;
 				shouldRedraw = TRUE;
 					}
@@ -81,7 +81,7 @@ int main( int argc, char* argv[] )
 					if (!g_BusyThread1 && !g_BusyThread2) {
 				SDL_FillRect ( pMenagSurface, NULL , 0 );
 				InitialSettings(settings, MenagHeight, MenagWidth, &curA, &curB);
-				startMenagCalculation(settings, 0);
+				startMenagCalculation(settings, 0, pSurface->format);
 				curA=99, curB=99; //get rid of cursor, phase plot
 				waitingForCompletion = TRUE;
 				shouldRedraw = TRUE;
