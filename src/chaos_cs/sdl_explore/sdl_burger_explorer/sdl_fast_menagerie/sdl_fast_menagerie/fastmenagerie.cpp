@@ -62,10 +62,10 @@ int CalcFastFastMenagerie(void* data)
 		fx=X0;
 		for (int px = 0; px < MenagWidth; px+=1)
 		{
-			//double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
-			//val = val/1000;
+			double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
+			val = sqrt(val)/30;
 			//double dd = (px+py)/100.0;
-			double val = fx*fy + fabs(fx); //(px+py)/10;
+			//double val = fx*fy + fabs(fx); //(px+py)/10;
 			if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 			val = val*2 - 1; //from -1 to 1
 			val = -val;
@@ -157,24 +157,45 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 	x=0.01; y=0.01; //experimental. it's true.
 	int counted=0;
 	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
-	
-	for (int i=0; i<100; i++)
+	BOOL hasbeennegative=FALSE;
+	BOOL hasbeenpos=FALSE;
+
+	for (int i=0; i<50/4; i++)
 	{
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		if (ISTOOBIG(x) || ISTOOBIG(y))
 			return counted;
 	}
 	//drawing time.
-	for (int i=0; i<1000; i++) //see how changes if drawing increases?
+	for (int i=0; i<1000/2; i++) //see how changes if drawing increases?
 	{
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		int px = lrint(PHASEW * ((x - X0) / (X1 - X0)));
-		int py = lrint(PHASEW*PHASEH * ((y - Y0) / (Y1 - Y0)));
-		if (py >= 0 && py < PHASEH*PHASEW && px>=0 && px<PHASEW)
-		    if (arr[px + py ]!=CURRENTID)
-		    { arr[px + py ]=CURRENTID; counted++;}
-	}
+		int py_times_256 = lrint(PHASEW*PHASEH * ((y - Y0) / (Y1 - Y0)));
+		if (py_times_256 >= 0 && py_times_256 < PHASEH*PHASEW && px>=0 && px<PHASEW)
+		    if (arr[px + py_times_256 ]!=CURRENTID)
+		    { arr[px + py_times_256 ]=CURRENTID; counted++;}
 
-	return counted;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		px = lrint(PHASEW * ((x - X0) / (X1 - X0)));
+		py_times_256 = lrint(PHASEW*PHASEH * ((y - Y0) / (Y1 - Y0)));
+		if (py_times_256 >= 0 && py_times_256 < PHASEH*PHASEW && px>=0 && px<PHASEW)
+		    if (arr[px + py_times_256 ]!=CURRENTID)
+		    { arr[px + py_times_256 ]=CURRENTID; counted++;}
+
+		if (ISTOOBIG(x) || ISTOOBIG(y))
+			return counted;
+		if (y<0) hasbeennegative=TRUE;
+		if (y>0) hasbeenpos=TRUE;
+	}
+	if (hasbeenpos&&hasbeennegative) return 200;
+	if (hasbeennegative) return 500;
+	if (hasbeenpos) return 300;
+	//return hasbeennegative?500:200;
+	//return counted;
 }
 
+//next: a state machine one.
