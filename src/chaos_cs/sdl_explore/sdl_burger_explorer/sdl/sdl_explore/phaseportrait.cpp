@@ -4,6 +4,7 @@
 
 #include <math.h>
 void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) ;
+void FindMultipleAttractors( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) ;
 
 BOOL g_bMapIsSymmetricalXAxis=FALSE;
 void exprSettings(double startingC1,double startingC2, double browsex0, double browsex1, double browsey0, double browsey1, double x0, double x1, double y0, double y1,BOOL bSymmetrical,PhasePortraitSettings*ps, double*pa, double*pb)
@@ -86,7 +87,8 @@ void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double
 
 void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 ) 
 {
-	if (settings->drawBasin) return DrawBasinQuick(pSurface,settings,c1,c2);
+	//if (settings->drawBasin) return DrawBasinQuick(pSurface,settings,c1,c2);
+	if (settings->drawBasin) return FindMultipleAttractors(pSurface,settings,c1,c2);
 	double sx0= -2, sx1=2, sy0= -2, sy1=2;
 
 	int nXpoints=settings->seedsPerAxis;
@@ -218,3 +220,81 @@ for (int ncx=0; ncx<SCALEDOWN; ncx++){
 }
 
 
+void FindMultipleAttractors( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) 
+{
+	if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
+
+	double fx,fy, x_,x,y;
+
+	int height=settings->height;
+	int width=settings->width;
+	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
+	
+    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+    fx = X0; fy = Y1; //y counts downwards
+	 char* pPosition;
+    for (int py=0; py<height; py+=SCALEDOWN)
+        {
+			fx=X0;
+	 for (int px = 0; px < width; px+=SCALEDOWN)
+    {
+        
+        x=fx; y=fy;
+		for (int i=0; i<50; i++)
+		{
+			MAPEXPRESSION;
+            x=x_;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+		}
+		double total=0.0;
+		for (int i=0; i<50; i++)
+		{
+			MAPEXPRESSION; x=x_;
+			total += x*x+y*y;
+			MAPEXPRESSION; x=x_;
+			total += x*x+y*y;
+			MAPEXPRESSION; x=x_;
+			total += x*x+y*y;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+		}
+		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
+		if (y<0) distance *= -1;
+		double val = distance;*/
+		double val;
+		if (ISTOOBIG(x)||ISTOOBIG(y))
+			val=1.0;
+		else{
+			//double diffx = (x) - (c1*x - y*y);
+			//double diffy = (y) - (c2*y + x*y);
+			val = total / 300;
+            //val = sqrt(fabs(x));
+			//if (y<0) val*=.8;
+		}
+
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = val*2 - 1; //from -1 to 1
+		Uint32 r,g,b;
+		if (val<=0)
+			b=255, r=g= (Uint32) ((1+val)*255.0);
+		else
+			r=g=b= (Uint32) ((1-val)*255.0);
+			
+  
+for (int ncy=0; ncy<SCALEDOWN; ncy++){
+for (int ncx=0; ncx<SCALEDOWN; ncx++){
+
+  pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * (py+ncy) ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * (px+ncx) ); //offset by x
+  Uint32 newcol = SDL_MapRGB ( pSurface->format , r , g , b ) ;
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+}}
+
+
+        fx += dx*SCALEDOWN;
+        }
+            fy -= dy*SCALEDOWN;
+    }
+
+	if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
+}
