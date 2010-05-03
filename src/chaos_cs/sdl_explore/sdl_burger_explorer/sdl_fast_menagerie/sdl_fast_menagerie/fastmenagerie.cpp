@@ -4,8 +4,11 @@
 #include "fastmenagerie.h"
 #include "float_cast.h"
 
+//gradients changing all r,g,b are better, maybe why black to white is better.
+
 int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread, int*outWidth, int*outHeight);
 //int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int alternateCountPhasePlotSampling(MenagFastSettings*settings,double c1, double c2, int whichThread);
 BOOL g_BusyThread1 = FALSE;
 BOOL g_BusyThread2 = FALSE;
 void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, double *pb)
@@ -65,12 +68,12 @@ int CalcFastFastMenagerie(void* data)
 		{
 			//double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
 			//val = sqrt(val)/30;
-			//double val = alternateCountPhasePlot(settings, fx,fy, whichHalf);
-			//val = val/300.0; //fmod(val, 1.0);
-			double val =0;
-			int mwidth, mheight;
-			alternateCountPhasePlot(settings, fx,fy, whichHalf, &mwidth, &mheight);
-			val = val/300.0; //fmod(val, 1.0);
+			double val = alternateCountPhasePlotSampling(settings, fx,fy, whichHalf);
+			val = val/100.0; //fmod(val, 1.0);
+			//double val =0;
+			//int mwidth, mheight;
+			//alternateCountPhasePlot(settings, fx,fy, whichHalf, &mwidth, &mheight);
+			//fmod(val, 1.0);
 			//val = val/3;//sqrt(val)/3;
 			//double dd = (px+py)/100.0;
 			//double val = fx*fy + fabs(fx); //(px+py)/10;
@@ -83,9 +86,10 @@ int CalcFastFastMenagerie(void* data)
 			else
 				r=g=b= lrint ((1-val)*255.0);
 
-			r = mwidth;
+			/*r = mwidth;
 			b = mheight;
-			g = 0;
+			g = 0;*/
+			//r=g=b=mheight;
 			localarrayOfResults[py*MenagWidth + px] = //lrint(255*dd);
 			SDL_MapRGB ( g_pixelFormat , r,g,b ) ;
 	//arrayOfResults[py*MenagWidth + px] = (int) ((fx+fy)*4000);
@@ -162,6 +166,8 @@ void BlitMenagerie(SDL_Surface* pSurface,SDL_Surface* pSmallSurface)
 Next: find the "width" (left most and rightmost) point of the attractor.
 */
 
+/* it just happened to show some periodic ones, because period was missing that maximum.*/
+
 int CURRENTID1=35,CURRENTID2=35; //note that this should be threadsafe
 int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread, int*outWidth, int*outHeight)
 {
@@ -196,6 +202,12 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 		    if (arr[px + py_times_256 ]!=CURRENTID)
 		    { arr[px + py_times_256 ]=CURRENTID; counted++;}
 
+		if (px>rightmost) rightmost=px;
+		if (px<leftmost) leftmost=px;
+		int py = py_times_256/256;
+		if (py<smallesty) smallesty=py;
+		if (py>biggesty) biggesty=py;
+
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		px = lrint(PHASEW * ((x - X0) / (X1 - X0)));
 		py_times_256 = lrint(PHASEW*PHASEH * ((y - Y0) / (Y1 - Y0)));
@@ -209,7 +221,7 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 		//if (y>0) hasbeenpos=TRUE;
 		if (px>rightmost) rightmost=px;
 		if (px<leftmost) leftmost=px;
-		int py = py_times_256/256;
+		 py = py_times_256/256;
 		if (py<smallesty) smallesty=py;
 		if (py>biggesty) biggesty=py;
 	}
@@ -218,10 +230,53 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 	if (hasbeenpos) return 300;*/
 	*outWidth = (rightmost-leftmost);
 	*outHeight = (biggesty-smallesty);
-	return (biggesty-smallesty);// + (rightmost-leftmost);
+	return (rightmost-leftmost);
 	//return 100;
 	//return hasbeennegative?500:200;
 	//return counted;
 }
 
 //next: a state machine one.
+
+//the "sampling" one
+int alternateCountPhasePlotSampling(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
+	int*arr = whichThread? arrThread1:arrThread2;
+	double x,x_,y;
+	x=0.01; y=0.01; //experimental. it's true.
+	int counted=0;
+	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
+
+	for (int i=0; i<50/4; i++)
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		if (ISTOOBIG(x) || ISTOOBIG(y))
+			return 0;//counted;
+	}
+	//drawing time.
+	for (int i=0; i<1000/2; i++) //see how changes if drawing increases?
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		if (x>-.6 && x<-.5)
+		{
+			int py = lrint(PHASEH* ((y - Y0) / (Y1 - Y0))); 
+			if (py>=0 && py<=PHASEH && arr[py]!=CURRENTID)
+		    { arr[py]=CURRENTID; counted++;}
+		}
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		if (x>-.6 && x<-.5)
+		{
+			int py = lrint(PHASEH* ((y - Y0) / (Y1 - Y0))); 
+			if (py>=0 && py<=PHASEH && arr[py]!=CURRENTID)
+		    { arr[py]=CURRENTID; counted++;}
+		}
+
+		if (ISTOOBIG(x) || ISTOOBIG(y))
+			return counted;
+	}
+	return counted;
+}
