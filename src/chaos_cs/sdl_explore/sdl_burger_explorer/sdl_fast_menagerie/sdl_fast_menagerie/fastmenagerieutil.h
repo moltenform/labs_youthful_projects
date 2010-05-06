@@ -97,7 +97,7 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 	double x,x_,y;
 	x=0.0; y=0.000001; //experimental. it's true.
 	int counted=0;
-	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
+	double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
 	BOOL hasbeennegative=FALSE;
 	BOOL hasbeenpos=FALSE;
 	int rightmost=0, leftmost=PHASEW+2;

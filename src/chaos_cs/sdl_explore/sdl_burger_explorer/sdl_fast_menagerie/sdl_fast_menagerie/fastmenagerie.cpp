@@ -4,10 +4,14 @@
 #include "fastmenagerie.h"
 #include "float_cast.h"
 
-#if SHOWALL
+#if FALSE
 #define SETTLING 50
 #define DRAWING 4000
 #define POSTERIZETYPE 0
+#else
+#define SETTLING 300
+#define DRAWING 1000
+#define POSTERIZETYPE 1
 #endif
 
 int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread);
@@ -29,6 +33,7 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 		ps->browsex0 = -2.5; ps->browsex1 = 1; ps->browsey0=1.5; ps->browsey1 = 2.0; 
 		//ah, but my zoom in/out code always makes square zoom sizes...
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
+		ps->menagphasex0 = -3; ps->menagphasex0 = 1; ps->menagphasex0=0 /*it's symmetrical */; ps->menagphasex0 = 3;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;
 	}
 	else //HENON MAP
@@ -36,6 +41,7 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 		*pa = 1.4; *pb = 0.3;
 		ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-1; ps->browsey1 = 3;
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
+		ps->menagphasex0 = -3; ps->menagphasex0 = 3; ps->menagphasex0=-3; ps->menagphasex0 = 3;
 		ps->seedx0 = -3; ps->seedx1 = 3; ps->seedy0=-3 ; ps->seedy1 = 3;
 		
 	}
@@ -51,7 +57,11 @@ inline unsigned int standardToColors(double val, double estimatedMax)
 	int index = lrint(val * (1023));
 	if (index<=0) return 0;
 	else if (index >= 1024) return 255<<8; //pure green xxrrggxx
-	//POSTERIZE: 
+
+#if POSTERIZETYPE==1
+	if (index<25) index *= 40;
+	else index = 1000;
+#endif
 	//if (index < 870) index = 700;
 	//else index=900;
 	return color32bit[index];
@@ -68,14 +78,14 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
 	int*arr = whichThread? arrThread1:arrThread2;
 	int counted=0;
-	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
+	double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
 	
 	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
 	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
 	__m128 mXTmp;
 	burgerSetup;
 
-	for (int i=0; i<50/4; i++)
+	for (int i=0; i<SETTLING/4; i++)
 	{
 		burgerExpression; 
 		burgerExpression;
@@ -96,7 +106,7 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	__m128 xPrelimTimes256, yPrelim;
 	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
 	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
-	for (int i=0; i<4000/8; i++) //see how changes if drawing increases?
+	for (int i=0; i<DRAWING/8; i++) //see how changes if drawing increases?
 	{
 		burgerExpression;
 		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
@@ -161,6 +171,6 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	
 theend:
 	if (counted==0) return 0x0;
-	else return standardToColors((double)counted, 4000);
+	else return standardToColors((double)counted, DRAWING);
 }
 
