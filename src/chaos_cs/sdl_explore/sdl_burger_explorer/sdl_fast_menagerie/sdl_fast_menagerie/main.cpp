@@ -10,10 +10,11 @@
 #include "fastmenagerie.h"
 #include "font.h"
 #include "phaseportrait.h"
+#include "timecounter.h"
 
 
 Uint32 g_white;
-int MenagHeight=384, MenagWidth=384;
+int MenagHeight=256, MenagWidth=256, MenagColorLegend=4; //384
 int PhasePlotHeight=128, PhasePlotWidth=128, PhasePlotX=384;
 BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, MenagFastSettings*settings, double *outA, double *outB);
 void tryDrawPhasePortrait(int mouse_x, int mouse_y, MenagFastSettings*settings, double *outA, double *outB);
@@ -24,6 +25,7 @@ int main( int argc, char* argv[] )
 {
 	MenagFastSettings ssettings; MenagFastSettings * settings = &ssettings;
 	double curA=0.0, curB=0.0;
+	char timetext[256]={0};
 	InitialSettings(settings, MenagHeight, MenagWidth, &curA, &curB);
 	curA=99, curB=99; //don't show the indicator at first, for aesthetic reasons
 
@@ -39,7 +41,7 @@ int main( int argc, char* argv[] )
 		flags |= SDL_FULLSCREEN;
 	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , flags) ;
 	BOOL bNeedToLock =  SDL_MUSTLOCK(pSurface);
-	SDL_Surface* pMenagSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, MenagWidth, MenagHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
+	SDL_Surface* pMenagSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, MenagWidth+MenagColorLegend, MenagHeight, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 
 	while(TRUE) {
@@ -74,6 +76,7 @@ int main( int argc, char* argv[] )
 				startMenagCalculation(settings, direction, pSurface->format);
 				waitingForCompletion = TRUE;
 				shouldRedraw = TRUE;
+				startTimer();
 					}
 				}
 				else if (buttons & SDL_BUTTON_RMASK) //right-click resets
@@ -85,6 +88,7 @@ int main( int argc, char* argv[] )
 				curA=99, curB=99; //get rid of cursor, phase plot
 				waitingForCompletion = TRUE;
 				shouldRedraw = TRUE;
+				startTimer();
 					}
 				}
 				else //normal-click draws phase diagram
@@ -100,6 +104,8 @@ int main( int argc, char* argv[] )
 			if (waitingForCompletion && (!g_BusyThread1 && !g_BusyThread2))
 			{
 				constructMenagerieSurface(settings, pMenagSurface);
+				int time = (int) stopTimer();
+				snprintf(timetext, sizeof(timetext), "t:%d", time);
 				waitingForCompletion = FALSE;
 				shouldRedraw = TRUE;
 			}
@@ -123,7 +129,7 @@ int main( int argc, char* argv[] )
 				DrawPlotGrid(pSurface,settings, curA,curB);
 				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 				//prevA = curA; prevB = curB;
-
+				ShowText(timetext, 0, 500, pSurface);
 				SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 				shouldRedraw = FALSE;
 

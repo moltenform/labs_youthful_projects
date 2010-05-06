@@ -152,6 +152,7 @@ BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 }
 BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surface* pScreen)
 {
+	if (!text || strlen(text)==0) return FALSE;
 	/* TODO: We need to calculate the fonts height into the pos_y thing. */
 	// Also, id like to see this stuff gathered from an ini file.
 	// That way we can alter fonts without the need for recompilcation

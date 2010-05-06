@@ -71,7 +71,7 @@ typedef struct
 
 //called an "extern" so that it's declared many times and defined once.
 extern Uint32 g_white; 
-extern int MenagHeight, MenagWidth;
+extern int MenagHeight, MenagWidth, MenagColorLegend;
 extern int PhasePlotHeight, PhasePlotWidth, PhasePlotX;
  
 
