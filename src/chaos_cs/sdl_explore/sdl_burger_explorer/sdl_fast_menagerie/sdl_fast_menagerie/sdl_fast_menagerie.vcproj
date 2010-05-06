@@ -216,6 +216,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\otherfastmenag.h"
+				>
+			</File>
+			<File
 				RelativePath=".\phaseportrait.cpp"
 				>
 			</File>

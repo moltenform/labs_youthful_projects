@@ -20,7 +20,7 @@ void startMenagCalculation(MenagFastSettings*ps, int direction, SDL_PixelFormat 
 		mmX = mXTmp;
 
 #define burgerSetup \
-	_m128 mConstCOne = _mm_set1_ps(c1); \
+	__m128 mConstCOne = _mm_set1_ps(c1); \
 	__m128 mConstCTwo = _mm_set1_ps(c2); \
 	__m128 mmTemp;
 
