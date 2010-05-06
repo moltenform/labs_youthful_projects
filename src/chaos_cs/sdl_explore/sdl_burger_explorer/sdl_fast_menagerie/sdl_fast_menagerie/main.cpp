@@ -14,7 +14,7 @@
 
 
 Uint32 g_white;
-int MenagHeight=256, MenagWidth=256, MenagColorLegend=4; //384
+int MenagHeight=384, MenagWidth=384, MenagColorLegend=4; //384
 int PhasePlotHeight=128, PhasePlotWidth=128, PhasePlotX=384;
 BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, MenagFastSettings*settings, double *outA, double *outB);
 void tryDrawPhasePortrait(int mouse_x, int mouse_y, MenagFastSettings*settings, double *outA, double *outB);
@@ -70,7 +70,7 @@ int main( int argc, char* argv[] )
 				if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
 				{
 					if (!g_BusyThread1 && !g_BusyThread2) {
-				SDL_FillRect ( pMenagSurface , NULL , 0);
+				//SDL_FillRect ( pMenagSurface , NULL , 0);
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				tryZoomPlot(direction, mouse_x, mouse_y, settings);
 				startMenagCalculation(settings, direction, pSurface->format);
@@ -126,6 +126,7 @@ int main( int argc, char* argv[] )
 				BlitMenagerie(pSurface, pMenagSurface); 
 				if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 				DrawPhasePortrait(pSurface, settings, curA,curB);
+				//DrawPhasePortrait2(pSurface, settings, curA,curB);
 				DrawPlotGrid(pSurface,settings, curA,curB);
 				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 				//prevA = curA; prevB = curB;
@@ -171,8 +172,8 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, MenagFastSettings*sett
 	{
 		IntMenagCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
 		double fwidth=settings->browsex1-settings->browsex0, fheight=settings->browsex1-settings->browsex0;
-		if (direction==-1) {fwidth *= 1.25; fheight*=1.25;}
-		else {fwidth *= 0.8; fheight*=0.8;}
+		if (direction==-1) {fwidth *= 2; fheight*=2;}
+		else {fwidth *= 0.5; fheight*=0.5;}
 		settings->browsex0 = fmousex - fwidth/2;
 		settings->browsex1 = fmousex + fwidth/2;
 		settings->browsey0 = fmousey - fheight/2;

@@ -20,7 +20,8 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 	if (StringsEqual(STRINGIFY(MAPEXPRESSION), STRINGIFY(BURGER)))
 	{
 		*pa = -1.1; *pb = 1.72;
-		ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
+		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
+		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=1.5; ps->browsey1 = 3.5;
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;
 	}
@@ -239,11 +240,9 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	int counted=0;
 	double X0=-3, X1=1, Y0=-3, Y1=3; ////////////////////////////////////////////////
 	
-	__m128 mmX;
-	__m128 mmY;
+	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
 	__m128 mXTmp;
-	mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
-	mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
 	burgerSetup;
 
 	for (int i=0; i<50/4; i++)
@@ -267,7 +266,7 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	__m128 xPrelimTimes256, yPrelim;
 	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
 	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
-	for (int i=0; i<1000/4; i++) //see how changes if drawing increases?
+	for (int i=0; i<1000/8; i++) //see how changes if drawing increases?
 	{
 		burgerExpression;
 		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
@@ -279,7 +278,34 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 		yPt = _mm_add_epi32(yPt, mmShiftH);
 		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
 		
-		//ok to forgo this check?
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+
+		//Loop unrolled///////////////////////////////////////
+		burgerExpression;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		 xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		 yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		 xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
 		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
