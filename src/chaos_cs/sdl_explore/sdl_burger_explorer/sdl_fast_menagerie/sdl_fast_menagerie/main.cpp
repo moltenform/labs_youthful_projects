@@ -20,6 +20,7 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 void tryDrawPhasePortrait(int mouse_x, int mouse_y, MenagFastSettings*settings, double *outA, double *outB);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, MenagFastSettings*settings);
 void zoomPortrait(int direction, MenagFastSettings * settings );
+void showVals(SDL_Surface* pSurface, double a,double b);
 
 int main( int argc, char* argv[] )
 {
@@ -155,6 +156,7 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_LEFT: *outA -= (bShift) ? 0.0005 : 0.005; break;
 		case SDLK_RIGHT: *outA += (bShift) ? 0.0005 : 0.005; break;
 		case SDLK_t: if (bControl) togglePhasePortraitTransients(); break;
+		case SDLK_QUOTE: if (bControl) showVals(pSurface,*outA,*outB); break;
 		default: redrawPlot=FALSE;
 	}
 	return redrawPlot;
@@ -187,7 +189,12 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, MenagFastSettings*sett
 	}
 }
 
-
+void showVals(SDL_Surface* pSurface, double a,double b)
+{
+char buf[256];
+snprintf(buf, sizeof(buf),"a:%f b:%f", a,b);
+Dialog_Message(buf, pSurface);
+}
 
 
 //Uint32 g_white;

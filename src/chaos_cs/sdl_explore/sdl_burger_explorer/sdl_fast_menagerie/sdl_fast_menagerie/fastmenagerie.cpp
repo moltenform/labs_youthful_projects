@@ -20,8 +20,9 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 	if (StringsEqual(STRINGIFY(MAPEXPRESSION), STRINGIFY(BURGER)))
 	{
 		*pa = -1.1; *pb = 1.72;
-		ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
-		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=1.5; ps->browsey1 = 3.5;
+		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
+		ps->browsex0 = -2.5; ps->browsex1 = 1; ps->browsey0=1.5; ps->browsey1 = 2.0; 
+		//ah, but my zoom in/out code always makes square zoom sizes...
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;
 	}
@@ -52,7 +53,9 @@ inline unsigned int standardToColors(double val, double estimatedMax)
 	int index = lrint(val * (1023));
 	if (index<=0) return 0;
 	else if (index >= 1024) return 255<<8; //pure green xxrrggxx
-	//return color32bit[((1024-index)-150)%1024];
+	//POSTERIZE: 
+	if (index < 700) index = 300;
+	else index=900;
 	return color32bit[index];
 }
 
