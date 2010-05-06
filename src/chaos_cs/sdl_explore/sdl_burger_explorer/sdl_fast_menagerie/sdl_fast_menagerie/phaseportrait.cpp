@@ -48,13 +48,15 @@ void DrawPlotGrid( SDL_Surface* pSurface, MenagFastSettings*settings, double c1,
 //PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 40,48,20, 0};
 //PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 15,100,100, 0};
 //PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, 0,1,0,1, 1,100,3000, 0};
-PhasePortraitSettings thephasesettings = {384,384, -3,3,-3,3, -1.0,1.0,0.0,1.0, 10,7000,500, 0};
-
+PhasePortraitSettings phaseWithoutTransients = {384,384, -3,3,-3,3, -1.0,1.0,0.0,1.0, 10,7000,500, 0};
+PhasePortraitSettings phaseWithTransients = {384,384, -3,3,-3,3, -FLT_EPSILON,FLT_EPSILON,-0.000001,0.000001, 1,100,1000, 0};
+PhasePortraitSettings * currentphasesettings = &phaseWithoutTransients;
+void togglePhasePortraitTransients() {currentphasesettings=(currentphasesettings==&phaseWithoutTransients)?&phaseWithTransients:&phaseWithoutTransients; }
 void DrawPhasePortrait( SDL_Surface* pSurface, MenagFastSettings*mfastsettings, double c1, double c2 ) 
 {
 	//double sx0= -2, sx1=2, sy0= -2, sy1=2;
 	double sx0= 0.01, sx1=2, sy0= 0.01, sy1=2;
-	PhasePortraitSettings * settings = &thephasesettings;
+	PhasePortraitSettings * settings = currentphasesettings;
 
 	int nXpoints=settings->seedsPerAxis;
 	int nYpoints=settings->seedsPerAxis;
@@ -118,7 +120,7 @@ void DrawPhasePortrait( SDL_Surface* pSurface, MenagFastSettings*mfastsettings, 
 
 void zoomPortrait(int direction, MenagFastSettings * fmenagsettings )
 {
-	PhasePortraitSettings * settings = &thephasesettings;
+	PhasePortraitSettings * settings = currentphasesettings;
 	double fcenterx, fcentery;
 	fcenterx= (settings->x1+settings->x0)/2;
 	fcentery= (settings->y1+settings->y0)/2;

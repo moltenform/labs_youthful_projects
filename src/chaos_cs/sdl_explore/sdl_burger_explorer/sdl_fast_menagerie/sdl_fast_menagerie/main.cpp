@@ -29,7 +29,9 @@ int main( int argc, char* argv[] )
 	InitialSettings(settings, MenagHeight, MenagWidth, &curA, &curB);
 	curA=99, curB=99; //don't show the indicator at first, for aesthetic reasons
 
-	//double prevA=0, prevB=0,  prevPlotX0=0, prevPlotX1=0, prevPlotY0=0, prevPlotY1=0;
+	SDL_Rect busyIndication;
+	busyIndication.x = 0; busyIndication.y = 0; busyIndication.w = 6; busyIndication.h = 6; 
+
 	BOOL shouldRedraw = FALSE, waitingForCompletion=FALSE;
 	SDL_Event event;
 
@@ -70,7 +72,7 @@ int main( int argc, char* argv[] )
 				if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
 				{
 					if (!g_BusyThread1 && !g_BusyThread2) {
-				//SDL_FillRect ( pMenagSurface , NULL , 0);
+				SDL_FillRect ( pMenagSurface , &busyIndication , 0);
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				tryZoomPlot(direction, mouse_x, mouse_y, settings);
 				startMenagCalculation(settings, direction, pSurface->format);
@@ -82,11 +84,11 @@ int main( int argc, char* argv[] )
 				else if (buttons & SDL_BUTTON_RMASK) //right-click resets
 				{
 					if (!g_BusyThread1 && !g_BusyThread2) {
-				SDL_FillRect ( pMenagSurface, NULL , 0 );
+				SDL_FillRect ( pMenagSurface , &busyIndication , 0);
 				InitialSettings(settings, MenagHeight, MenagWidth, &curA, &curB);
 				startMenagCalculation(settings, 0, pSurface->format);
 				curA=99, curB=99; //get rid of cursor, phase plot
-				waitingForCompletion = TRUE;
+				waitingForCompletion = TRUE; 
 				shouldRedraw = TRUE;
 				startTimer();
 					}
@@ -121,7 +123,6 @@ int main( int argc, char* argv[] )
 			}
 			else
 			{
-
 				SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
 				BlitMenagerie(pSurface, pMenagSurface); 
 				if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
@@ -149,6 +150,11 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		//case SDLK_s: if (bControl&&bAlt) saveAllKeyframes(pSurface); else if (bControl) onSave(settings,*outA,*outB, pSurface);  break;
 		case SDLK_PAGEUP: zoomPortrait(1,settings);  break;
 		case SDLK_PAGEDOWN: zoomPortrait(-1,settings);  break;
+		case SDLK_UP: *outB += (bShift) ? 0.0005 : 0.005; break;
+		case SDLK_DOWN: *outB -= (bShift) ? 0.0005 : 0.005; break;
+		case SDLK_LEFT: *outA -= (bShift) ? 0.0005 : 0.005; break;
+		case SDLK_RIGHT: *outA += (bShift) ? 0.0005 : 0.005; break;
+		case SDLK_t: if (bControl) togglePhasePortraitTransients(); break;
 		default: redrawPlot=FALSE;
 	}
 	return redrawPlot;

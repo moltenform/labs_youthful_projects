@@ -20,7 +20,7 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 	if (StringsEqual(STRINGIFY(MAPEXPRESSION), STRINGIFY(BURGER)))
 	{
 		*pa = -1.1; *pb = 1.72;
-		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
+		ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
 		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=1.5; ps->browsey1 = 3.5;
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;

@@ -14,7 +14,7 @@
 
 void DrawPlotGrid( SDL_Surface* pSurface, MenagFastSettings*settings, double c1, double c2 );
 void DrawPhasePortrait( SDL_Surface* pSurface, MenagFastSettings*mfastsettings, double c1, double c2 ) ;
-
+void togglePhasePortraitTransients();
 
 //a benefit of having MAPEXPRESSION as a macro is that it can be STRINGIFYd when saving.
 #define STRINGIFY2( x) #x
