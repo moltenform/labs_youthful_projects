@@ -54,8 +54,8 @@ inline unsigned int standardToColors(double val, double estimatedMax)
 	if (index<=0) return 0;
 	else if (index >= 1024) return 255<<8; //pure green xxrrggxx
 	//POSTERIZE: 
-	if (index < 700) index = 300;
-	else index=900;
+	//if (index < 870) index = 700;
+	//else index=900;
 	return color32bit[index];
 }
 
@@ -187,7 +187,7 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 		{counted=0; goto theend;} //counted;
 	}
 	//drawing time.
-	for (int i=0; i<1000/2; i++) //see how changes if drawing increases?
+	for (int i=0; i<3000/2; i++) //see how changes if drawing increases?
 	{
 		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 		int px = lrint(PHASEW * ((x - X0) / (X1 - X0)));
@@ -225,7 +225,7 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 theend:
 	if (counted==0) return 0x0;
 	else
-	return standardToColors((double)counted, 1000);
+	return standardToColors((double)counted, 3000);
 	//return 100;
 	//return hasbeennegative?500:200;
 	//return counted;
@@ -269,7 +269,7 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	__m128 xPrelimTimes256, yPrelim;
 	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
 	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
-	for (int i=0; i<1000/8; i++) //see how changes if drawing increases?
+	for (int i=0; i<4000/8; i++) //see how changes if drawing increases?
 	{
 		burgerExpression;
 		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
@@ -333,5 +333,5 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	
 theend:
 	if (counted==0) return 0x0;
-	else return standardToColors((double)counted, 1000);
+	else return standardToColors((double)counted, 4000);
 }

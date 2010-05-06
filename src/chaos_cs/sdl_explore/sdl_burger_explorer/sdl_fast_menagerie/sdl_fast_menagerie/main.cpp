@@ -14,7 +14,7 @@
 
 
 Uint32 g_white;
-int MenagHeight=384, MenagWidth=384, MenagColorLegend=4; //384
+int MenagHeight=512, MenagWidth=512, MenagColorLegend=4; //384
 int PhasePlotHeight=128, PhasePlotWidth=128, PhasePlotX=384;
 BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, MenagFastSettings*settings, double *outA, double *outB);
 void tryDrawPhasePortrait(int mouse_x, int mouse_y, MenagFastSettings*settings, double *outA, double *outB);
@@ -132,7 +132,7 @@ int main( int argc, char* argv[] )
 				DrawPlotGrid(pSurface,settings, curA,curB);
 				if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 				//prevA = curA; prevB = curB;
-				ShowText(timetext, 0, 500, pSurface);
+				ShowText(timetext, 0, 550, pSurface);
 				SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 				shouldRedraw = FALSE;
 
