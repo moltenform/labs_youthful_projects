@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fastmenagerieutil.h"
+				>
+			</File>
+			<File
 				RelativePath=".\float_cast.h"
 				>
 			</File>
