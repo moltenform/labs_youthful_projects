@@ -4,7 +4,7 @@
 #include "fastmenagerie.h"
 #include "float_cast.h"
 
-#if FALSE
+#if TRUE
 #define SETTLING 50
 #define DRAWING 4000
 #define POSTERIZETYPE 0
@@ -16,6 +16,7 @@
 
 int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int whichThread);
 int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int alternateCountPhasePlotSSEISPOS(MenagFastSettings*settings,double c1, double c2, int whichThread);
 BOOL g_BusyThread1 = FALSE;
 BOOL g_BusyThread2 = FALSE;
 void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, double *pb)
@@ -33,7 +34,7 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 		ps->browsex0 = -2.5; ps->browsex1 = 1; ps->browsey0=1.5; ps->browsey1 = 2.0; 
 		//ah, but my zoom in/out code always makes square zoom sizes...
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
-		ps->menagphasex0 = -5; ps->menagphasex0 = 1; ps->menagphasex0=0 /*it's symmetrical */; ps->menagphasex0 = 3;
+		ps->menagphasex0 = -3/*-5*/; ps->menagphasex0 = 1; ps->menagphasex0=0 /*it's symmetrical */; ps->menagphasex0 = 3;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;
 	}
 	else //HENON MAP
@@ -81,8 +82,34 @@ inline unsigned int standardToColors(double valin, double estimatedMax)
 	return color32bit[index];
 }
 
-
 #include "fastmenagerieutil.h"
+int CalcFastFastMenagerie(void* data)
+{
+	MenagFastSettings*settings = ((ThreadStructure*)data)->settings;
+	int whichHalf = ((ThreadStructure*)data)->whichHalf;
+	int * localarrayOfResults = (whichHalf)? arrayOfResults : arrayOfResults + (MenagHeight/2)*MenagWidth;
+	double X0=settings->browsex0, X1=settings->browsex1;
+	double Y0=settings->browsey0, Y1=settings->browsey1;
+	double dx = (X1 - X0) / MenagWidth, dy = (Y1 - Y0) / MenagHeight;
+	double fx = X0, fy = Y1; //y counts down?
+	if (!whichHalf) fy -= (settings->browsey1 - settings->browsey0)/2;
+	else fy = Y1;
+
+	for (int py=0; py<MenagHeight/2; py+=1) //Note the /2!
+	{
+		fx=X0;
+		for (int px = 0; px < MenagWidth; px+=1)
+		{
+			localarrayOfResults[py*MenagWidth + px] = 
+				alternateCountPhasePlotSSEISPOS(settings, fx,fy, whichHalf);
+			fx += dx;
+		}
+		fy -= dy;
+	}
+	if (whichHalf) g_BusyThread2 = FALSE;
+	else g_BusyThread1 = FALSE;
+	return 0;
+}
 
 //sse. do one with just 4. let's try this.
 //we use the fact that (0,0.000001) and (0,-0.000001) should be in the basin.
@@ -196,3 +223,115 @@ theend:
 	else return standardToColors((double)counted, DRAWING);
 }
 
+
+int alternateCountPhasePlotSSEISPOS(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
+	int*arr = whichThread? arrThread1:arrThread2;
+	int counted=0;
+	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
+	double X0=-3, X1=1, Y0=-3, Y1=3;
+
+	BOOL bHasBeenNeg=FALSE;
+	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
+	__m128 mXTmp;
+	burgerSetup;
+
+	for (int i=0; i<100/4; i++)
+	{
+		burgerExpression; 
+		burgerExpression;
+		burgerExpression;
+		burgerExpression;
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	//drawing time.
+	float CW = 1.0f/(X1-X0);
+	__m128 mMultW = _mm_set1_ps(CW * PHASESIZE * PHASESIZE);  //EXTRA FACTOR
+	int ShiftW = (int) (-X0 * PHASESIZE * CW * PHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
+									//This is sometimes an approximation, but ok due to speed
+	float CH = 1.0f/(Y1-Y0);
+	__m128 mMultH = _mm_set1_ps(CH * PHASESIZE ); 
+	int ShiftH = (int) (-Y0 * PHASESIZE * CH );
+	__m128 xPrelimTimes256, yPrelim;
+	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
+	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
+	for (int i=0; i<500/8; i++) //see how changes if drawing increases?
+	{
+		burgerExpression;
+		if (mmY.m128_f32[0] <0 )bHasBeenNeg=TRUE;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		//if (xySum.m128i_i32[0] >= 0 && xySum.m128i_i32[0] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+
+		//Loop unrolled///////////////////////////////////////
+		burgerExpression;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		 xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		 yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		 xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		//if (xySum.m128i_i32[0] >= 0 && xySum.m128i_i32[0] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	
+theend:
+	if (counted==0) return 0x0;
+	else if (bHasBeenNeg) return  standardToColors((double)400, 1000);
+	else  return  standardToColors((double)800, 1000);
+}

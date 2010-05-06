@@ -76,10 +76,10 @@ int main( int argc, char* argv[] )
 			IntMenagCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
 
 					if (!g_BusyThread1 && !g_BusyThread2) {
-						if ((mod & KMOD_SHIFT)) {settings->browsex1 = fmousex; settings->browsey0 = fmousey; }
-						else {settings->browsex0 = fmousex; settings->browsey1 = fmousey; 
+						if (!(mod & KMOD_SHIFT)) {settings->browsex0 = fmousex; settings->browsey1 = fmousey;  }
+						else {settings->browsex1 = fmousex; settings->browsey0 = fmousey;
 
-							SDL_FillRect ( pMenagSurface , &busyIndication , 0);
+							SDL_FillRect ( pMenagSurface , &busyIndication , 72);
 							startMenagCalculation(settings, 0, pSurface->format);
 							waitingForCompletion = TRUE;
 							shouldRedraw = TRUE;
