@@ -8,9 +8,9 @@
 #define SETTLING 50
 #define DRAWING 4000
 #define POSTERIZETYPE 0
-#else
-#define SETTLING 300
-#define DRAWING 1000
+#else //Show period doubling
+#define SETTLING 700
+#define DRAWING 500
 #define POSTERIZETYPE 1
 #endif
 
@@ -33,7 +33,7 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 		ps->browsex0 = -2.5; ps->browsex1 = 1; ps->browsey0=1.5; ps->browsey1 = 2.0; 
 		//ah, but my zoom in/out code always makes square zoom sizes...
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
-		ps->menagphasex0 = -3; ps->menagphasex0 = 1; ps->menagphasex0=0 /*it's symmetrical */; ps->menagphasex0 = 3;
+		ps->menagphasex0 = -5; ps->menagphasex0 = 1; ps->menagphasex0=0 /*it's symmetrical */; ps->menagphasex0 = 3;
 		ps->seedx0 = -3; ps->seedx1 = 1; ps->seedy0=0 /*it's symmetrical */; ps->seedy1 = 3;
 	}
 	else //HENON MAP
@@ -50,17 +50,31 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 
 #include "colortable_1024.h"
 //gradients changing all r,g,b are better, maybe why black to white is better.
-inline unsigned int standardToColors(double val, double estimatedMax)
+inline unsigned int standardToColors(double valin, double estimatedMax)
 {
 	//val = sqrt(val) / sqrt(estimatedMax);
-	val = (val) / (estimatedMax);
+	double val = (valin) / (estimatedMax);
 	int index = lrint(val * (1023));
 	if (index<=0) return 0;
 	else if (index >= 1024) return 255<<8; //pure green xxrrggxx
 
 #if POSTERIZETYPE==1
-	if (index<25) index *= 40;
-	else index = 1000;
+	int ival = lrint(valin/2);
+	ival = ival-3; if (ival<0) ival=0;
+	if (ival==0) return 0x000000; //bbggrr
+	else if (ival==1) return 0xFF0000;
+	else if (ival==2) return 0xFF7F00;
+	else if (ival==3) return 0xFFFF00;
+	else if (ival==4) return 0x00FF00;
+	else if (ival==5) return 0x0000FF;
+	else if (ival==6) return 0x6600FF;
+	else if (ival==7) return 0x8B00FF;
+	else if (ival==8) return 0xFF00FF;
+	else if (ival<30) return 0x7f7f7f;
+	else return 0x0FFFFFF;
+	//if (val) index *= 40;
+	//if (index<25) index *= 40;
+	//else index = 1000;
 #endif
 	//if (index < 870) index = 700;
 	//else index=900;
@@ -119,18 +133,22 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 		yPt = _mm_add_epi32(yPt, mmShiftH);
 		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
 		
+		//if (xySum.m128i_i32[0] >= 0 && xySum.m128i_i32[0] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
 		}
+		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
 		}
+		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
 		}
+		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
@@ -152,14 +170,17 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
 		}
+		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
 		}
+		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
 		}
+		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
 		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}

@@ -21,6 +21,7 @@ void tryDrawPhasePortrait(int mouse_x, int mouse_y, MenagFastSettings*settings, 
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, MenagFastSettings*settings);
 void zoomPortrait(int direction, MenagFastSettings * settings );
 void showVals(SDL_Surface* pSurface, double a,double b);
+BOOL tryZoomCustom(int mouse_x, int mouse_y, MenagFastSettings*settings);
 
 int main( int argc, char* argv[] )
 {
@@ -69,8 +70,25 @@ int main( int argc, char* argv[] )
 				int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 				int mod = SDL_GetModState();
 
+				if ((buttons &SDL_BUTTON_LMASK) && (mod & KMOD_ALT)) //middle-click-custom zoom rect!
+				{
+					double fmousex,fmousey;
+			IntMenagCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
+
+					if (!g_BusyThread1 && !g_BusyThread2) {
+						if ((mod & KMOD_SHIFT)) {settings->browsex1 = fmousex; settings->browsey0 = fmousey; }
+						else {settings->browsex0 = fmousex; settings->browsey1 = fmousey; 
+
+							SDL_FillRect ( pMenagSurface , &busyIndication , 0);
+							startMenagCalculation(settings, 0, pSurface->format);
+							waitingForCompletion = TRUE;
+							shouldRedraw = TRUE;
+							startTimer(); 
+						}
+					} 
+				}
 				//control click = zoom in, shift click=zoom out
-				if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
+				else if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
 				{
 					if (!g_BusyThread1 && !g_BusyThread2) {
 				SDL_FillRect ( pMenagSurface , &busyIndication , 0);
@@ -80,7 +98,7 @@ int main( int argc, char* argv[] )
 				waitingForCompletion = TRUE;
 				shouldRedraw = TRUE;
 				startTimer();
-					}
+					} 
 				}
 				else if (buttons & SDL_BUTTON_RMASK) //right-click resets
 				{
@@ -108,7 +126,7 @@ int main( int argc, char* argv[] )
 			{
 				constructMenagerieSurface(settings, pMenagSurface);
 				int time = (int) stopTimer();
-				snprintf(timetext, sizeof(timetext), "t:%d", time);
+				snprintf(timetext, sizeof(timetext), "t:%d   [%f,%f,%f,%f]", time,settings->browsex0,settings->browsex1,settings->browsey0,settings->browsey1);
 				waitingForCompletion = FALSE;
 				shouldRedraw = TRUE;
 			}
@@ -188,6 +206,34 @@ void tryZoomPlot(int direction, int mouse_x, int mouse_y, MenagFastSettings*sett
 		settings->browsey1 = fmousey + fheight/2;
 	}
 }
+BOOL tryZoomCustom(int mouse_x, int mouse_y, MenagFastSettings*settings)
+{
+	double fmousex, fmousey; BOOL ret = FALSE;
+	if (mouse_x>0&& mouse_x<MenagWidth && mouse_y>0 && mouse_y<MenagHeight)
+	{
+		IntMenagCoordsToDouble(settings, mouse_x, mouse_y, &fmousex, &fmousey);
+		static volatile BOOL bFirst = TRUE; static volatile double savedx0=0, savedy0=0;
+		if (bFirst)
+		{
+			savedx0 = fmousex;
+			savedy0 = fmousey;
+		}
+		else 
+		{
+			if (fmousex>savedx0 && fmousey>savedy0) {
+			settings->browsex0 = savedx0;
+			settings->browsex1 = fmousex;
+			settings->browsey0 = savedy0;
+			settings->browsey1 = fmousey;
+			ret = TRUE;
+			}
+		}
+		bFirst = !bFirst;
+	}
+	return ret;
+}
+
+
 
 void showVals(SDL_Surface* pSurface, double a,double b)
 {
