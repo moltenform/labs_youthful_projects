@@ -78,8 +78,9 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
 	int*arr = whichThread? arrThread1:arrThread2;
 	int counted=0;
-	double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
-	
+	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
+	double X0=-3, X1=1, Y0=-3, Y1=3;
+
 	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
 	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
 	__m128 mXTmp;
@@ -91,8 +92,8 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 		burgerExpression;
 		burgerExpression;
 		burgerExpression;
-		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[3]) || ISTOOBIGF(mmX.m128_f32[4]) ||
-			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[3]) || ISTOOBIGF(mmY.m128_f32[4]))
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
 		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
 	}
 	//drawing time.
@@ -164,8 +165,8 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
 		}
 
-		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[3]) || ISTOOBIGF(mmX.m128_f32[4]) ||
-			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[3]) || ISTOOBIGF(mmY.m128_f32[4]))
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
 		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
 	}
 	

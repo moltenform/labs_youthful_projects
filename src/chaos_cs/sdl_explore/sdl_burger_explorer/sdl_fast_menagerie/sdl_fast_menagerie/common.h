@@ -33,7 +33,6 @@ typedef struct
 	double x1;
 	double y0;
 	double y1;*/
-	double menagphasex0, menagphasex1, menagphasey0, menagphasey1;
 
 	double browsex0;
 	double browsex1;
@@ -47,6 +46,7 @@ typedef struct
 	int menagSeedsPerAxis;
 	int menagSettling;
 	int menagDrawing;
+	double menagphasex0, menagphasex1, menagphasey0, menagphasey1;
 } MenagFastSettings;
 
 typedef struct
