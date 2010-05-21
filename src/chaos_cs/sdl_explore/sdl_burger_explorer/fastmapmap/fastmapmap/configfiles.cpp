@@ -132,7 +132,7 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 	saveObject(f);
 	//Now add compatibility for cs phaseportrait
 	fprintf(f, "\n\n"
-		";saved from sdl_explore\n"
+		";saved from fastmapmap\n"
 		";the following is just so that it can be opened in cs_phase_portrait\n"
 		"[main_portrait]\n"
 		"X0=%f\n"
@@ -149,7 +149,7 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 		"paramSettle=%d\n"
 		"paramTotalIters=400\n"
 		"paramExpression=%s\n"
-		"paramInit=//saved from sdl_explore\n"
+		"paramInit=//saved from fastmapmap, by Ben Fisher\n"
 		"programVersion=0.0.1"
 		, g_settings->a,g_settings->b, g_settings->settlingTime, expressiontext
 		);

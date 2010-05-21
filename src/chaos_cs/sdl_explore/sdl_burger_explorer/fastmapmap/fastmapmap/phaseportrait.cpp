@@ -9,7 +9,6 @@
 void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width ) 
 {
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
-
 	int nXpoints=g_settings->seedsPerAxis;
 	int nYpoints=g_settings->seedsPerAxis;
 	int height=width;
@@ -66,6 +65,68 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
     }
 }
 
+/*void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) 
+{
+	if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
+
+	double fx,fy, x_,x,y; char* pPosition;
+
+	int height=settings->height;
+	int width=settings->width;
+	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
+	
+    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+    fx = X0; fy = Y1; //y counts downwards
+	
+    for (int py=0; py<height; py+=1)
+        {
+			fx=X0;
+	 for (int px = 0; px < width; px+=1)
+    {
+        x=fx; y=fy;
+		for (int i=0; i<settings->drawing; i++)
+		{
+			MAPEXPRESSION;
+            x=x_;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+		}
+		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
+		if (y<0) distance *= -1;
+		double val = distance;*
+		double val;
+		if (ISTOOBIG(x)||ISTOOBIG(y))
+			val=1.0;
+		else{
+			//double diffx = (x) - (c1*x - y*y);
+			//double diffy = (y) - (c2*y + x*y);
+            val = sqrt(fabs(x));
+			if (y<0) val*=.8;
+		}
+
+		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = val*2 - 1; //from -1 to 1
+		Uint32 r,g,b;
+		if (val<=0)
+			b=255, r=g= (Uint32) ((1+val)*255.0);
+		else
+			r=g=b= (Uint32) ((1-val)*255.0);
+			
+  
+
+  pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * (py) ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * (px) ); //offset by x
+  Uint32 newcol = SDL_MapRGB ( pSurface->format , r , g , b ) ;
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+
+
+        fx += dx;
+        }
+          fy -= dy;
+    }
+
+	if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
+}*/
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) 
 {

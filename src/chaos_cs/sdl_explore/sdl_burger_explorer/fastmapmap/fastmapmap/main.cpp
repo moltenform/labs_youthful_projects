@@ -23,12 +23,13 @@ CoordsDiagramStruct thediagrams[] = {
 
 #include "main_util.h" 
 
-
+BOOL breathing = FALSE; 
+void oscillate(double curA,double curB,double *outA, double *outB);
 void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needDrawPhase, BOOL *needDrawDiagram );
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
-	double *a = &g_settings->a; double *b = &g_settings->b;
+	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
 	BOOL needDrawPhase = TRUE; BOOL needDrawDiagram = TRUE;
 	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
 	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
@@ -60,10 +61,10 @@ while(TRUE)
 	  {
 		switch(event.key.keysym.sym)
 		{
-			case SDLK_UP: *b += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			case SDLK_DOWN: *b -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			case SDLK_LEFT: *a -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
-			case SDLK_RIGHT: *a += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; break;
+			case SDLK_UP: *b += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
+			case SDLK_DOWN: *b -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
+			case SDLK_LEFT: *a -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
+			case SDLK_RIGHT: *a += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: if (event.key.keysym.mod & KMOD_ALT) return 0; break;
 			default: break;
@@ -88,11 +89,15 @@ while(TRUE)
 				 }
 		  }
 		  else if ((buttons & SDL_BUTTON_LMASK))
+		  {
 			  if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>PlotY && mouse_y<PlotY+PlotHeight)
 				screenPixelsToDouble(&thediagrams[1], mouse_x, mouse_y, &g_settings->a, &g_settings->b);
+			  needDrawPhase=TRUE;
+		  }
 	  }
       else if ( event.type == SDL_MOUSEBUTTONDOWN ) //only called once per click
 	  {
+		  needDrawPhase=TRUE;
 			int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 			int mod = SDL_GetModState();
 
@@ -125,6 +130,7 @@ while(TRUE)
 	  }
 	  else if ( event.type == SDL_MOUSEBUTTONUP )
 	  {
+		  needDrawPhase=TRUE;
 		  int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 		  if (isSuperDrag && (buttons & SDL_BUTTON_LMASK)) {
 				//wow, cool. set the zoom!
@@ -146,7 +152,7 @@ while(TRUE)
 	{
 		// don't need to compute anything.
 		//debug by drawing black indicating nothing new is computed.
-		//SDL_FillRect ( pSurface , NULL , 0/*black*/ );
+		//SDL_FillRect ( pSurface , NULL , 0 );
 	}
 	else
 	{
@@ -154,21 +160,24 @@ while(TRUE)
 		{
 			// recompute the figure
 			//DrawMenagerie(pSmallerSurface, settings);
-			//needDrawDiagram = FALSE;
+			needDrawDiagram = FALSE;
 		}
 		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
 		//BlitMenagerie(pSurface, pSmallerSurface); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		DrawFigure(pSurface, *a, *b, thediagrams[0].screen_width);
+		if (!breathing) { oscA=*a; oscB = *b; }
+		else { oscillate(*a,*b, &oscA, &oscB); }
+		DrawFigure(pSurface, oscA, oscB, thediagrams[0].screen_width);
 		DrawPlotGrid(pSurface, &thediagrams[1], *a, *b);
 		//DrawButtons(pSurface);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
-		SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 		needDrawPhase = FALSE;
 	}
 
+
+		SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 	}
 }
 
@@ -182,15 +191,11 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	switch (key)
 	{
 		case SDLK_n:  { initializeObject(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break;
-
-		//case SDLK_s: if (bControl&&bAlt) saveAllKeyframes(pSurface); else if (bControl) onSave(settings,*outA,*outB, pSurface);  break;
-		/*case SDLK_PAGEUP: zoomPortrait(1,settings);  break;
-		case SDLK_PAGEDOWN: zoomPortrait(-1,settings);  break;
-		
-		case SDLK_t: if (bControl) togglePhasePortraitTransients(); break;
-		case SDLK_QUOTE: if (bControl) showVals(pSurface,*outA,*outB); break;
-		case SDLK_q: if (bControl) testThisDimension(pSurface,settings,*outA,*outB); break;
-		case SDLK_e: if (bAlt) docolors(pSurface,settings,outA,outB); break;*/
+		case SDLK_s:  util_savefile(pSurface); break;
+		case SDLK_o:  util_openfile(pSurface); break;
+		case SDLK_c:  util_showVals(pSurface); break;
+		case SDLK_QUOTE: util_onGetExact(pSurface); break;
+		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
 		default: wasKeyCombo =FALSE;
 	}
 	else if (!bControl && bAlt)
@@ -200,6 +205,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_w: g_settings->drawingMode = DrawModeBasins; break;
 		case SDLK_e: g_settings->drawingMode = DrawModeColorLine; break;
 		case SDLK_r: g_settings->drawingMode = DrawModeColorDisk; break;
+		case SDLK_b: breathing = !breathing; break;
 		default: wasKeyCombo =FALSE;
 	}
 	else wasKeyCombo =FALSE;
@@ -208,4 +214,13 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 }
 
 
+void oscillate(double curA,double curB,double *outA, double *outB)
+{
+	static double t=0;
+	t+=0.13;
+	if (t>3141.5926) t=0.0;
+
+	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/200;
+	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/263;
+}
 
