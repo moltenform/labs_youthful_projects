@@ -50,7 +50,7 @@ void switchPalette(SDL_Surface* pSurface)
 }
 
 
-void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width ) 
+void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width, BOOL bJoin ) 
 {
 	int iter = g_settings->colorsStep;
 	if (iter<0) return;
@@ -58,20 +58,25 @@ void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width )
 	int height=width;
 
 	double PI = 3.14159, x_, y_; int px,py;
-	double xradius=1, yradius=1;//double xradius=0.5, yradius=0.5; w henon cool
+	double xradius=1.0, yradius=1.0;//double xradius=0.5, yradius=0.5; w henon cool
 	for (double t=0; t<1.0; t+=0.001)
 	{
 		int color = HSL2RGB(pSurface,t, .5,.5);
 		double x = cos(t * 2*PI)*xradius;
 		double y = sin(t * 2*PI)*yradius;
 
-		// smearing this together is pretty, too.
 		if (iter==1) { //special case: when iter==1 we show both circle and first iter
 			px = lrint(width * ((x - X0) / (X1 - X0)));
             py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
 			plotpointcolor(pSurface, px,py,color);
 		}
 		for (int i=0; i<iter; i++) { 
+			if (bJoin && i!=0) 
+			{
+				px = lrint(width * ((x - X0) / (X1 - X0)));
+				py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
+				plotpointcolor(pSurface, px,py,color);
+			}
 			MAPEXPRESSION;
 			x=x_; y=y_;
 		}
@@ -92,7 +97,7 @@ void DrawColorsDisk( SDL_Surface* pSurface, double c1, double c2, int width )
 	double xradius=1, yradius=1;//double xradius=0.5, yradius=0.5; w henon cool
 	for (double t=0; t<1.0; t+=0.001)
 	{
-		for (double r=0; r<xradius; r+=0.01)
+		for (double r=0; r<xradius; r+=0.005)
 		{
 			double lum = (r/xradius)*0.7;
 			int color = HSL2RGB(pSurface,t, .5,lum);

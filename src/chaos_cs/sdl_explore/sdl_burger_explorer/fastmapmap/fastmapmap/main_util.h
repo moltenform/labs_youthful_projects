@@ -42,14 +42,19 @@ void util_showVals(SDL_Surface* pSurface)
 	snprintf(buf, sizeof(buf),"a:%f b:%f", g_settings->a, g_settings->b);
 	Dialog_Message(buf, pSurface);
 }
-void util_incr(int direction /* 1 or -1*/)
+void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 {
+	if (!bShift) {
 	if (g_settings->drawingMode == DrawModePhase)
 		g_settings->settlingTime = MAX(0, g_settings->settlingTime+ direction*15);
 	else if (g_settings->drawingMode == DrawModeBasins)
 		g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
-	else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
+	else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine || g_settings->drawingMode == DrawModeColorLineJoin)
 		g_settings->colorsStep = MAX(0, g_settings->colorsStep+ direction*1);
+	} else {
+		if (g_settings->drawingMode == DrawModePhase)
+		g_settings->seedsPerAxis = MAX(0, g_settings->seedsPerAxis+ direction*2);
+	}
 }
 
 void util_onGetExact(SDL_Surface *pSurface)
@@ -74,6 +79,96 @@ void util_onGetSeed(SDL_Surface *pSurface)
 	if (!Dialog_GetDouble("Enter a value for seedx1:",pSurface,&g_settings->seedx1)) return;
 	if (!Dialog_GetDouble("Enter a value for seedy0:",pSurface,&g_settings->seedy0)) return;
 	if (!Dialog_GetDouble("Enter a value for seedy1:",pSurface,&g_settings->seedy1)) return;
+}
+
+enum {
+	BtnDiagramX = 450,
+	BtnDiagramY = 10,
+	BtnInfoX = 450+16+10,
+	BtnInfoY = 10,
+	BtnWidth=16, BtnHeight=16
+};
+void showInfo(SDL_Surface *pSurface);
+BOOL didClickOnButton(SDL_Surface *pSurface, int mousex, int mousey, BOOL *bShowDiagram)
+{
+	if (mousex>=BtnDiagramX && mousex<BtnDiagramX+BtnWidth && mousey>=BtnDiagramY && mousey<BtnDiagramY+BtnHeight)
+	{*bShowDiagram=!*bShowDiagram; return TRUE;}
+	if (mousex>=BtnInfoX && mousex<BtnInfoX+BtnWidth && mousey>=BtnInfoY && mousey<BtnInfoY+BtnHeight)
+	{showInfo(pSurface); return TRUE;}
+	return FALSE;
+}
+void drawButtons(SDL_Surface *pSurface)
+{
+	plotlinerect(pSurface, BtnDiagramX,BtnDiagramX+BtnWidth,BtnDiagramY,BtnDiagramY+BtnHeight, 0);
+	plotlinerect(pSurface, BtnInfoX,BtnInfoX+BtnWidth,BtnInfoY,BtnInfoY+BtnHeight, 0);
+	//draw a cross
+	plotlinehorizcolor(pSurface, BtnDiagramX, BtnDiagramX+BtnWidth, BtnDiagramY+BtnHeight/2, 0);
+	plotlinevertcolor(pSurface, BtnDiagramX+BtnWidth/2, BtnDiagramY,BtnDiagramY+BtnHeight, 0);
+	//draw 3 dots
+	plotlinerect(pSurface, BtnInfoX+2,BtnInfoX+5,BtnInfoY+10,BtnInfoY+13, 0);
+	plotlinerect(pSurface, BtnInfoX+7,BtnInfoX+10,BtnInfoY+10,BtnInfoY+13, 0);
+	plotlinerect(pSurface, BtnInfoX+12,BtnInfoX+15,BtnInfoY+10,BtnInfoY+13, 0);
+}
+void showInfo(SDL_Surface *pSurface)
+{
+	SDL_FillRect ( pSurface , NULL , g_white );
+	ShowText(
+		"Features\n"
+		"---------\n"
+		"\n"
+		"Ctrl+S\n"
+		"Ctrl+O\n"
+		"\n"
+		"Alt+F\n"
+		"Alt+B\n"
+		"Alt+G\n"
+		"\n"
+		"Ctrl+'\n"
+		"Ctrl+;\n"
+		"PgUp\n"
+		"PgDn\n"
+		"Space\n"
+		"Esc\n"
+		"\n"
+		"\n"
+		"Arrow keys\n"
+		"Ctrl-click\n"
+		"Shift-click\n"
+		"Right-click\n"
+		, 30, 30, pSurface);
+	ShowText(
+		"\n"
+		"\n"
+		"\n"
+		"Save\n"
+		"Open, cycling through saved files.\n"
+		"\n"
+		"Full screen\n"
+		"Breathing\n"
+		"Show Basins\n"
+		"\n"
+		"Set exact values\n"
+		"More settings\n"
+		"Zoom in\n"
+		"Zoom out\n"
+		"Show this screen\n"
+		"Close this screen\n"
+		"\n"
+		"\n"
+		"Move around\n"
+		"Zoom in\n"
+		"Zoom out\n"
+		"Reset view\n"
+		, 190, 30, pSurface);
+	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
+	SDL_Event event;
+	while (TRUE) {
+		if ( SDL_PollEvent ( &event ) ) {
+			if ( event.type == SDL_QUIT ) return;
+			else if (event.type==SDL_MOUSEBUTTONDOWN) return;
+			else if (event.type==SDL_KEYUP) return;
+		}
+	}
 }
 
 

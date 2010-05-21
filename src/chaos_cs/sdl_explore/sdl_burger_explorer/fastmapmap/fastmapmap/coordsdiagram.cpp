@@ -7,14 +7,14 @@ void screenPixelsToDouble(CoordsDiagramStruct * diagram, int mousex, int mousey,
 	double dwidth = (*diagram->px1)-(*diagram->px0);
 	double dheight = (*diagram->py1)-(*diagram->py0);
 	*outX = (mousex-diagram->screen_x)/((double)diagram->screen_width)*dwidth + (*diagram->px0);
-	*outY = ((diagram->screen_height - mousey)-diagram->screen_y)/((double) diagram->screen_height)*dheight + (*diagram->py0);
+	*outY = ((diagram->screen_y+diagram->screen_height) - mousey)/((double)diagram->screen_height)*dheight + (*diagram->py0);
 }
 void doubleToScreenPixels(CoordsDiagramStruct * diagram, double fx, double fy, int *outX, int *outY)
 {
 	double dwidth = (*diagram->px1)-(*diagram->px0);
 	double dheight = (*diagram->py1)-(*diagram->py0);
 	*outX = (int)(diagram->screen_width * (fx- *diagram->px0)/dwidth + diagram->screen_x);
-	*outY = diagram->screen_height - (int)(diagram->screen_height * (fy- *diagram->py0)/dheight + diagram->screen_y);
+	*outY = diagram->screen_y+diagram->screen_height - (int)(diagram->screen_height * (fy- *diagram->py0)/dheight );
 }
 
 int isClickWithinDiagram(CoordsDiagramStruct diagrams[], int x, int y)
@@ -100,10 +100,10 @@ void DrawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double 
 	for (double f=-4; f<5; f+=1.0)
 	{
 		doubleToScreenPixels(diagram, f,f, &xtic, &ytic);
-		if (xzero>PlotX && xzero<PlotX+PlotWidth)
+		//if (xzero>PlotX && xzero<PlotX+PlotWidth)
 			for (int y=yzero-5; y<yzero+5; y++)
 				plotpoint(pSurface,diagram, xtic, y);
-		if (yzero>=PlotY && yzero<=PlotY+PlotHeight)
+		//if (yzero>=PlotY && yzero<=PlotY+PlotHeight)
 			for (int x=xzero-5; x<xzero+5; x++)
 				plotpoint(pSurface,diagram, x, ytic);
 	}

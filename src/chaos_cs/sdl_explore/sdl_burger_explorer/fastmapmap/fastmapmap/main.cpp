@@ -1,7 +1,6 @@
-#pragma warning (disable:4996)
-//about fopen, scanf
 
 //todo: make fully compatible w csphaseportrait.
+//todo: update showinfo
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,10 +17,11 @@
 #include "phaseportrait.h"
 #include "palette.h"
 #include "animate.h"
+#include "menagerie.h"
 
 CoordsDiagramStruct thediagrams[] = {
 	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
-	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 400,0,200,200,	0.0,1.0,0.0,1.0},
+	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 400,100,200,200,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0}
 };
 
@@ -38,6 +38,7 @@ int main( int argc, char* argv[] )
 	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
 	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
 	BOOL isSuperDrag = FALSE, isSuperDragSqr; int superDragIndex=-1, superDragPx, superDragPy; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
+	BOOL bShowDiagram = FALSE;
 
 	initializeObject();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
@@ -119,7 +120,6 @@ while(TRUE)
 				{
 					superDragIndex = index;
 					screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx0,&superDragy1); /*note, y1 here is correct. */
-					plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
 					superDragPx =mouse_x; superDragPy = mouse_y;
 					isSuperDragSqr = !(mod & KMOD_SHIFT);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
@@ -140,6 +140,8 @@ while(TRUE)
 				if (index!=-1)
 					undoZoom( &thediagrams[index]);
 			}
+			else if (buttons & SDL_BUTTON_LMASK)
+				didClickOnButton(pSurface, mouse_x, mouse_y, &bShowDiagram);
 	  }
 	  else if ( event.type == SDL_MOUSEBUTTONUP )
 	  {
@@ -170,7 +172,7 @@ while(TRUE)
 
 	if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in time, dropping frames? put stuff in here
 	{
-	if (!needDrawDiagram && !needRedraw)
+	if (!needDrawDiagram && !needRedraw && !breathing)
 	{
 		// don't need to compute anything.
 		//debug by drawing black indicating nothing new is computed.
@@ -186,13 +188,13 @@ while(TRUE)
 		}
 		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-		//BlitMenagerie(pSurface, pSmallerSurface); 
+		if (bShowDiagram) BlitDiagram(pSurface, pSmallerSurface, thediagrams[1].screen_x,thediagrams[1].screen_y); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		if (!breathing) { oscA=*a; oscB = *b; }
 		else { oscillate(*a,*b, &oscA, &oscB); }
 		DrawFigure(pSurface, oscA, oscB, thediagrams[0].screen_width);
-		DrawPlotGrid(pSurface, &thediagrams[1], *a, *b);
-		//DrawButtons(pSurface);
+		if (bShowDiagram) DrawPlotGrid(pSurface, &thediagrams[1], *a, *b);
+		drawButtons(pSurface);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
 		needRedraw = FALSE;
@@ -226,15 +228,19 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_q: g_settings->drawingMode = DrawModePhase; break;
 		case SDLK_w: g_settings->drawingMode = DrawModeBasins; break;
 		case SDLK_e: g_settings->drawingMode = DrawModeColorLine; break;
-		case SDLK_r: g_settings->drawingMode = DrawModeColorDisk; break;
+		case SDLK_r: g_settings->drawingMode = DrawModeColorLineJoin; break;
+		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
 		case SDLK_b: breathing = !breathing; break;
 		default: wasKeyCombo =FALSE;
 	}
 	else if (!bControl && !bAlt)
 	switch (key)
 	{
-		case SDLK_MINUS: util_incr(-1); break;
-		case SDLK_EQUALS: util_incr(1); break;
+		case SDLK_MINUS: util_incr(-1, bShift); break;
+		case SDLK_EQUALS: util_incr(1, bShift); break;
+			//simulate mouseclick in the center of the diagram
+		case SDLK_PAGEUP: onClickTryZoom(thediagrams, 1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
+		case SDLK_PAGEDOWN: onClickTryZoom(thediagrams, -1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
 		default: wasKeyCombo =FALSE;
 	}
 

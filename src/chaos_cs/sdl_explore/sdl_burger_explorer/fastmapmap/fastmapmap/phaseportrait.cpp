@@ -129,8 +129,9 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 	{
 		case DrawModePhase:  DrawPhasePortrait(pSurface, c1, c2, width); break;
 		case DrawModeBasins:  DrawBasins(pSurface, c1, c2, width); break;
-		case DrawModeColorLine:	DrawColorsLine(pSurface, c1, c2, width); break;
+		case DrawModeColorLine:	DrawColorsLine(pSurface, c1, c2, width, FALSE); break;
+		case DrawModeColorLineJoin:	DrawColorsLine(pSurface, c1, c2, width, TRUE); break;
+		case DrawModeColorDisk:	DrawColorsDisk(pSurface, c1, c2, width); break;
 		default: {assert(0); exit(1); }
 	}
 }
-

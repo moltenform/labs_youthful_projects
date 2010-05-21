@@ -4,7 +4,8 @@
 #define DrawModePhase 1
 #define DrawModeBasins 2
 #define DrawModeColorLine 3
-#define DrawModeColorDisk 4
+#define DrawModeColorLineJoin 4
+#define DrawModeColorDisk 5
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
 
