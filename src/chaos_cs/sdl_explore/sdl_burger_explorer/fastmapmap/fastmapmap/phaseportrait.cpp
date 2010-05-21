@@ -2,6 +2,7 @@
 #include "phaseportrait.h"
 #include "float_cast.h"
 #include "whichmap.h"
+#include "palette.h"
 #include <assert.h>
 
 
@@ -65,15 +66,11 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
     }
 }
 
-/*void DrawBasinQuick( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2) 
+void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
-	if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
-
-	double fx,fy, x_,x,y; char* pPosition;
-
-	int height=settings->height;
-	int width=settings->width;
-	double X0=settings->x0, X1=settings->x1, Y0=settings->y0, Y1=settings->y1;
+	double fx,fy, x_,y_,x,y; char* pPosition;
+	int height=width;
+	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 	
     double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
     fx = X0; fy = Y1; //y counts downwards
@@ -84,15 +81,15 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
 	 for (int px = 0; px < width; px+=1)
     {
         x=fx; y=fy;
-		for (int i=0; i<settings->drawing; i++)
+		for (int i=0; i<g_settings->basinsTime; i++)
 		{
 			MAPEXPRESSION;
-            x=x_;
+            x=x_; y=y_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 		}
 		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
 		if (y<0) distance *= -1;
-		double val = distance;*
+		double val = distance;*/
 		double val;
 		if (ISTOOBIG(x)||ISTOOBIG(y))
 			val=1.0;
@@ -111,7 +108,6 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
 		else
 			r=g=b= (Uint32) ((1-val)*255.0);
 			
-  
 
   pPosition = ( char* ) pSurface->pixels ; //determine position
   pPosition += ( pSurface->pitch * (py) ); //offset by y
@@ -125,15 +121,16 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
           fy -= dy;
     }
 
-	if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
-}*/
+}
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) 
 {
 	switch (g_settings->drawingMode)
 	{
 		case DrawModePhase:  DrawPhasePortrait(pSurface, c1, c2, width); break;
-		default: assert(0);
+		case DrawModeBasins:  DrawBasins(pSurface, c1, c2, width); break;
+		case DrawModeColorLine:	DrawColorsLine(pSurface, c1, c2, width); break;
+		default: {assert(0); exit(1); }
 	}
 }
 

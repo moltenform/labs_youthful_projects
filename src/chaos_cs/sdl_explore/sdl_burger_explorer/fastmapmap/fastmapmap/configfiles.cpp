@@ -33,7 +33,7 @@ void initializeObject()
 			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 			*theValue = (double) GlobalFieldDescriptions[i].defaultValue;
 		}
-		else  { assert(0); } //unknown type.
+		else  { assert(0); exit(1); } //unknown type.
 		i++;
 	}
 }
@@ -53,7 +53,7 @@ void saveObject(FILE * stream)
 			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 			fprintf(stream, "%s=%f;", GlobalFieldDescriptions[i].fieldName, *theValue);
 		}
-		else  { assert(0); } //unknown type.
+		else  { assert(0); exit(1); } //unknown type.
 		i++;
 	}
 	fprintf(stream, "END=0;");
@@ -100,7 +100,7 @@ BOOL loadObject(FILE * stream)
 					double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 					*theValue = fvalue;
 				}
-				else  { assert(0); } //unknown type.
+				else  { assert(0); exit(1); } //unknown type.
 
 				break;
 			}
@@ -118,7 +118,7 @@ BOOL loadFromFile(const char * filename)
 	int versionNumber;
 	int ret = fscanf(f,";fmmversion=%d;",&versionNumber);
 	if (ret < 1) return FALSE; //not a valid saved file.
-	assert(versionNumber==1);
+	if (versionNumber!=1) { assert(0); exit(1); }
 	loadObject(f);
 	fclose(f);
 	return TRUE;

@@ -9,7 +9,7 @@
 #define MAPSUFFIX BURGERSUF
 
 
-#define SAVESFOLDER ("saves" MAPSUFFIX "/" )
+#define SAVESFOLDER ("saves" MAPSUFFIX  )
 #define MAPDEFAULTFILE ("saves" MAPSUFFIX "/default.cfg" )
 
 #define STRINGIFY2( x) #x

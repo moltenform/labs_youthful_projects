@@ -8,6 +8,7 @@
 #include <memory.h>
 #include <math.h>
 #define MIN(X, Y)  ((X) < (Y) ? (X) : (Y))
+#define MAX(X, Y)  ((X) > (Y) ? (X) : (Y))
 
 #include "common.h"
 #include "configfiles.h"
@@ -15,6 +16,8 @@
 #include "coordsdiagram.h"
 #include "font.h"
 #include "phaseportrait.h"
+#include "palette.h"
+#include "animate.h"
 
 CoordsDiagramStruct thediagrams[] = {
 	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
@@ -52,6 +55,7 @@ int main( int argc, char* argv[] )
 
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, thediagrams[1].screen_width, thediagrams[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	SDL_FillRect ( pSurface , NULL , g_white );
+	switchPalette(pSurface); //load color pallete
 
 while(TRUE)
 {
@@ -226,7 +230,29 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_b: breathing = !breathing; break;
 		default: wasKeyCombo =FALSE;
 	}
-	else wasKeyCombo =FALSE;
+	else if (!bControl && !bAlt)
+	switch (key)
+	{
+		case SDLK_MINUS: util_incr(-1); break;
+		case SDLK_EQUALS: util_incr(1); break;
+		default: wasKeyCombo =FALSE;
+	}
+
+	if (key>=SDLK_1 && key<=SDLK_9)
+	{
+		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_1 + 1); }
+		else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_1 + 1); Dialog_Message("Saved frame.", pSurface);}
+		else if (!bControl && !bShift && !bAlt) openFrame(key-SDLK_1 + 1);
+		else if (!bControl && bShift && !bAlt && key==SDLK_3) util_getNumberFrames(pSurface);
+		wasKeyCombo=TRUE;
+	}
+	if (key==SDLK_0)
+	{
+		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete all frames?",pSurface)) deleteAllFrames(); }
+		//else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_1 + 1); Dialog_Message("Saved frame.", pSurface);}
+		else if (!bControl && !bShift && !bAlt) dotestanimation(pSurface, nFramesPerKeyframe, thediagrams[0].screen_width);
+		wasKeyCombo=TRUE;
+	}
 
 	if (wasKeyCombo) *needRedraw = TRUE;
 }
