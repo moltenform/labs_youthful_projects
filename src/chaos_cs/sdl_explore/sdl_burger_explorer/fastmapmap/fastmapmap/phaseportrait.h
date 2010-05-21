@@ -8,7 +8,9 @@
 #define DrawModeColorDisk 5
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
+void captureColors();
 
+extern double scaleColorsBasins;
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)

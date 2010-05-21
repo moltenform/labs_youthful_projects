@@ -231,6 +231,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_r: g_settings->drawingMode = DrawModeColorLineJoin; break;
 		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
 		case SDLK_b: breathing = !breathing; break;
+		case SDLK_c: captureColors(); break;
 		default: wasKeyCombo =FALSE;
 	}
 	else if (!bControl && !bAlt)

@@ -66,9 +66,12 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
     }
 }
 
+double largestSeenBasins = 1e-6;
+double scaleColorsBasins = 14.0;
+void captureColors() { scaleColorsBasins = largestSeenBasins; }
 void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
-	double fx,fy, x_,y_,x,y; char* pPosition;
+	double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol;
 	int height=width;
 	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 	
@@ -85,11 +88,49 @@ void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width)
 		{
 			MAPEXPRESSION;
             x=x_; y=y_;
-			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) { break;}
 		}
+
+
+		/*if (ISTOOBIG(x)||ISTOOBIG(y)) {  r=g=b=255; newcol = SDL_MapRGB ( pSurface->format , r , g , b ) ; }
+		else
+		{
+			double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
+			if (distance > largestSeenBasins)  largestSeenBasins = distance;
+			//assign color
+			double val = distance/scaleColorsBasins;
+				if (val>1.0) {r=0; g=255; b=0;}
+				else {r=g=b= (int)(250*val);}
+				newcol = SDL_MapRGB ( pSurface->format , r , g , b ) ;
+		}*/
+		if (ISTOOBIG(x)||ISTOOBIG(y)) { newcol = SDL_MapRGB ( pSurface->format , 0 , 0, 25 ) ; }
+		else
+		{
+			double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
+			//assign color
+			double val = distance/scaleColorsBasins;
+				if (val>=1.0) {newcol = SDL_MapRGB ( pSurface->format , 225 , 225, 255 );}
+				else {r=g=b= (int)(val*255);
+					
+					newcol = SDL_MapRGB ( pSurface->format , r , g, b );
+				}
+		}
+
+		/*if (ISTOOBIG(x)||ISTOOBIG(y)) {  newcol = 0; }
+		else
+		{
+			double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
+			if (distance > largestSeenBasins)  largestSeenBasins = distance;
+			//assign color
+			double val = distance/scaleColorsBasins;
+				if (val>=1.0) {newcol = g_white;}
+				else {newcol = HSL2RGB(pSurface, val /*val*val*4*, 1.0, 0.5);}
+		}*/
+
+
 		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
 		if (y<0) distance *= -1;
-		double val = distance;*/
+		double val = distance;*
 		double val;
 		if (ISTOOBIG(x)||ISTOOBIG(y))
 			val=1.0;
@@ -102,17 +143,17 @@ void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width)
 
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1
-		Uint32 r,g,b;
+		
 		if (val<=0)
 			b=255, r=g= (Uint32) ((1+val)*255.0);
 		else
-			r=g=b= (Uint32) ((1-val)*255.0);
+			r=g=b= (Uint32) ((1-val)*255.0);*/
 			
 
   pPosition = ( char* ) pSurface->pixels ; //determine position
   pPosition += ( pSurface->pitch * (py) ); //offset by y
   pPosition += ( pSurface->format->BytesPerPixel * (px) ); //offset by x
-  Uint32 newcol = SDL_MapRGB ( pSurface->format , r , g , b ) ;
+  
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 
 

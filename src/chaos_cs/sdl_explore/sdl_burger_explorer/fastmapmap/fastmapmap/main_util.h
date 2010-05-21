@@ -45,15 +45,17 @@ void util_showVals(SDL_Surface* pSurface)
 void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 {
 	if (!bShift) {
-	if (g_settings->drawingMode == DrawModePhase)
-		g_settings->settlingTime = MAX(0, g_settings->settlingTime+ direction*15);
-	else if (g_settings->drawingMode == DrawModeBasins)
-		g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
-	else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine || g_settings->drawingMode == DrawModeColorLineJoin)
-		g_settings->colorsStep = MAX(0, g_settings->colorsStep+ direction*1);
+		if (g_settings->drawingMode == DrawModePhase)
+			g_settings->settlingTime = MAX(0, g_settings->settlingTime+ direction*15);
+		else if (g_settings->drawingMode == DrawModeBasins)
+			g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
+		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine || g_settings->drawingMode == DrawModeColorLineJoin)
+			g_settings->colorsStep = MAX(0, g_settings->colorsStep+ direction*1);
 	} else {
 		if (g_settings->drawingMode == DrawModePhase)
 		g_settings->seedsPerAxis = MAX(0, g_settings->seedsPerAxis+ direction*2);
+		else if (g_settings->drawingMode == DrawModeBasins)
+		scaleColorsBasins = MAX(0, scaleColorsBasins+ direction*1.1);
 	}
 }
 
