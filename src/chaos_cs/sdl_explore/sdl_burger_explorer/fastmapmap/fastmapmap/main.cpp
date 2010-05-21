@@ -25,12 +25,12 @@ CoordsDiagramStruct thediagrams[] = {
 
 BOOL breathing = FALSE; 
 void oscillate(double curA,double curB,double *outA, double *outB);
-void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needDrawPhase, BOOL *needDrawDiagram );
+void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram );
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
 	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
-	BOOL needDrawPhase = TRUE; BOOL needDrawDiagram = TRUE;
+	BOOL needRedraw = TRUE; BOOL needDrawDiagram = TRUE;
 	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
 	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
 	BOOL isSuperDrag = FALSE; int superDragIndex=-1; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
@@ -61,10 +61,10 @@ while(TRUE)
 	  {
 		switch(event.key.keysym.sym)
 		{
-			case SDLK_UP: *b += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
-			case SDLK_DOWN: *b -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
-			case SDLK_LEFT: *a -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
-			case SDLK_RIGHT: *a += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needDrawPhase=TRUE; break;
+			case SDLK_UP: *b += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
+			case SDLK_DOWN: *b -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
+			case SDLK_LEFT: *a -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
+			case SDLK_RIGHT: *a += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: if (event.key.keysym.mod & KMOD_ALT) return 0; break;
 			default: break;
@@ -74,7 +74,7 @@ while(TRUE)
 	  {
 		  onKeyUp(event.key.keysym.sym, (event.key.keysym.mod & KMOD_CTRL)!=0,
 			  (event.key.keysym.mod & KMOD_ALT)!=0,(event.key.keysym.mod & KMOD_SHIFT)!=0, 
-				pSurface, &needDrawPhase, &needDrawDiagram);
+				pSurface, &needRedraw, &needDrawDiagram);
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -82,7 +82,7 @@ while(TRUE)
 		  if (isSuperDrag)
 		  {
 				 if (!(buttons & SDL_BUTTON_LMASK)) //maybe button was released 
-				 {isSuperDrag = FALSE; needDrawPhase = TRUE;} //end the super drag.
+				 {isSuperDrag = FALSE; needRedraw = TRUE;} //end the super drag.
 				 else {
 					 plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
@@ -92,12 +92,12 @@ while(TRUE)
 		  {
 			  if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>PlotY && mouse_y<PlotY+PlotHeight)
 				screenPixelsToDouble(&thediagrams[1], mouse_x, mouse_y, &g_settings->a, &g_settings->b);
-			  needDrawPhase=TRUE;
+			  needRedraw=TRUE;
 		  }
 	  }
       else if ( event.type == SDL_MOUSEBUTTONDOWN ) //only called once per click
 	  {
-		  needDrawPhase=TRUE;
+		  needRedraw=TRUE;
 			int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 			int mod = SDL_GetModState();
 
@@ -107,7 +107,7 @@ while(TRUE)
 				if (index!=-1)
 				{
 					superDragIndex = index;
-					screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx0,&superDragy0);
+					screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx0,&superDragy1); /*note, y1 here is correct. */
 					plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 					isSuperDrag = TRUE;
@@ -118,7 +118,7 @@ while(TRUE)
 			{
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
 				int whichDiagram = onClickTryZoom(thediagrams, direction,mouse_x, mouse_y);
-				if (whichDiagram==0) needDrawPhase = TRUE;
+				if (whichDiagram==0) needRedraw = TRUE;
 				else if (whichDiagram==1) needDrawDiagram = TRUE;
 			}
 			else if (buttons & SDL_BUTTON_RMASK) //right-click. undo zoom.
@@ -130,15 +130,17 @@ while(TRUE)
 	  }
 	  else if ( event.type == SDL_MOUSEBUTTONUP )
 	  {
-		  needDrawPhase=TRUE;
+		  needRedraw=TRUE;
 		  int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-		  if (isSuperDrag && (buttons & SDL_BUTTON_LMASK)) {
+		  
+		  if (isSuperDrag && (event.button.button == SDL_BUTTON_LEFT)) {
+			  
 				//wow, cool. set the zoom!
-			  screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx1,&superDragy1);
+			  screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx1,&superDragy0); /* note: y0 here is correct. */
 			  if (superDragx1 > superDragx0 && superDragy1 > superDragy0)
 			  {
 				  setZoom(&thediagrams[superDragIndex], superDragx0, superDragx1, superDragy0, superDragy1);
-				if (superDragIndex==0) needDrawPhase = TRUE;
+				if (superDragIndex==0) needRedraw = TRUE;
 				else if (superDragIndex==1) needDrawDiagram = TRUE;
 			  }
 			  isSuperDrag = FALSE;
@@ -148,7 +150,7 @@ while(TRUE)
 
 	if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in time, dropping frames? put stuff in here
 	{
-	if (!needDrawDiagram && !needDrawPhase)
+	if (!needDrawDiagram && !needRedraw)
 	{
 		// don't need to compute anything.
 		//debug by drawing black indicating nothing new is computed.
@@ -173,7 +175,7 @@ while(TRUE)
 		//DrawButtons(pSurface);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
-		needDrawPhase = FALSE;
+		needRedraw = FALSE;
 	}
 
 
@@ -184,7 +186,7 @@ while(TRUE)
 	return 0;
 }
 
-void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needDrawPhase, BOOL *needDrawDiagram )
+void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram )
 {
 	BOOL wasKeyCombo =TRUE;
 	if (bControl && !bAlt)
@@ -210,7 +212,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	}
 	else wasKeyCombo =FALSE;
 
-	if (wasKeyCombo) *needDrawPhase = TRUE;
+	if (wasKeyCombo) *needRedraw = TRUE;
 }
 
 
