@@ -57,16 +57,7 @@ void undoZoom(CoordsDiagramStruct * diagram)
 	setZoom( diagram, diagram->undox0, diagram->undox1, diagram->undoy0, diagram->undoy1);
 }
 
-void plotpointcolor(SDL_Surface* pSurface, int px, int py, int newcol)
-{
-	if (!(px >= 0 && px < pSurface->w && py >= 0 && py < pSurface->h ))
-			return;
-	
-  char* pPosition = ( char* ) pSurface->pixels ; //determine position
-  pPosition += ( pSurface->pitch * py ); //offset by y
-  pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
-  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
-}
+
 inline void plotpoint(SDL_Surface* pSurface, CoordsDiagramStruct * diagram, int px, int py)
 {
 	if (!(px >= diagram->screen_x && px < diagram->screen_x+diagram->screen_width &&

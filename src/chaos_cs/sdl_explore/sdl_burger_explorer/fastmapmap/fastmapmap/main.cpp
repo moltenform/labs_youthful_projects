@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <math.h>
+#define MIN(X, Y)  ((X) < (Y) ? (X) : (Y))
 
 #include "common.h"
 #include "configfiles.h"
@@ -33,7 +34,7 @@ int main( int argc, char* argv[] )
 	BOOL needRedraw = TRUE; BOOL needDrawDiagram = TRUE;
 	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
 	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
-	BOOL isSuperDrag = FALSE; int superDragIndex=-1; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
+	BOOL isSuperDrag = FALSE, isSuperDragSqr; int superDragIndex=-1, superDragPx, superDragPy; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
 
 	initializeObject();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
@@ -84,7 +85,13 @@ while(TRUE)
 				 if (!(buttons & SDL_BUTTON_LMASK)) //maybe button was released 
 				 {isSuperDrag = FALSE; needRedraw = TRUE;} //end the super drag.
 				 else {
-					 plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
+					 if (isSuperDragSqr)
+					 {
+						 int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
+						 plotpointcolor(pSurface, superDragPx+d1, superDragPy+d1, 0x00ff0000);
+					 }
+					 else
+						plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 				 }
 		  }
@@ -109,6 +116,8 @@ while(TRUE)
 					superDragIndex = index;
 					screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx0,&superDragy1); /*note, y1 here is correct. */
 					plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
+					superDragPx =mouse_x; superDragPy = mouse_y;
+					isSuperDragSqr = !(mod & KMOD_SHIFT);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 					isSuperDrag = TRUE;
 				}
@@ -136,7 +145,14 @@ while(TRUE)
 		  if (isSuperDrag && (event.button.button == SDL_BUTTON_LEFT)) {
 			  
 				//wow, cool. set the zoom!
-			  screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx1,&superDragy0); /* note: y0 here is correct. */
+			  if (isSuperDragSqr)
+			 {
+				 int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
+				 screenPixelsToDouble(&thediagrams[superDragIndex], superDragPx+d1,superDragPy+d1,&superDragx1,&superDragy0); /* note: y0 here is correct. */
+			 }
+			 else
+				screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx1,&superDragy0); /* note: y0 here is correct. */
+			  
 			  if (superDragx1 > superDragx0 && superDragy1 > superDragy0)
 			  {
 				  setZoom(&thediagrams[superDragIndex], superDragx0, superDragx1, superDragy0, superDragy1);

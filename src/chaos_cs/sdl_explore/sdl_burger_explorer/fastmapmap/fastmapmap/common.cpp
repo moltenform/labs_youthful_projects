@@ -39,6 +39,49 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 };
 
 
+void plotlinerect(SDL_Surface* pSurface, int px0, int px1, int py0, int py1, int newcol)
+{
+	plotlinevertcolor(pSurface, px0, py0, py1,newcol);
+	plotlinevertcolor(pSurface, px1, py0, py1,newcol);
+	plotlinehorizcolor(pSurface, px0, px1, py0,newcol);
+	plotlinehorizcolor(pSurface, px0, px1, py1,newcol);
+}
+void plotlinehorizcolor(SDL_Surface* pSurface, int px0, int px1, int py, int newcol)
+{
+	for (int x=px0; x<px1; x++)
+		plotpointcolor(pSurface, x, py, newcol);
+}
+void plotlinevertcolor(SDL_Surface* pSurface, int px, int py0, int py1, int newcol)
+{
+	for (int y=py0; y<py1; y++)
+		plotpointcolor(pSurface, px, y, newcol);
+}
+void plotpointcolor(SDL_Surface* pSurface, int px, int py, int newcol)
+{
+	if (!(px >= 0 && px < pSurface->w && py >= 0 && py < pSurface->h ))
+			return;
+	
+  char* pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * py ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
+  if (newcol!=1)
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+  else
+  {
+	//semi transparent...
+	  int col;
+	  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ; //copy pixel data
+		SDL_Color color ;
+		SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
+		color.r = color.r + (255-color.r)/4;
+		color.g = color.g + (0-color.g)/4;
+		color.b = color.b + (0-color.b)/4;
+		Uint32 outcol = SDL_MapRGB ( pSurface->format , color.r , color.g , color.b ) ;
+		 memcpy ( pPosition , &outcol , pSurface->format->BytesPerPixel ) ;
+  }
+}
+
+
 BOOL doesFileExist(const char *fname)
 {
 	FILE * ftmp = fopen(fname, "rb");
