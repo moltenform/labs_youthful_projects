@@ -88,10 +88,10 @@ while(TRUE)
 					 if (isSuperDragSqr)
 					 {
 						 int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
-						 plotpointcolor(pSurface, superDragPx+d1, superDragPy+d1, 0x00ff0000);
+						 plotlinerect(pSurface, superDragPx, superDragPx+d1, superDragPy, superDragPy+d1,1);
 					 }
 					 else
-						plotpointcolor(pSurface, mouse_x, mouse_y, 0x00ff0000);
+						 plotlinerect(pSurface, superDragPx, mouse_x, superDragPy,mouse_y,1);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 				 }
 		  }

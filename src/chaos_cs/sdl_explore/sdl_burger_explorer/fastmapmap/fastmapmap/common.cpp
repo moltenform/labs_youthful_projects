@@ -1,10 +1,8 @@
 #include "common.h"
 #include "configfiles.h"
 
-
 FastMapMapSettings g_GlobalSettings; // the one important settings object.
 FastMapMapSettings * g_settings = &g_GlobalSettings;
-
 
 //regex replace \W*(\w+)\W+(\w+);
 //with {"\1","\2",(void *)&g_settings->\2},
@@ -73,9 +71,9 @@ void plotpointcolor(SDL_Surface* pSurface, int px, int py, int newcol)
 	  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ; //copy pixel data
 		SDL_Color color ;
 		SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
-		color.r = color.r + (255-color.r)/4;
-		color.g = color.g + (0-color.g)/4;
-		color.b = color.b + (0-color.b)/4;
+		color.r = color.r + (255-color.r)/16;
+		color.g = color.g + (0-color.g)/16;
+		color.b = color.b + (0-color.b)/16;
 		Uint32 outcol = SDL_MapRGB ( pSurface->format , color.r , color.g , color.b ) ;
 		 memcpy ( pPosition , &outcol , pSurface->format->BytesPerPixel ) ;
   }
