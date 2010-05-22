@@ -204,10 +204,10 @@ void RenderLargeFigure( SDL_Surface* pSurface, int width, const char*filename )
 	snprintf(filenameext, sizeof(filenameext), "%s.bmp", filename);
 //create a new surface.
 	SDL_Surface* pRenderSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, width, width, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
-	SDL_FillRect ( pSurface , NULL , g_white );
+	SDL_FillRect ( pRenderSurface , NULL , g_white );
 	//increase the amount of drawing.
 	int oldDrawingTime = g_settings->drawingTime;
-	g_settings->drawingTime *= 8;
+	g_settings->drawingTime *= 32;
 	DrawFigure(pRenderSurface, g_settings->a, g_settings->b, width);
 	g_settings->drawingTime = oldDrawingTime;
 	SDL_SaveBMP(pRenderSurface, filenameext);

@@ -96,13 +96,13 @@ enum {
 	BtnWidth=16, BtnHeight=16
 };
 void showInfo(SDL_Surface *pSurface);
-BOOL didClickOnButton(SDL_Surface *pSurface, int mousex, int mousey, BOOL *bShowDiagram)
+BOOL didClickOnButton(SDL_Surface *pSurface, int mousex, int mousey)
 {
 	if (mousex>=BtnDiagramX && mousex<BtnDiagramX+BtnWidth && mousey>=BtnDiagramY && mousey<BtnDiagramY+BtnHeight)
-	{*bShowDiagram=!*bShowDiagram; return TRUE;}
+	{return 1;}
 	if (mousex>=BtnInfoX && mousex<BtnInfoX+BtnWidth && mousey>=BtnInfoY && mousey<BtnInfoY+BtnHeight)
-	{showInfo(pSurface); return TRUE;}
-	return FALSE;
+	{showInfo(pSurface); return 2;}
+	return -1;
 }
 void drawButtons(SDL_Surface *pSurface)
 {

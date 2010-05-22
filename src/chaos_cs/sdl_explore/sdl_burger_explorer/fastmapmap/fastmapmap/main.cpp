@@ -139,7 +139,19 @@ while(TRUE)
 					undoZoom( &thediagrams[index]);
 			}
 			else if (buttons & SDL_BUTTON_LMASK)
-				didClickOnButton(pSurface, mouse_x, mouse_y, &bShowDiagram);
+			{
+				if (didClickOnButton(pSurface, mouse_x, mouse_y)==1)
+				{ bShowDiagram=TRUE; needDrawDiagram=TRUE; }
+			}
+			else if (buttons & SDL_BUTTON_MIDDLE)
+			{ //reset view but leave the rest.
+				FastMapMapSettings tmp; memcpy(&tmp, g_settings, sizeof(FastMapMapSettings));
+				loadFromFile(MAPDEFAULTFILE);
+				tmp.diagramx0=g_settings->diagramx0;tmp.diagramx1=g_settings->diagramx1;tmp.diagramy0=g_settings->diagramy0;tmp.diagramy1=g_settings->diagramy1;
+				tmp.x0=g_settings->x0;tmp.x1=g_settings->x1;tmp.y0=g_settings->y0;tmp.y1=g_settings->y1;
+				memcpy(g_settings, &tmp,  sizeof(FastMapMapSettings));
+				needDrawDiagram = needRedraw = TRUE;
+			}
 	  }
 	  else if ( event.type == SDL_MOUSEBUTTONUP )
 	  {
@@ -178,15 +190,18 @@ while(TRUE)
 	}
 	else
 	{
-		if (needDrawDiagram)
+		if (needDrawDiagram && bShowDiagram)
 		{
 			// recompute the figure
-			//DrawMenagerie(pSmallerSurface, settings);
+			SDL_LockSurface ( pSmallerSurface ) ;
+			DrawMenagerie(pSmallerSurface, &thediagrams[1]);
+			SDL_UnlockSurface ( pSmallerSurface ) ;
 			needDrawDiagram = FALSE;
 		}
 		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-		if (bShowDiagram) BlitDiagram(pSurface, pSmallerSurface, thediagrams[1].screen_x,thediagrams[1].screen_y); 
+		if (bShowDiagram) 
+			BlitDiagram(pSurface, pSmallerSurface, thediagrams[1].screen_x,thediagrams[1].screen_y); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		if (!breathing) { oscA=*a; oscB = *b; }
 		else { oscillate(*a,*b, &oscA, &oscB); }
