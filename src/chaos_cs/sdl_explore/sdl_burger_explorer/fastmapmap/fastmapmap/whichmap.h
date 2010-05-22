@@ -6,8 +6,8 @@
 //#define CHSTD x_ = fmod((x+c1*sin(y)),1.0); y_ =  fmod((y+ x_),1.0);
 //#define CHSTDSUF "_burger"
 
-#define MAPEXPRESSION BURGER
-#define MAPSUFFIX BURGERSUF
+#define MAPEXPRESSION HENON
+#define MAPSUFFIX HENONSUF
 
 
 #define SAVESFOLDER ("saves" MAPSUFFIX  )

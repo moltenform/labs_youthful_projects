@@ -61,7 +61,7 @@ void Dialog_Message(const char* prompt, SDL_Surface* pSurface)
 	}
 }
 
-//user responsible for freeing. return null on cancel, or empty string.
+//user responsible for freeing. return null on (cancel or empty string).
 char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSurface)
 {
 #define BLENGTH 256

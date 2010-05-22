@@ -19,7 +19,7 @@
 
 CoordsDiagramStruct thediagrams[] = {
 	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
-	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 400,100,200,200,	0.0,1.0,0.0,1.0},
+	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 415,100,200,200,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null.
 };
 
@@ -221,6 +221,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_e: g_settings->drawingMode = bShift? DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
 		case SDLK_r: g_settings->drawingMode = DrawModeColorLine; break;
 		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
+		case SDLK_p: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {RenderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
 		default: wasKeyCombo =FALSE;

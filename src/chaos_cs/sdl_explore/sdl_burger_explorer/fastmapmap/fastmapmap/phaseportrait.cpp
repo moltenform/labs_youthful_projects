@@ -197,3 +197,20 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 		default: {assert(0); exit(1); }
 	}
 }
+
+void RenderLargeFigure( SDL_Surface* pSurface, int width, const char*filename ) 
+{
+	char filenameext[256];
+	snprintf(filenameext, sizeof(filenameext), "%s.bmp", filename);
+//create a new surface.
+	SDL_Surface* pRenderSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, width, width, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
+	SDL_FillRect ( pSurface , NULL , g_white );
+	//increase the amount of drawing.
+	int oldDrawingTime = g_settings->drawingTime;
+	g_settings->drawingTime *= 8;
+	DrawFigure(pRenderSurface, g_settings->a, g_settings->b, width);
+	g_settings->drawingTime = oldDrawingTime;
+	SDL_SaveBMP(pRenderSurface, filenameext);
+	SDL_FreeSurface(pRenderSurface);
+}
+
