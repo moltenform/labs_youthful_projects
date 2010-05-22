@@ -2,15 +2,16 @@
 #include "common.h"
 
 #define DrawModePhase 1
-#define DrawModeBasins 2
-#define DrawModeColorLine 3
-#define DrawModeColorLineJoin 4
-#define DrawModeColorDisk 5
+#define DrawModeBasinsDistance 2
+#define DrawModeBasinsQuadrant 3
+#define DrawModeBasinsDifference 4
+#define DrawModeBasinsX 5
+#define DrawModeColorLine 6
+#define DrawModeColorLineJoin 7
+#define DrawModeColorDisk 8
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
-void captureColors();
 
-extern double scaleColorsBasins;
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)

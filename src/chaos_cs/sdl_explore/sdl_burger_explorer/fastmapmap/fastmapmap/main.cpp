@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <math.h>
-#define MIN(X, Y)  ((X) < (Y) ? (X) : (Y))
-#define MAX(X, Y)  ((X) > (Y) ? (X) : (Y))
 
 #include "common.h"
 #include "configfiles.h"
@@ -22,7 +20,7 @@
 CoordsDiagramStruct thediagrams[] = {
 	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
 	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 400,100,200,200,	0.0,1.0,0.0,1.0},
-	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0}
+	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null.
 };
 
 #include "main_util.h" 
@@ -218,6 +216,11 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_s:  util_savefile(pSurface); break;
 		case SDLK_o:  util_openfile(pSurface); break;
 		case SDLK_c:  util_showVals(pSurface); break;
+		case SDLK_q: g_settings->drawingMode = DrawModePhase; break;
+		case SDLK_w: g_settings->drawingMode = bShift?DrawModeBasinsDistance: DrawModeBasinsX; break;
+		case SDLK_e: g_settings->drawingMode = bShift?DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
+		case SDLK_r: g_settings->drawingMode = bShift?DrawModeColorLineJoin : DrawModeColorLine; break;
+		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
 		default: wasKeyCombo =FALSE;
@@ -225,13 +228,9 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	else if (!bControl && bAlt)
 	switch (key)
 	{
-		case SDLK_q: g_settings->drawingMode = DrawModePhase; break;
-		case SDLK_w: g_settings->drawingMode = DrawModeBasins; break;
-		case SDLK_e: g_settings->drawingMode = DrawModeColorLine; break;
-		case SDLK_r: g_settings->drawingMode = DrawModeColorLineJoin; break;
-		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
+		case SDLK_w:  g_settings->basinsColoringMethod = (g_settings->basinsColoringMethod+1)%5; break;
 		case SDLK_b: breathing = !breathing; break;
-		case SDLK_c: captureColors(); break;
+		case SDLK_u: util_hueshift(bShift); break;
 		default: wasKeyCombo =FALSE;
 	}
 	else if (!bControl && !bAlt)
@@ -253,7 +252,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		else if (!bControl && bShift && !bAlt && key==SDLK_3) util_getNumberFrames(pSurface);
 		wasKeyCombo=TRUE;
 	}
-	if (key==SDLK_0)
+	else if (key==SDLK_0)
 	{
 		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete all frames?",pSurface)) deleteAllFrames(); }
 		//else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_1 + 1); Dialog_Message("Saved frame.", pSurface);}

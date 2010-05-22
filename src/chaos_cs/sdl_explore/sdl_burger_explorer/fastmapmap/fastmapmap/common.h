@@ -50,6 +50,9 @@ typedef struct
 	double seedy1;
 
 	int colorsStep;
+	int basinsColoringMethod;
+	double basinsMaxColor;
+	double basinsHueShift;
 } FastMapMapSettings;
 
 typedef struct
@@ -71,4 +74,6 @@ void plotlinehorizcolor(SDL_Surface* pSurface, int px0, int px1, int py, int new
 void plotlinevertcolor(SDL_Surface* pSurface, int px, int py0, int py1, int newcol);
 void plotlinerect(SDL_Surface* pSurface, int px0, int px1, int py0, int py1, int newcol);
 
+#define MIN(X, Y)  ((X) < (Y) ? (X) : (Y))
+#define MAX(X, Y)  ((X) > (Y) ? (X) : (Y))
 
