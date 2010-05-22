@@ -234,7 +234,11 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 	switch (g_settings->drawingMode)
 	{
 		case DrawModePhase:  DrawPhasePortrait(pSurface, c1, c2, width); break;
-		case DrawModeBasinsDistance:  DrawBasinsDistance(pSurface, c1, c2, width); break;
+		case DrawModeBasinsDistance:  
+		case DrawModeBasinsDifference:  
+		case DrawModeBasinsQuadrant:  
+		case DrawModeBasinsX:  
+			DrawBasinsDistance(pSurface, c1, c2, width); break;
 		case DrawModeColorLine:	DrawColorsLine(pSurface, c1, c2, width, FALSE); break;
 		case DrawModeColorLineJoin:	DrawColorsLine(pSurface, c1, c2, width, TRUE); break;
 		case DrawModeColorDisk:	DrawColorsDisk(pSurface, c1, c2, width); break;
