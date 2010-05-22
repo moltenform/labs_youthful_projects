@@ -65,97 +65,6 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
 
 //double largestSeenBasins = 1e-6; didn't look good.
 
-/*void DrawBasinsDistance( SDL_Surface* pSurface, double c1, double c2, int width) 
-{
-	double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol;
-	int height=width;
-	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
-    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-    fx = X0; fy = Y1; //y counts downwards
-    for (int py=0; py<height; py+=1)
-    {
-		fx=X0;
-	 for (int px = 0; px < width; px+=1)
-    {
-        x=fx; y=fy;
-		for (int i=0; i<g_settings->basinsTime; i++)
-		{
-			MAPEXPRESSION;
-            x=x_; y=y_;
-			if (ISTOOBIG(x)||ISTOOBIG(y)) { break;}
-		}
-		double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
-		double val = distance/g_settings->basinsMaxColor;
-		switch (g_settings->basinsColoringMethod)
-		{
-		case 0: //Grayscale
-				if (ISTOOBIG(x)||ISTOOBIG(y)) { 
-					newcol = SDL_MapRGB( pSurface->format , 0 , 0, 35 ) ; 
-				}
-				else
-				{
-					if (val>=1.0)
-						newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
-					else {
-						int v = (int)(val*255);
-						newcol = SDL_MapRGB( pSurface->format , v,v,v );
-					}
-				}
-			break;
-		
-		case 3: //classic blue/white
-			if (ISTOOBIG(x)||ISTOOBIG(y)) { 
-				newcol = 0; 
-			}
-			else
-			{
-				if (val>=1.0) val=1.0;
-				if (y<=0)
-					b=255, r=g= (Uint32) ((1-val)*255.0);
-				else
-					r=g=b= (Uint32) ((1-val)*255.0);
-				newcol = SDL_MapRGB( pSurface->format , r,g,b );
-			}
-			break;
-		}
-
-
-		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
-		if (y<0) distance *= -1;
-		double val = distance;*
-		double val;
-		if (ISTOOBIG(x)||ISTOOBIG(y))
-			val=1.0;
-		else{
-			//double diffx = (x) - (c1*x - y*y);
-			//double diffy = (y) - (c2*y + x*y);
-            val = sqrt(fabs(x));
-			if (y<0) val*=.8;
-		}
-
-		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
-		val = val*2 - 1; //from -1 to 1
-		
-		if (val<=0)
-			b=255, r=g= (Uint32) ((1+val)*255.0);
-		else
-			r=g=b= (Uint32) ((1-val)*255.0);*
-			
-
-  pPosition = ( char* ) pSurface->pixels ; //determine position
-  pPosition += ( pSurface->pitch * (py) ); //offset by y
-  pPosition += ( pSurface->format->BytesPerPixel * (px) ); //offset by x
-  
-  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
-
-
-        fx += dx;
-        }
-          fy -= dy;
-    }
-
-}*/
-
 BOOL bDrawBasinsWithBlueAlso=FALSE;
 void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
@@ -205,8 +114,8 @@ for (int py=0; py<height; py+=1)
 				}
 			}else {
 				if (val>=1.0) val=1.0;
-				//val=val*2-1;
-				if (y<=0)
+				val=val*2-1;
+				if (val<=0)
 					b=255, r=g= (Uint32) ((1-val)*255.0);
 				else
 					r=g=b= (Uint32) ((1-val)*255.0);
