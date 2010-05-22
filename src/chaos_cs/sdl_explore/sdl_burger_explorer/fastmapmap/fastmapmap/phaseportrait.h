@@ -2,16 +2,15 @@
 #include "common.h"
 
 #define DrawModePhase 1
-#define DrawModeBasinsDistance 2
-#define DrawModeBasinsQuadrant 3
-#define DrawModeBasinsDifference 4
-#define DrawModeBasinsX 5
-#define DrawModeColorLine 6
-#define DrawModeColorLineJoin 7
-#define DrawModeColorDisk 8
+#define DrawModeColorLine 2
+#define DrawModeColorDisk 3
+#define DrawModeBasinsDistance 10
+#define DrawModeBasinsX 11
+#define DrawModeBasinsDifference 12
+#define DrawModeBasinsQuadrant 13
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
-
+extern BOOL bMoreQuadrantContrast, bDrawBasinsWithBlueAlso;
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)

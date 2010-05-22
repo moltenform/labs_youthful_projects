@@ -33,9 +33,7 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","seedy1",(void *)&g_settings->seedy1, 2},
 
 {"int","colorsStep",(void *)&g_settings->colorsStep, 1},
-{"int","basinsColoringMethod",(void *)&g_settings->basinsColoringMethod, 0},
-{"double","basinsMaxColor",(void *)&g_settings->basinsMaxColor, 10.0},
-{"double","basinsHueShift",(void *)&g_settings->basinsHueShift, 0.0},
+{"double","basinsMaxColor",(void *)&g_settings->basinsMaxColor, 4.0},
 {NULL, NULL, NULL, 0} //must end with null.
 };
 

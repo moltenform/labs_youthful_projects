@@ -50,9 +50,7 @@ typedef struct
 	double seedy1;
 
 	int colorsStep;
-	int basinsColoringMethod;
 	double basinsMaxColor;
-	double basinsHueShift;
 } FastMapMapSettings;
 
 typedef struct

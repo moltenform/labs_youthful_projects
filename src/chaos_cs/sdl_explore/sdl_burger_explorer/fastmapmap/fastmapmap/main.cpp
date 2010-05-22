@@ -217,9 +217,9 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_o:  util_openfile(pSurface); break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_q: g_settings->drawingMode = DrawModePhase; break;
-		case SDLK_w: g_settings->drawingMode = bShift?DrawModeBasinsDistance: DrawModeBasinsX; break;
-		case SDLK_e: g_settings->drawingMode = bShift?DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
-		case SDLK_r: g_settings->drawingMode = bShift?DrawModeColorLineJoin : DrawModeColorLine; break;
+		case SDLK_w: g_settings->drawingMode = bShift? DrawModeBasinsX : DrawModeBasinsDistance; break;
+		case SDLK_e: g_settings->drawingMode = bShift? DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
+		case SDLK_r: g_settings->drawingMode = DrawModeColorLine; break;
 		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
@@ -228,9 +228,9 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	else if (!bControl && bAlt)
 	switch (key)
 	{
-		case SDLK_w:  g_settings->basinsColoringMethod = (g_settings->basinsColoringMethod+1)%5; break;
 		case SDLK_b: breathing = !breathing; break;
-		case SDLK_u: util_hueshift(bShift); break;
+		case SDLK_w: bDrawBasinsWithBlueAlso=!bDrawBasinsWithBlueAlso; break;
+		case SDLK_e: bMoreQuadrantContrast=!bMoreQuadrantContrast; break;
 		default: wasKeyCombo =FALSE;
 	}
 	else if (!bControl && !bAlt)
