@@ -121,7 +121,7 @@ void showInfo(SDL_Surface *pSurface)
 	SDL_FillRect ( pSurface , NULL , g_white );
 	ShowText(
 		"Features\n"
-		"---------\n"
+		"_______\n"
 		"\n"
 		"Ctrl+S\n"
 		"Ctrl+O\n"

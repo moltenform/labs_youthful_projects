@@ -92,17 +92,17 @@ int countPhasePlotPixels(double c1, double c2, int whichThread)
 {
 	int * arr = (whichThread)?arrT1:arrT2;
 	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
-	int total; double x,y,x_,y_;
+	int counted; double x,y,x_,y_;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
 	int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
-	
-	//using the default ones...? shouldn't use this later...? !!!!!!!!!!!!!!!!!!!!!!!!
-	//use the default ones? this diagram should incorporate the whole thing?
-	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
-	
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
-	int counted; 
+	//using the default ones...? shouldn't use this later...? !!!!!!!!!!!!!!!!!!!!!!!!
+	//use the default ones? this diagram should incorporate the whole thing?
+	//double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+	double X0=-2, X1=2, Y0=-2, Y1=2;
+	
+	
 	for (double sx=sx0; sx<=sx1; sx+=sxinc) //try until we get one that doesn't escape. use that one.
     {
     for (double sy=sy0; sy<=sy1; sy+=syinc)
@@ -180,8 +180,8 @@ fy -= dy;
 
 int CalcMenagerieThread(void* pWhichHalf);
 //cache the menagerie figure!
-#define CACHEW 640
-#define CACHEH 320
+#define CACHEW 400
+#define CACHEH 400
 //#define CACHEW 6400
 //#define CACHEH 3200
 unsigned char * cachedEntire; double cacheX0=0, cacheX1=1, cacheY0=0, cacheY1=1;
@@ -198,11 +198,14 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 	snprintf(cachefname, sizeof(cachefname), "%s/CACHE.dat", SAVESFOLDER);
 	if (doesFileExist(cachefname))
 	{
+		int w,h;
 		FILE * f = fopen(cachefname, "rb");
+		fread(&w, sizeof(int), 1, f); fread(&h, sizeof(int), 1, f);
 		fread(&cacheX0, sizeof(double), 1, f); fread(&cacheX1, sizeof(double), 1, f);
 		fread(&cacheY0, sizeof(double), 1, f); fread(&cacheY1, sizeof(double), 1, f);
-		fread(cachedEntire, sizeof(unsigned char), CACHEH*CACHEW, f);
+		fread(cachedEntire, sizeof(unsigned char), w*h, f);
 		fclose(f);
+		// if (w==CACHEW && h==CACHEH)
 		return TRUE;
 	}
 
@@ -223,7 +226,7 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 		snprintf(buffer, sizeof(buffer), "%% %d complete", (int)(threadOnesProgress*100));
 		SDL_FillRect ( pSurface , NULL , g_white );
 		ShowText(buffer, 50, 150, pSurface);
-		ShowText("Computing menagerie diagram (will be saved)...", 50, 50, pSurface);
+		ShowText("Computing menagerie diagram (only done once)...", 50, 50, pSurface);
 		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 		if (!g_BusyThread1 &&!g_BusyThread2)
 			break; //we're done.
@@ -232,6 +235,7 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 	cacheX0 = g_settings->diagramx0; cacheX1 = g_settings->diagramx1; cacheY0 = g_settings->diagramy0; cacheY1 = g_settings->diagramy1;
 	FILE * f= fopen(cachefname,"wb");
 	if (!f) return FALSE;
+	int w=CACHEW, h=CACHEH; fwrite(&w, sizeof(int), 1, f); fwrite(&h, sizeof(int), 1, f);
 	fwrite(&g_settings->diagramx0, sizeof(double), 1, f); fwrite(&g_settings->diagramx1, sizeof(double), 1, f);
 	fwrite(&g_settings->diagramy0, sizeof(double), 1, f); fwrite(&g_settings->diagramy1, sizeof(double), 1, f);
 	fwrite(cachedEntire, sizeof(unsigned char), CACHEH*CACHEW, f);
@@ -250,16 +254,17 @@ int CalcMenagerieThread(void* pWhichHalf)
 	double fx = X0, fy = Y1; //y counts down?
 	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; //only compute half per thread.
 	else fy = Y1;
-	if (whichHalf) printf("h1;"); else printf("h2;");
 
 	for (int py=0; py<CACHEH/2; py++) //Note the /2!
 	{
 		fx=X0;
 		for (int px = 0; px < CACHEW; px++)
 		{
-			int count = countPhasePlotPixels( fx,fy, whichHalf);
-			unsigned char val = (count==0)? 0 : (unsigned char)(count/16+1);
-			localarrayOfResults[py*CACHEW + px] = val;
+			//int count = countPhasePlotPixels( fx,fy, whichHalf);
+			//unsigned char val = (count==0)? 0 : (unsigned char)(count+1);
+			//localarrayOfResults[py*CACHEW + px] = val;
+			localarrayOfResults[py*CACHEW + px] = countPhasePlotPixels( fx,fy, whichHalf);
+			//localarrayOfResults[py*CACHEW + px] = (whichHalf)? 30:40;
 				
 			fx += dx;
 		}
@@ -290,16 +295,17 @@ double chy_x0 = cacheX0, chy_x1=cacheX1, chy_y0=cacheY0, chy_y1=cacheY1;
 		{
 int hits;
 if (fx<chy_x0 || fx>chy_x1 || fy<chy_y0 || fy>chy_y1)
-hits=0; //should compute it here, I suppose.
+hits=-1; //should compute it here, I suppose.
 else
 {
 	int indexx = (int) (CACHEW * (fx-chy_x0)/(chy_x1-chy_x0));
-	int indexy = (int) (CACHEH * (fy-chy_y0)/(chy_y1-chy_y0));
+	int indexy = CACHEH-(int) (CACHEH * (fy-chy_y0)/(chy_y1-chy_y0));
 	hits = cachedEntire[ indexy*CACHEW + indexx];
 }
 		Uint32 r,g,b;
-		if (hits==0) {r=b=0; g=50; } else {
-		double val = sqrt((double)hits)/10.0;
+		if (hits==0) {r=b=0; g=50; }  
+		else if (hits==-1) {b=g=0; r=50; } else {
+		double val = sqrt((double)hits)/16.0;
 
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1

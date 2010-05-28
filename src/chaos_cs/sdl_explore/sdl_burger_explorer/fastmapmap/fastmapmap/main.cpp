@@ -41,7 +41,6 @@ int main( int argc, char* argv[] )
 
 	initializeObject();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
-
 	
 	atexit ( SDL_Quit ) ;
 	SDL_Init ( SDL_INIT_VIDEO ) ;
