@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "font.h"
 
+
 BOOL Dialog_GetBool(const char* prompt, SDL_Surface* pSurface)
 {
 	char* ret = Dialog_GetText(prompt, "Type y or n.", pSurface);
@@ -140,716 +141,254 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 	}
 }
 
-//from http://ubuntu-gamedev.pbworks.com/Using%20Bitmap%20Fonts%20with%20SDL
-//ported to C by Ben Fisher, 2010
-//added line with case '.': // .
+struct SDLFont
+{
+  SDL_Surface *font;    // The SDL Surface for the font image
+  int width;            // Width of the SDL Surface (same as the height)
+  int charWidth;        // Width of one block character in the font (fontWidth/16)
+  int *widths;          // Real widths of all the fonts
+  unsigned char *data;  // The raw font data
+};
+SDLFont *initFont(char *fontdir, float r, float g, float b, float a);
+void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *str);
 
-SDL_Surface* g_pFontList = NULL;
+/*
+  font.cpp
+  Cone3D SDL font routines.
+  Made by Marius Andra 2002
+  http://cone3d.gamedev.net
+
+  You can use the code for anything you like.
+  Even in a commercial project.
+  But please let me know where it ends up.
+  I'm just curious. That's all.
+*/
+
+SDLFont *currentFont = NULL;
 BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 {
-	// this one doesn't choose font.
-	return ShowTextAdvanced(text, 1, pos_x, pos_y, pScreen);
-}
-BOOL ShowTextAdvanced(const char* text, int type, int pos_x, int pos_y, SDL_Surface* pScreen)
-{
-	if (!text || strlen(text)==0) return FALSE;
-	/* TODO: We need to calculate the fonts height into the pos_y thing. */
-	// Also, id like to see this stuff gathered from an ini file.
-	// That way we can alter fonts without the need for recompilcation
-
-	if (!g_pFontList) {
-		//check if the file is there, and exit if not.
-		if (!doesFileExist("data/font_source2.bmp"))
-			{assert(0); exit(1);}
-
-		SDL_Surface* temp = SDL_LoadBMP("data/font_source2.bmp"); 
-		if (!temp) { assert(0); exit(1);}
-		g_pFontList = SDL_DisplayFormat(temp);
-		SDL_FreeSurface(temp);
-
-		//SDL_DisplayFormatAlpha(IMG_Load("data/font_source2.png"));
-	}
-	if(!pScreen) return FALSE;
-
-	SDL_Rect rect; //
-	rect.x = pos_x;
-	rect.y = pos_y;
-	SDL_Rect tmp_rect;
-	tmp_rect.y = 0*type;
-
-	for(unsigned int i=0; i < strlen(text); i++) {
-		
-		tmp_rect.y = 0; // set right y axe
-
-		switch(text[i]) {
-			case 0x20:
-				rect.x += 10;
-				break;
-			case '\n':
-				rect.x = pos_x;
-				rect.y += 20;
-				break;
-			case 0x21: // !
-				tmp_rect.x = 4;
-				tmp_rect.w = 6;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x2D: // -
-				tmp_rect.x = 184;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case '\'': 
-				tmp_rect.x = 199-15*7;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case '*': 
-				tmp_rect.x = 199-15*4;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case '+':
-				tmp_rect.x = 199-15*3;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case ',':
-				tmp_rect.x = 199-15-15;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case '.': 
-				tmp_rect.x = 199;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x30: // 0
-				tmp_rect.x = 226;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;			
-			case 0x31: // 1
-				tmp_rect.x = 244;
-				tmp_rect.w = 9;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;	
-			case 0x32: // 2
-				tmp_rect.x = 256;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;	
-			case 0x33: // 3
-				tmp_rect.x = 272;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;	
-			case 0x34: // 4
-				tmp_rect.x = 286;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;	
-			case 0x35: // 5
-				tmp_rect.x = 302;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x36: // 6
-				tmp_rect.x = 317;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x37: // 7
-				tmp_rect.x = 332;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x38: // 8
-				tmp_rect.x = 347;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x39: // 9
-				tmp_rect.x = 362;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x3A: // :
-				tmp_rect.x = 379;
-				tmp_rect.w = 6;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x3B: // ;
-				tmp_rect.x = 394;
-				tmp_rect.w = 5;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x3C: // <
-				tmp_rect.x = 407;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x3D: // =
-				tmp_rect.x = 424;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x3E: // >
-				tmp_rect.x = 440;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x3F: // ?
-				tmp_rect.x = 454;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x40: // ?
-				tmp_rect.x = 465;
-				tmp_rect.w = 16;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x41: // A
-				tmp_rect.x = 482;
-				tmp_rect.w = 13;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x42: // B
-				tmp_rect.x = 498;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x43: // C
-				tmp_rect.x = 511;
-				tmp_rect.w = 13;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x44: // D
-				tmp_rect.x = 527;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x45: // E
-				tmp_rect.x = 542;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x46: // F
-				tmp_rect.x = 558;
-				tmp_rect.w = 9;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x47: // G
-				tmp_rect.x = 571;
-				tmp_rect.w = 14;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x48: // H
-				tmp_rect.x = 586;
-				tmp_rect.w = 13;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x49: // I
-				tmp_rect.x = 602;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x4A: // J
-				tmp_rect.x = 616;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x4B: // K
-				tmp_rect.x = 631;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x4C: // L
-				tmp_rect.x = 647;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x4D: // M
-				tmp_rect.x = 659;
-				tmp_rect.w = 16;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x4E: // N
-				tmp_rect.x = 406;
-				tmp_rect.w = 14;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19; // <-- this is right. I made a mistake creating the image, that is why its somewhere else.
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x4F: // O
-				tmp_rect.x = 675;
-				tmp_rect.w = 15;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0; // <-- Here we fix that mistake :)
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x50: // P
-				tmp_rect.x = 692;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x51: // Q
-				tmp_rect.x = 705;
-				tmp_rect.w = 14;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x52: // R
-				tmp_rect.x = 722;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x53: // S
-				tmp_rect.x = 736;
-				tmp_rect.w = 13;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x54: // T
-				tmp_rect.x = 751;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x55: // U
-				tmp_rect.x = 766;
-				tmp_rect.w = 13;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x56: // V
-				tmp_rect.x = 782;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x57: // W
-				tmp_rect.x = 795;
-				tmp_rect.w = 15;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x58: // X
-				tmp_rect.x = 811;
-				tmp_rect.w = 13;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x59: // Y
-				tmp_rect.x = 827;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x5A: // Z
-				tmp_rect.x = 841;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x5B: // [
-				tmp_rect.x = 858;
-				tmp_rect.w = 8;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			
-			case 0x5C: // /
-				tmp_rect.x = 873;
-				tmp_rect.w = 9;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x5D: // ]
-				tmp_rect.x = 888;
-				tmp_rect.w = 9;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x5E: // ]
-				tmp_rect.x = 903;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x5F: // _
-				tmp_rect.x = 915;
-				tmp_rect.w = 15;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x60: // `
-				tmp_rect.x = 936;
-				tmp_rect.w = 7;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x61: // a
-				tmp_rect.x = 946;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x62: // b
-				tmp_rect.x = 962;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x63: // c
-				tmp_rect.x = 976;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 0;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x64: // d
-				tmp_rect.x = 1;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x65: // e
-				tmp_rect.x = 16;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x66: // f
-				tmp_rect.x = 34;
-				tmp_rect.w = 9;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x67: // g
-				tmp_rect.x = 48;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x68: // h
-				tmp_rect.x = 62;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x69: // i
-				tmp_rect.x = 80;
-				tmp_rect.w = 6;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x6A: // j
-				tmp_rect.x = 91;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x6B: // k
-				tmp_rect.x = 108;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x6C: // l
-				tmp_rect.x = 123;
-				tmp_rect.w = 6;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x6D: // m
-				tmp_rect.x = 136;
-				tmp_rect.w = 14;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x6E: // n
-				tmp_rect.x = 152;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x6F: // o
-				tmp_rect.x = 167;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x70: // p
-				tmp_rect.x = 182;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x71: // q
-				tmp_rect.x = 197;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x72: // r
-				tmp_rect.x = 212;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x73: // s
-				tmp_rect.x = 229;
-				tmp_rect.w = 9;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x74: // t
-				tmp_rect.x = 242;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x75: // u
-				tmp_rect.x = 258;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x76: // v
-				tmp_rect.x = 272;
-				tmp_rect.w = 10;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x77: // w
-				tmp_rect.x = 285;
-				tmp_rect.w = 14;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x78: // x
-				tmp_rect.x = 301;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x79: // y
-				tmp_rect.x = 318;
-				tmp_rect.w = 12;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-			case 0x7A: // z
-				tmp_rect.x = 332;
-				tmp_rect.w = 11;
-				tmp_rect.h = 19;
-				tmp_rect.y = 19;
-				SDL_BlitSurface( g_pFontList, &tmp_rect, pScreen, &rect);
-				rect.x += tmp_rect.w;
-				break;
-
-		}
-
-	}
-
+	if (!text) return FALSE;
+	if (!currentFont) 
+		currentFont = initFont("data/fontsm", 0.5,0.5,0.5,1);
+	drawString(pScreen, currentFont, pos_x, pos_y, text);
 	return TRUE;
 }
+
+
+
+// this function draws one part of an image to some other part of an other image
+// it's only to be used inside the font.cpp file, so it's not available to any
+// other source files (no prototype in font.h)
+void _fontDrawIMG(SDL_Surface *screen, SDL_Surface *img, int x, int y, int w,
+                                                        int h, int x2, int y2)
+{
+  SDL_Rect dest;
+  dest.x = x;
+  dest.y = y;
+  SDL_Rect src;
+  src.x = x2;
+  src.y = y2;
+  src.w = w;
+  src.h = h;
+  SDL_BlitSurface(img, &src, screen, &dest);
+}
+
+// this function loads in our font file
+SDLFont *initFont(char *fontdir, float r, float g, float b, float a)
+{
+  // some variables
+  SDLFont *tempFont;               // a temporary font
+  FILE *fp;                        // file pointer - used when reading files
+  char tempString[100];            // temporary string
+  unsigned char tmp;               // temporary unsigned char
+  int width;                       // the width of the font
+  SDL_Surface *tempSurface;        // temporary surface
+
+  // find out about the size of a font from the ini file
+  sprintf(tempString,"%s/%s",fontdir,"font.ini");
+  fp = fopen(tempString, "rb");
+  if( fp == NULL )
+  {
+    return 0;
+  }
+  fscanf(fp, "%d", &width);
+  fclose(fp);
+
+  // let's create our font structure now
+  tempFont = new SDLFont;
+  tempFont->data = new unsigned char[width*width*4];
+  tempFont->width = width;
+  tempFont->charWidth = width/16;
+
+  // open the font raw data file and read everything in
+  sprintf(tempString,"%s/%s",fontdir,"font.raw");
+  fp = fopen(tempString, "rb");
+  if( fp != NULL )
+  {
+    for(int i=0;i<width*width;i++)
+    {
+      tmp = fgetc(fp);
+      tempFont->data[i*4] = (unsigned char)255*(unsigned char)r;
+      tempFont->data[i*4+1] = (unsigned char)255*(unsigned char)g;
+      tempFont->data[i*4+2] = (unsigned char)255*(unsigned char)b;
+      tempFont->data[i*4+3] = (unsigned char)(((float)tmp)*a);
+    }
+  } else {
+    return 0;
+  }
+  fclose(fp);
+  // now let's create a SDL surface for the font
+  Uint32 rmask,gmask,bmask,amask;
+  #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+  rmask = 0xff000000;
+  gmask = 0x00ff0000;
+  bmask = 0x0000ff00;
+  amask = 0x000000ff;
+  #else
+  rmask = 0x000000ff;
+  gmask = 0x0000ff00;
+  bmask = 0x00ff0000;
+  amask = 0xff000000;
+  #endif
+  tempSurface = SDL_CreateRGBSurfaceFrom(tempFont->data, width, width,
+                              32, width*4, rmask, gmask, bmask, amask);
+  tempFont->font = SDL_DisplayFormatAlpha(tempSurface);
+  SDL_FreeSurface(tempSurface);
+
+  // let's create a variable to hold all the widths of the font
+  tempFont->widths = new int[256];
+
+  // now read in the information about the width of each character
+  sprintf(tempString,"%s/%s",fontdir,"font.dat");
+  fp = fopen(tempString, "rb");
+  if( fp != NULL )
+  {
+    for(int i=0;i<256;i++)
+    {
+      tmp = fgetc(fp);
+      tempFont->widths[i]=tmp;
+    }
+  }
+  fclose(fp);
+
+  /// return the new font
+  return tempFont;
+}
+
+void drawStringf(SDL_Surface *screen, SDLFont *font, int x, int y, char *str, ...)
+{
+	char string[1024];                  // Temporary string
+
+  va_list ap;                         // Pointer To List Of Arguments
+  va_start(ap, str);                  // Parses The String For Variables
+  vsprintf(string, str, ap);          // And Converts Symbols To Actual Numbers
+  va_end(ap);                         // Results Are Stored In Text
+	drawString(screen,font, x,y, string);
+}
+
+// here we draw the string
+void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *string)
+{
+ 
+  int len=strlen(string);             // Get the number of chars in the string
+  int xx=0;            // This will hold the place where to draw the next char
+  for(int i=0;i<len;i++)              // Loop through all the chars in the string
+  {
+    // This may look scary, but it's really not.
+    // We only draw one character with this code.
+    // At the next run of the loop we draw the next character.
+
+    // Remember, the _fontDrawIMG function looks like this:
+	// void fontDrawIMG(SDL_Surface *screen, SDL_Surface *img, int x, int y,
+    //                                         int w, int h, int x2, int y2)
+
+    // We draw onto the screen SDL_Surface a part of the font SDL_Surface.
+    _fontDrawIMG(
+      screen,
+      font->font,
+    // We draw the char at pos [x+xx,y].
+    // x+xx: this function's parameter x + the width of all the characters before
+    // this one, so we wouldn't overlap any of the previous characters in the string
+    // y: this function's y parameter
+      xx+x,
+      y,
+    // For the width of the to-be-drawn character we take it's real width + 2
+      font->widths[string[i]]+2,
+    // And for the height we take the height of the character (height of the font/16)
+      font->charWidth,
+    // Now comes the tricky part
+    // The font image DOES consist of 16x16 grid of characters. From left to
+    // right in the image, the ascii values of the characters increase:
+    // The character at block 0x0 in the font image is the character with the
+    // ascii code 0, the character at the pos 1x0 has the ascii code 1, the char
+    // at the pos 15x0 has the ascii code 15. And that's the end of the first row
+    // Now in the second row on the image, the first character (0x1) has the ascii
+    // value 16, the fourth character on the second row of the image (3x1) has the ascii
+    // value 19. To calculate the ascii value of the character 3x1, we use the
+    // really simple equation: row*[number of thing in one row (=16)]+column pos.
+    // So the position 3x1 has the ascii value 1*16+3 = 19. The character in the
+    // image at the position 8x12 has the ascii value 12*16+8=200, and so on.
+    // But this isn't much of use to us since we KNOW the ascii value of a character,
+    // but we NEED to find out it's position on the image.
+    // First we'll get the column on the image. For that we'll divide the ascii value
+    // with 16 (the number of columns) and get it's remainder (we'll use the modulus
+    // operator). We'll do this equation to get the column: [ascii value]%16.
+    // Now to get to the position of the column in pixels, we multiply the ascii
+    // value by the width of one column ([font image width]/16)
+    // And so the equation to get the first pixel of the block becomes:
+    // [font image width]%16*[1/16th of the font image width]
+    // Now, since all the letters are centered in each cell (1/16th of the image),
+    // we need to get the center of the cell. This is done by adding half the width
+    // of the cell to the number we got before. And the only thing left to do is to
+    // subtract half of the character's real width and we get the x position from where
+    // to draw our character on the font map :)
+      (string[i]%16*font->charWidth)+((font->charWidth/2)-(font->widths[string[i]])/2),
+    // To get the row of the character in the image, we divide the ascii value of
+    // the character by 16 and get rid of all the numbers after the point (.)
+    // (if we get the number 7.125257.., we remove the .125157... and end up with 7)
+    // We then multiply the result with the height of one cell and voila - we get
+    // the y position!
+      (((int)string[i]/16)*font->charWidth)
+    );
+
+    // Now we increase the xx printed string width counter by the width of the
+    // drawn character
+    xx+=font->widths[string[i]];
+  }
+}
+
+// This function returns the width of a string
+int stringWidth(SDLFont *font,char *str,...)
+{
+  char string[1024];                  // Temporary string
+
+  va_list ap;                         // Pointer To List Of Arguments
+  va_start(ap, str);                  // Parses The String For Variables
+  vsprintf(string, str, ap);          // And Converts Symbols To Actual Numbers
+  va_end(ap);                         // Results Are Stored In Text
+
+  // Now we just count up the width of all the characters
+  int xx=0;
+  int len=strlen(string);
+  for(int i=0;i<len;i++)
+  {
+    // Add their widths together
+    xx+=font->widths[string[i]];
+  }
+
+  // and then return the sum
+  return xx;
+}
+
+// Clear up
+void freeFont(SDLFont *font)
+{
+  delete [] font->widths;
+  delete [] font->data;
+  SDL_FreeSurface(font->font);
+  delete font;
+}
+
+
+
+
