@@ -217,7 +217,7 @@ while(TRUE)
 		SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 	}
 }
-
+	Free_Fonts();
 	return 0;
 }
 

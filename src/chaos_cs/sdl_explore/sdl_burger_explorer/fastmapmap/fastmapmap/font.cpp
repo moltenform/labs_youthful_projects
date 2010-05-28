@@ -151,6 +151,7 @@ struct SDLFont
 };
 SDLFont *initFont(char *fontdir, float r, float g, float b, float a);
 void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *str);
+void freeFont(SDLFont *font);
 
 /*
   font.cpp
@@ -174,6 +175,11 @@ BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 	return TRUE;
 }
 
+void Free_Fonts()
+{
+	freeFont(currentFont);
+	currentFont = NULL;
+}
 
 
 // this function draws one part of an image to some other part of an other image
@@ -290,7 +296,7 @@ void drawStringf(SDL_Surface *screen, SDLFont *font, int x, int y, char *str, ..
 void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *string)
 {
  
-  int len=strlen(string);             // Get the number of chars in the string
+  int len=(int) strlen(string);             // Get the number of chars in the string
   int xx=0;            // This will hold the place where to draw the next char
   for(int i=0;i<len;i++)              // Loop through all the chars in the string
   {
@@ -369,7 +375,7 @@ int stringWidth(SDLFont *font,char *str,...)
 
   // Now we just count up the width of all the characters
   int xx=0;
-  int len=strlen(string);
+  int len=(int) strlen(string);
   for(int i=0;i<len;i++)
   {
     // Add their widths together
