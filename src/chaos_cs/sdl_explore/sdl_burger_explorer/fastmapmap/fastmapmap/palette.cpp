@@ -4,7 +4,7 @@
 #include "float_cast.h"
 #include "whichmap.h"
 #include <math.h>
-int ColorPalette[1024];
+/*int ColorPalette[1024];
 
 void switchPalette(SDL_Surface* pSurface)
 {
@@ -28,7 +28,7 @@ void switchPalette(SDL_Surface* pSurface)
 		}
 	}
 	else if (whichPallete == 2) //black/blue
-	{
+	{*/
 		/*val = val*2 - 1; //from -1 to 1
 		Uint32 r,g,b;
 		if (val<=0)
@@ -46,8 +46,8 @@ void switchPalette(SDL_Surface* pSurface)
 			int v = (int)(255.0*i/(1024.0/2));
 			ColorPalette[i] = SDL_MapRGB ( pSurface->format , 255,255-v,255-v );
 		}*/
-	}
-}
+/*	}
+}*/
 
 bool bShowOnlyOneColorLine = FALSE;
 void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width) 

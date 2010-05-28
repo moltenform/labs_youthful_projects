@@ -1,6 +1,7 @@
 
 //todo: make fully compatible w csphaseportrait.
-//todo: update showinfo
+//todo: update showinfo text
+//todo: use a varargs version of showtext? low priority, just for convenience.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +21,7 @@
 CoordsDiagramStruct thediagrams[] = {
 	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
 	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 415,100,200,200,	0.0,1.0,0.0,1.0},
-	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null.
+	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
 };
 
 #include "main_util.h" 
@@ -32,7 +33,7 @@ int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
 	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
-	BOOL needRedraw = TRUE; BOOL needDrawDiagram = TRUE;
+	BOOL needRedraw = TRUE, needDrawDiagram=TRUE, requestRecalcDiagram=FALSE;
 	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
 	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
 	BOOL isSuperDrag = FALSE, isSuperDragSqr; int superDragIndex=-1, superDragPx, superDragPy; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
@@ -40,7 +41,7 @@ int main( int argc, char* argv[] )
 
 	initializeObject();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
-	if (argc > 1 && !StringsEqual(argv[1],"full")) loadFromFile(argv[1]);
+
 	
 	atexit ( SDL_Quit ) ;
 	SDL_Init ( SDL_INIT_VIDEO ) ;
@@ -54,7 +55,9 @@ int main( int argc, char* argv[] )
 
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, thediagrams[1].screen_width, thediagrams[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	SDL_FillRect ( pSurface , NULL , g_white );
-	switchPalette(pSurface); //load color pallete
+	//switchPalette(pSurface); //load color pallete
+	if (!CreateMenagCache( pSurface ) && !Dialog_GetBool("Could not compute diagram. Continue?",pSurface)) exit(1);
+	if (argc > 1 && !StringsEqual(argv[1],"full")) loadFromFile(argv[1]);
 
 while(TRUE)
 {
@@ -79,6 +82,10 @@ while(TRUE)
 		  onKeyUp(event.key.keysym.sym, (event.key.keysym.mod & KMOD_CTRL)!=0,
 			  (event.key.keysym.mod & KMOD_ALT)!=0,(event.key.keysym.mod & KMOD_SHIFT)!=0, 
 				pSurface, &needRedraw, &needDrawDiagram);
+		  if (event.key.keysym.sym == SDLK_F5) { 
+			  requestRecalcDiagram = TRUE; 
+			  needDrawDiagram=TRUE; 
+		  }
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -194,7 +201,13 @@ while(TRUE)
 		{
 			// recompute the figure
 			SDL_LockSurface ( pSmallerSurface ) ;
-			DrawMenagerie(pSmallerSurface, &thediagrams[1]);
+			if (requestRecalcDiagram)
+			{
+				// re calc it
+				requestRecalcDiagram = FALSE;
+			}
+			else
+				DrawMenagerie(pSmallerSurface, &thediagrams[1]);
 			SDL_UnlockSurface ( pSmallerSurface ) ;
 			needDrawDiagram = FALSE;
 		}
@@ -257,6 +270,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 			//simulate mouseclick in the center of the diagram
 		case SDLK_PAGEUP: onClickTryZoom(thediagrams, 1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
 		case SDLK_PAGEDOWN: onClickTryZoom(thediagrams, -1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
+			// press F5 to requestRecalcDiagram
 		default: wasKeyCombo =FALSE;
 	}
 
