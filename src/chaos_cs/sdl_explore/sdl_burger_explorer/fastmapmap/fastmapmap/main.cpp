@@ -56,8 +56,10 @@ int main( int argc, char* argv[] )
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, thediagrams[1].screen_width, thediagrams[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	SDL_FillRect ( pSurface , NULL , g_white );
 	//switchPalette(pSurface); //load color pallete
-	if (!CreateMenagCache( pSurface ) && !Dialog_GetBool("Could not compute diagram. Continue?",pSurface)) exit(1);
-	if (argc > 1 && !StringsEqual(argv[1],"full")) loadFromFile(argv[1]);
+	if (!CreateMenagCache( pSurface ) && !Dialog_GetBool("Could not compute diagram. Continue?",pSurface)) 
+		exit(1);
+	if (argc > 1 && !StringsEqual(argv[1],"full")) 
+		loadFromFile(argv[1]);
 
 while(TRUE)
 {

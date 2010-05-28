@@ -276,7 +276,7 @@ double chy_x0 = cacheX0, chy_x1=cacheX1, chy_y0=cacheY0, chy_y1=cacheY1;
 		{
 int hits;
 if (fx<chy_x0 || fx>chy_x1 || fy<chy_y0 || fy>chy_y1)
-hits=0;
+hits=0; //should compute it here, I suppose.
 else
 {
 	int indexx = (int) (CACHEW * (fx-chy_x0)/(chy_x1-chy_x0));
