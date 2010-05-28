@@ -209,7 +209,7 @@ while(TRUE)
 				requestRecalcDiagram = FALSE;
 			}
 			else
-				DrawMenagerie(pSmallerSurface, &thediagrams[1]);
+				DrawMenagerieFromPrecomputed(pSmallerSurface, &thediagrams[1]);
 			SDL_UnlockSurface ( pSmallerSurface ) ;
 			needDrawDiagram = FALSE;
 		}

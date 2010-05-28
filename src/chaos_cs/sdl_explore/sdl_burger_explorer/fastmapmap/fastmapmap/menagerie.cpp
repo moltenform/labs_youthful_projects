@@ -85,15 +85,21 @@ FoundTotal:
 
 //TODO: make thread-safe
 #define PHASESIZE 128
-int arr[PHASESIZE*PHASESIZE] = {0};
-int whichID = 2;
-int countPhasePlotPixels(SDL_Surface* pSurface,double c1, double c2, int whichThread)
+int arrT1[PHASESIZE*PHASESIZE] = {0};
+int arrT2[PHASESIZE*PHASESIZE] = {0};
+int whichIDT1 = 2, whichIDT2 = 2;
+int countPhasePlotPixels(double c1, double c2, int whichThread)
 {
+	int * arr = (whichThread)?arrT1:arrT2;
+	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
 	int total; double x,y,x_,y_;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
 	int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
-	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+	
+	//using the default ones...? shouldn't use this later...? !!!!!!!!!!!!!!!!!!!!!!!!
 	//use the default ones? this diagram should incorporate the whole thing?
+	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+	
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	int counted; 
@@ -110,7 +116,7 @@ int countPhasePlotPixels(SDL_Surface* pSurface,double c1, double c2, int whichTh
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
 		}
 		
-		counted = 0; whichID++; //note incr. in here. effects of previous sx,sy are not counted.
+		counted = 0; *whichID++; //note incr. in here. effects of previous sx,sy are not counted.
 		for (int i=0; i<60; i++)
 		{
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
@@ -118,17 +124,21 @@ int countPhasePlotPixels(SDL_Surface* pSurface,double c1, double c2, int whichTh
 			int px = lrint(PHASESIZE * ((x - X0) / (X1 - X0)));
 			int py = lrint(/*PHASESIZE -*/ PHASESIZE * ((y - Y0) / (Y1 - Y0)));
 			if (py >= 0 && py < PHASESIZE && px>=0 && px<PHASESIZE)
-				if (arr[px+py*PHASESIZE]!=whichID)
-				{ arr[px+py*PHASESIZE]=whichID; counted++;}
+				if (arr[px+py*PHASESIZE]!=*whichID)
+				{ arr[px+py*PHASESIZE]=*whichID; counted++;}
 		}
 		if (!(ISTOOBIG(x) || ISTOOBIG(y))) goto FoundTotal;
 
 	}
 	}
-		//if here, they all escaped.
+	//if here, they all escaped.
+	return 0;
+FoundTotal:
+	return counted;
+
+	/*	//if here, they all escaped.
 	return SDL_MapRGB(pSurface->format, 0,0,45);
 FoundTotal:
-	//return counted;
 	double val = counted;
 	double estimatedmax= 3.4;
 	val = sqrt(sqrt(val));
@@ -136,7 +146,7 @@ FoundTotal:
 	val /= estimatedmax;
 	//return HSL2RGB(pSurface, val, 1.0, 0.5);
 	int v = 140+(int)(val*100);
-	return SDL_MapRGB(pSurface->format, v,v,v);
+	return SDL_MapRGB(pSurface->format, v,v,v);*/
 }
 
 
@@ -155,7 +165,7 @@ for (int py=0; py<height; py++)
 	fx=X0;
 	for (int px = 0; px < width; px++)
 	{
-		newcol = countPhasePlotPixels(pMSurface, fx, fy, 1);
+		newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
 
 		pPosition = ( char* ) pMSurface->pixels ; //determine position
 		pPosition += ( pMSurface->pitch * py ); //offset by y
@@ -170,8 +180,10 @@ fy -= dy;
 
 int CalcMenagerieThread(void* pWhichHalf);
 //cache the menagerie figure!
-#define CACHEH 3200
-#define CACHEW 6400
+#define CACHEW 640
+#define CACHEH 320
+//#define CACHEW 6400
+//#define CACHEH 3200
 unsigned char * cachedEntire; double cacheX0=0, cacheX1=1, cacheY0=0, cacheY1=1;
 double threadOnesProgress=0.0;
 BOOL g_BusyThread1=TRUE, g_BusyThread2=TRUE;
@@ -179,7 +191,7 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 {
 	char buffer[256], cachefname[256];
 	//note: should have loaded defaults before this.
-	cachedEntire = (unsigned char*) malloc(sizeof(unsigned char)*CACHEH*CACHEW);
+	cachedEntire = (unsigned char*) malloc(sizeof(unsigned char)*CACHEW*CACHEH);
 	if (!cachedEntire) {/*assert(0);*/ exit(1);}
 
 	//first, try to load from file.
@@ -195,9 +207,9 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 	}
 
 	threadOnesProgress = 0.0;
-	int iZero=0, iOne=1;
 	g_BusyThread1=g_BusyThread2=TRUE;
 	//spawn the 2 threads. then return, without blocking.
+	int iZero=0, iOne=1;
 	SDL_Thread *thread1 = SDL_CreateThread(CalcMenagerieThread, &iZero);
 	SDL_Thread *thread2 =  SDL_CreateThread(CalcMenagerieThread, &iOne);
 	while (TRUE)
@@ -217,7 +229,7 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 			break; //we're done.
 	}
 	//now save the results into a file.
-	
+	cacheX0 = g_settings->diagramx0; cacheX1 = g_settings->diagramx1; cacheY0 = g_settings->diagramy0; cacheY1 = g_settings->diagramy1;
 	FILE * f= fopen(cachefname,"wb");
 	if (!f) return FALSE;
 	fwrite(&g_settings->diagramx0, sizeof(double), 1, f); fwrite(&g_settings->diagramx1, sizeof(double), 1, f);
@@ -238,14 +250,16 @@ int CalcMenagerieThread(void* pWhichHalf)
 	double fx = X0, fy = Y1; //y counts down?
 	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; //only compute half per thread.
 	else fy = Y1;
+	if (whichHalf) printf("h1;"); else printf("h2;");
 
-	for (int py=0; py<CACHEH/2; py+=1) //Note the /2!
+	for (int py=0; py<CACHEH/2; py++) //Note the /2!
 	{
 		fx=X0;
-		for (int px = 0; px < CACHEW; px+=1)
+		for (int px = 0; px < CACHEW; px++)
 		{
-			int count = 4;//alternateCountPhasePlotSSE(settings, fx,fy, whichHalf);
-			localarrayOfResults[py*CACHEW + px] = (unsigned char) count;
+			int count = countPhasePlotPixels( fx,fy, whichHalf);
+			unsigned char val = (count==0)? 0 : (unsigned char)(count/16+1);
+			localarrayOfResults[py*CACHEW + px] = val;
 				
 			fx += dx;
 		}
@@ -283,15 +297,17 @@ else
 	int indexy = (int) (CACHEH * (fy-chy_y0)/(chy_y1-chy_y0));
 	hits = cachedEntire[ indexy*CACHEW + indexx];
 }
+		Uint32 r,g,b;
+		if (hits==0) {r=b=0; g=50; } else {
 		double val = sqrt((double)hits)/10.0;
 
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		val = val*2 - 1; //from -1 to 1
-		Uint32 r,g,b;
 		if (val>=0)
 			b=255, r=g= (Uint32) ((1-val)*255.0);
 		else
 			r=g=b= (Uint32) ((val+1)*255.0);
+		}
 
 char* pPosition = ( char* ) pSmallSurface->pixels ; //determine position
 pPosition += ( pSmallSurface->pitch * py ); //offset by y
