@@ -300,10 +300,15 @@ void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *st
   int xx=0;            // This will hold the place where to draw the next char
   for(int i=0;i<len;i++)              // Loop through all the chars in the string
   {
-	if (string[i]=='\n') //a newline
+	if (string[i]=='\n') //a newline (my addition)
 	{
 		y+=font->charWidth + 2;
 		xx=0;
+		continue;
+	}
+	else if (string[i]=='\t') //a tab (my addition)
+	{
+		xx= 100 * (int)(xx/100.0 + 1); //round up to the nearest 100px
 		continue;
 	}
     // This may look scary, but it's really not.
