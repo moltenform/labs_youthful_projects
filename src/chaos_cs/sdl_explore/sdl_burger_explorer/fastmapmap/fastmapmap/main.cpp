@@ -2,7 +2,14 @@
 //todo: make fully compatible w csphaseportrait.
 //todo: update showinfo text
 //todo: use a varargs version of showtext? low priority, just for convenience.
-
+/*
+Pros of caching: don't need to recompute.
+Cons of caching: to be useful, needs to take several minutes.
+	detracts from generalizeable 2d map studying.
+	takes up ram.
+	we can also cache the main screen, for speed. (in a hash table?)
+we can have settings, for slower cpus. skip every other, or more basic diagram.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>

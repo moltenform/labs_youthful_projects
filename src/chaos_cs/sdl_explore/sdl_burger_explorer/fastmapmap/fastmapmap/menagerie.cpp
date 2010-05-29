@@ -180,15 +180,16 @@ fy -= dy;
 
 int CalcMenagerieThread(void* pWhichHalf);
 //cache the menagerie figure!
-#define CACHEW 400
-#define CACHEH 400
+#define CACHEW 800
+#define CACHEH 800
 //#define CACHEW 6400
 //#define CACHEH 3200
 unsigned char * cachedEntire; double cacheX0=0, cacheX1=1, cacheY0=0, cacheY1=1;
 double threadOnesProgress=0.0;
 BOOL g_BusyThread1=TRUE, g_BusyThread2=TRUE;
+SDL_Surface* tmmpsfs;
 BOOL CreateMenagCache( SDL_Surface* pSurface )
-{
+{tmmpsfs = pSurface;
 	char buffer[256], cachefname[256];
 	//note: should have loaded defaults before this.
 	cachedEntire = (unsigned char*) malloc(sizeof(unsigned char)*CACHEW*CACHEH);
@@ -250,6 +251,7 @@ int CalcMenagerieThread(void* pWhichHalf)
 	unsigned char * localarrayOfResults = (whichHalf)? cachedEntire : cachedEntire + (CACHEH/2)*CACHEW;
 	//note: should have loaded defaults before this.
 	double X0=g_settings->diagramx0, X1=g_settings->diagramx1, Y0=g_settings->diagramy0, Y1=g_settings->diagramy1;
+	//double X0=-2.5,X1=1,Y0=1.5,Y1=2;
 	double dx = (X1 - X0) / CACHEW, dy = (Y1 - Y0) / CACHEH;
 	double fx = X0, fy = Y1; //y counts down?
 	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; //only compute half per thread.
@@ -263,8 +265,10 @@ int CalcMenagerieThread(void* pWhichHalf)
 			//int count = countPhasePlotPixels( fx,fy, whichHalf);
 			//unsigned char val = (count==0)? 0 : (unsigned char)(count+1);
 			//localarrayOfResults[py*CACHEW + px] = val;
-			localarrayOfResults[py*CACHEW + px] = countPhasePlotPixels( fx,fy, whichHalf);
+			//localarrayOfResults[py*CACHEW + px] = countPhasePlotPixels( fx,fy, whichHalf)==0?10:40;
 			//localarrayOfResults[py*CACHEW + px] = (whichHalf)? 30:40;
+			localarrayOfResults[py*CACHEW + px] = (unsigned char) 
+				(countPhasePlotLyapunov(tmmpsfs,fx,fy)&0xff) ;
 				
 			fx += dx;
 		}
@@ -281,10 +285,11 @@ void DrawMenagerieFromPrecomputed( SDL_Surface* pSmallSurface, CoordsDiagramStru
 {
 double chy_x0 = cacheX0, chy_x1=cacheX1, chy_y0=cacheY0, chy_y1=cacheY1;
 	double fx,fy;
-	int height=diagram->screen_height;
-	int width=diagram->screen_width;
+	int height=200;//diagram->screen_height;
+	int width=200;//diagram->screen_width;
 	double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
-	
+	//double X0=-2.5,X1=1,Y0=1.5,Y1=2;
+
     double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
     fx = X0; fy = Y1; //y counts downwards
     
