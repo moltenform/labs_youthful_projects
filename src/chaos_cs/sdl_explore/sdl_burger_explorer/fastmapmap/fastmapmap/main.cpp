@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
 	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
-	BOOL needRedraw = TRUE, needDrawDiagram=TRUE, requestRecalcDiagram=FALSE;
+	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
 	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
 	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
 	BOOL isSuperDrag = FALSE, isSuperDragSqr; int superDragIndex=-1, superDragPx, superDragPy; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
@@ -62,8 +62,6 @@ int main( int argc, char* argv[] )
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, thediagrams[1].screen_width, thediagrams[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	SDL_FillRect ( pSurface , NULL , g_white );
 	//switchPalette(pSurface); //load color pallete
-	if (!CreateMenagCache( pSurface ) && !Dialog_GetBool("Could not compute diagram. Continue?",pSurface)) 
-		exit(1);
 	if (argc > 1 && !StringsEqual(argv[1],"full")) 
 		loadFromFile(argv[1]);
 
@@ -90,10 +88,6 @@ while(TRUE)
 		  onKeyUp(event.key.keysym.sym, (event.key.keysym.mod & KMOD_CTRL)!=0,
 			  (event.key.keysym.mod & KMOD_ALT)!=0,(event.key.keysym.mod & KMOD_SHIFT)!=0, 
 				pSurface, &needRedraw, &needDrawDiagram);
-		  if (event.key.keysym.sym == SDLK_F5) { 
-			  requestRecalcDiagram = TRUE; 
-			  needDrawDiagram=TRUE; 
-		  }
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -209,13 +203,9 @@ while(TRUE)
 		{
 			// recompute the figure
 			SDL_LockSurface ( pSmallerSurface ) ;
-			if (requestRecalcDiagram)
-			{
-				// re calc it
-				requestRecalcDiagram = FALSE;
-			}
-			else
-				DrawMenagerieFromPrecomputed(pSmallerSurface, &thediagrams[1]);
+			
+			//DrawMenagerieFromPrecomputed(pSmallerSurface, &thediagrams[1]);
+			DrawMenagerie(pSmallerSurface, &thediagrams[1]);
 			SDL_UnlockSurface ( pSmallerSurface ) ;
 			needDrawDiagram = FALSE;
 		}
