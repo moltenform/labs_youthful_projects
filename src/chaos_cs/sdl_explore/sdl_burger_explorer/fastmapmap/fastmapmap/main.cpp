@@ -150,7 +150,7 @@ while(TRUE)
 			else if (buttons & SDL_BUTTON_LMASK)
 			{
 				if (didClickOnButton(pSurface, mouse_x, mouse_y)==1)
-				{ bShowDiagram=TRUE; needDrawDiagram=TRUE; }
+				{ bShowDiagram=!bShowDiagram; needDrawDiagram=TRUE; }
 			}
 			else if (buttons & SDL_BUTTON_MIDDLE)
 			{ //reset view but leave the rest.

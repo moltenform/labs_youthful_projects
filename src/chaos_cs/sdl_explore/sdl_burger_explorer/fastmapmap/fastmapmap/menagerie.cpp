@@ -12,11 +12,10 @@
 
 __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, double estimatedMax)
 {
-	double val = sqrt(valin) / sqrt(estimatedMax);
-
+	//double val = sqrt(valin) / sqrt(estimatedMax);
+	double val = (valin) / (estimatedMax);
 	if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
 	val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99~0.0*/;
-
 	return HSL2RGB(pSurface, val, 1,.5);
 }
 
@@ -76,11 +75,13 @@ FoundTotal:
 #define PHASESIZE 128
 int arrT1[PHASESIZE*PHASESIZE] = {0};
 int arrT2[PHASESIZE*PHASESIZE] = {0};
-int whichIDT1 = 2, whichIDT2 = 2;
+int whichIDT1 = 2, whichIDT2 = 2, whichID=2;
 int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichThread, FastMapMapSettings * boundsettings)
 {
-	int * arr = (whichThread)?arrT1:arrT2;
-	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
+	int * arr = whichThread ? arrT1:arrT2;
+	//int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
+	whichID++;//*whichID++; 
+	
 	int counted; double x,y,x_,y_, sx,sy;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
 	//int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
@@ -88,14 +89,14 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
-	
+
 	for (double sxi=sx0; sxi<=sx1; sxi+=sxinc)
     {
     for (double syi=sy0; syi<=sy1; syi+=syinc)
     {
 	if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
 	else {sx=sxi; sy=syi;}
-
+//sx=sxi; sy=syi;
 		x=sx; y=sy; 
 		for (int i=0; i<80; i++)
 		{
@@ -103,16 +104,16 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
 		}
 		
-		counted = 0; *whichID++; //note incr. in here. effects of previous sx,sy are not counted.
-		for (int i=0; i<60; i++)
+		counted = 0; whichID++; //note incr. in here. effects of previous sx,sy are not counted.
+		for (int i=0; i<160; i++)
 		{
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
 			MAPEXPRESSION; x=x_; y=y_;
 			int px = lrint(PHASESIZE * ((x - X0) / (X1 - X0)));
 			int py = lrint(/*PHASESIZE -*/ PHASESIZE * ((y - Y0) / (Y1 - Y0)));
 			if (py >= 0 && py < PHASESIZE && px>=0 && px<PHASESIZE)
-				if (arr[px+py*PHASESIZE]!=*whichID)
-				{ arr[px+py*PHASESIZE]=*whichID; counted++;}
+				if (arr[px+py*PHASESIZE]!=whichID)
+				{ arr[px+py*PHASESIZE]=whichID; counted++;}
 		}
 		if (!(ISTOOBIG(x) || ISTOOBIG(y))) goto FoundTotal;
 
@@ -121,7 +122,8 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 	//if here, they all escaped.
 	return 0;
 FoundTotal:
-	return standardToColors(pSurface, (double)counted, 60);
+	return standardToColors(pSurface, (double)counted, 160);
+		
 }
 
 
@@ -147,7 +149,7 @@ for (int py=0; py<height; py++)
 	fx=X0;
 	for (int px = 0; px < width; px++)
 	{
-		newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
+		newcol = countPhasePlotPixels(pMSurface,fx,fy,1,&boundsettings);//countPhasePlotLyapunov(pMSurface, fx, fy);
 
 		pPosition = ( char* ) pMSurface->pixels ; //determine position
 		pPosition += ( pMSurface->pitch * py ); //offset by y
@@ -169,37 +171,12 @@ fy -= dy;
 	}
 }
 
-int CalcMenagerieThread(void* pWhichHalf);
-//cache the menagerie figure!
-#define CACHEW 800
-#define CACHEH 800
-//#define CACHEW 6400
-//#define CACHEH 3200
-unsigned char * cachedEntire; double cacheX0=0, cacheX1=1, cacheY0=0, cacheY1=1;
-double threadOnesProgress=0.0;
-BOOL g_BusyThread1=TRUE, g_BusyThread2=TRUE;
+
+/*BOOL g_BusyThread1=TRUE, g_BusyThread2=TRUE;
 SDL_Surface* tmmpsfs;
 BOOL CreateMenagCache( SDL_Surface* pSurface )
-{tmmpsfs = pSurface;
-	char buffer[256], cachefname[256];
-	//note: should have loaded defaults before this.
-	cachedEntire = (unsigned char*) malloc(sizeof(unsigned char)*CACHEW*CACHEH);
-	if (!cachedEntire) {/*assert(0);*/ exit(1);}
+{
 
-	//first, try to load from file.
-	snprintf(cachefname, sizeof(cachefname), "%s/CACHE.dat", SAVESFOLDER);
-	if (doesFileExist(cachefname))
-	{
-		int w,h;
-		FILE * f = fopen(cachefname, "rb");
-		fread(&w, sizeof(int), 1, f); fread(&h, sizeof(int), 1, f);
-		fread(&cacheX0, sizeof(double), 1, f); fread(&cacheX1, sizeof(double), 1, f);
-		fread(&cacheY0, sizeof(double), 1, f); fread(&cacheY1, sizeof(double), 1, f);
-		fread(cachedEntire, sizeof(unsigned char), w*h, f);
-		fclose(f);
-		// if (w==CACHEW && h==CACHEH)
-		return TRUE;
-	}
 
 	threadOnesProgress = 0.0;
 	g_BusyThread1=g_BusyThread2=TRUE;
@@ -223,20 +200,11 @@ BOOL CreateMenagCache( SDL_Surface* pSurface )
 		if (!g_BusyThread1 &&!g_BusyThread2)
 			break; //we're done.
 	}
-	//now save the results into a file.
-	cacheX0 = g_settings->diagramx0; cacheX1 = g_settings->diagramx1; cacheY0 = g_settings->diagramy0; cacheY1 = g_settings->diagramy1;
-	FILE * f= fopen(cachefname,"wb");
-	if (!f) return FALSE;
-	int w=CACHEW, h=CACHEH; fwrite(&w, sizeof(int), 1, f); fwrite(&h, sizeof(int), 1, f);
-	fwrite(&g_settings->diagramx0, sizeof(double), 1, f); fwrite(&g_settings->diagramx1, sizeof(double), 1, f);
-	fwrite(&g_settings->diagramy0, sizeof(double), 1, f); fwrite(&g_settings->diagramy1, sizeof(double), 1, f);
-	fwrite(cachedEntire, sizeof(unsigned char), CACHEH*CACHEW, f);
-	fclose(f);
-	return TRUE;
+	
 }
+*/
 
-
-int CalcMenagerieThread(void* pWhichHalf)
+/*int CalcMenagerieThread(void* pWhichHalf)
 {
 	int whichHalf = * (int*)pWhichHalf;
 	unsigned char * localarrayOfResults = (whichHalf)? cachedEntire : cachedEntire + (CACHEH/2)*CACHEW;
@@ -269,18 +237,16 @@ int CalcMenagerieThread(void* pWhichHalf)
 	if (whichHalf) g_BusyThread2 = FALSE;
 	else g_BusyThread1 = FALSE;
 	return 0;
-}
+}*/
 
-
-void DrawMenagerieFromPrecomputed( SDL_Surface* pSmallSurface, CoordsDiagramStruct*diagram) 
+/*
+void DrawMenagerieFromCache( SDL_Surface* pSmallSurface, CoordsDiagramStruct*diagram) 
 {
 double chy_x0 = cacheX0, chy_x1=cacheX1, chy_y0=cacheY0, chy_y1=cacheY1;
 	double fx,fy;
 	int height=200;//diagram->screen_height;
 	int width=200;//diagram->screen_width;
 	double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
-	//double X0=-2.5,X1=1,Y0=1.5,Y1=2;
-
     double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
     fx = X0; fy = Y1; //y counts downwards
     
@@ -323,7 +289,7 @@ memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
 		fy -= dy;
 	}
 }
-
+*/
 
 
 void BlitDiagram(SDL_Surface* pSurface,SDL_Surface* pSmallSurface, int px, int py)
