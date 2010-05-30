@@ -123,6 +123,7 @@ void showInfo(SDL_Surface *pSurface)
 		"Features\n"
 		"_______\n"
 		"\n"
+		"Ctrl+N		reset\n"
 		"Ctrl+S		test here\n"
 		"Ctrl+O		test hh\n"
 		"\n"
@@ -143,30 +144,7 @@ void showInfo(SDL_Surface *pSurface)
 		"Shift-click\n"
 		"Right-click\n"
 		, 30, 30, pSurface);
-	/*ShowText(
-		"\n"
-		"\n"
-		"\n"
-		"Save\n"
-		"Open, cycling through saved files.\n"
-		"\n"
-		"Full screen\n"
-		"Breathing\n"
-		"Show Basins\n"
-		"\n"
-		"Set exact values\n"
-		"More settings\n"
-		"Zoom in\n"
-		"Zoom out\n"
-		"Show this screen\n"
-		"Close this screen\n"
-		"\n"
-		"\n"
-		"Move around\n"
-		"Zoom in\n"
-		"Zoom out\n"
-		"Reset view\n"
-		, 190, 30, pSurface);*/
+
 	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 	SDL_Event event;
 	while (TRUE) {

@@ -256,6 +256,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\timecounter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\timecounter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\whichmap.h"
 				>
 			</File>

@@ -205,7 +205,7 @@ while(TRUE)
 			SDL_LockSurface ( pSmallerSurface ) ;
 			
 			//DrawMenagerieFromPrecomputed(pSmallerSurface, &thediagrams[1]);
-			DrawMenagerie(pSmallerSurface, &thediagrams[1]);
+			DrawMenagerieMultithreaded(pSmallerSurface, &thediagrams[1]);
 			SDL_UnlockSurface ( pSmallerSurface ) ;
 			needDrawDiagram = FALSE;
 		}

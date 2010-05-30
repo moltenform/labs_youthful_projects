@@ -20,7 +20,8 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","diagramx1",(void *)&g_settings->diagramx1, 1},
 {"double","diagramy0",(void *)&g_settings->diagramy0, -1},
 {"double","diagramy1",(void *)&g_settings->diagramy1, 1},
-	
+
+{"int","seedsPerAxisDiagram",(void *)&g_settings->seedsPerAxisDiagram, 10},	
 {"int","settlingTime",(void *)&g_settings->settlingTime, 48},
 {"int","drawingTime",(void *)&g_settings->drawingTime, 20},
 {"int","basinsTime",(void *)&g_settings->basinsTime, 20},

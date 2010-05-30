@@ -1,5 +1,4 @@
 #include "phaseportrait.h"
-//#include "menagerie.h"
 #include "whichmap.h"
 #include "coordsdiagram.h"
 #include "float_cast.h"
@@ -29,8 +28,8 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 	double x, y, x_,y_; double x2, y2, x2_; double xtmp, ytmp, sx, sy;
 	int N = 140; int settle = 80;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
-	//int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
-	int nXpoints=10, nYpoints=10;
+	//int nXpoints=g_settings->seedsPerAxis, nYpoints=g_settings->seedsPerAxis;
+	int nXpoints=g_settings->seedsPerAxisDiagram, nYpoints=g_settings->seedsPerAxisDiagram;
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	for (double sxi=sx0; sxi<=sx1; sxi+=sxinc)
@@ -79,13 +78,12 @@ int whichIDT1 = 2, whichIDT2 = 2, whichID=2;
 int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichThread, FastMapMapSettings * boundsettings)
 {
 	int * arr = whichThread ? arrT1:arrT2;
-	//int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
-	whichID++;//*whichID++; 
-	
+	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
+
 	int counted; double x,y,x_,y_, sx,sy;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
-	//int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
-	int nXpoints=10, nYpoints=10;
+	//int nXpoints=g_settings->seedsPerAxis, nYpoints=g_settings->seedsPerAxis;
+	int nXpoints=g_settings->seedsPerAxisDiagram, nYpoints=g_settings->seedsPerAxisDiagram;
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
@@ -104,7 +102,7 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
 		}
 		
-		counted = 0; whichID++; //note incr. in here. effects of previous sx,sy are not counted.
+		counted = 0; *whichID = (*whichID)+1; //note incr. in here. effects of previous sx,sy are not counted.
 		for (int i=0; i<160; i++)
 		{
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
@@ -112,8 +110,8 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 			int px = lrint(PHASESIZE * ((x - X0) / (X1 - X0)));
 			int py = lrint(/*PHASESIZE -*/ PHASESIZE * ((y - Y0) / (Y1 - Y0)));
 			if (py >= 0 && py < PHASESIZE && px>=0 && px<PHASESIZE)
-				if (arr[px+py*PHASESIZE]!=whichID)
-				{ arr[px+py*PHASESIZE]=whichID; counted++;}
+				if (arr[px+py*PHASESIZE]!=*whichID)
+				{ arr[px+py*PHASESIZE]=*whichID; counted++;}
 		}
 		if (!(ISTOOBIG(x) || ISTOOBIG(y))) goto FoundTotal;
 
@@ -126,9 +124,97 @@ FoundTotal:
 		
 }
 
+#define LegendWidth 4
+BOOL g_BusyThread1; 
+BOOL g_BusyThread2; 
+typedef struct { int whichHalf; SDL_Surface* pMSurface; CoordsDiagramStruct*diagram; FastMapMapSettings * bounds; } PassToThread;
+int DrawMenagerieMultithreadedPerthread( void* pStruct) 
+{
+	PassToThread*p = (PassToThread *)pStruct; int whichHalf = p->whichHalf; SDL_Surface*pMSurface=p->pMSurface;CoordsDiagramStruct*diagram=p->diagram; 
+	FastMapMapSettings * boundsettings=p->bounds;
+	int px,py;
+	if (whichHalf) px=2,py=2; else px=3,py=3;
+	char*  pPosition = ( char* ) pMSurface->pixels ; //determine position
+		pPosition += ( pMSurface->pitch * py ); //offset by y
+		pPosition += ( pMSurface->format->BytesPerPixel * px ); //offset by x
+		int sdfs = 2342324; 
+		//memcpy ( pPosition , &sdfs , pMSurface->format->BytesPerPixel ) ;
+
+	//return 0;
+double fx,fy;  Uint32 newcol;
+int width = pMSurface->w - LegendWidth; int height=pMSurface->h; 
+double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
+double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+fx = X0; fy = Y1; //y counts downwards
+if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; //only compute half per thread.
+else fy = Y1;
 
 
-void DrawMenagerie( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
+for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
+{
+	fx=X0;
+	for (int px = 0; px < width; px++)
+	{
+		//newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
+		newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
+
+		pPosition = ( char* ) pMSurface->pixels ; //determine position
+		pPosition += ( pMSurface->pitch * py ); //offset by y
+		pPosition += ( pMSurface->format->BytesPerPixel * px ); //offset by x
+		memcpy ( pPosition , &newcol , pMSurface->format->BytesPerPixel ) ;
+
+		fx += dx;
+	}
+fy -= dy;
+}
+if (whichHalf) g_BusyThread1=FALSE; else g_BusyThread2=FALSE;
+return 0;
+}
+PassToThread pThread1; PassToThread pThread2;
+#include "timecounter.h"
+void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
+{
+	g_BusyThread1=g_BusyThread2=TRUE;
+//draw color legend. todo: cache this image?
+	for (int px=pMSurface->w - LegendWidth; px<pMSurface->w; px++)
+	for (int py=0; py<pMSurface->h; py++) {
+	int color = standardToColors(pMSurface, (double)py, (double) pMSurface->h);
+	char* pPosition = ( char* ) pMSurface->pixels ; //determine position
+	pPosition += ( pMSurface->pitch * (pMSurface->h - py-1) ); //offset by y
+	pPosition += ( pMSurface->format->BytesPerPixel * (px) ); //offset by x
+	memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
+	}
+	FastMapMapSettings currentSettings, boundsettings;
+	memcpy(&currentSettings, g_settings, sizeof(FastMapMapSettings));
+	loadFromFile(MAPDEFAULTFILE); //load defaults
+	memcpy(&boundsettings, g_settings, sizeof(FastMapMapSettings));
+	memcpy(g_settings, &currentSettings, sizeof(FastMapMapSettings));
+	//now, boundsettings holds a copy of default bounds, which we'll use in countpixels.
+
+	// = {0, pMSurface, diagram, &boundsettings};
+	// = {1, pMSurface, diagram, &boundsettings};
+	pThread1.whichHalf=0; pThread1.bounds=&boundsettings; pThread1.diagram=diagram; pThread1.pMSurface=pMSurface; 
+	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
+startTimer();
+
+	SDL_Thread *thread1 = SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread1);
+	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
+	while (!(g_BusyThread1==FALSE&&g_BusyThread2==FALSE))
+		SDL_Delay(10);
+
+	
+	/*SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
+	DrawMenagerieMultithreadedPerthread(&pThread1);
+	SDL_WaitThread(thread2, NULL);*/
+//DrawMenagerieMultithreadedPerthread(&pThread1);
+//DrawMenagerieMultithreadedPerthread(&pThread2);
+printf("th%d", (int)stopTimer());
+}
+
+
+
+
+/*void DrawMenagerie( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
 {
 int LegendWidth=4;
 double fx,fy; char* pPosition; Uint32 newcol;
@@ -170,7 +256,7 @@ fy -= dy;
 	memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
 	}
 }
-
+*/
 
 /*BOOL g_BusyThread1=TRUE, g_BusyThread2=TRUE;
 SDL_Surface* tmmpsfs;

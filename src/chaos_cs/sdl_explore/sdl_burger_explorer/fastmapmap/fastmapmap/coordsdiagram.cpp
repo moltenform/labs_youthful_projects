@@ -100,10 +100,8 @@ void DrawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double 
 	for (double f=-4; f<5; f+=1.0)
 	{
 		doubleToScreenPixels(diagram, f,f, &xtic, &ytic);
-		//if (xzero>PlotX && xzero<PlotX+PlotWidth)
 			for (int y=yzero-5; y<yzero+5; y++)
 				plotpoint(pSurface,diagram, xtic, y);
-		//if (yzero>=PlotY && yzero<=PlotY+PlotHeight)
 			for (int x=xzero-5; x<xzero+5; x++)
 				plotpoint(pSurface,diagram, x, ytic);
 	}
