@@ -132,16 +132,8 @@ int DrawMenagerieMultithreadedPerthread( void* pStruct)
 {
 	PassToThread*p = (PassToThread *)pStruct; int whichHalf = p->whichHalf; SDL_Surface*pMSurface=p->pMSurface;CoordsDiagramStruct*diagram=p->diagram; 
 	FastMapMapSettings * boundsettings=p->bounds;
-	int px,py;
-	if (whichHalf) px=2,py=2; else px=3,py=3;
-	char*  pPosition = ( char* ) pMSurface->pixels ; //determine position
-		pPosition += ( pMSurface->pitch * py ); //offset by y
-		pPosition += ( pMSurface->format->BytesPerPixel * px ); //offset by x
-		int sdfs = 2342324; 
-		//memcpy ( pPosition , &sdfs , pMSurface->format->BytesPerPixel ) ;
 
-	//return 0;
-double fx,fy;  Uint32 newcol;
+double fx,fy; char*pPosition; Uint32 newcol;
 int width = pMSurface->w - LegendWidth; int height=pMSurface->h; 
 double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
 double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
@@ -189,26 +181,23 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	loadFromFile(MAPDEFAULTFILE); //load defaults
 	memcpy(&boundsettings, g_settings, sizeof(FastMapMapSettings));
 	memcpy(g_settings, &currentSettings, sizeof(FastMapMapSettings));
-	//now, boundsettings holds a copy of default bounds, which we'll use in countpixels.
+	//now boundsettings holds a copy of default bounds, which we'll use in countpixels.
 
-	// = {0, pMSurface, diagram, &boundsettings};
-	// = {1, pMSurface, diagram, &boundsettings};
 	pThread1.whichHalf=0; pThread1.bounds=&boundsettings; pThread1.diagram=diagram; pThread1.pMSurface=pMSurface; 
 	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
-startTimer();
+//startTimer();
 
-	SDL_Thread *thread1 = SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread1);
-	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
-	while (!(g_BusyThread1==FALSE&&g_BusyThread2==FALSE))
-		SDL_Delay(10);
+	//SDL_Thread *thread1 = SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread1);
+	//SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
+	//while (!(g_BusyThread1==FALSE&&g_BusyThread2==FALSE))
+	//	SDL_Delay(10);
 
 	
-	/*SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
+	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
 	DrawMenagerieMultithreadedPerthread(&pThread1);
-	SDL_WaitThread(thread2, NULL);*/
-//DrawMenagerieMultithreadedPerthread(&pThread1);
-//DrawMenagerieMultithreadedPerthread(&pThread2);
-printf("th%d", (int)stopTimer());
+	SDL_WaitThread(thread2, NULL);
+
+//printf("th%d", (int)stopTimer());
 }
 
 
@@ -258,72 +247,6 @@ fy -= dy;
 }
 */
 
-/*BOOL g_BusyThread1=TRUE, g_BusyThread2=TRUE;
-SDL_Surface* tmmpsfs;
-BOOL CreateMenagCache( SDL_Surface* pSurface )
-{
-
-
-	threadOnesProgress = 0.0;
-	g_BusyThread1=g_BusyThread2=TRUE;
-	//spawn the 2 threads. then return, without blocking.
-	int iZero=0, iOne=1;
-	SDL_Thread *thread1 = SDL_CreateThread(CalcMenagerieThread, &iZero);
-	SDL_Thread *thread2 =  SDL_CreateThread(CalcMenagerieThread, &iOne);
-	while (TRUE)
-	{
-		SDL_Event event;
-		if ( SDL_PollEvent ( &event ) )
-		{
-			if ( event.type == SDL_QUIT ) { return FALSE; break; }
-		}
-		SDL_Delay(250);
-		snprintf(buffer, sizeof(buffer), "%% %d complete", (int)(threadOnesProgress*100));
-		SDL_FillRect ( pSurface , NULL , g_white );
-		ShowText(buffer, 50, 150, pSurface);
-		ShowText("Computing menagerie diagram (only done once)...", 50, 50, pSurface);
-		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
-		if (!g_BusyThread1 &&!g_BusyThread2)
-			break; //we're done.
-	}
-	
-}
-*/
-
-/*int CalcMenagerieThread(void* pWhichHalf)
-{
-	int whichHalf = * (int*)pWhichHalf;
-	unsigned char * localarrayOfResults = (whichHalf)? cachedEntire : cachedEntire + (CACHEH/2)*CACHEW;
-	//note: should have loaded defaults before this.
-	double X0=g_settings->diagramx0, X1=g_settings->diagramx1, Y0=g_settings->diagramy0, Y1=g_settings->diagramy1;
-	//double X0=-2.5,X1=1,Y0=1.5,Y1=2;
-	double dx = (X1 - X0) / CACHEW, dy = (Y1 - Y0) / CACHEH;
-	double fx = X0, fy = Y1; //y counts down?
-	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; //only compute half per thread.
-	else fy = Y1;
-
-	for (int py=0; py<CACHEH/2; py++) //Note the /2!
-	{
-		fx=X0;
-		for (int px = 0; px < CACHEW; px++)
-		{
-			//int count = countPhasePlotPixels( fx,fy, whichHalf);
-			//unsigned char val = (count==0)? 0 : (unsigned char)(count+1);
-			//localarrayOfResults[py*CACHEW + px] = val;
-			//localarrayOfResults[py*CACHEW + px] = countPhasePlotPixels( fx,fy, whichHalf)==0?10:40;
-			//localarrayOfResults[py*CACHEW + px] = (whichHalf)? 30:40;
-			localarrayOfResults[py*CACHEW + px] = (unsigned char) 
-				(countPhasePlotLyapunov(tmmpsfs,fx,fy)&0xff) ;
-				
-			fx += dx;
-		}
-		fy -= dy;
-		if (whichHalf) threadOnesProgress = py/((double)(CACHEH/2));
-	}
-	if (whichHalf) g_BusyThread2 = FALSE;
-	else g_BusyThread1 = FALSE;
-	return 0;
-}*/
 
 /*
 void DrawMenagerieFromCache( SDL_Surface* pSmallSurface, CoordsDiagramStruct*diagram) 
