@@ -212,12 +212,12 @@ while(TRUE)
 		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface
 		if (bShowDiagram) 
-			BlitDiagram(pSurface, pSmallerSurface, diagramsLayout[1].screen_x,diagramsLayout[1].screen_y); 
+			blitDiagram(pSurface, pSmallerSurface, diagramsLayout[1].screen_x,diagramsLayout[1].screen_y); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		if (!gParamBreathing) { oscA=*a; oscB = *b; }
 		else { oscillateBreathing(*a,*b, &oscA, &oscB); }
 		DrawFigure(pSurface, oscA, oscB, diagramsLayout[0].screen_width);
-		if (bShowDiagram) DrawPlotGrid(pSurface, &diagramsLayout[1], *a, *b);
+		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[1], *a, *b);
 		drawButtons(pSurface);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
@@ -228,7 +228,7 @@ while(TRUE)
 		SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 	}
 }
-	FreeFonts();
+	freeFonts();
 	return 0;
 }
 
@@ -277,7 +277,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_s:  util_savefile(pSurface); break;
 		case SDLK_o:  util_openfile(pSurface); break;
 		case SDLK_c:  util_showVals(pSurface); break;
-		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {RenderLargeFigure(pSurface,1600,c); free(c);} break;
+		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
 		case SDLK_RETURN: renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width); break;
@@ -287,8 +287,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	switch (key)
 	{
 		case SDLK_b: gParamBreathing = !gParamBreathing; break;
-		case SDLK_1: bDrawBasinsWithBlueAlso=!bDrawBasinsWithBlueAlso; break;
-		case SDLK_2: bMoreQuadrantContrast=!bMoreQuadrantContrast; break;
+		case SDLK_1: gParamDrawBasinsWithBlueAlso=!gParamDrawBasinsWithBlueAlso; break;
+		case SDLK_2: gParamMoreQuadrantContrast=!gParamMoreQuadrantContrast; break;
 		case SDLK_4: g_settings->colorDiskRadius *= bShift?(1/1.1):1.1; break;
 
 		case SDLK_d: toggleMenagerieMode(); *needDrawDiagram=TRUE; break;

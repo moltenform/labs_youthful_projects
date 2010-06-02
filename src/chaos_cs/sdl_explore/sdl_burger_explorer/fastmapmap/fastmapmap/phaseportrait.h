@@ -10,8 +10,8 @@
 #define DrawModeBasinsQuadrant 13
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
-void RenderLargeFigure( SDL_Surface* pSurface, int width, const char* filename ) ;
-extern BOOL bMoreQuadrantContrast, bDrawBasinsWithBlueAlso;
+void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename ) ;
+extern BOOL gParamMoreQuadrantContrast, gParamDrawBasinsWithBlueAlso;
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)

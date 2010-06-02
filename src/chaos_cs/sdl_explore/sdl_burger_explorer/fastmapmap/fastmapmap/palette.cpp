@@ -9,7 +9,7 @@
 
 //we don't use a precomputed palette anymore. that might be more effecient, though.
 
-bool bShowOnlyOneColorLine = FALSE;
+bool gParamShowOnlyOneColorLine = FALSE; //toggle with shift-plus
 void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 	int iter = g_settings->colorsStep;
@@ -31,7 +31,7 @@ void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width)
 			plotpointcolor(pSurface, px,py,color);
 		}
 		for (int i=0; i<iter; i++) { 
-			if (!bShowOnlyOneColorLine && i!=0) 
+			if (!gParamShowOnlyOneColorLine && i!=0) 
 			{
 				px = lrint(width * ((x - X0) / (X1 - X0)));
 				py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));

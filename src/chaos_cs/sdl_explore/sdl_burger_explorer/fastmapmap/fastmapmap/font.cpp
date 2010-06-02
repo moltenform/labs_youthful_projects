@@ -46,8 +46,8 @@ BOOL Dialog_GetInt(const char* prompt, SDL_Surface* pSurface, int *out)
 void Dialog_Message(const char* prompt, SDL_Surface* pSurface)
 {
 	SDL_FillRect ( pSurface , NULL , g_white);
-	ShowText( prompt, 30, 30, pSurface);
-	ShowText( "Press return to continue.", 30, 100, pSurface);
+	showText( prompt, 30, 30, pSurface);
+	showText( "Press return to continue.", 30, 100, pSurface);
 	SDL_Event event;
 	while (TRUE)
 	{
@@ -82,12 +82,12 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 		{
 			//redraw the screen
 			SDL_FillRect ( pSurface , NULL , g_white );
-			ShowText( prompt, 30, 30, pSurface);
+			showText( prompt, 30, 30, pSurface);
 			if (previous)
-				ShowText( previous, 30, 50, pSurface);
-			ShowText(">", 30, 100, pSurface);
-			ShowText(buffer, 50, 100, pSurface);
-			ShowText("Press Enter when finished, or press Escape to cancel.", 30, 400, pSurface);
+				showText( previous, 30, 50, pSurface);
+			showText(">", 30, 100, pSurface);
+			showText(buffer, 50, 100, pSurface);
+			showText("Press Enter when finished, or press Escape to cancel.", 30, 400, pSurface);
 			dirty = FALSE;
 		}
 
@@ -166,7 +166,7 @@ void freeFont(SDLFont *font);
 */
 
 SDLFont *currentFont = NULL;
-BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
+BOOL showText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 {
 	if (!text) return FALSE;
 	if (!currentFont) 
@@ -175,7 +175,7 @@ BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 	return TRUE;
 }
 
-void FreeFonts()
+void freeFonts()
 {
 	freeFont(currentFont);
 	currentFont = NULL;

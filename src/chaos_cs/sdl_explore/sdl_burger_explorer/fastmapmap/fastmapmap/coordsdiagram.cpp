@@ -69,7 +69,7 @@ inline void plotpoint(SDL_Surface* pSurface, CoordsDiagramStruct * diagram, int 
   Uint32 newcol = 0x00ff0000; 
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 }
-void DrawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double c1, double c2 ) 
+void drawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double c1, double c2 ) 
 {
 	//find (0.0,0.0) in screen coords
 	int xzero, yzero;

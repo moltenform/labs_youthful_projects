@@ -16,11 +16,11 @@ Cons of caching: to be useful, needs to take lots of minutes.
 we can have settings, for slower cpus. skip every other, or more basic diagram.
 */
 
-int menagerieMode=0;
-void toggleMenagerieMode() {menagerieMode= (menagerieMode+1)%4; }
+int gParamMenagerieMode=0;
+void toggleMenagerieMode() {gParamMenagerieMode = (gParamMenagerieMode+1)%4; }
 __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, double estimatedMax)
 {
-	if (!(menagerieMode&1)) {
+	if (!(gParamMenagerieMode&1)) {
 		double val = (valin) / (estimatedMax);
 		if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
 		val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99 looks close to 0.0*/;
@@ -166,7 +166,7 @@ for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
 	fx=X0;
 	for (int px = 0; px < width; px++)
 	{
-		if (menagerieMode==0||menagerieMode==1) newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
+		if (gParamMenagerieMode==0||gParamMenagerieMode==1) newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
 		else newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
 
 		pPosition = ( char* ) pMSurface->pixels ; //determine position
@@ -181,7 +181,7 @@ fy -= dy;
 return 0;
 }
 PassToThread pThread1; PassToThread pThread2;
-#include "timecounter.h"
+//#include "timecounter.h"
 void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
 {
 	//draw color legend. todo: cache this image?
@@ -208,14 +208,14 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	DrawMenagerieMultithreadedPerthread(&pThread1);
 	SDL_WaitThread(thread2, NULL);
 
-//printf("th%d", (int)stopTimer());
+//printf("time:%d", (int)stopTimer());
 }
 
 
 
 
 
-void BlitDiagram(SDL_Surface* pSurface,SDL_Surface* pSmallSurface, int px, int py)
+void blitDiagram(SDL_Surface* pSurface,SDL_Surface* pSmallSurface, int px, int py)
 {
 	//SDL_FillRect ( pSmallSurface , NULL , 345232 );
 	SDL_Rect dest;

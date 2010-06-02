@@ -74,7 +74,7 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
 
 //double largestSeenBasins = 1e-6; didn't look good.
 
-BOOL bDrawBasinsWithBlueAlso=FALSE;
+BOOL gParamDrawBasinsWithBlueAlso=FALSE;
 void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
@@ -114,7 +114,7 @@ for (int py=0; py<height; py+=1)
 		else
 		{
 			
-			if (!bDrawBasinsWithBlueAlso) {
+			if (!gParamDrawBasinsWithBlueAlso) {
 				val = val / g_settings->basinsMaxColor;
 				if (val>=1.0)
 					newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
@@ -148,14 +148,14 @@ fy -= dy;
 }
 }
 
-BOOL bMoreQuadrantContrast=FALSE;
+BOOL gParamMoreQuadrantContrast=FALSE;
 void DrawBasinsQuadrant( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 int col1 = HSL2RGB(pSurface, 0.60277, 1.0, .45);
 int col2 = HSL2RGB(pSurface, 0.69444, 1.0, .45);
 int col3 = HSL2RGB(pSurface, 0.133, 1.0, .45);
 int col4 = HSL2RGB(pSurface, 0.1055, 1.0, .45);
-if (bMoreQuadrantContrast) { int tmp=col2; col2=col4; col4=tmp; }
+if (gParamMoreQuadrantContrast) { int tmp=col2; col2=col4; col4=tmp; }
 
 double fx,fy, x_,y_,x,y; char* pPosition; Uint32 newcol;
 int height=width;
@@ -211,7 +211,7 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 	}
 }
 
-void RenderLargeFigure( SDL_Surface* pSurface, int width, const char*filename ) 
+void renderLargeFigure( SDL_Surface* pSurface, int width, const char*filename ) 
 {
 	char filenameext[256];
 	snprintf(filenameext, sizeof(filenameext), "%s.bmp", filename);

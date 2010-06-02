@@ -1,3 +1,4 @@
+//fmod can be negative, so use this instead.
 #define MMod(a,b) ((a>0)? fmod(a,b) : fmod(a,b)+b)
 
 #define HENON x_ = 1 - c1*x*x + y; y_ = c2*x;

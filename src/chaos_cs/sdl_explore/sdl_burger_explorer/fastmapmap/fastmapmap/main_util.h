@@ -76,7 +76,7 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 		if (g_settings->drawingMode == DrawModePhase)
 			g_settings->seedsPerAxis = MAX(0, g_settings->seedsPerAxis+ direction*2);
 		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
-			bShowOnlyOneColorLine = !bShowOnlyOneColorLine;
+			gParamShowOnlyOneColorLine = !gParamShowOnlyOneColorLine;
 		else
 			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);
 	}
@@ -137,7 +137,7 @@ void drawButtons(SDL_Surface *pSurface)
 void showInfo(SDL_Surface *pSurface)
 {
 	SDL_FillRect ( pSurface , NULL , g_white );
-	ShowText(
+	showText(
 		"Features\n"
 		"_______\n"
 		"\n"
