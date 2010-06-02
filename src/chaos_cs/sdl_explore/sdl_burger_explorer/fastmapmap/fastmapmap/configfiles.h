@@ -5,7 +5,7 @@
 
 extern SettingsFieldDescription GlobalFieldDescriptions[];
 
-void initializeObject();
+void initializeObjectToDefaults();
 BOOL loadFromFile(const char * filename);
 BOOL saveToFile(const char * filename, const char * expressiontext);
 

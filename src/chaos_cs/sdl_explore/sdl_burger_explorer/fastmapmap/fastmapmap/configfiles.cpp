@@ -18,7 +18,8 @@ fclose(f2);
 printf("%f, %d", g_settings->x1, g_settings->settlingTime);
 */
 
-void initializeObject()
+//sets all fields to defaults.
+void initializeObjectToDefaults()
 {
 	int i=0;
 	while(GlobalFieldDescriptions[i].fieldType != NULL)
@@ -114,7 +115,7 @@ BOOL loadFromFile(const char * filename)
 {
 	FILE * f = fopen(filename, "r");
 	if (!f) return FALSE;
-	initializeObject(); //sets the defaults, so if this file misses anything, we don't retain.
+	initializeObjectToDefaults(); //sets the defaults, so if this file misses anything, we don't retain.
 	int versionNumber;
 	int ret = fscanf(f,";fmmversion=%d;",&versionNumber);
 	if (ret < 1) return FALSE; //not a valid saved file.

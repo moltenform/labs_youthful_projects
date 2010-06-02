@@ -1,5 +1,5 @@
 
-//2 types of settings:
+//There are 2 types of settings:
 //g_settings->foo 	persists when saved to disk.
 //gParamFoo			just held in memory
 
@@ -24,7 +24,7 @@
 #include "animate.h"
 #include "menagerie.h"
 
-CoordsDiagramStruct thediagrams[] = {
+CoordsDiagramStruct diagramsLayout[] = {
 	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
 	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 415,100,200,200,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
@@ -32,20 +32,19 @@ CoordsDiagramStruct thediagrams[] = {
 
 #include "main_util.h" 
 
-BOOL breathing = FALSE; 
-void oscillate(double curA,double curB,double *outA, double *outB);
-void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram );
+BOOL gParamBreathing = FALSE; 
+double gParamBreatheRadius = 201.0;
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
 	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
 	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
-	int PlotX = thediagrams[1].screen_x, PlotY = thediagrams[1].screen_y;
-	int PlotWidth = thediagrams[1].screen_width, PlotHeight = thediagrams[1].screen_height;
+	int PlotX = diagramsLayout[1].screen_x, PlotY = diagramsLayout[1].screen_y;
+	int PlotWidth = diagramsLayout[1].screen_width, PlotHeight = diagramsLayout[1].screen_height;
 	BOOL isSuperDrag = FALSE, isSuperDragSqr; int superDragIndex=-1, superDragPx, superDragPy; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
 	BOOL bShowDiagram = FALSE;
 
-	initializeObject();
+	initializeObjectToDefaults();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
 	
 	atexit ( SDL_Quit ) ;
@@ -58,11 +57,13 @@ int main( int argc, char* argv[] )
 	BOOL bNeedToLock =  SDL_MUSTLOCK(pSurface);
 	SDL_EnableKeyRepeat(30 /*SDL_DEFAULT_REPEAT_DELAY=500*/, /*SDL_DEFAULT_REPEAT_INTERVAL=30*/ 30);
 
-	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, thediagrams[1].screen_width, thediagrams[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
+	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, diagramsLayout[1].screen_width, diagramsLayout[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	SDL_FillRect ( pSurface , NULL , g_white );
 	if (argc > 1 && !StringsEqual(argv[1],"full")) 
 		loadFromFile(argv[1]);
 
+	// holding alt and dragging is termed a "super drag" and will set a custom zoom window.
+	// currently translucent red lines persist until mouse is released, this is a known issue.
 while(TRUE)
 {
     if ( SDL_PollEvent ( &event ) )
@@ -90,6 +91,7 @@ while(TRUE)
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
 		  int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+		  // if we're in the middle of a super drag, draw the rectangles.
 		  if (isSuperDrag)
 		  {
 				 if (!(buttons & SDL_BUTTON_LMASK)) //maybe button was released 
@@ -105,54 +107,55 @@ while(TRUE)
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 				 }
 		  }
+		  // otherwise, moving a dot around in the diagram.
 		  else if ((buttons & SDL_BUTTON_LMASK))
 		  {
 			  if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>PlotY && mouse_y<PlotY+PlotHeight)
-				screenPixelsToDouble(&thediagrams[1], mouse_x, mouse_y, &g_settings->a, &g_settings->b);
+				screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->a, &g_settings->b);
 			  needRedraw=TRUE;
 		  }
 	  }
       else if ( event.type == SDL_MOUSEBUTTONDOWN ) //only called once per click
 	  {
-		  needRedraw=TRUE;
+			needRedraw=TRUE;
 			int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 			int mod = SDL_GetModState();
 
-			if ((buttons & SDL_BUTTON_LMASK) && (mod & KMOD_ALT)) //alt drag, zoom window!
+			if ((buttons & SDL_BUTTON_LMASK) && (mod & KMOD_ALT)) //alt drag, start a super drag
 			{
-				int index = isClickWithinDiagram(thediagrams, mouse_x, mouse_y);
+				int index = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
 				if (index!=-1)
 				{
 					superDragIndex = index;
-					screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx0,&superDragy1); /*note, y1 here is correct. */
+					screenPixelsToDouble(&diagramsLayout[superDragIndex], mouse_x,mouse_y,&superDragx0,&superDragy1); /*note, y1 here is correct. */
 					superDragPx =mouse_x; superDragPy = mouse_y;
 					isSuperDragSqr = !(mod & KMOD_SHIFT);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 					isSuperDrag = TRUE;
 				}
 			}
-			//control click = zoom in, shift click=zoom out
+			//control click = zoom in; shift click=zoom out
 			else if ((buttons & SDL_BUTTON_LMASK) && ((mod & KMOD_CTRL) || (mod & KMOD_SHIFT ) ) )
 			{
 				int direction = (mod & KMOD_CTRL) ? 1 : -1;
-				int whichDiagram = onClickTryZoom(thediagrams, direction,mouse_x, mouse_y);
+				int whichDiagram = onClickTryZoom(diagramsLayout, direction,mouse_x, mouse_y);
 				if (whichDiagram==0) needRedraw = TRUE;
 				else if (whichDiagram==1) needDrawDiagram = TRUE;
 			}
 			else if (buttons & SDL_BUTTON_RMASK) //right-click. undo zoom.
 			{
-				int index = isClickWithinDiagram(thediagrams, mouse_x, mouse_y);
+				int index = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
 				if (index!=-1)
-					undoZoom( &thediagrams[index]);
+					undoZoom( &diagramsLayout[index]);
 				if (index==1) needDrawDiagram=TRUE;
 			}
-			else if (buttons & SDL_BUTTON_LMASK)
+			else if (buttons & SDL_BUTTON_LMASK) //did you click on a button?
 			{
 				if (didClickOnButton(pSurface, mouse_x, mouse_y)==1)
 				{ bShowDiagram=!bShowDiagram; needDrawDiagram=TRUE; }
 			}
-			else if (buttons & SDL_BUTTON_MIDDLE)
-			{ //reset view but leave the rest.
+			else if (buttons & SDL_BUTTON_MIDDLE) //reset the view, but leave the rest of settings intact.
+			{ 
 				FastMapMapSettings tmp; memcpy(&tmp, g_settings, sizeof(FastMapMapSettings));
 				loadFromFile(MAPDEFAULTFILE);
 				tmp.diagramx0=g_settings->diagramx0;tmp.diagramx1=g_settings->diagramx1;tmp.diagramy0=g_settings->diagramy0;tmp.diagramy1=g_settings->diagramy1;
@@ -163,59 +166,58 @@ while(TRUE)
 	  }
 	  else if ( event.type == SDL_MOUSEBUTTONUP )
 	  {
-		  needRedraw=TRUE;
-		  int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-		  
-		  if (isSuperDrag && (event.button.button == SDL_BUTTON_LEFT)) {
-			  
-			  if (isSuperDragSqr)
-			 {
-				 int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
-				 screenPixelsToDouble(&thediagrams[superDragIndex], superDragPx+d1,superDragPy+d1,&superDragx1,&superDragy0); /* note: y0 here is correct. */
-			 }
-			 else
-				screenPixelsToDouble(&thediagrams[superDragIndex], mouse_x,mouse_y,&superDragx1,&superDragy0); /* note: y0 here is correct. */
-			  
-			  if (superDragx1 > superDragx0 && superDragy1 > superDragy0)
-			  {
-				  setZoom(&thediagrams[superDragIndex], superDragx0, superDragx1, superDragy0, superDragy1);
+		needRedraw=TRUE;
+		int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+
+		// when done with a super drag, set the zoom.
+		if (isSuperDrag && (event.button.button == SDL_BUTTON_LEFT))
+		{
+			if (isSuperDragSqr)
+			{
+				int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
+				screenPixelsToDouble(&diagramsLayout[superDragIndex], superDragPx+d1,superDragPy+d1,&superDragx1,&superDragy0); /* note: y0 here is correct. */
+			}
+			else
+				screenPixelsToDouble(&diagramsLayout[superDragIndex], mouse_x,mouse_y,&superDragx1,&superDragy0); /* note: y0 here is correct. */
+
+			if (superDragx1 > superDragx0 && superDragy1 > superDragy0) //if you try to drag off the screen, cancel it.
+			{
+				setZoom(&diagramsLayout[superDragIndex], superDragx0, superDragx1, superDragy0, superDragy1);
 				if (superDragIndex==0) needRedraw = TRUE;
 				else if (superDragIndex==1) needDrawDiagram = TRUE;
-			  }
-			  isSuperDrag = FALSE;
-		  }
+			}
+			isSuperDrag = FALSE;
+		}
 	  }
     }
 
-	if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in time, dropping frames? put stuff in here
+	if (LockFramesPerSecond())  //we try to keep in time, dropping frames if necessary. also, on a fast machine don't draw too fast.
 	{
-	if (!needRedraw && !breathing && (!needDrawDiagram||!bShowDiagram))
+	if (!needRedraw && !gParamBreathing && (!needDrawDiagram||!bShowDiagram))
 	{
-		// don't need to compute anything.
+		// we don't need to compute anything. we hopefully spend a lot of time here, unless in 'breathing' mode.
 		
-		//SDL_FillRect ( pSurface , NULL , 0 ); //debug by drawing black indicating nothing new is computed.
+		//SDL_FillRect ( pSurface , NULL , 0 ); //good to debug by indicating when nothing new is computed (should be nearly always).
 	}
 	else
 	{
 		if (needDrawDiagram && bShowDiagram)
 		{
-			// recompute the figure
+			// compute the diagram
 			SDL_LockSurface ( pSmallerSurface ) ;
-			
-			//DrawMenagerieFromPrecomputed(pSmallerSurface, &thediagrams[1]);
-			DrawMenagerieMultithreaded(pSmallerSurface, &thediagrams[1]);
+			DrawMenagerieMultithreaded(pSmallerSurface, &diagramsLayout[1]);
 			SDL_UnlockSurface ( pSmallerSurface ) ;
 			needDrawDiagram = FALSE;
 		}
 		
-		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
+		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface
 		if (bShowDiagram) 
-			BlitDiagram(pSurface, pSmallerSurface, thediagrams[1].screen_x,thediagrams[1].screen_y); 
+			BlitDiagram(pSurface, pSmallerSurface, diagramsLayout[1].screen_x,diagramsLayout[1].screen_y); 
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		if (!breathing) { oscA=*a; oscB = *b; }
-		else { oscillate(*a,*b, &oscA, &oscB); }
-		DrawFigure(pSurface, oscA, oscB, thediagrams[0].screen_width);
-		if (bShowDiagram) DrawPlotGrid(pSurface, &thediagrams[1], *a, *b);
+		if (!gParamBreathing) { oscA=*a; oscB = *b; }
+		else { oscillateBreathing(*a,*b, &oscA, &oscB); }
+		DrawFigure(pSurface, oscA, oscB, diagramsLayout[0].screen_width);
+		if (bShowDiagram) DrawPlotGrid(pSurface, &diagramsLayout[1], *a, *b);
 		drawButtons(pSurface);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
@@ -226,19 +228,18 @@ while(TRUE)
 		SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 	}
 }
-	Free_Fonts();
+	FreeFonts();
 	return 0;
 }
 
-double gparamBreatheRadius = 201.0;
-void oscillate(double curA,double curB,double *outA, double *outB)
+void oscillateBreathing(double curA,double curB,double *outA, double *outB)
 {
 	static double t=0;
 	t+=0.13;
 	if (t>3141.5926) t=0.0;
 
-	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/gparamBreatheRadius;
-	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(gparamBreatheRadius*1.315);
+	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/gParamBreatheRadius;
+	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(gParamBreatheRadius*1.315);
 }
 
 void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram )
@@ -261,31 +262,31 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_EQUALS: util_incr(1, bShift); break;
 
 		//simulate mouseclick in the center of the diagram
-		case SDLK_PAGEUP: onClickTryZoom(thediagrams, 1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
-		case SDLK_PAGEDOWN: onClickTryZoom(thediagrams, -1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
-		case SDLK_b: gparamBreatheRadius += bShift? 20 : -20; break;
+		case SDLK_PAGEUP: onClickTryZoom(diagramsLayout, 1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
+		case SDLK_PAGEDOWN: onClickTryZoom(diagramsLayout, -1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
+		case SDLK_b: gParamBreatheRadius += bShift? 20 : -20; break;
 
-		case SDLK_RETURN: previewAnimation(pSurface, gParamFramesPerKeyframe, thediagrams[0].screen_width); break;
+		case SDLK_RETURN: previewAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width); break;
 		case SDLK_DELETE: if (Dialog_GetBool("Delete all keyframes?",pSurface)) deleteAllFrames(); break;
 		default: wasKeyCombo = FALSE;
 	}
 	else if (bControl && !bAlt)
 	switch (key)
 	{
-		case SDLK_n:  { initializeObject(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //resets.
+		case SDLK_n:  { initializeObjectToDefaults(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //resets.
 		case SDLK_s:  util_savefile(pSurface); break;
 		case SDLK_o:  util_openfile(pSurface); break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {RenderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
-		case SDLK_RETURN: renderAnimation(pSurface, gParamFramesPerKeyframe, thediagrams[0].screen_width); break;
+		case SDLK_RETURN: renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width); break;
 		default: wasKeyCombo = FALSE;
 	}
 	else if (!bControl && bAlt)
 	switch (key)
 	{
-		case SDLK_b: breathing = !breathing; break;
+		case SDLK_b: gParamBreathing = !gParamBreathing; break;
 		case SDLK_1: bDrawBasinsWithBlueAlso=!bDrawBasinsWithBlueAlso; break;
 		case SDLK_2: bMoreQuadrantContrast=!bMoreQuadrantContrast; break;
 		case SDLK_4: g_settings->colorDiskRadius *= bShift?(1/1.1):1.1; break;

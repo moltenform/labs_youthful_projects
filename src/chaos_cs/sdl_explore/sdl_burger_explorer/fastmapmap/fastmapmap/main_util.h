@@ -1,4 +1,5 @@
-
+void oscillateBreathing(double curA,double curB,double *outA, double *outB);
+void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram );
 
 void util_openfile(SDL_Surface* pSurface)
 {

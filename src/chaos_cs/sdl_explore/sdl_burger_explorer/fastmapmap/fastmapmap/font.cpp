@@ -175,7 +175,7 @@ BOOL ShowText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 	return TRUE;
 }
 
-void Free_Fonts()
+void FreeFonts()
 {
 	freeFont(currentFont);
 	currentFont = NULL;
