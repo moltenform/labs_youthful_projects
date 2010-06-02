@@ -9,13 +9,30 @@
 //see rev. 382 for a version that cached results. we chose not to do that anymore. 
 
 
+int menagerieMode=0;
+void toggleMenagerieMode() {menagerieMode= (menagerieMode+1)%4; }
 __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, double estimatedMax)
 {
-	//double val = sqrt(valin) / sqrt(estimatedMax);
-	double val = (valin) / (estimatedMax);
-	if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
-	val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99~0.0*/;
-	return HSL2RGB(pSurface, val, 1,.5);
+	if (!(menagerieMode&1)) {
+		double val = (valin) / (estimatedMax);
+		if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
+		val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99~0.0*/;
+		return HSL2RGB(pSurface, val, 1,.5);
+	} else {
+		double val = (valin);// / sqrt(estimatedMax);
+		if (val > (estimatedMax)) return SDL_MapRGB(pSurface->format, 50,0,0);
+		if (val > (estimatedMax)*0.75)
+		{
+			val = (val-(estimatedMax)*0.75)/(estimatedMax*0.25);
+			return SDL_MapRGB(pSurface->format, 255-lrint(val*255),255-lrint(val*255),255);
+		}
+		else
+		{
+			val = (val)/(estimatedMax*0.75);
+			return SDL_MapRGB(pSurface->format, lrint(val*255),lrint(val*255),lrint(val*255));
+		}
+
+	}
 }
 
 
@@ -26,7 +43,7 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 	//http://sprott.physics.wisc.edu/chaos/lyapexp.htm
 	double d0 = 1e-3, d1, total;
 	double x, y, x_,y_; double x2, y2, x2_; double xtmp, ytmp, sx, sy;
-	int N = 140; int settle = 80;
+	int N = 240; int settle = 160;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
 	//int nXpoints=g_settings->seedsPerAxis, nYpoints=g_settings->seedsPerAxis;
 	int nXpoints=g_settings->seedsPerAxisDiagram, nYpoints=g_settings->seedsPerAxisDiagram;
@@ -37,6 +54,7 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
     for (double syi=sy0; syi<=sy1; syi+=syinc)
     {
 	if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
+if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=1-c2; sy=sqrt( (1-c2)*(c1-1) );}
 	else {sx=sxi; sy=syi;}
 	total = 0.0;
 	x=sx; y=sy; 
@@ -67,7 +85,7 @@ FoundTotal:
 	double val = total / (N-settle);
 	if (val < 0) 
 		return 0;
-	return standardToColors(pSurface, val, 1.0);
+	return standardToColors(pSurface, val, .8);
 	// 4 possibilities: all escape: white, negative lyapunov: black, ly>cutoff: dark red, otherwise rainbow ly
 }
 
@@ -93,6 +111,7 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
     for (double syi=sy0; syi<=sy1; syi+=syinc)
     {
 	if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
+if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=1-c2; sy=sqrt( (1-c2)*(c1-1) );}
 	else {sx=sxi; sy=syi;}
 //sx=sxi; sy=syi;
 		x=sx; y=sy; 
@@ -147,8 +166,8 @@ for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
 	fx=X0;
 	for (int px = 0; px < width; px++)
 	{
-		//newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
-		newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
+		if (menagerieMode==0||menagerieMode==1) newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
+		else newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
 
 		pPosition = ( char* ) pMSurface->pixels ; //determine position
 		pPosition += ( pMSurface->pitch * py ); //offset by y

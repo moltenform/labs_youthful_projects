@@ -146,6 +146,7 @@ while(TRUE)
 				int index = isClickWithinDiagram(thediagrams, mouse_x, mouse_y);
 				if (index!=-1)
 					undoZoom( &thediagrams[index]);
+				if (index==1) needDrawDiagram=TRUE;
 			}
 			else if (buttons & SDL_BUTTON_LMASK)
 			{
@@ -258,6 +259,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_b: breathing = !breathing; break;
 		case SDLK_w: bDrawBasinsWithBlueAlso=!bDrawBasinsWithBlueAlso; break;
 		case SDLK_e: bMoreQuadrantContrast=!bMoreQuadrantContrast; break;
+		case SDLK_d: toggleMenagerieMode(); *needDrawDiagram=TRUE; break;
 		default: wasKeyCombo =FALSE;
 	}
 	else if (!bControl && !bAlt)
