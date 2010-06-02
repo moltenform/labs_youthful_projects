@@ -1,12 +1,13 @@
 
 //2 types of settings:
 //g_settings->foo 	persists when saved to disk.
-//gparamFoo			just held in memory
+//gParamFoo			just held in memory
 
 //todo: make fully compatible w csphaseportrait.
 //todo: consider caching the first drawn diagram, of default view.
 //todo: update showinfo text
 //todo: use a varargs version of showtext? low priority, just for convenience.
+//todo: support zoom animations? other params animated?
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,7 +60,6 @@ int main( int argc, char* argv[] )
 
 	SDL_Surface* pSmallerSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, thediagrams[1].screen_width, thediagrams[1].screen_height, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
 	SDL_FillRect ( pSurface , NULL , g_white );
-	//switchPalette(pSurface); //load color pallete
 	if (argc > 1 && !StringsEqual(argv[1],"full")) 
 		loadFromFile(argv[1]);
 
@@ -98,10 +98,10 @@ while(TRUE)
 					 if (isSuperDragSqr)
 					 {
 						 int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
-						 plotlinerect(pSurface, superDragPx, superDragPx+d1, superDragPy, superDragPy+d1,1);
+						 plotlineRectangle(pSurface, superDragPx, superDragPx+d1, superDragPy, superDragPy+d1,TRANSLUCENT_RED);
 					 }
 					 else
-						 plotlinerect(pSurface, superDragPx, mouse_x, superDragPy,mouse_y,1);
+						 plotlineRectangle(pSurface, superDragPx, mouse_x, superDragPy,mouse_y,TRANSLUCENT_RED);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 				 }
 		  }
@@ -189,7 +189,7 @@ while(TRUE)
 
 	if (LockFramesPerSecond())  //show ALL frames (if slower) or keep it going in time, dropping frames? put stuff in here
 	{
-	if (!needDrawDiagram && !needRedraw && !breathing)
+	if (!needRedraw && !breathing && (!needDrawDiagram||!bShowDiagram))
 	{
 		// don't need to compute anything.
 		
@@ -263,9 +263,9 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		//simulate mouseclick in the center of the diagram
 		case SDLK_PAGEUP: onClickTryZoom(thediagrams, 1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
 		case SDLK_PAGEDOWN: onClickTryZoom(thediagrams, -1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
-		case SDLK_b: gparamBreatheRadius += bShift?-20 : 20; break;
+		case SDLK_b: gparamBreatheRadius += bShift? 20 : -20; break;
 
-		case SDLK_RETURN: dotestanimation(pSurface, nFramesPerKeyframe, thediagrams[0].screen_width); break;
+		case SDLK_RETURN: previewAnimation(pSurface, gParamFramesPerKeyframe, thediagrams[0].screen_width); break;
 		case SDLK_DELETE: if (Dialog_GetBool("Delete all keyframes?",pSurface)) deleteAllFrames(); break;
 		default: wasKeyCombo = FALSE;
 	}
@@ -279,7 +279,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {RenderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
-		case SDLK_RETURN: dowriteanimation(pSurface, nFramesPerKeyframe, thediagrams[0].screen_width); break;
+		case SDLK_RETURN: renderAnimation(pSurface, gParamFramesPerKeyframe, thediagrams[0].screen_width); break;
 		default: wasKeyCombo = FALSE;
 	}
 	else if (!bControl && bAlt)
@@ -296,7 +296,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 
 	if (key>=SDLK_F1 && key<=SDLK_F9)
 	{
-		if (!bControl && !bShift && !bAlt) { BOOL ret=openFrame(key-SDLK_F1 + 1); if (!ret) Dialog_Messagef(pSurface,"Keyframe hasn't been saved yet, press F%d to save it.",key-SDLK_F1+1); }
+		if (!bControl && !bShift && !bAlt) { BOOL ret=openFrame(key-SDLK_F1 + 1); if (!ret) Dialog_Messagef(pSurface,"Keyframe hasn't been saved yet, press Ctrl-F%d to save it.",key-SDLK_F1+1); }
 		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_F1 + 1); }
 		else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_F1 + 1); Dialog_Message("Saved keyframe.", pSurface);}
 		wasKeyCombo=TRUE;
