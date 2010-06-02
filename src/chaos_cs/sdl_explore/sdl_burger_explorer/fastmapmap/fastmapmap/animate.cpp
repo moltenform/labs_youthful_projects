@@ -8,10 +8,12 @@
 #include <string.h>
 
 //deleted the code for saving/loading animations, because people can copy/paste the files themselves.
-//(see rev 389, bottom.)
+//(see rev 389, bottom of this file.)
 
-int nFramesPerKeyframe = 50;
-void deleteFrame(int frame)
+int gParamFramesPerKeyframe = 50;
+//delete the keyframe by overwriting it with a single char. 
+//a later attempt to open this will return False.
+void deleteFrame(int frame) 
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/framek0%d.cfg", SAVESFOLDER, frame);
@@ -50,7 +52,7 @@ BOOL openFrameIntoSettings(int frame, FastMapMapSettings * settingsOut)
 	return ret;
 }
 
-void getFrameInterp(double fwhere, FastMapMapSettings * settings1, FastMapMapSettings * settings2, FastMapMapSettings * settingsOut)
+void getFrameInterpolate(double fwhere, FastMapMapSettings * settings1, FastMapMapSettings * settings2, FastMapMapSettings * settingsOut)
 {
 	//fwhere must be between 0 and 1.
 	//for now, we only interpolate a and b.
@@ -59,14 +61,14 @@ void getFrameInterp(double fwhere, FastMapMapSettings * settings1, FastMapMapSet
 	settingsOut->b = (1-fwhere)*settings1->b + fwhere*settings2->b;
 }
 
-int dotestanimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
+BOOL previewAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 {
 	FastMapMapSettings sframesettings1; FastMapMapSettings sframesettings2;
 	FastMapMapSettings * framesettings1 = &sframesettings1;
 	FastMapMapSettings * framesettings2 = &sframesettings2;
-	if (! openFrameIntoSettings(1, framesettings1)) goto outsideloop;
-	if (! openFrameIntoSettings(2, framesettings2)) goto outsideloop;
-	//Important: base all the other parameters on the first frame.
+	if (! openFrameIntoSettings(1, framesettings1)) return FALSE;
+	if (! openFrameIntoSettings(2, framesettings2)) return FALSE;
+	//Important: base all the other parameters on the first keyframe.
 	openFrame(1);
 
 	double t = 0.0;
@@ -75,66 +77,65 @@ int dotestanimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 	int currentFrame = 1;
 
 	SDL_Event event;
-
-while (TRUE)
-{
-	if ( SDL_PollEvent ( &event ) )
+	while (TRUE)
 	{
-	//an event was found
-	if ( event.type == SDL_QUIT ) goto outsideloop;
-	else if (event.type==SDL_MOUSEBUTTONDOWN) goto outsideloop;
-	else if (event.type==SDL_KEYUP)
-	  {
-		switch(event.key.keysym.sym)
+		if ( SDL_PollEvent ( &event ) )
 		{
-			case SDLK_ESCAPE:
-				goto outsideloop; //return back to the other screen!
-				break;
-			default: 
-				break;
+			//an event was found
+			if ( event.type == SDL_QUIT ) goto outsideloop;
+			else if (event.type==SDL_MOUSEBUTTONDOWN) goto outsideloop;
+			else if (event.type==SDL_KEYUP)
+			{
+				switch(event.key.keysym.sym)
+				{
+					case SDLK_ESCAPE:
+						goto outsideloop; //return back to the other screen!
+						break;
+					default: 
+						break;
+				}
+			}
 		}
-	}
-	}
 
-	if (LockFramesPerSecond()) 
-	{
-		getFrameInterp(t, framesettings1, framesettings2, g_settings);
-
-		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
-		if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
-		DrawFigure(pSurface, g_settings->a, g_settings->b, width);
-		if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
-		
-		t+= dt;
-		if (t>1)
+		if (LockFramesPerSecond()) 
 		{
-			currentFrame++;
-			//try to get next frame
-			BOOL isNextFrame = openFrameIntoSettings(currentFrame+1, framesettings2);
-			if (!isNextFrame) 
-				goto outsideloop;
-			openFrameIntoSettings(currentFrame, framesettings1);
-			t=0;
+			getFrameInterpolate(t, framesettings1, framesettings2, g_settings);
 
+			SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
+			if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
+			DrawFigure(pSurface, g_settings->a, g_settings->b, width);
+			if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
+			
+			t+= dt;
+			if (t>1)
+			{
+				currentFrame++;
+				//try to get next frame
+				BOOL isNextFrame = openFrameIntoSettings(currentFrame+1, framesettings2);
+				if (!isNextFrame) 
+					goto outsideloop;
+				openFrameIntoSettings(currentFrame, framesettings1);
+				t=0;
+
+			}
 		}
+
+		SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
 	}
+	outsideloop:
 
-	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
-}
-outsideloop:
-
-return 0;
+	return TRUE;
 }
 
-int dowriteanimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
+BOOL renderAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 {
 	char buf[256];
 	FastMapMapSettings sframesettings1; FastMapMapSettings sframesettings2;
 	FastMapMapSettings * framesettings1 = &sframesettings1;
 	FastMapMapSettings * framesettings2 = &sframesettings2;
-	if (! openFrameIntoSettings(1, framesettings1)) goto outsideloop;
-	if (! openFrameIntoSettings(2, framesettings2)) goto outsideloop;
-	//Important: base all the other parameters on the first frame.
+	if (! openFrameIntoSettings(1, framesettings1)) return FALSE;
+	if (! openFrameIntoSettings(2, framesettings2)) return FALSE;
+	//Important: base all the other parameters on the first keyframe.
 	openFrame(1);
 
 	double t = 0.0;
@@ -143,9 +144,9 @@ int dowriteanimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 	int currentFrame = 1;
 	int n = 1;
 
-while (TRUE)
-{
-		getFrameInterp(t, framesettings1, framesettings2, g_settings);
+	while (TRUE)
+	{
+		getFrameInterpolate(t, framesettings1, framesettings2, g_settings);
 
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
 		if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
@@ -164,14 +165,11 @@ while (TRUE)
 				goto outsideloop;
 			openFrameIntoSettings(currentFrame, framesettings1);
 			t=0;
-
 		}
-
 	
-}
+	}
 outsideloop:
-
-return 0;
+	return TRUE;
 }
 
 

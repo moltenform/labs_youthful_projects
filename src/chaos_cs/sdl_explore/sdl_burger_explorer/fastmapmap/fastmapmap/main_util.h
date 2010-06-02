@@ -46,10 +46,10 @@ void util_switchModes(BOOL bShift)
 }
 void util_getNumberFrames(SDL_Surface *pSurface)
 {
-	int nframes = nFramesPerKeyframe;
+	int nframes = gParamFramesPerKeyframe;
 	if (!Dialog_GetInt("Number of frames per key frame:",pSurface,&nframes))
 		return;
-	if (nframes>0) nFramesPerKeyframe = nframes;
+	if (nframes>0) gParamFramesPerKeyframe = nframes;
 }
 
 
@@ -123,15 +123,15 @@ BOOL didClickOnButton(SDL_Surface *pSurface, int mousex, int mousey)
 }
 void drawButtons(SDL_Surface *pSurface)
 {
-	plotlinerect(pSurface, BtnDiagramX,BtnDiagramX+BtnWidth,BtnDiagramY,BtnDiagramY+BtnHeight, 0);
-	plotlinerect(pSurface, BtnInfoX,BtnInfoX+BtnWidth,BtnInfoY,BtnInfoY+BtnHeight, 0);
+	plotlineRectangle(pSurface, BtnDiagramX,BtnDiagramX+BtnWidth,BtnDiagramY,BtnDiagramY+BtnHeight, 0);
+	plotlineRectangle(pSurface, BtnInfoX,BtnInfoX+BtnWidth,BtnInfoY,BtnInfoY+BtnHeight, 0);
 	//draw a cross
-	plotlinehorizcolor(pSurface, BtnDiagramX, BtnDiagramX+BtnWidth, BtnDiagramY+BtnHeight/2, 0);
-	plotlinevertcolor(pSurface, BtnDiagramX+BtnWidth/2, BtnDiagramY,BtnDiagramY+BtnHeight, 0);
+	plotlineHoriz(pSurface, BtnDiagramX, BtnDiagramX+BtnWidth, BtnDiagramY+BtnHeight/2, 0);
+	plotlineVert(pSurface, BtnDiagramX+BtnWidth/2, BtnDiagramY,BtnDiagramY+BtnHeight, 0);
 	//draw 3 dots
-	plotlinerect(pSurface, BtnInfoX+2,BtnInfoX+5,BtnInfoY+10,BtnInfoY+13, 0);
-	plotlinerect(pSurface, BtnInfoX+7,BtnInfoX+10,BtnInfoY+10,BtnInfoY+13, 0);
-	plotlinerect(pSurface, BtnInfoX+12,BtnInfoX+15,BtnInfoY+10,BtnInfoY+13, 0);
+	plotlineRectangle(pSurface, BtnInfoX+2,BtnInfoX+5,BtnInfoY+10,BtnInfoY+13, 0);
+	plotlineRectangle(pSurface, BtnInfoX+7,BtnInfoX+10,BtnInfoY+10,BtnInfoY+13, 0);
+	plotlineRectangle(pSurface, BtnInfoX+12,BtnInfoX+15,BtnInfoY+10,BtnInfoY+13, 0);
 }
 void showInfo(SDL_Surface *pSurface)
 {

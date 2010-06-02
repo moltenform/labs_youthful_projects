@@ -1,12 +1,12 @@
 #include "common.h"
 #include "configfiles.h"
 
-FastMapMapSettings g_GlobalSettings; // the one important settings object.
+FastMapMapSettings g_GlobalSettings; // the one global settings object.
 FastMapMapSettings * g_settings = &g_GlobalSettings;
 
-//regex replace \W*(\w+)\W+(\w+);
-//with {"\1","\2",(void *)&g_settings->\2},
-
+//generate this from the declaration with regex replace
+//\W*(\w+)\W+(\w+);
+//to {"\1","\2",(void *)&g_settings->\2},
 SettingsFieldDescription GlobalFieldDescriptions[] = 
 {
 {"int","drawingMode",(void *)&g_settings->drawingMode, 1},
@@ -38,19 +38,19 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 };
 
 
-void plotlinerect(SDL_Surface* pSurface, int px0, int px1, int py0, int py1, int newcol)
+void plotlineRectangle(SDL_Surface* pSurface, int px0, int px1, int py0, int py1, int newcol)
 {
-	plotlinevertcolor(pSurface, px0, py0, py1,newcol);
-	plotlinevertcolor(pSurface, px1, py0, py1,newcol);
-	plotlinehorizcolor(pSurface, px0, px1, py0,newcol);
-	plotlinehorizcolor(pSurface, px0, px1, py1,newcol);
+	plotlineVert(pSurface, px0, py0, py1,newcol);
+	plotlineVert(pSurface, px1, py0, py1,newcol);
+	plotlineHoriz(pSurface, px0, px1, py0,newcol);
+	plotlineHoriz(pSurface, px0, px1, py1,newcol);
 }
-void plotlinehorizcolor(SDL_Surface* pSurface, int px0, int px1, int py, int newcol)
+void plotlineHoriz(SDL_Surface* pSurface, int px0, int px1, int py, int newcol)
 {
 	for (int x=px0; x<px1; x++)
 		plotpointcolor(pSurface, x, py, newcol);
 }
-void plotlinevertcolor(SDL_Surface* pSurface, int px, int py0, int py1, int newcol)
+void plotlineVert(SDL_Surface* pSurface, int px, int py0, int py1, int newcol)
 {
 	for (int y=py0; y<py1; y++)
 		plotpointcolor(pSurface, px, y, newcol);
@@ -58,26 +58,26 @@ void plotlinevertcolor(SDL_Surface* pSurface, int px, int py0, int py1, int newc
 void plotpointcolor(SDL_Surface* pSurface, int px, int py, int newcol)
 {
 	if (!(px >= 0 && px < pSurface->w && py >= 0 && py < pSurface->h ))
-			return;
-	
-  char* pPosition = ( char* ) pSurface->pixels ; //determine position
-  pPosition += ( pSurface->pitch * py ); //offset by y
-  pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
-  if (newcol!=1)
-  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
-  else
-  {
-	//semi transparent...
-	  int col;
-	  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ; //copy pixel data
+		return;
+
+	char* pPosition = ( char* ) pSurface->pixels ; //determine position
+	pPosition += ( pSurface->pitch * py ); //offset by y
+	pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
+	if (newcol!=TRANSLUCENT_RED)
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+	else
+	{
+		//translucently shades the pixel red.
+		int col;
+		memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ; //copy pixel data
 		SDL_Color color ;
 		SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
 		color.r = color.r + (255-color.r)/16;
 		color.g = color.g + (0-color.g)/16;
 		color.b = color.b + (0-color.b)/16;
 		Uint32 outcol = SDL_MapRGB ( pSurface->format , color.r , color.g , color.b ) ;
-		 memcpy ( pPosition , &outcol , pSurface->format->BytesPerPixel ) ;
-  }
+		memcpy ( pPosition , &outcol , pSurface->format->BytesPerPixel ) ;
+	}
 }
 
 
