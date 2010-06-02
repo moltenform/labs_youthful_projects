@@ -51,6 +51,7 @@ typedef struct
 	int colorsStep;
 	double basinsMaxColor;
 	double colorDiskRadius;
+	double breatheRadius;
 } FastMapMapSettings;
 
 typedef struct

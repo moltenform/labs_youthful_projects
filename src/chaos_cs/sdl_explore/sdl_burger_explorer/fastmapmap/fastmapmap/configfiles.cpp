@@ -107,7 +107,7 @@ BOOL loadObject(FILE * stream)
 			}
 			i++;
 		}
-		if (GlobalFieldDescriptions[i].fieldType == NULL) { hasSeenUnknown=TRUE; assert(0); /*debug*/ }
+		if (GlobalFieldDescriptions[i].fieldType == NULL) { hasSeenUnknown=TRUE; /*assert(0);*/ /*debug*/ }
 
 	}
 }

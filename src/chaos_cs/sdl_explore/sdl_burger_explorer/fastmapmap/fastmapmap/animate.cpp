@@ -12,7 +12,6 @@
 //(see rev 389, bottom of this file.)
 
 int gParamFramesPerKeyframe = 50;
-double gParamBreatheRadius = 201.0;
 
 //delete the keyframe by overwriting it with a single char. 
 //a later attempt to open this will return False.
@@ -207,7 +206,7 @@ void oscillateBreathing(double curA,double curB,double *outA, double *outB)
 	t+=0.13;
 	if (t>3141.5926) t=0.0;
 
-	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/gParamBreatheRadius;
-	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(gParamBreatheRadius*1.315);
+	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/g_settings->breatheRadius;
+	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(g_settings->breatheRadius*1.315);
 }
 

@@ -295,7 +295,7 @@ SDLFont *initFont(char *fontdir, float r, float g, float b, float a)
 // here we draw the string
 void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *string)
 {
- 
+	if (!font) {printf("No font loaded."); return; }
   int len=(int) strlen(string);             // Get the number of chars in the string
   int xx=0;            // This will hold the place where to draw the next char
   for(int i=0;i<len;i++)              // Loop through all the chars in the string
