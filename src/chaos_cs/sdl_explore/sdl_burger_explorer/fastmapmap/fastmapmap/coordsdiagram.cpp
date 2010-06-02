@@ -80,8 +80,8 @@ void DrawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double 
 	//draw vertical lines
 	for (int y=PlotY; y<PlotY+PlotHeight; y++)
 		plotpoint(pSurface,diagram, PlotX, y);
-	for (int y=PlotY; y<PlotY+PlotHeight; y++)
-		plotpoint(pSurface,diagram, PlotX+PlotWidth-1, y);
+	//for (int y=PlotY; y<PlotY+PlotHeight; y++) //with color bar, unnecessary.
+	//	plotpoint(pSurface,diagram, PlotX+PlotWidth-1, y);
 	if (xzero>PlotX && xzero<PlotX+PlotWidth) //y axis
 		for (int y=PlotY; y<PlotY+PlotHeight; y++)
 			plotpoint(pSurface,diagram, xzero, y);

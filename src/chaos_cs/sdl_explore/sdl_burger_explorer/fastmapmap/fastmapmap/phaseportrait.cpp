@@ -20,7 +20,6 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
             {
                 for (double sy=sy0; sy<=sy1; sy+=syinc)
                 {
-					//x = 1-c2; y=sqrt( (1-c2)*(c1-1) );
                     x = sx; y=sy;
 
 					for (int ii=0; ii<(g_settings->settlingTime); ii++)
@@ -142,28 +141,6 @@ for (int py=0; py<height; py+=1)
 		fx += dx;
 	}
 fy -= dy;
-}
-
-//show fixed pt?
-x = 1-c2; y=sqrt( (1-c2)*(c1-1) );
-int px = lrint(width * ((x - X0) / (X1 - X0)));
-int py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
-if (py >= 0 && py < height && px>=0 && px<width) {
-newcol=SDL_MapRGB( pSurface->format , 255 , 0, 0 ) ; 
-pPosition = ( char* ) pSurface->pixels ; //determine position
-pPosition += ( pSurface->pitch * py ); //offset by y
-pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
-memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ; 
-newcol=SDL_MapRGB( pSurface->format , 255 , 0, 0 ) ; 
-pPosition = ( char* ) pSurface->pixels ; //determine position
-pPosition += ( pSurface->pitch * (py-1) ); //offset by y
-pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
-memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ; 
-newcol=SDL_MapRGB( pSurface->format , 255 , 0, 0 ) ; 
-pPosition = ( char* ) pSurface->pixels ; //determine position
-pPosition += ( pSurface->pitch * (py+1) ); //offset by y
-pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
-memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ; 
 }
 }
 

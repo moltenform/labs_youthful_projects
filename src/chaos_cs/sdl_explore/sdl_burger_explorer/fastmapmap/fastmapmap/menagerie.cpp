@@ -54,7 +54,6 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
     for (double syi=sy0; syi<=sy1; syi+=syinc)
     {
 	if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
-if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=1-c2; sy=sqrt( (1-c2)*(c1-1) );}
 	else {sx=sxi; sy=syi;}
 	total = 0.0;
 	x=sx; y=sy; 
@@ -111,9 +110,7 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
     for (double syi=sy0; syi<=sy1; syi+=syinc)
     {
 	if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
-if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=1-c2; sy=sqrt( (1-c2)*(c1-1) );}
 	else {sx=sxi; sy=syi;}
-//sx=sxi; sy=syi;
 		x=sx; y=sy; 
 		for (int i=0; i<80; i++)
 		{
@@ -144,8 +141,6 @@ FoundTotal:
 }
 
 #define LegendWidth 4
-BOOL g_BusyThread1; 
-BOOL g_BusyThread2; 
 typedef struct { int whichHalf; SDL_Surface* pMSurface; CoordsDiagramStruct*diagram; FastMapMapSettings * bounds; } PassToThread;
 int DrawMenagerieMultithreadedPerthread( void* pStruct) 
 {
@@ -178,22 +173,20 @@ for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
 	}
 fy -= dy;
 }
-if (whichHalf) g_BusyThread1=FALSE; else g_BusyThread2=FALSE;
 return 0;
 }
 PassToThread pThread1; PassToThread pThread2;
 #include "timecounter.h"
 void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
 {
-	g_BusyThread1=g_BusyThread2=TRUE;
-//draw color legend. todo: cache this image?
+	//draw color legend. todo: cache this image?
 	for (int px=pMSurface->w - LegendWidth; px<pMSurface->w; px++)
 	for (int py=0; py<pMSurface->h; py++) {
-	int color = standardToColors(pMSurface, (double)py, (double) pMSurface->h);
-	char* pPosition = ( char* ) pMSurface->pixels ; //determine position
-	pPosition += ( pMSurface->pitch * (pMSurface->h - py-1) ); //offset by y
-	pPosition += ( pMSurface->format->BytesPerPixel * (px) ); //offset by x
-	memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
+		int color = standardToColors(pMSurface, (double)py, (double) pMSurface->h);
+		char* pPosition = ( char* ) pMSurface->pixels ; //determine position
+		pPosition += ( pMSurface->pitch * (pMSurface->h - py-1) ); //offset by y
+		pPosition += ( pMSurface->format->BytesPerPixel * (px) ); //offset by x
+		memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
 	}
 	FastMapMapSettings currentSettings, boundsettings;
 	memcpy(&currentSettings, g_settings, sizeof(FastMapMapSettings));
@@ -210,7 +203,6 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	//SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
 	//while (!(g_BusyThread1==FALSE&&g_BusyThread2==FALSE))
 	//	SDL_Delay(10);
-
 	
 	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
 	DrawMenagerieMultithreadedPerthread(&pThread1);
@@ -221,103 +213,6 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 
 
 
-
-/*void DrawMenagerie( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
-{
-int LegendWidth=4;
-double fx,fy; char* pPosition; Uint32 newcol;
-int width = pMSurface->w - LegendWidth; int height=pMSurface->h; 
-double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
-double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-fx = X0; fy = Y1; //y counts downwards
-
-FastMapMapSettings currentSettings, boundsettings;
-memcpy(&currentSettings, g_settings, sizeof(FastMapMapSettings));
-loadFromFile(MAPDEFAULTFILE); //load defaults
-memcpy(&boundsettings, g_settings, sizeof(FastMapMapSettings));
-memcpy(g_settings, &currentSettings, sizeof(FastMapMapSettings));
-//now, boundsettings holds a copy of default bounds, which we'll use in countpixels.
-
-for (int py=0; py<height; py++)
-{
-	fx=X0;
-	for (int px = 0; px < width; px++)
-	{
-		newcol = countPhasePlotPixels(pMSurface,fx,fy,1,&boundsettings);//countPhasePlotLyapunov(pMSurface, fx, fy);
-
-		pPosition = ( char* ) pMSurface->pixels ; //determine position
-		pPosition += ( pMSurface->pitch * py ); //offset by y
-		pPosition += ( pMSurface->format->BytesPerPixel * px ); //offset by x
-		memcpy ( pPosition , &newcol , pMSurface->format->BytesPerPixel ) ;
-
-		fx += dx;
-	}
-fy -= dy;
-}
-//draw color legend. todo: cache this image?
-	for (int px=pMSurface->w - LegendWidth; px<pMSurface->w; px++)
-	for (int py=0; py<height; py++) {
-	int color = standardToColors(pMSurface, (double)py, height);
-	char* pPosition = ( char* ) pMSurface->pixels ; //determine position
-	pPosition += ( pMSurface->pitch * (height-py-1) ); //offset by y
-	pPosition += ( pMSurface->format->BytesPerPixel * (px) ); //offset by x
-	memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
-	}
-}
-*/
-
-
-/*
-void DrawMenagerieFromCache( SDL_Surface* pSmallSurface, CoordsDiagramStruct*diagram) 
-{
-double chy_x0 = cacheX0, chy_x1=cacheX1, chy_y0=cacheY0, chy_y1=cacheY1;
-	double fx,fy;
-	int height=200;//diagram->screen_height;
-	int width=200;//diagram->screen_width;
-	double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
-    double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-    fx = X0; fy = Y1; //y counts downwards
-    
-	for (int py=0; py<height; py++)
-	{
-		fx = X0;
-		for (int px = 0; px < width; px++)
-		{
-int hits;
-if (fx<chy_x0 || fx>chy_x1 || fy<chy_y0 || fy>chy_y1)
-hits=-1; //should compute it here, I suppose.
-else
-{
-	int indexx = (int) (CACHEW * (fx-chy_x0)/(chy_x1-chy_x0));
-	int indexy = CACHEH-(int) (CACHEH * (fy-chy_y0)/(chy_y1-chy_y0));
-	hits = cachedEntire[ indexy*CACHEW + indexx];
-}
-		Uint32 r,g,b;
-		if (hits==0) {r=b=0; g=50; }  
-		else if (hits==-1) {b=g=0; r=50; } else {
-		double val = sqrt((double)hits)/16.0;
-
-		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
-		val = val*2 - 1; //from -1 to 1
-		if (val>=0)
-			b=255, r=g= (Uint32) ((1-val)*255.0);
-		else
-			r=g=b= (Uint32) ((val+1)*255.0);
-		}
-
-char* pPosition = ( char* ) pSmallSurface->pixels ; //determine position
-pPosition += ( pSmallSurface->pitch * py ); //offset by y
-pPosition += ( pSmallSurface->format->BytesPerPixel * px ); //offset by x
-Uint32 newcol = SDL_MapRGB ( pSmallSurface->format , r , g , b ) ;
-memcpy ( pPosition , &newcol , pSmallSurface->format->BytesPerPixel ) ;
-
-			fx += dx;
-		}
-
-		fy -= dy;
-	}
-}
-*/
 
 
 void BlitDiagram(SDL_Surface* pSurface,SDL_Surface* pSmallSurface, int px, int py)
