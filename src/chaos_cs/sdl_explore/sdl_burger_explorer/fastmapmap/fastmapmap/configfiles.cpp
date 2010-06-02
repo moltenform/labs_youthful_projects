@@ -115,11 +115,11 @@ BOOL loadFromFile(const char * filename)
 {
 	FILE * f = fopen(filename, "r");
 	if (!f) return FALSE;
-	initializeObjectToDefaults(); //sets the defaults, so if this file misses anything, we don't retain.
 	int versionNumber;
 	int ret = fscanf(f,";fmmversion=%d;",&versionNumber);
 	if (ret < 1) return FALSE; //not a valid saved file.
 	if (versionNumber!=1) { assert(0); exit(1); }
+	initializeObjectToDefaults(); //sets the defaults, so if this file misses anything, we don't retain.
 	loadObject(f);
 	fclose(f);
 	return TRUE;

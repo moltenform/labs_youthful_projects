@@ -11,8 +11,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
-#include <math.h>
 
 #include "common.h"
 #include "configfiles.h"
@@ -33,7 +31,6 @@ CoordsDiagramStruct diagramsLayout[] = {
 #include "main_util.h" 
 
 BOOL gParamBreathing = FALSE; 
-double gParamBreatheRadius = 201.0;
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
@@ -232,15 +229,7 @@ while(TRUE)
 	return 0;
 }
 
-void oscillateBreathing(double curA,double curB,double *outA, double *outB)
-{
-	static double t=0;
-	t+=0.13;
-	if (t>3141.5926) t=0.0;
 
-	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/gParamBreatheRadius;
-	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(gParamBreatheRadius*1.315);
-}
 
 void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram )
 {
@@ -266,7 +255,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_PAGEDOWN: onClickTryZoom(diagramsLayout, -1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
 		case SDLK_b: gParamBreatheRadius += bShift? 20 : -20; break;
 
-		case SDLK_RETURN: previewAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width); break;
+		case SDLK_RETURN: if (!previewAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) Dialog_Message("Not enough keyframes to animate.",pSurface); break;
 		case SDLK_DELETE: if (Dialog_GetBool("Delete all keyframes?",pSurface)) deleteAllFrames(); break;
 		default: wasKeyCombo = FALSE;
 	}
@@ -280,7 +269,9 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
-		case SDLK_RETURN: renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width); break;
+		case SDLK_RETURN: Dialog_Message("Rendering animation. This may take some time.", pSurface);
+						 if (!renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) 
+							 Dialog_Message("Not enough keyframes to animate.",pSurface); break;
 		default: wasKeyCombo = FALSE;
 	}
 	else if (!bControl && bAlt)
