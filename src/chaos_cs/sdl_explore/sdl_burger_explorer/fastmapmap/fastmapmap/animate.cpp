@@ -177,9 +177,28 @@ outsideloop:
 	return TRUE;
 }
 
-BOOL renderBreathing()
+BOOL renderBreathing(SDL_Surface* pSurface, int width)
 {
+	char buf[256];
+	double fSeconds = 4;
+	Dialog_GetDouble("How many seconds (20fps)?", pSurface, &fSeconds);
+	if (fSeconds <= 0) return FALSE;
+	int nFrames = (int)(20*fSeconds);
+	SDL_Surface* pFrameSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, width, width, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
+	double breatheA, breatheB;
+	for (int i=0; i<nFrames; i++)
+	{
+		oscillateBreathing(g_settings->a,g_settings->b,&breatheA, &breatheB);
+		SDL_FillRect ( pFrameSurface , NULL , g_white );  //clear surface quickly
+		if (SDL_MUSTLOCK(pFrameSurface)) SDL_LockSurface ( pFrameSurface ) ;
+		DrawFigure(pFrameSurface, breatheA, breatheB, width);
+		if (SDL_MUSTLOCK(pFrameSurface)) SDL_UnlockSurface ( pFrameSurface ) ;
+		snprintf(buf, sizeof(buf), "%s/frame%00d.bmp", SAVESFOLDER, i);
+		SDL_SaveBMP(pFrameSurface, buf);
+	}
 
+	SDL_FreeSurface(pFrameSurface);
+	return TRUE;
 }
 
 void oscillateBreathing(double curA,double curB,double *outA, double *outB)
