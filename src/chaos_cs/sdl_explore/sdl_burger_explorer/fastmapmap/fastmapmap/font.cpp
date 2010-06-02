@@ -180,7 +180,16 @@ void Free_Fonts()
 	freeFont(currentFont);
 	currentFont = NULL;
 }
+void Dialog_Messagef(SDL_Surface* pSurface, const char* prompt, ...)
+{
+	char string[1024];     
 
+  va_list ap;                         
+  va_start(ap, prompt);                  
+  vsnprintf(string,sizeof(string), prompt, ap);          
+  va_end(ap);                        
+	Dialog_Message(string, pSurface);
+}
 
 // this function draws one part of an image to some other part of an other image
 // it's only to be used inside the font.cpp file, so it's not available to any
@@ -281,16 +290,7 @@ SDLFont *initFont(char *fontdir, float r, float g, float b, float a)
   return tempFont;
 }
 
-void drawStringf(SDL_Surface *screen, SDLFont *font, int x, int y, char *str, ...)
-{
-	char string[1024];                  // Temporary string
 
-  va_list ap;                         // Pointer To List Of Arguments
-  va_start(ap, str);                  // Parses The String For Variables
-  vsprintf(string, str, ap);          // And Converts Symbols To Actual Numbers
-  va_end(ap);                         // Results Are Stored In Text
-	drawString(screen,font, x,y, string);
-}
 
 // here we draw the string
 void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *string)

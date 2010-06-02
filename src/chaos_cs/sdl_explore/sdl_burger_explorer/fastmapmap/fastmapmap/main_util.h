@@ -27,6 +27,23 @@ void util_savefile(SDL_Surface* pSurface)
 	{ Dialog_Message("Could not save to that file.", pSurface); util_savefile(pSurface); return; } //try again
 }
 
+void util_switchModes(BOOL bShift)
+{
+	if (bShift) { //get back to before where started by calling many times. there are 7 modes, so go 6.
+		for (int i=0; i<6; i++) util_switchModes(FALSE);
+		return;}
+	switch(g_settings->drawingMode)
+	{
+		case DrawModeBasinsDistance: g_settings->drawingMode = DrawModeBasinsX; break;
+		case DrawModeBasinsX: g_settings->drawingMode = DrawModeBasinsQuadrant; break;
+		case DrawModeBasinsQuadrant: g_settings->drawingMode = DrawModeBasinsDifference; break;
+		case DrawModeBasinsDifference: g_settings->drawingMode = DrawModePhase; break;
+		case DrawModePhase: g_settings->drawingMode = DrawModeColorLine; break;
+		case DrawModeColorLine: g_settings->drawingMode = DrawModeColorDisk; break;
+		case DrawModeColorDisk: g_settings->drawingMode = DrawModeBasinsDistance; break;
+		default: g_settings->drawingMode = DrawModePhase; break; //shouldn't be here
+	}
+}
 void util_getNumberFrames(SDL_Surface *pSurface)
 {
 	int nframes = nFramesPerKeyframe;

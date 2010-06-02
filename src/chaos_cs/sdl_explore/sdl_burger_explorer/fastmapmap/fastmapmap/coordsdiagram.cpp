@@ -71,7 +71,7 @@ inline void plotpoint(SDL_Surface* pSurface, CoordsDiagramStruct * diagram, int 
 }
 void DrawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double c1, double c2 ) 
 {
-	//find (0.0,0.0)
+	//find (0.0,0.0) in screen coords
 	int xzero, yzero;
 	doubleToScreenPixels(diagram, 0.0, 0.0, &xzero, &yzero);
 	int PlotWidth = diagram->screen_width, PlotHeight = diagram->screen_height;

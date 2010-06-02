@@ -21,11 +21,9 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","diagramy0",(void *)&g_settings->diagramy0, -1},
 {"double","diagramy1",(void *)&g_settings->diagramy1, 1},
 
-{"int","seedsPerAxisDiagram",(void *)&g_settings->seedsPerAxisDiagram, 10},	
-{"int","settlingTime",(void *)&g_settings->settlingTime, 48},
-{"int","drawingTime",(void *)&g_settings->drawingTime, 20},
+{"int","settlingTime",(void *)&g_settings->settlingTime, 120},
+{"int","drawingTime",(void *)&g_settings->drawingTime, 80},
 {"int","basinsTime",(void *)&g_settings->basinsTime, 20},
-{"int","lyapunovTime",(void *)&g_settings->lyapunovTime, 60},
 
 {"int","seedsPerAxis",(void *)&g_settings->seedsPerAxis, 40},
 {"double","seedx0",(void *)&g_settings->seedx0, -2},
@@ -35,6 +33,7 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 
 {"int","colorsStep",(void *)&g_settings->colorsStep, 1},
 {"double","basinsMaxColor",(void *)&g_settings->basinsMaxColor, 4.0},
+{"double","colorDiskRadius",(void *)&g_settings->colorDiskRadius, 1.0},
 {NULL, NULL, NULL, 0} //must end with null.
 };
 

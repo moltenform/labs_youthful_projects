@@ -113,8 +113,9 @@ for (int py=0; py<height; py+=1)
 		}
 		else
 		{
-			val = val / g_settings->basinsMaxColor;
+			
 			if (!bDrawBasinsWithBlueAlso) {
+				val = val / g_settings->basinsMaxColor;
 				if (val>=1.0)
 					newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
 				else {
@@ -122,10 +123,13 @@ for (int py=0; py<height; py+=1)
 					newcol = SDL_MapRGB( pSurface->format , v,v,v );
 				}
 			}else {
-				if (val>=1.0) val=1.0;
+				//val += 0.5; if (val>1) val-=1;
+				//newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
+				val = sqrt(val) / sqrt(g_settings->basinsMaxColor);
+				if (val>=1.0) val=1.0; if (val<0.0) val=0.0;
 				val=val*2-1;
 				if (val<=0)
-					b=255, r=g= (Uint32) ((1-val)*255.0);
+					b=255, r=g= (Uint32) ((1+val)*255.0);
 				else
 					r=g=b= (Uint32) ((1-val)*255.0);
 				newcol = SDL_MapRGB( pSurface->format , r,g,b );
@@ -153,7 +157,7 @@ int col3 = HSL2RGB(pSurface, 0.133, 1.0, .45);
 int col4 = HSL2RGB(pSurface, 0.1055, 1.0, .45);
 if (bMoreQuadrantContrast) { int tmp=col2; col2=col4; col4=tmp; }
 
-double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double hue;
+double fx,fy, x_,y_,x,y; char* pPosition; Uint32 newcol;
 int height=width;
 double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;

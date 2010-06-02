@@ -20,9 +20,9 @@
 #define BEN2 x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ c2*x),6.2831853);
 #define BEN2SUF "_ben2"
 
-#define MAPEXPRESSION BEN1
-#define MAPSUFFIX BEN1SUF
-#define DRAWPERIODIC 1
+#define MAPEXPRESSION BURGER
+#define MAPSUFFIX BURGERSUF
+#define DRAWPERIODIC 0
 
 #define SAVESFOLDER ("saves" MAPSUFFIX  )
 #define MAPDEFAULTFILE ("saves" MAPSUFFIX "/default.cfg" )
@@ -31,3 +31,6 @@
 #define STRINGIFY(x) STRINGIFY2(x)
 #define MAPEXPRESSIONTEXT STRINGIFY(MAPEXPRESSION)
 
+#define CountPixelsSettle 160
+#define CountPixelsDraw 80
+#define CountPixelsSeedsPerAxis 10

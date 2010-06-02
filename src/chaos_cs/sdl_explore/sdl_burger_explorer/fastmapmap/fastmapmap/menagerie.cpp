@@ -7,7 +7,14 @@
 #include "configfiles.h"
 #include <math.h>
 //see rev. 382 for a version that cached results. we chose not to do that anymore. 
-
+/*
+Pros of caching: don't need to recompute.
+Cons of caching: to be useful, needs to take lots of minutes.
+	detracts from generalizeable 2d map studying.
+	takes up ram.
+	if necessary, we can always cache the main screen, for speed.
+we can have settings, for slower cpus. skip every other, or more basic diagram.
+*/
 
 int menagerieMode=0;
 void toggleMenagerieMode() {menagerieMode= (menagerieMode+1)%4; }
@@ -16,20 +23,20 @@ __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, doub
 	if (!(menagerieMode&1)) {
 		double val = (valin) / (estimatedMax);
 		if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
-		val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99~0.0*/;
+		val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99 looks close to 0.0*/;
 		return HSL2RGB(pSurface, val, 1,.5);
 	} else {
-		double val = (valin);// / sqrt(estimatedMax);
+		double val = (valin);
 		if (val > (estimatedMax)) return SDL_MapRGB(pSurface->format, 50,0,0);
 		if (val > (estimatedMax)*0.75)
 		{
 			val = (val-(estimatedMax)*0.75)/(estimatedMax*0.25);
-			return SDL_MapRGB(pSurface->format, 255-lrint(val*255),255-lrint(val*255),255);
+			return SDL_MapRGB(pSurface->format,  255-(Uint8)lrint(val*255),255-(Uint8)lrint(val*255),(Uint8)255);
 		}
 		else
 		{
 			val = (val)/(estimatedMax*0.75);
-			return SDL_MapRGB(pSurface->format, lrint(val*255),lrint(val*255),lrint(val*255));
+			return SDL_MapRGB(pSurface->format, (Uint8) lrint(val*255),(Uint8)lrint(val*255),(Uint8)lrint(val*255));
 		}
 
 	}
@@ -37,16 +44,15 @@ __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, doub
 
 
 //keep going until find one that goes the whole ways without escaping.
-//TODO: (it'd be better to iterate through in a way that jumps around...)
+//todo: (it'd be better to try seedx/seedy points that are not close to the previous tried...)
 int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 {
 	//http://sprott.physics.wisc.edu/chaos/lyapexp.htm
 	double d0 = 1e-3, d1, total;
-	double x, y, x_,y_; double x2, y2, x2_; double xtmp, ytmp, sx, sy;
-	int N = 240; int settle = 160;
+	double x, y, x_,y_; double x2, y2; double xtmp, ytmp, sx, sy;
+	int N = CountPixelsSettle+CountPixelsDraw; int settle = CountPixelsSettle;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
-	//int nXpoints=g_settings->seedsPerAxis, nYpoints=g_settings->seedsPerAxis;
-	int nXpoints=g_settings->seedsPerAxisDiagram, nYpoints=g_settings->seedsPerAxisDiagram;
+	int nXpoints=CountPixelsSeedsPerAxis, nYpoints=CountPixelsSeedsPerAxis;
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	for (double sxi=sx0; sxi<=sx1; sxi+=sxinc)
@@ -99,8 +105,7 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 
 	int counted; double x,y,x_,y_, sx,sy;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
-	//int nXpoints=g_settings->seedsPerAxis, nYpoints=g_settings->seedsPerAxis;
-	int nXpoints=g_settings->seedsPerAxisDiagram, nYpoints=g_settings->seedsPerAxisDiagram;
+	int nXpoints=CountPixelsSeedsPerAxis, nYpoints=CountPixelsSeedsPerAxis;
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
 	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
@@ -112,14 +117,14 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 	if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
 	else {sx=sxi; sy=syi;}
 		x=sx; y=sy; 
-		for (int i=0; i<80; i++)
+		for (int i=0; i<CountPixelsSettle; i++)
 		{
 			MAPEXPRESSION; x=x_; y=y_;
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
 		}
 		
 		counted = 0; *whichID = (*whichID)+1; //note incr. in here. effects of previous sx,sy are not counted.
-		for (int i=0; i<160; i++)
+		for (int i=0; i<CountPixelsDraw; i++)
 		{
 			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
 			MAPEXPRESSION; x=x_; y=y_;
@@ -136,7 +141,7 @@ int countPhasePlotPixels(SDL_Surface* pSurface, double c1, double c2, int whichT
 	//if here, they all escaped.
 	return 0;
 FoundTotal:
-	return standardToColors(pSurface, (double)counted, 160);
+	return standardToColors(pSurface, (double)counted, (double)CountPixelsDraw);
 		
 }
 
@@ -198,11 +203,6 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	pThread1.whichHalf=0; pThread1.bounds=&boundsettings; pThread1.diagram=diagram; pThread1.pMSurface=pMSurface; 
 	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
 //startTimer();
-
-	//SDL_Thread *thread1 = SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread1);
-	//SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
-	//while (!(g_BusyThread1==FALSE&&g_BusyThread2==FALSE))
-	//	SDL_Delay(10);
 	
 	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
 	DrawMenagerieMultithreadedPerthread(&pThread1);

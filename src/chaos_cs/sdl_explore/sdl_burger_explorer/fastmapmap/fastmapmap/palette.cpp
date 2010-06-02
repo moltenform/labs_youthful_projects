@@ -4,50 +4,10 @@
 #include "float_cast.h"
 #include "whichmap.h"
 #include <math.h>
-/*int ColorPalette[1024];
 
-void switchPalette(SDL_Surface* pSurface)
-{
-	static int whichPallete=0;
-	whichPallete = (whichPallete+1)%2 ;
-	if (whichPallete == 0) //black/white
-	{
-		for (int i=0; i<1024; i++)
-		{
-			int v = (int)(255.0*i/1024.0);
-			ColorPalette[i] = SDL_MapRGB ( pSurface->format , v,v,v );
-		}
-		ColorPalette[0] = SDL_MapRGB ( pSurface->format , 45,0,0 );
-	}
-	else if (whichPallete == 1) //rainbow
-	{
-		for (int i=0; i<1024; i++)
-		{
-			double h = (i/1024.0);
-			ColorPalette[i] = HSL2RGB(pSurface, h, 0.5, 0.5);
-		}
-	}
-	else if (whichPallete == 2) //black/blue
-	{*/
-		/*val = val*2 - 1; //from -1 to 1
-		Uint32 r,g,b;
-		if (val<=0)
-			b=255, r=g= (Uint32) ((1+val)*255.0);
-		else
-			r=g=b= (Uint32) ((1-val)*255.0);
+//HSLRGB from http://www.geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm
 
-		for (int i=0; i<1024/2; i++)
-		{
-			int v = (int)(255.0*i/(1024.0/2));
-			ColorPalette[i] = SDL_MapRGB ( pSurface->format , 255,255-v,255-v );
-		}
-		for (int i=0; i<1024/2; i++)
-		{
-			int v = (int)(255.0*i/(1024.0/2));
-			ColorPalette[i] = SDL_MapRGB ( pSurface->format , 255,255-v,255-v );
-		}*/
-/*	}
-}*/
+//we don't use a precomputed palette anymore. that might be more effecient, though.
 
 bool bShowOnlyOneColorLine = FALSE;
 void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width) 
@@ -58,7 +18,7 @@ void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width)
 	int height=width;
 
 	double PI = 3.14159, x_, y_; int px,py;
-	double xradius=1.0, yradius=1.0;//double xradius=0.5, yradius=0.5; w henon cool
+	double xradius=g_settings->colorDiskRadius, yradius=g_settings->colorDiskRadius;
 	for (double t=0; t<1.0; t+=0.001)
 	{
 		int color = HSL2RGB(pSurface,t, .5,.5);
@@ -94,7 +54,7 @@ void DrawColorsDisk( SDL_Surface* pSurface, double c1, double c2, int width )
 	int height=width;
 
 	double PI = 3.14159, x_, y_; int px,py;
-	double xradius=1, yradius=1;//double xradius=0.5, yradius=0.5; w henon cool
+	double xradius=g_settings->colorDiskRadius, yradius=g_settings->colorDiskRadius;
 	for (double t=0; t<1.0; t+=0.001)
 	{
 		for (double r=0; r<xradius; r+=0.005)
@@ -115,6 +75,8 @@ void DrawColorsDisk( SDL_Surface* pSurface, double c1, double c2, int width )
 	}
 }
 
+
+//source: http://www.geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm
 // Given H,S,L in range of 0-1
 // Returns a Color (RGB struct) in range of 0-255
 int HSL2RGB(SDL_Surface* pSurface, double h, double sl, double l)

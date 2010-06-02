@@ -1,15 +1,13 @@
 
+//2 types of settings:
+//g_settings->foo 	persists when saved to disk.
+//gparamFoo			just held in memory
+
 //todo: make fully compatible w csphaseportrait.
+//todo: consider caching the first drawn diagram, of default view.
 //todo: update showinfo text
 //todo: use a varargs version of showtext? low priority, just for convenience.
-/*
-Pros of caching: don't need to recompute.
-Cons of caching: to be useful, needs to take several minutes.
-	detracts from generalizeable 2d map studying.
-	takes up ram.
-	we can also cache the main screen, for speed. (in a hash table?)
-we can have settings, for slower cpus. skip every other, or more basic diagram.
-*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -170,7 +168,6 @@ while(TRUE)
 		  
 		  if (isSuperDrag && (event.button.button == SDL_BUTTON_LEFT)) {
 			  
-				//wow, cool. set the zoom!
 			  if (isSuperDragSqr)
 			 {
 				 int d1= MIN(mouse_x-superDragPx, mouse_y-superDragPy);
@@ -195,8 +192,8 @@ while(TRUE)
 	if (!needDrawDiagram && !needRedraw && !breathing)
 	{
 		// don't need to compute anything.
-		//debug by drawing black indicating nothing new is computed.
-		//SDL_FillRect ( pSurface , NULL , 0 );
+		
+		//SDL_FillRect ( pSurface , NULL , 0 ); //debug by drawing black indicating nothing new is computed.
 	}
 	else
 	{
@@ -233,60 +230,75 @@ while(TRUE)
 	return 0;
 }
 
+double gparamBreatheRadius = 201.0;
+void oscillate(double curA,double curB,double *outA, double *outB)
+{
+	static double t=0;
+	t+=0.13;
+	if (t>3141.5926) t=0.0;
+
+	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/gparamBreatheRadius;
+	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(gparamBreatheRadius*1.315);
+}
+
 void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram )
 {
-	BOOL wasKeyCombo =TRUE;
-	if (bControl && !bAlt)
+	BOOL wasKeyCombo = TRUE;
+	if (!bControl && !bAlt)
 	switch (key)
 	{
-		case SDLK_n:  { initializeObject(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break;
+		//change drawing mode
+		case SDLK_1: g_settings->drawingMode = bShift? DrawModeBasinsX : DrawModeBasinsDistance; break;
+		case SDLK_2: g_settings->drawingMode = bShift? DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
+		case SDLK_3: 
+			if (bShift) util_getNumberFrames(pSurface);
+			else g_settings->drawingMode = DrawModePhase; break;
+		case SDLK_4: g_settings->drawingMode = bShift? DrawModeColorDisk : DrawModeColorLine; break;
+		case SDLK_TAB: util_switchModes(bShift); break;
+
+		//increase/decrease iters
+		case SDLK_MINUS: util_incr(-1, bShift); break;
+		case SDLK_EQUALS: util_incr(1, bShift); break;
+
+		//simulate mouseclick in the center of the diagram
+		case SDLK_PAGEUP: onClickTryZoom(thediagrams, 1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
+		case SDLK_PAGEDOWN: onClickTryZoom(thediagrams, -1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
+		case SDLK_b: gparamBreatheRadius += bShift?-20 : 20; break;
+
+		case SDLK_RETURN: dotestanimation(pSurface, nFramesPerKeyframe, thediagrams[0].screen_width); break;
+		case SDLK_DELETE: if (Dialog_GetBool("Delete all keyframes?",pSurface)) deleteAllFrames(); break;
+		default: wasKeyCombo = FALSE;
+	}
+	else if (bControl && !bAlt)
+	switch (key)
+	{
+		case SDLK_n:  { initializeObject(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //resets.
 		case SDLK_s:  util_savefile(pSurface); break;
 		case SDLK_o:  util_openfile(pSurface); break;
 		case SDLK_c:  util_showVals(pSurface); break;
-		case SDLK_q: g_settings->drawingMode = DrawModePhase; break;
-		case SDLK_w: g_settings->drawingMode = bShift? DrawModeBasinsX : DrawModeBasinsDistance; break;
-		case SDLK_e: g_settings->drawingMode = bShift? DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
-		case SDLK_r: g_settings->drawingMode = DrawModeColorLine; break;
-		case SDLK_t: g_settings->drawingMode = DrawModeColorDisk; break;
-		case SDLK_p: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {RenderLargeFigure(pSurface,1600,c); free(c);} break;
+		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {RenderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
 		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
-		default: wasKeyCombo =FALSE;
+		case SDLK_RETURN: dowriteanimation(pSurface, nFramesPerKeyframe, thediagrams[0].screen_width); break;
+		default: wasKeyCombo = FALSE;
 	}
 	else if (!bControl && bAlt)
 	switch (key)
 	{
 		case SDLK_b: breathing = !breathing; break;
-		case SDLK_w: bDrawBasinsWithBlueAlso=!bDrawBasinsWithBlueAlso; break;
-		case SDLK_e: bMoreQuadrantContrast=!bMoreQuadrantContrast; break;
+		case SDLK_1: bDrawBasinsWithBlueAlso=!bDrawBasinsWithBlueAlso; break;
+		case SDLK_2: bMoreQuadrantContrast=!bMoreQuadrantContrast; break;
+		case SDLK_4: g_settings->colorDiskRadius *= bShift?(1/1.1):1.1; break;
+
 		case SDLK_d: toggleMenagerieMode(); *needDrawDiagram=TRUE; break;
 		default: wasKeyCombo =FALSE;
 	}
-	else if (!bControl && !bAlt)
-	switch (key)
-	{
-		case SDLK_MINUS: util_incr(-1, bShift); break;
-		case SDLK_EQUALS: util_incr(1, bShift); break;
-			//simulate mouseclick in the center of the diagram
-		case SDLK_PAGEUP: onClickTryZoom(thediagrams, 1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
-		case SDLK_PAGEDOWN: onClickTryZoom(thediagrams, -1,thediagrams[0].screen_width/2, thediagrams[0].screen_height/2); break;
-			// press F5 to requestRecalcDiagram
-		default: wasKeyCombo =FALSE;
-	}
 
-	if (key>=SDLK_1 && key<=SDLK_9)
+	if (key>=SDLK_F1 && key<=SDLK_F9)
 	{
-		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_1 + 1); }
-		else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_1 + 1); Dialog_Message("Saved frame.", pSurface);}
-		else if (!bControl && !bShift && !bAlt) openFrame(key-SDLK_1 + 1);
-		else if (!bControl && bShift && !bAlt && key==SDLK_3) util_getNumberFrames(pSurface);
-		wasKeyCombo=TRUE;
-	}
-	else if (key==SDLK_0)
-	{
-		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete all frames?",pSurface)) deleteAllFrames(); }
-		//else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_1 + 1); Dialog_Message("Saved frame.", pSurface);}
-		else if (!bControl && !bShift && !bAlt) dotestanimation(pSurface, nFramesPerKeyframe, thediagrams[0].screen_width);
+		if (!bControl && !bShift && !bAlt) { BOOL ret=openFrame(key-SDLK_F1 + 1); if (!ret) Dialog_Messagef(pSurface,"Keyframe hasn't been saved yet, press F%d to save it.",key-SDLK_F1+1); }
+		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_F1 + 1); }
+		else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_F1 + 1); Dialog_Message("Saved keyframe.", pSurface);}
 		wasKeyCombo=TRUE;
 	}
 
@@ -294,13 +306,4 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 }
 
 
-void oscillate(double curA,double curB,double *outA, double *outB)
-{
-	static double t=0;
-	t+=0.13;
-	if (t>3141.5926) t=0.0;
-
-	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/200;
-	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/263;
-}
 

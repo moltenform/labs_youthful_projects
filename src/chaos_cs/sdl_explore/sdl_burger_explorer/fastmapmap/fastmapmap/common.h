@@ -37,12 +37,10 @@ typedef struct
 	double diagramx1;
 	double diagramy0;
 	double diagramy1;
-	int seedsPerAxisDiagram;
 	
 	int settlingTime;
 	int drawingTime;
 	int basinsTime;
-	int lyapunovTime;
 
 	int seedsPerAxis;
 	double seedx0;
@@ -52,6 +50,7 @@ typedef struct
 
 	int colorsStep;
 	double basinsMaxColor;
+	double colorDiskRadius;
 } FastMapMapSettings;
 
 typedef struct
