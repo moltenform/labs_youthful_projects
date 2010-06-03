@@ -57,10 +57,11 @@ BOOL openFrameIntoSettings(int frame, FastMapMapSettings * settingsOut)
 // interpolate between two frames. fwhere must be between 0 and 1.
 void getFrameInterpolate(double fwhere, FastMapMapSettings * settings1, FastMapMapSettings * settings2, FastMapMapSettings * settingsOut)
 {
-	//for now, we only interpolate a and b.
+	//for now, we only interpolate a, b, and colorsStep.
 
 	settingsOut->a = (1-fwhere)*settings1->a + fwhere*settings2->a;
 	settingsOut->b = (1-fwhere)*settings1->b + fwhere*settings2->b;
+	settingsOut->colorsStep = (int)((1-fwhere)*settings1->colorsStep + fwhere*settings2->colorsStep);
 }
 
 BOOL previewAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)

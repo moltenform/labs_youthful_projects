@@ -9,6 +9,7 @@
 //todo: shift-arrow keys (fine adjust) could be relative to diagram zoom level.
 //todo: have settings for faster cpus (i.e. bigger diagram, or bigger plots)
 //todo: use a varargs version of showtext? low priority, just for convenience.
+//todo: parameters for adjusting color, like for basins, gWithBlueAlso and shifting hue.
 
 #include <stdio.h>
 #include <stdlib.h>
