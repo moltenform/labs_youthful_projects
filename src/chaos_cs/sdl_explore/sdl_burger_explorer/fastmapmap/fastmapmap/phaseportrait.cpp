@@ -4,7 +4,8 @@
 #include "palette.h"
 #include <assert.h>
 
-//note that these don't use the a and b from g_settings, they take separate one.
+//note that these functions don't use the a and b from g_settings.
+//a "seed point" is an initial point. In some maps, choice of (x0,y0) changes behavior.
 void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width ) 
 {
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
@@ -34,6 +35,7 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
                         x=x_; y=y_;
 						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 
+// DRAWPERIODIC means to draw many copies of the figure. set in whichmap.h
 #if DRAWPERIODIC
 						for (double rx=x-6.2831853*2; rx<x+6.2831853*2;rx+=6.2831853) {
 						for (double ry=y-6.2831853*2; ry<y+6.2831853*2;ry+=6.2831853) {
@@ -44,9 +46,8 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
                         int py = lrint(height - height * ((ry - Y0) / (Y1 - Y0)));
                         if (py >= 0 && py < height && px>=0 && px<width)
 						{
-							//get pixel color, mult by 0.875 (x-x>>3)
-  Uint32 col = 0 ; Uint32 colR;
-  
+
+  Uint32 col = 0 ; Uint32 colR;  
   char* pPosition = ( char* ) pSurface->pixels ; //determine position
   pPosition += ( pSurface->pitch * py ); //offset by y
   pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
@@ -56,10 +57,7 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
   SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
   colR = color.r;
 							
-						// a quick mult, stops at 7, but whatever
-						//int newcolor = (color.r)-((color.r)>>3);
-						Uint32 newcolor = (colR)-((colR)>>2);
-						//int newcolor = ((color.r)>>2)+((color.r)>>3); //5/8
+						Uint32 newcolor = (colR)-((colR)>>2); //add shade to that pixel
 
   Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
@@ -72,9 +70,10 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
     }
 }
 
-//double largestSeenBasins = 1e-6; didn't look good.
+//double largestSeenBasins; It didn't look very good when we used greatest-value to set colors.
 
 BOOL gParamDrawBasinsWithBlueAlso=FALSE;
+//estimate "basins of attraction". Pixel is x0,y0, colored by final value after n iterations.
 void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
@@ -109,6 +108,7 @@ for (int py=0; py<height; py+=1)
 			val = fabs(x_-prevx);
 		}
 		if (ISTOOBIG(x)||ISTOOBIG(y)) { 
+			// dark blue to distinguish from black.
 			newcol = SDL_MapRGB( pSurface->format , 0 , 0, 35 ) ; 
 		}
 		else
@@ -136,7 +136,6 @@ for (int py=0; py<height; py+=1)
 			}
 		}
 		
-		
 		pPosition = ( char* ) pSurface->pixels ; //determine position
 		pPosition += ( pSurface->pitch * py ); //offset by y
 		pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
@@ -149,6 +148,7 @@ fy -= dy;
 }
 
 BOOL gParamMoreQuadrantContrast=FALSE;
+//Same as DrawBasins but quantize to 4 colors based on which quadrant.
 void DrawBasinsQuadrant( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 int col1 = HSL2RGB(pSurface, 0.60277, 1.0, .45);

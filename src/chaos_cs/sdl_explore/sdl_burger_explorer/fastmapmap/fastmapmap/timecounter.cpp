@@ -1,6 +1,6 @@
 #include <windows.h>
 
-//not thread safe :)
+//not thread safe
 LARGE_INTEGER m_nFreq;
 LARGE_INTEGER m_nBeginTime;
 void startTimer()

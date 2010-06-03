@@ -7,7 +7,7 @@
 
 //HSLRGB from http://www.geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm
 
-//we don't use a precomputed palette anymore. that might be more effecient, though.
+//we don't use a precomputed palette anymore. that might be more efficient, though.
 
 bool gParamShowOnlyOneColorLine = FALSE; //toggle with shift-plus
 void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width) 

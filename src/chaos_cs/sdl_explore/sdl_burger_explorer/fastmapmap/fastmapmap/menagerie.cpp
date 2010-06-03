@@ -6,26 +6,31 @@
 #include "font.h"
 #include "configfiles.h"
 #include <math.h>
-//see rev. 382 for a version that cached results. we chose not to do that anymore. 
 /*
-Pros of caching: don't need to recompute.
+see rev. 382 for a version that cached results. we chose not to do that anymore. 
+Pros of caching: don't need to recompute same pixels repeatedly. faster.
 Cons of caching: to be useful, needs to take lots of minutes.
-	detracts from generalizeable 2d map studying.
+	detracts from generalizeable 2d map studying (quickly trying different fn).
 	takes up ram.
-	if necessary, we can always cache the main screen, for speed.
-we can have settings, for slower cpus. skip every other, or more basic diagram.
+	often interested in one deep area, so cache doesn't help.
+we should, though, consider caching the main diagram.
 */
+
+// This file computes the "menagerie diagram", a plot in parameter space.
+// there are two methods: computing lyapunov exponent, and counting pixels drawn in a phase portrait
 
 int gParamMenagerieMode=0;
 void toggleMenagerieMode() {gParamMenagerieMode = (gParamMenagerieMode+1)%4; }
 __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, double estimatedMax)
 {
 	if (!(gParamMenagerieMode&1)) {
+		//rainbow colors
 		double val = (valin) / (estimatedMax);
 		if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
 		val = ((valin) / (estimatedMax)) * 0.8 /*only use 0.0-0.8, because 0.99 looks close to 0.0*/;
 		return HSL2RGB(pSurface, val, 1,.5);
 	} else {
+		//black, white, blue
 		double val = (valin);
 		if (val > (estimatedMax)) return SDL_MapRGB(pSurface->format, 50,0,0);
 		if (val > (estimatedMax)*0.75)
@@ -44,7 +49,7 @@ __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, doub
 
 
 //keep going until find one that goes the whole ways without escaping.
-//todo: (it'd be better to try seedx/seedy points that are not close to the previous tried...)
+//todo: it'd be better to try seedx/seedy points that are not close to the previous tried...
 int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 {
 	//http://sprott.physics.wisc.edu/chaos/lyapexp.htm
@@ -94,6 +99,7 @@ FoundTotal:
 	// 4 possibilities: all escape: white, negative lyapunov: black, ly>cutoff: dark red, otherwise rainbow ly
 }
 
+// this can be made faster with SSE instructions, but that'd require an SSE version of MAPEXPRESSION
 #define PHASESIZE 128
 int arrT1[PHASESIZE*PHASESIZE] = {0};
 int arrT2[PHASESIZE*PHASESIZE] = {0};
@@ -145,46 +151,49 @@ FoundTotal:
 		
 }
 
+// Each thread creates half of the diagram. The PassToThread struct simply passes arguments to function.
 #define LegendWidth 4
 typedef struct { int whichHalf; SDL_Surface* pMSurface; CoordsDiagramStruct*diagram; FastMapMapSettings * bounds; } PassToThread;
-int DrawMenagerieMultithreadedPerthread( void* pStruct) 
+int DrawMenagerieThread( void* pStruct) 
 {
 	PassToThread*p = (PassToThread *)pStruct; int whichHalf = p->whichHalf; SDL_Surface*pMSurface=p->pMSurface;CoordsDiagramStruct*diagram=p->diagram; 
 	FastMapMapSettings * boundsettings=p->bounds;
 
-double fx,fy; char*pPosition; Uint32 newcol;
-int width = pMSurface->w - LegendWidth; int height=pMSurface->h; 
-double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
-double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
-fx = X0; fy = Y1; //y counts downwards
-if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; //only compute half per thread.
-else fy = Y1;
+	double fx,fy; char*pPosition; Uint32 newcol;
+	int width = pMSurface->w - LegendWidth; int height=pMSurface->h; 
+	double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
+	double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+	fx = X0; fy = Y1; //y counts downwards
+	//only compute half per thread.
+	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; 
+	else fy = Y1;
 
-
-for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
-{
-	fx=X0;
-	for (int px = 0; px < width; px++)
+	for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
 	{
-		if (gParamMenagerieMode==0||gParamMenagerieMode==1) newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
-		else newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
+		fx=X0;
+		for (int px = 0; px < width; px++)
+		{
+			if (gParamMenagerieMode==0||gParamMenagerieMode==1) 
+				newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
+			else 
+				newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
 
-		pPosition = ( char* ) pMSurface->pixels ; //determine position
-		pPosition += ( pMSurface->pitch * py ); //offset by y
-		pPosition += ( pMSurface->format->BytesPerPixel * px ); //offset by x
-		memcpy ( pPosition , &newcol , pMSurface->format->BytesPerPixel ) ;
+			pPosition = ( char* ) pMSurface->pixels ; //determine position
+			pPosition += ( pMSurface->pitch * py ); //offset by y
+			pPosition += ( pMSurface->format->BytesPerPixel * px ); //offset by x
+			memcpy ( pPosition , &newcol , pMSurface->format->BytesPerPixel ) ;
 
-		fx += dx;
+			fx += dx;
+		}
+	fy -= dy;
 	}
-fy -= dy;
-}
-return 0;
+	return 0;
 }
 PassToThread pThread1; PassToThread pThread2;
 //#include "timecounter.h"
 void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
 {
-	//draw color legend. todo: cache this image?
+	//draw a color legend. todo: cache this?
 	for (int px=pMSurface->w - LegendWidth; px<pMSurface->w; px++)
 	for (int py=0; py<pMSurface->h; py++) {
 		int color = standardToColors(pMSurface, (double)py, (double) pMSurface->h);
@@ -193,31 +202,28 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 		pPosition += ( pMSurface->format->BytesPerPixel * (px) ); //offset by x
 		memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
 	}
+	//put into boundsettings a copy of default bounds, which we'll use in countpixels.
 	FastMapMapSettings currentSettings, boundsettings;
 	memcpy(&currentSettings, g_settings, sizeof(FastMapMapSettings));
 	loadFromFile(MAPDEFAULTFILE); //load defaults
 	memcpy(&boundsettings, g_settings, sizeof(FastMapMapSettings));
 	memcpy(g_settings, &currentSettings, sizeof(FastMapMapSettings));
-	//now boundsettings holds a copy of default bounds, which we'll use in countpixels.
 
+	//pass arguments via structure. note: pThread1 apparently should be global.
 	pThread1.whichHalf=0; pThread1.bounds=&boundsettings; pThread1.diagram=diagram; pThread1.pMSurface=pMSurface; 
 	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
 //startTimer();
 	
-	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieMultithreadedPerthread, &pThread2);
-	DrawMenagerieMultithreadedPerthread(&pThread1);
+	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieThread, &pThread2);
+	DrawMenagerieThread(&pThread1);
 	SDL_WaitThread(thread2, NULL);
 
 //printf("time:%d", (int)stopTimer());
 }
 
 
-
-
-
 void blitDiagram(SDL_Surface* pSurface,SDL_Surface* pSmallSurface, int px, int py)
 {
-	//SDL_FillRect ( pSmallSurface , NULL , 345232 );
 	SDL_Rect dest;
 	dest.x = px;
 	dest.y = py;

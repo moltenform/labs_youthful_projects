@@ -1,13 +1,14 @@
-
+//Fastmapmap, Ben Fisher, 2010, GPL License.
 //There are 2 types of settings:
 //g_settings->foo 	persists when saved to disk.
 //gParamFoo			just held in memory
 
-//todo: make fully compatible w csphaseportrait.
+//todo: make compatible w csphaseportrait.
 //todo: consider caching the first drawn diagram, of default view.
-//todo: update showinfo text
-//todo: use a varargs version of showtext? low priority, just for convenience.
 //todo: support zoom animations? other params animated?
+//todo: shift-arrow keys (fine adjust) could be relative to diagram zoom level.
+//todo: have settings for faster cpus (i.e. bigger diagram, or bigger plots)
+//todo: use a varargs version of showtext? low priority, just for convenience.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +29,7 @@ CoordsDiagramStruct diagramsLayout[] = {
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
 };
 
-#include "main_util.h" 
+#include "main_util.h"
 
 BOOL gParamBreathing = FALSE; 
 int main( int argc, char* argv[] )
@@ -150,6 +151,8 @@ while(TRUE)
 			{
 				if (didClickOnButton(pSurface, mouse_x, mouse_y)==1)
 				{ bShowDiagram=!bShowDiagram; needDrawDiagram=TRUE; }
+
+				gParamBreathing = FALSE; //turn off breathing when click.
 			}
 			else if (buttons & SDL_BUTTON_MIDDLE) //reset the view, but leave the rest of settings intact.
 			{ 
@@ -264,7 +267,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	{
 		case SDLK_n:  { initializeObjectToDefaults(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //resets.
 		case SDLK_s:  util_savefile(pSurface); break;
-		case SDLK_o:  util_openfile(pSurface); break;
+		case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
