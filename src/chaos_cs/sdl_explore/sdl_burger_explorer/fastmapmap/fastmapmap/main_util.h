@@ -133,33 +133,58 @@ void drawButtons(SDL_Surface *pSurface)
 	plotlineRectangle(pSurface, BtnInfoX+7,BtnInfoX+10,BtnInfoY+10,BtnInfoY+13, 0);
 	plotlineRectangle(pSurface, BtnInfoX+12,BtnInfoX+15,BtnInfoY+10,BtnInfoY+13, 0);
 }
-void showInfo(SDL_Surface *pSurface)
+void showInfoN(SDL_Surface *pSurface, int n)
 {
 	SDL_FillRect ( pSurface , NULL , g_white );
-	showText(
-		"Features\n"
-		"_______\n"
-		"\n"
-		"Ctrl+N		reset\n"
-		"Ctrl+S		test here\n"
-		"Ctrl+O		test hh\n"
-		"\n"
-		"Alt+F\n"
-		"Alt+B\n"
-		"Alt+G\n"
-		"\n"
-		"Ctrl+'\n"
-		"Ctrl+;\n"
-		"PgUp\n"
-		"PgDn\n"
-		"Space\n"
-		"Esc\n"
-		"\n"
-		"\n"
-		"Arrow keys\n"
-		"Ctrl-click\n"
-		"Shift-click\n"
-		"Right-click\n"
+	if (n==1)
+		showText( //replace '\r\n' with '\\n"\r\n"'
+"Use the arrow keys to move around.\n"
+"\n"
+"Control-click		zoom in\n"
+"Shift-click		zoom out\n"
+"Right-click 		undo zoom\n"
+"Alt-drag		zoom to region\n"
+"Alt-shift-drag		zoom to any rectangle\n"
+"\n"
+"Press Tab to switch between these drawing modes:\n"
+"1	Basins of Attraction\n"
+"	(Alt-1 to add color, Shift-1 to color based on last x coordinate)\n"
+"	\n"
+"2	Quadrants\n"
+"	(Alt-2 for contrast, Shift-2 to color based on difference between coords)\n"
+"	\n"
+"3	Phase Portrait\n"
+"\n"
+"4	Color lines\n"
+"	(Shift-4 for shaded disk, Alt-4 and Alt-shift 4 change disk size) \n"
+"\n"
+"Alt-b		starts 'breathing' mode\n"
+"b, shift-b		adjust amplitude of breathing"
+"\n\n"
+"Press Enter to see more..."
+		, 30, 30, pSurface);
+	else
+		showText(
+		"Ctrl-S	Save\n"
+"Ctrl-O	Open\n"
+"Ctrl-N	Reset\n"
+"Ctrl-R	Render image (higher quality)\n"
+"Ctrl-B	Render animation of 'breathing' mode (sequence of .bmp files)\n"
+"Ctrl-' Ctrl-; Ctrl-: 	Set other parameters\n"
+"\n"
+"Middle-click to reset view.\n"
+"Shift-arrow keys for finer movement.\n"
+"\n"
+"Ctrl-F1		save into first keyframe (Ctrl-F2 for second keyframe and so on...)\n"
+"F1		open first keyframe\n"
+"Ctrl-Shift-F1		delete first keyframe\n"
+"Shift-3		set number of interpolated frames per keyframe\n"
+"Return/Enter		preview animation\n"
+"Ctrl-Enter		render animation, creates sequence of .bmp files\n"
+"\n"
+"= or -		increase or decrease iterations\n"
+"Shift = or -		adjust coloring, shading\n"
+"Alt-D		change diagram coloring\n"
 		, 30, 30, pSurface);
 
 	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;
@@ -167,11 +192,13 @@ void showInfo(SDL_Surface *pSurface)
 	while (TRUE) {
 		if ( SDL_PollEvent ( &event ) ) {
 			if ( event.type == SDL_QUIT ) return;
-			else if (event.type==SDL_MOUSEBUTTONDOWN) return;
-			else if (event.type==SDL_KEYUP) return;
+			else if (event.type==SDL_MOUSEBUTTONDOWN) break;
+			else if (event.type==SDL_KEYUP) break;
 		}
 	}
+	if (n==1) return showInfoN(pSurface, 2);
+	else return;
 }
 
-
+void showInfo(SDL_Surface *pSurface) { showInfoN(pSurface, 1); }
 

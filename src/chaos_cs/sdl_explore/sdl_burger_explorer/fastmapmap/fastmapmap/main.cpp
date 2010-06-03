@@ -10,6 +10,7 @@
 //todo: have settings for faster cpus (i.e. bigger diagram, or bigger plots)
 //todo: use a varargs version of showtext? low priority, just for convenience.
 //todo: parameters for adjusting color, like for basins, gWithBlueAlso and shifting hue.
+//todo: current directory shouldn't matter, so drag/drop is easier. findexedir in Win, hard-coded dir in Linux
 
 #include <stdio.h>
 #include <stdlib.h>

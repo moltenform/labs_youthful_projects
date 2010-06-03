@@ -4,8 +4,9 @@
 #define HENON x_ = 1 - c1*x*x + y; y_ = c2*x;
 #define HENONSUF "_henon"
 #define BURGER x_ = c1*x - y*y; y_ = c2*y + x*y;
-#define BURGERSUF "_burger"
+#define BURGERSUF "_b"
 #define TKBELL x_ =  x*x - y*y + c1*x+c2*y; y_ = 2*x*y+2.0*x+0.5*y;
+#define TKBELLALT x_ =  x*x - y*y + 0.9*x+-0.6013*y; y_ = 2*x*y+c1*x+c2*y;
 #define TKBELLSUF "_tinkerbell"
 #define IKEDA {double t=0.4-(6/(1+x*x+y*y)); x_ = 1+c1*(x*cos(t)-y*sin(t)); y_ = c2*(x*sin(t)+y*cos(t));};
 #define IKEDASUF "_ikeda"
