@@ -45,7 +45,8 @@ int main(int argc, char *argv[])
 		fread( &hits, sizeof(int), 1, fin);
 		
 		//get a value between 0 and 1
-		double val = sqrt((double)hits) / 42.0;
+		//double val = sqrt((double)hits) / 42.0;
+		double val = sqrt((double)hits) / 30.0;
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
 		
 		//turn into color
