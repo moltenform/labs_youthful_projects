@@ -123,6 +123,17 @@ __inline float invSqrt(float xxx)
         return xxx;
 }
 
+__inline int logBase2OfFloat(float v)
+{
+	// only works for "normal" floats, not subnormal/denormal ones
+	// find int(log2(v)), where v > 0.0 && finite(v) && isnormal(v)
+	int c;         // 32-bit int c gets the result;
+
+	c = *(const int *) &v;  // OR, for portability:  memcpy(&c, &v, sizeof c);
+	c = (c >> 23) - 127;
+	return c; 
+}
+
 //NOTE: use /fp:fast
 int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
 {
@@ -153,16 +164,16 @@ int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
 		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
 		x2=x2_;
 
-		d1 = sqrt( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
+		d1 = ( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
 		float invd1 = invSqrt(d1);
-		//oh man, this is totally an inverse sqrt, so we can do the hack!
-		//however, hack is slower!
+		//oh man, this is totally an inverse sqrt, so we can do the hack! improves time by ~80!
+		float d1_d0 = d0*invd1;
+		x2=x+ (d1_d0)*(x2-x); //also looks interesting when these are commented out
+		y2=y+ (d1_d0)*(y2-y);
 
-		x2=x+ (d0*invd1)*(x2-x); //also looks interesting when these are commented out
-		y2=y+ (d0*invd1)*(y2-y);
-
-		total+= log((1/d0) * (1/invd1) );
-
+		//total+= log((1/d0) * (1/invd1) );
+		total+= log((1/d1_d0) );
+			
 		if (ISTOOBIG(x) || ISTOOBIG(y)) 
 			return SDL_MapRGB(pSurface->format, 255,255,255);
 	}
