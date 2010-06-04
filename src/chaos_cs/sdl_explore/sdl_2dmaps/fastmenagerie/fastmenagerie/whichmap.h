@@ -32,7 +32,7 @@
 #define MAPEXPRESSION BURGER
 #define MAPSUFFIX BURGERSUF
 #define MAPSSEINIT BURGER_SSE_INIT
-#define MAPSSE BURGERSSE
+#define MAPSSE BURGER_SSE
 
 #define SAVESFOLDER ("saves" MAPSUFFIX  )
 #define MAPDEFAULTFILE ("saves" MAPSUFFIX "/default.cfg" )
@@ -43,6 +43,6 @@
 
 //#define CountPixelsSettle 160
 //#define CountPixelsDraw 80
-#define CountPixelsSettle 80
-#define CountPixelsDraw 40
+#define CountPixelsSettle 160
+#define CountPixelsDraw 80
 #define CountPixelsSeedsPerAxis 10

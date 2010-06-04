@@ -19,6 +19,8 @@ use strips to improve this. load balancing.
 
 */
 
+int alternateCountPhasePlotSSE(SDL_Surface* pSurface, double c1, double c2, int whichThread);
+int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2);
 
 
 
@@ -88,7 +90,6 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 		x2=x; y2=y; x=xtmp; y=ytmp;
 
 		d1 = sqrt( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
-		//d1 = ( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
 		x2=x+ (d0/d1)*(x2-x); //also looks interesting when these are commented out
 		y2=y+ (d0/d1)*(y2-y);
 		if (i>settle) total+= log(d1/d0 );
@@ -107,6 +108,74 @@ FoundTotal:
 	return standardToColors(pSurface, val, .8);
 	// 4 possibilities: all escape: white, negative lyapunov: black, ly>cutoff: dark red, otherwise rainbow ly
 }
+
+__inline float invSqrt(float xxx)
+{
+        float xhalf = 0.5f*xxx;
+        union
+        {
+  	        float xxx;
+                int i;
+        } u;
+        u.xxx = xxx;
+        u.i = 0x5f3759df - (u.i >> 1);
+        xxx = u.xxx * (1.5f - xhalf * u.xxx * u.xxx);
+        return xxx;
+}
+
+//NOTE: use /fp:fast
+int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
+{
+	float d0 = 1e-3, d1, total;
+	float x, y, x_,y_; float x2, y2, x2_; float xtmp, ytmp, sx, sy;
+	
+	sx=0.0; sy=0.00001;
+	x=sx; y=sy; 
+	
+	for (int i=0; i<CountPixelsSettle/4; i++)
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+
+		if (ISTOOBIG(x) || ISTOOBIG(y))
+			return SDL_MapRGB(pSurface->format, 255,255,255);
+	}
+	total = 0.0;
+	x=x; y=y;
+	x2=x; y2=y+d0;
+	for (int i=0; i<CountPixelsDraw; i++)
+	{
+
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
+		x2=x2_;
+
+		d1 = sqrt( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
+		float invd1 = invSqrt(d1);
+		//oh man, this is totally an inverse sqrt, so we can do the hack!
+		//however, hack is slower!
+
+		x2=x+ (d0*invd1)*(x2-x); //also looks interesting when these are commented out
+		y2=y+ (d0*invd1)*(y2-y);
+
+		total+= log((1/d0) * (1/invd1) );
+
+		if (ISTOOBIG(x) || ISTOOBIG(y)) 
+			return SDL_MapRGB(pSurface->format, 255,255,255);
+	}
+
+		
+FoundTotal:
+	//double val = total / (CountPixelsDraw);
+	if (total < 0) 
+		return 0;
+	return standardToColors(pSurface, total, .8 * CountPixelsDraw);
+}
+
+
 
 // this can be made faster with SSE instructions, but that'd require an SSE version of MAPEXPRESSION
 #define PHASESIZE 128
@@ -182,10 +251,12 @@ int DrawMenagerieThread( void* pStruct)
 		fx=X0;
 		for (int px = 0; px < width; px++)
 		{
-			if (gParamMenagerieMode==0||gParamMenagerieMode==1) 
+			/*if (gParamMenagerieMode==0||gParamMenagerieMode==1) 
 				newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
 			else 
-				newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);
+				newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);*/
+//newcol = alternateCountPhasePlotSSE(pMSurface,fx,fy,whichHalf);
+newcol = countPhasePlotLyapunovVector(pMSurface,fx,fy);
 
 			pPosition = ( char* ) pMSurface->pixels ; //determine position
 			pPosition += ( pMSurface->pitch * py ); //offset by y
@@ -222,19 +293,137 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	pThread1.whichHalf=0; pThread1.bounds=&boundsettings; pThread1.diagram=diagram; pThread1.pMSurface=pMSurface; 
 	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
 	
-	//SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieThread, &pThread2);
-	//DrawMenagerieThread(&pThread1);
-	//SDL_WaitThread(thread2, NULL);
-
 startTimer();
+	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieThread, &pThread2);
+	DrawMenagerieThread(&pThread1);
+	SDL_WaitThread(thread2, NULL);
+printf("timeb:%d", (int)stopTimer());
+
+/*startTimer();
 	DrawMenagerieThread(&pThread1);
 printf("time1:%d", (int)stopTimer());
 startTimer();
 	DrawMenagerieThread(&pThread2);
-printf("time2:%d", (int)stopTimer());
+printf("time2:%d", (int)stopTimer());*/
 
 }
 
+//sse. do one with just 4. let's try this.
+//we use the fact that (0,0.000001) and (0,-0.000001) should be in the basin.
+//we still have to check for it getting too big, though.
+int CURRENTID1=2,CURRENTID2=2;
+int alternateCountPhasePlotSSE(SDL_Surface* pSurface, double c1, double c2, int whichThread)
+{
+	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
+	int*arr = whichThread? arrT1:arrT2;
+	int counted=0;
+	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
+	double X0=-3, X1=1, Y0=-3, Y1=3;
+
+	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
+	__m128 mXTmp;
+	MAPSSEINIT;
+
+	for (int i=0; i<CountPixelsSettle/4; i++)
+	{
+		MAPSSE; 
+		MAPSSE;
+		MAPSSE;
+		MAPSSE;
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	//drawing time.
+	float CW = 1.0f/(X1-X0);
+	__m128 mMultW = _mm_set1_ps(CW * PHASESIZE * PHASESIZE);  //EXTRA FACTOR
+	int ShiftW = (int) (-X0 * PHASESIZE * CW * PHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
+									//This is sometimes an approximation, but ok due to speed
+	float CH = 1.0f/(Y1-Y0);
+	__m128 mMultH = _mm_set1_ps(CH * PHASESIZE ); 
+	int ShiftH = (int) (-Y0 * PHASESIZE * CH );
+	__m128 xPrelimTimes256, yPrelim;
+	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
+	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
+	for (int i=0; i<CountPixelsDraw/2 /* /8 */; i++) //see how changes if drawing increases?
+	{
+		MAPSSE;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		//if (xySum.m128i_i32[0] >= 0 && xySum.m128i_i32[0] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+
+		//Loop unrolled///////////////////////////////////////
+		MAPSSE;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		 xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		 yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		 xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		//if (xySum.m128i_i32[0] >= 0 && xySum.m128i_i32[0] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	
+theend:
+	//alter due to new coloring.
+	/*if (counted==0) return 0x0;
+	else return standardToColors((double)counted, DRAWING);*/
+	if (counted==0) return 0xffffff;
+	else if (counted<50) { return 0x0;}
+	else return standardToColors(pSurface, ((double)counted), ((double)CountPixelsDraw));
+}
 
 void blitDiagram(SDL_Surface* pSurface,SDL_Surface* pSmallSurface, int px, int py)
 {
