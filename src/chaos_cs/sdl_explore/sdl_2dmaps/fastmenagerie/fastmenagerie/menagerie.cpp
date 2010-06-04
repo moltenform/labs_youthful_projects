@@ -5,6 +5,7 @@
 #include "palette.h"
 #include "font.h"
 #include "configfiles.h"
+#define _USE_MATH_DEFINES
 #include <math.h>
 /*
 
@@ -16,8 +17,14 @@ So do something better than just each thread gets vertically half the image. spl
 (seedsperaxis=1, 1thread=2098, 2threads=1248, better saving)
 use strips to improve this. load balancing.
 
+Why lyapunov was slow: 
+-settle time only needs one pt, not two.
+-log and sqrt were expensive calls. 
+-no loop unrolling
+
 
 */
+#include "bit_approximations.h"
 
 int alternateCountPhasePlotSSE(SDL_Surface* pSurface, double c1, double c2, int whichThread);
 int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2);
@@ -109,30 +116,8 @@ FoundTotal:
 	// 4 possibilities: all escape: white, negative lyapunov: black, ly>cutoff: dark red, otherwise rainbow ly
 }
 
-__inline float invSqrt(float xxx)
-{
-        float xhalf = 0.5f*xxx;
-        union
-        {
-  	        float xxx;
-                int i;
-        } u;
-        u.xxx = xxx;
-        u.i = 0x5f3759df - (u.i >> 1);
-        xxx = u.xxx * (1.5f - xhalf * u.xxx * u.xxx);
-        return xxx;
-}
 
-__inline int logBase2OfFloat(float v)
-{
-	// only works for "normal" floats, not subnormal/denormal ones
-	// find int(log2(v)), where v > 0.0 && finite(v) && isnormal(v)
-	int c;         // 32-bit int c gets the result;
 
-	c = *(const int *) &v;  // OR, for portability:  memcpy(&c, &v, sizeof c);
-	c = (c >> 23) - 127;
-	return c; 
-}
 
 //NOTE: use /fp:fast
 int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
@@ -156,9 +141,8 @@ int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
 	total = 0.0;
 	x=x; y=y;
 	x2=x; y2=y+d0;
-	for (int i=0; i<CountPixelsDraw; i++)
+	for (int i=0; i<CountPixelsDraw/4; i++)
 	{
-
 		x_ = c1*x - y*y; y= c2*y + x*y;
 		x=x_;
 		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
@@ -171,9 +155,43 @@ int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
 		x2=x+ (d1_d0)*(x2-x); //also looks interesting when these are commented out
 		y2=y+ (d1_d0)*(y2-y);
 
-		//total+= log((1/d0) * (1/invd1) );
-		total+= log((1/d1_d0) );
-			
+		//total+= logBase2OfFloat((1/d1_d0) );//, and add 60 to total later.
+		//total+= log((1/d1_d0) );
+		//total+= wikipediaQuickLog((1/d1_d0) );	// and add about 5 to total
+		total+= flipcodefast_log2((1/d1_d0) );	//which works well!
+
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
+		x2=x2_;
+		d1 = ( (x2-x)*(x2-x) + (y2-y)*(y2-y) );
+		 invd1 = invSqrt(d1);
+		 d1_d0 = d0*invd1;
+		x2=x+ (d1_d0)*(x2-x);
+		y2=y+ (d1_d0)*(y2-y);
+		total+= flipcodefast_log2((1/d1_d0) );
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
+		x2=x2_;
+		d1 = ( (x2-x)*(x2-x) + (y2-y)*(y2-y) );
+		 invd1 = invSqrt(d1);
+		 d1_d0 = d0*invd1;
+		x2=x+ (d1_d0)*(x2-x);
+		y2=y+ (d1_d0)*(y2-y);
+		total+= flipcodefast_log2((1/d1_d0) );
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
+		x2=x2_;
+		d1 = ( (x2-x)*(x2-x) + (y2-y)*(y2-y) );
+		 invd1 = invSqrt(d1);
+		 d1_d0 = d0*invd1;
+		x2=x+ (d1_d0)*(x2-x);
+		y2=y+ (d1_d0)*(y2-y);
+		total+= flipcodefast_log2((1/d1_d0) );
+
+
 		if (ISTOOBIG(x) || ISTOOBIG(y)) 
 			return SDL_MapRGB(pSurface->format, 255,255,255);
 	}
@@ -183,6 +201,8 @@ FoundTotal:
 	//double val = total / (CountPixelsDraw);
 	if (total < 0) 
 		return 0;
+	//convert base 2 to base e
+	total *= 1/(log(M_E)/log(2.0));
 	return standardToColors(pSurface, total, .8 * CountPixelsDraw);
 }
 
