@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
 
 	g_white = SDL_MapRGB ( pSurface->format , 255,255,255 ) ;
 
-
+SDL_FillRect ( pSurface , NULL , g_white );
 
 	double actualA, actualB;
 		
