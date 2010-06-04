@@ -14,7 +14,7 @@ Better that the threads are evenly balanced(!)
 So do something better than just each thread gets vertically half the image. splice them?
 (seedsperaxis=10, 1thread=7543, 2threads=5132, not much saving)
 (seedsperaxis=1, 1thread=2098, 2threads=1248, better saving)
-use strips to improve this.
+use strips to improve this. load balancing.
 
 
 */
@@ -88,6 +88,7 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 		x2=x; y2=y; x=xtmp; y=ytmp;
 
 		d1 = sqrt( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
+		//d1 = ( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
 		x2=x+ (d0/d1)*(x2-x); //also looks interesting when these are commented out
 		y2=y+ (d0/d1)*(y2-y);
 		if (i>settle) total+= log(d1/d0 );
@@ -173,10 +174,10 @@ int DrawMenagerieThread( void* pStruct)
 	double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
 	fx = X0; fy = Y1; //y counts downwards
 	//only compute half per thread.
-	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; 
-	else fy = Y1;
+	if (whichHalf) fy = Y1; 
+	else fy = Y1 - dy;
 
-	for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
+	for (int py=(whichHalf?0:1); py<(height); py+=2)
 	{
 		fx=X0;
 		for (int px = 0; px < width; px++)
@@ -193,7 +194,7 @@ int DrawMenagerieThread( void* pStruct)
 
 			fx += dx;
 		}
-	fy -= dy;
+	fy -= 2*dy;
 	}
 	return 0;
 }
