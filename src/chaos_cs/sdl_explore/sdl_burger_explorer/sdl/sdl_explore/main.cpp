@@ -37,6 +37,7 @@ fixed point detection
 #define ForceRedraw() { prevA=99;}
 //cause redraw by making prevA out of date.
 
+//int PlotHeight=256, PlotWidth=256, PlotX = 400;
 int PlotHeight=300, PlotWidth=300, PlotX = 400;
 int PhaseHeight = 384, PhaseWidth = 384;
 Uint32 g_white;
@@ -46,7 +47,6 @@ void zoomPortrait(int direction, PhasePortraitSettings * settings);
 void tryZoomPlot(int direction, int mouse_x, int mouse_y, PhasePortraitSettings*settings);
 int displayInstructions(SDL_Surface* pSurface,PhasePortraitSettings * settings);
 BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt,BOOL bShift, SDL_Surface*pSurface, PhasePortraitSettings*settings, double *outA, double *outB);
-
 
 
 
@@ -113,6 +113,10 @@ while(TRUE)
 		  if (needtodraw) ForceRedraw();
 		  if (event.key.keysym.sym == SDLK_r && (event.key.keysym.mod & KMOD_CTRL))
 			  bOneTimeBetterMenagerie = TRUE;
+		  if (event.key.keysym.sym == SDLK_b && (event.key.keysym.mod & KMOD_CTRL))
+		  {
+				//test threading
+		  }
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {

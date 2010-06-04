@@ -59,3 +59,4 @@ void IntPhaseCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mou
 BOOL doesFileExist(const char *fname);
 BOOL LockFramesPerSecond();
 
+
