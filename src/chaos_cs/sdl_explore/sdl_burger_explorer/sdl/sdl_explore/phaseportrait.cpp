@@ -87,6 +87,8 @@ void DrawPlotGrid( SDL_Surface* pSurface, PhasePortraitSettings*settings, double
 
 void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, double c1, double c2 ) 
 {
+
+
 	//if (settings->drawBasin) return DrawBasinQuick(pSurface,settings,c1,c2);
 	if (settings->drawBasin) return FindMultipleAttractors(pSurface,settings,c1,c2);
 	double sx0= -2, sx1=2, sy0= -2, sy1=2;
@@ -148,6 +150,9 @@ void DrawPhasePortrait( SDL_Surface* pSurface, PhasePortraitSettings*settings, d
             }
         }
     }
+
+	
+
 }
 
 //#define SCALEDOWN 4
@@ -240,45 +245,76 @@ void FindMultipleAttractors( SDL_Surface* pSurface, PhasePortraitSettings*settin
     {
         
         x=fx; y=fy;
-		for (int i=0; i<50; i++)
+		for (int i=0; i<100; i++)
 		{
 			MAPEXPRESSION;
             x=x_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 		}
 		double total=0.0;
-		for (int i=0; i<50; i++)
+		for (int i=0; i<100; i++) //add 200, is that enough?
 		{
 			MAPEXPRESSION; x=x_;
-			total += x*x+y*y;
+			//double mult = 1.0; //(y>0)?1.2:1.0;
+			total += x*x+y*y;//*mult;
 			MAPEXPRESSION; x=x_;
 			total += x*x+y*y;
-			MAPEXPRESSION; x=x_;
-			total += x*x+y*y;
+			
 			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 		}
-		/*double distance = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx)) / 20;
-		if (y<0) distance *= -1;
-		double val = distance;*/
-		double val;
+		double val; Uint32 r,g,b;
+		
+		
+		if (ISTOOBIG(x)||ISTOOBIG(y)) 
+		{
+			r=g=b=0;
+		}
+		else
+		{
+			val = total/200;
+			val /= 4.0;
+			if (val > 1.0) { r=100; g=b=0; }
+			else //simple grayscale
+			{
+				r=g=b= (int) (255 * val);
+			}
+
+			/*
+			//Create higher contrast by multiplying by 15 and taking mod 1.0,
+			//making contrast higher.
+			val=(total/150);
+			val*=15;
+			val = fmod(val, 1.0);
+			val = val*2 - 1; //from -1 to 1
+		
+		if (val<=0)
+			b=255, r=g= (Uint32) ((1+val)*255.0);
+		else
+			r=g=b= (Uint32) ((1-val)*255.0);*/
+		}
+
+		/*
+		Older method
 		if (ISTOOBIG(x)||ISTOOBIG(y))
 			val=1.0;
 		else{
 			//double diffx = (x) - (c1*x - y*y);
 			//double diffy = (y) - (c2*y + x*y);
-			val = total / 300;
+			val = total / 150;
+			//val = total / 4;
             //val = sqrt(fabs(x));
 			//if (y<0) val*=.8;
 		}
 
 		if (val>1.0) val=1.0; if (val<0.0) val=0.0;
+		val = fmod(val*10, 1.0);
 		val = val*2 - 1; //from -1 to 1
 		Uint32 r,g,b;
 		if (val<=0)
 			b=255, r=g= (Uint32) ((1+val)*255.0);
 		else
 			r=g=b= (Uint32) ((1-val)*255.0);
-			
+		*/	
   
 for (int ncy=0; ncy<SCALEDOWN; ncy++){
 for (int ncx=0; ncx<SCALEDOWN; ncx++){
