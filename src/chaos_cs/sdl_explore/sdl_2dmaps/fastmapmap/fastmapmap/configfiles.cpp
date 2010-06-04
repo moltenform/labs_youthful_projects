@@ -1,11 +1,10 @@
 
 #include "configfiles.h"
 #include "common.h"
-#include <assert.h>
 
-// a simple yet flexible (and human readable) config format.
+// a simple yet flexible (and human readable) config format. key and value pairs.
 // key=value;key=value;key=value;
-//GlobalFieldDescriptions should be defined, with the settings to be used.
+// a GlobalFieldDescriptions object should be defined, with the settings to be used.
 
 /*
 some tests:
@@ -34,7 +33,7 @@ void initializeObjectToDefaults()
 			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 			*theValue = (double) GlobalFieldDescriptions[i].defaultValue;
 		}
-		else  { assert(0); exit(1); } //unknown type.
+		else  { massert(0, "Unknown data type in definition of Settings object."); } 
 		i++;
 	}
 }
@@ -54,7 +53,7 @@ void saveObject(FILE * stream)
 			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 			fprintf(stream, "%s=%f;", GlobalFieldDescriptions[i].fieldName, *theValue);
 		}
-		else  { assert(0); exit(1); } //unknown type.
+		else  { massert(0, "Unknown data type in definition of Settings object."); } 
 		i++;
 	}
 	fprintf(stream, "END=0;");
@@ -65,8 +64,8 @@ BOOL readUntilEquals(char * buffer, int bufsize, FILE* stream)
 	char c; int i=0;
 	while (true)
 	{
-		if (i>=bufsize) {assert(0); return FALSE;}
-		if (feof(stream)) {assert(0); return FALSE;}
+		if (i>=bufsize) {massert(0, "Invalid file, keyname too long."); return FALSE;}
+		if (feof(stream)) {massert(0, "Invalid file, eof reached before end of keyname."); return FALSE;}
 		fscanf(stream, "%c", &c);
 		if (c=='=') { buffer[i]='\0'; return TRUE;}
 		else {buffer[i] = c;}
@@ -81,11 +80,11 @@ BOOL loadObject(FILE * stream)
 	BOOL hasSeenUnknown = FALSE;
 	while (true)
 	{
-		if (feof(stream)) {assert(0); return FALSE;}
+		if (feof(stream)) {massert(0, "Invalid file, did not see END key."); return FALSE;}
 		readUntilEquals(keyname, sizeof(keyname), stream);
 		int ret = fscanf(stream, "%lf;", &fvalue);
-		if (ret < 1) {assert(0); return FALSE; }
-		if (StringsEqual(keyname, "END")) return hasSeenUnknown;
+		if (ret < 1) {massert(0, "Invalid file, expected value."); return FALSE; }
+		if (StringsEqual(keyname, "END")) return TRUE; //hasSeenUnknown;
 		int i=0;
 		while(GlobalFieldDescriptions[i].fieldType != NULL)
 		{
@@ -101,13 +100,13 @@ BOOL loadObject(FILE * stream)
 					double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 					*theValue = fvalue;
 				}
-				else  { assert(0); exit(1); } //unknown type.
+				else  { massert(0, "Unknown data type in definition of Settings object."); }
 
 				break;
 			}
 			i++;
 		}
-		if (GlobalFieldDescriptions[i].fieldType == NULL) { hasSeenUnknown=TRUE; /*assert(0);*/ /*debug*/ }
+		if (GlobalFieldDescriptions[i].fieldType == NULL) { hasSeenUnknown=TRUE; /*massert(0,"unrecognized key");*/ /*debug*/ }
 
 	}
 }
@@ -117,8 +116,8 @@ BOOL loadFromFile(const char * filename)
 	if (!f) return FALSE;
 	int versionNumber;
 	int ret = fscanf(f,";fmmversion=%d;",&versionNumber);
-	if (ret < 1) return FALSE; //not a valid saved file.
-	if (versionNumber!=1) { assert(0); exit(1); }
+	if (ret < 1) return FALSE; //not a valid saved file. Note: loading animations rely on this returning false.
+	if (versionNumber!=1) { massert(0, "File is from incompatible version."); exit(1); }
 	initializeObjectToDefaults(); //sets the defaults, so if this file misses anything, we don't retain.
 	loadObject(f);
 	fclose(f);

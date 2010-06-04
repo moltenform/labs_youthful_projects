@@ -1,5 +1,6 @@
 
 BOOL showText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen);
+void initFont();
 void freeFonts();
 
 char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSurface);

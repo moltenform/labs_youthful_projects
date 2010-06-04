@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 
 	initializeObjectToDefaults();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
-	
+
 	atexit ( SDL_Quit ) ;
 	SDL_Init ( SDL_INIT_VIDEO ) ;
 	//create main window
@@ -62,6 +62,7 @@ int main( int argc, char* argv[] )
 	if (argc > 1 && !StringsEqual(argv[1],"full")) 
 		loadFromFile(argv[1]);
 
+	initFont();
 	// holding alt and dragging is termed a "super drag" and will set a custom zoom window.
 	// currently translucent red lines persist until mouse is released, this is a known issue.
 while(TRUE)

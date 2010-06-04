@@ -2,7 +2,6 @@
 #include "float_cast.h"
 #include "whichmap.h"
 #include "palette.h"
-#include <assert.h>
 
 //note that these functions don't use the a and b from g_settings.
 //a "seed point" is an initial point. In some maps, choice of (x0,y0) changes behavior.
@@ -207,7 +206,7 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 		case DrawModeBasinsQuadrant:  DrawBasinsQuadrant(pSurface, c1, c2, width); break;
 		case DrawModeColorLine:	DrawColorsLine(pSurface, c1, c2, width); break;
 		case DrawModeColorDisk:	DrawColorsDisk(pSurface, c1, c2, width); break;
-		default: {assert(0); exit(1); }
+		default: {massert(0, "Unknown drawing mode."); }
 	}
 }
 

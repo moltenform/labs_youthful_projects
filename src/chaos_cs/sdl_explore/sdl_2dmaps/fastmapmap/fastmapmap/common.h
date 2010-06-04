@@ -74,6 +74,7 @@ void plotpointcolor(SDL_Surface* pSurface, int px, int py, int newcol);
 void plotlineHoriz(SDL_Surface* pSurface, int px0, int px1, int py, int newcol);
 void plotlineVert(SDL_Surface* pSurface, int px, int py0, int py1, int newcol);
 void plotlineRectangle(SDL_Surface* pSurface, int px0, int px1, int py0, int py1, int newcol);
+void massert(BOOL condition, const char* message);
 
 #define MIN(X, Y)  ((X) < (Y) ? (X) : (Y))
 #define MAX(X, Y)  ((X) > (Y) ? (X) : (Y))

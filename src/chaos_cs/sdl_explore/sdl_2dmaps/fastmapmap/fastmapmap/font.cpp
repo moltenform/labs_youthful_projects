@@ -1,6 +1,5 @@
 #pragma warning (disable:4996)
 #include "common.h"
-#include <assert.h>
 #include "font.h"
 
 
@@ -149,7 +148,7 @@ struct SDLFont
   int *widths;          // Real widths of all the fonts
   unsigned char *data;  // The raw font data
 };
-SDLFont *initFont(char *fontdir, float r, float g, float b, float a);
+SDLFont *initFontStruct(char *fontdir, float r, float g, float b, float a);
 void drawString(SDL_Surface *screen, SDLFont *font, int x, int y, const char *str);
 void freeFont(SDLFont *font);
 
@@ -166,11 +165,17 @@ void freeFont(SDLFont *font);
 */
 
 SDLFont *currentFont = NULL;
+void initFont()
+{
+	if (!currentFont) 
+		currentFont = initFontStruct("data/fontsm", 0.5,0.5,0.5,1);
+	if (!currentFont)
+		massert(0, "Could not find ./data/fontsm/. Please run in a location containing 'data' directory.");
+}
 BOOL showText(const char* text, int pos_x, int pos_y, SDL_Surface* pScreen)
 {
 	if (!text) return FALSE;
-	if (!currentFont) 
-		currentFont = initFont("data/fontsm", 0.5,0.5,0.5,1);
+	initFont(); //init font, if hasn't been done already.
 	drawString(pScreen, currentFont, pos_x, pos_y, text);
 	return TRUE;
 }
@@ -209,7 +214,7 @@ void _fontDrawIMG(SDL_Surface *screen, SDL_Surface *img, int x, int y, int w,
 }
 
 // this function loads in our font file
-SDLFont *initFont(char *fontdir, float r, float g, float b, float a)
+SDLFont *initFontStruct(char *fontdir, float r, float g, float b, float a)
 {
   // some variables
   SDLFont *tempFont;               // a temporary font

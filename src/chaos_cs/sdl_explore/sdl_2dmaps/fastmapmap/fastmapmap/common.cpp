@@ -101,3 +101,15 @@ BOOL LockFramesPerSecond() //run no faster than x fps
 	}
 	return FALSE;
 }
+
+void massert(BOOL condition, const char* message)
+{
+	//I'd rather show message in the gui, but if font hasn't been loaded you can't see it.
+	if (!condition) 
+	{
+		 fputs("Error. ", stderr);
+		 fputs(message, stderr);
+		 exit(1);
+	}
+}
+
