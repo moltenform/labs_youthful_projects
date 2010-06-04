@@ -13,6 +13,7 @@
 #include "timecounter.h"
 
 
+extern int THECOUNT ;
 Uint32 g_white;
 int MenagHeight=512, MenagWidth=512, MenagColorLegend=4; //384
 int PhasePlotHeight=128, PhasePlotWidth=128, PhasePlotX=384;
@@ -127,7 +128,7 @@ int main( int argc, char* argv[] )
 			{
 				constructMenagerieSurface(settings, pMenagSurface);
 				int time = (int) stopTimer();
-				snprintf(timetext, sizeof(timetext), "t:%d   [%f,%f,%f,%f]", time,settings->browsex0,settings->browsex1,settings->browsey0,settings->browsey1);
+				snprintf(timetext, sizeof(timetext), "t:%d CC%d  [%f,%f,%f,%f]", time,THECOUNT,settings->browsex0,settings->browsex1,settings->browsey0,settings->browsey1);
 				waitingForCompletion = FALSE;
 				shouldRedraw = TRUE;
 			}
@@ -161,6 +162,7 @@ int main( int argc, char* argv[] )
 	return 0;
 }
 
+#include "colors.h"
 
 BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, MenagFastSettings*settings, double *outA, double *outB)
 {
@@ -177,6 +179,7 @@ BOOL onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_t: if (bControl) togglePhasePortraitTransients(); break;
 		case SDLK_QUOTE: if (bControl) showVals(pSurface,*outA,*outB); break;
 		case SDLK_q: if (bControl) testThisDimension(pSurface,settings,*outA,*outB); break;
+		case SDLK_e: if (bAlt) docolors(pSurface,settings,outA,outB); break;
 		default: redrawPlot=FALSE;
 	}
 	return redrawPlot;
@@ -239,10 +242,48 @@ BOOL tryZoomCustom(int mouse_x, int mouse_y, MenagFastSettings*settings)
 
 void showVals(SDL_Surface* pSurface, double a,double b)
 {
-char buf[256];
-snprintf(buf, sizeof(buf),"a:%f b:%f", a,b);
-Dialog_Message(buf, pSurface);
+	char buf[256];
+	snprintf(buf, sizeof(buf),"a:%f b:%f", a,b);
+	Dialog_Message(buf, pSurface);
 }
+
+inline double _getDetOfJacobian(double a, double b, double x,double y)
+{
+	double j00=a, j01=-2*y, j10=y, j11=x+b;
+	return j00*j11 - j10*j01;
+}
+
+
+inline double _getLyapunov(double c1, double c2)
+{
+	//http://sprott.physics.wisc.edu/chaos/lyapexp.htm
+	//double d0 = 1e-12;
+	double d0 = 1e-3, d1;
+	int N = 4000; int settle = 2000; //used to be 20
+	double total = 0.0;
+	double sx = 0.0;double sy=0.00001;
+	double x=sx, y=sy, x_;
+	double x2=sx, y2=sy+d0, x2_;
+	for (int i=0; i<N; i++)
+	{
+		//x_ = 1 - c1*x*x + y; y = c2*x; 
+		//x=x_;
+		//x2_ = 1 - c1*x2*x2 + y2; y2 = c2*x2; 
+		//x2=x2_;
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
+		x2=x2_;
+
+		d1 = sqrt( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
+		x2=x+ (d0/d1)*(x2-x); //also looks interesting when these are commented out
+		y2=y+ (d0/d1)*(y2-y);
+		if (i>settle) total+= log(d1/d0 );
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return -300;
+	}
+	return total / (N-settle);
+}
+
 
 
 extern int* arrThread1;
@@ -253,7 +294,7 @@ void testThisDimension(SDL_Surface* pSurface,MenagFastSettings*settings, double 
 {
 	arrThread1 = arrThread2 = (int*)malloc(sizeof(int)*1024 * 1024); //single threaded so the same.
 	char buf[256];
-a = -.69471; b=1.770903;
+/*a = -.69471; b=1.770903;
 int smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
 int bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
 snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
@@ -268,6 +309,48 @@ a = -.104865; b=1.764326;
  smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
  bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
 snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
+Dialog_Message(buf, pSurface);*/
+int smaller, bigger;
+	b=1.770355;
+FILE*f=fopen("ooutpxcount.txt","w");
+for (a=-.69471; a<-.104865; a+= (-.104865- -.69471)/500)
+{
+	 /*smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
+ bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
+	fprintf(f, "%f,%f\n", a, bigger/(double)smaller);*/
+	//fprintf(f, "%f,%f\n", a, _getLyapunov(a,b));
+	fprintf(f, "%f,%d\n", a,alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0));
+
+}
+fclose(f);
+
+/*
+a = -.942230; b=1.652414;
+ smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
+ bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
+snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
 Dialog_Message(buf, pSurface);
+a = -.911684; b=1.607351;
+ smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
+ bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
+snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
+Dialog_Message(buf, pSurface);
+
+a = 0; b=1.55;
+ smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
+ bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
+snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
+Dialog_Message(buf, pSurface);
+a = 0; b=1.6;
+ smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
+ bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
+snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
+Dialog_Message(buf, pSurface);
+a = 0; b=1.65;
+ smaller = alternateCountPhasePlotSSEGetDimensionSMALLER(settings,a,b,0);
+ bigger = alternateCountPhasePlotSSEGetDimensionBIGGER(settings,a,b,0);
+snprintf(buf, sizeof(buf),"a:%f b:%f \nsmall:%d big:%d rat:%f", a,b, smaller,bigger, bigger/(double)smaller);
+Dialog_Message(buf, pSurface);*/
+
 }
 

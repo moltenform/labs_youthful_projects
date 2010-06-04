@@ -4,10 +4,13 @@
 #include "fastmenagerie.h"
 #include "float_cast.h"
 
+#define USERAINBOW
 #if TRUE
-#define SETTLING 8000
+#define SETTLING 1450
+//#define SETTLING 1900000 
 //150
-#define DRAWING 100000 
+//#define DRAWING 900000 
+#define DRAWING 450 
 //24000
 #define POSTERIZETYPE 0
 #else //Show period doubling
@@ -20,8 +23,14 @@ int alternateCountPhasePlot(MenagFastSettings*settings,double c1, double c2, int
 int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, int whichThread);
 int alternateCountPhasePlotSSEISPOS(MenagFastSettings*settings,double c1, double c2, int whichThread);
 int alternateCountPhasePlotSSEGetDimension(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int countPhasePlotLyapunov(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int countPhasePlotAverage(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int countPhasePlotVariance(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int countPhasePlotDualS(MenagFastSettings*settings,double c1, double c2, int whichThread);
+int countPhasePlotHowMuchTransience(MenagFastSettings*settings,double c1, double c2, int whichThread);
 BOOL g_BusyThread1 = FALSE;
 BOOL g_BusyThread2 = FALSE;
+
 void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, double *pb)
 {
 	ps->menagSeedsPerAxis = 40;
@@ -35,6 +44,9 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 		*pa = -1.1; *pb = 1.72;
 		//ps->browsex0 = -2; ps->browsex1 = 2; ps->browsey0=-0.5; ps->browsey1 = 3.5;
 		ps->browsex0 = -2.5; ps->browsex1 = 1; ps->browsey0=1.5; ps->browsey1 = 2.0; 
+		//ps->browsex0 = -2.6275; ps->browsex1 = -.3678; ps->browsey0=1.5893; ps->browsey1 = 1.9043; 
+		//ps->browsex0 = .775233; ps->browsex1 = 5; ps->browsey0=1.5; ps->browsey1 = 1.8; 
+		///ps->browsex0 = -.686588-.1; ps->browsex1 = -.686588+.1; ps->browsey0=1.733079-.1; ps->browsey1 = 1.733079+.1; 
 		//ah, but my zoom in/out code always makes square zoom sizes...
 		//ps->x0 = -1.75; ps->x1 = 1.75; ps->y0=-1.75; ps->y1 = 1.75;
 		ps->menagphasex0 = -3/*-5*/; ps->menagphasex0 = 1; ps->menagphasex0=0 /*it's symmetrical */; ps->menagphasex0 = 3;
@@ -53,12 +65,24 @@ void InitialSettings(MenagFastSettings*ps, int width, int height, double *pa, do
 }
 
 #include "colortable_1024.h"
+int HSL2RGB(SDL_Surface* pSurface, double h, double sl, double l);
+extern SDL_Surface* g_surface;
 //gradients changing all r,g,b are better, maybe why black to white is better.
 inline unsigned int standardToColors(double valin, double estimatedMax)
 {
-	//val = sqrt(val) / sqrt(estimatedMax);
 	double val = (valin) / (estimatedMax);
+#ifdef USERAINBOW
+	if (val > estimatedMax) val =estimatedMax;
+val = (valin) / (estimatedMax*1.2);
+	if (val<0) val=0; if (val>1) val=1;
+	val = fmod(val-0.2, 1.0); if (val<0) val+=1;
+	//val *= 0.7;
+	return HSL2RGB(NULL, val, 1,.5);
+#endif
+	//val = sqrt(val) / sqrt(estimatedMax);
+	
 	int index = lrint(val * (1023));
+//index += 250; //////////////////////////// for lyapunov
 	if (index<=0) return 0;
 	else if (index >= 1024) return 255<<8; //pure green xxrrggxx
 
@@ -103,8 +127,12 @@ int CalcFastFastMenagerie(void* data)
 		fx=X0;
 		for (int px = 0; px < MenagWidth; px+=1)
 		{
+			//double ffx = sqrt(sqrt(sqrt(fabs(fx))));
+			//double ffy = fy;//(fy + fx*.0725);//
+			double ffx = fx;//(fx<0.3)?fx : (-1/(fx*fx) + 1);//(fx>-0.3)?fx : (1/(fx*fx) - 1.6);
+			double ffy = fy; //(fy) * (1.1- fx*fx/90);
 			localarrayOfResults[py*MenagWidth + px] = 
-				alternateCountPhasePlotSSEGetDimension(settings, fx,fy, whichHalf);
+				alternateCountPhasePlotSSE(settings, ffx,ffy, whichHalf);
 			fx += dx;
 		}
 		fy -= dy;
@@ -113,6 +141,7 @@ int CalcFastFastMenagerie(void* data)
 	else g_BusyThread1 = FALSE;
 	return 0;
 }
+int THECOUNT = 0;
 
 //sse. do one with just 4. let's try this.
 //we use the fact that (0,0.000001) and (0,-0.000001) should be in the basin.
@@ -222,157 +251,154 @@ int alternateCountPhasePlotSSE(MenagFastSettings*settings,double c1, double c2, 
 	}
 	
 theend:
-	if (counted==0) return 0x0;
-	else return standardToColors((double)counted, DRAWING/4);
+	//alter due to new coloring.
+	/*if (counted==0) return 0x0;
+	else return standardToColors((double)counted, DRAWING);*/
+	if (counted==0) return 0xffffff;
+	else if (counted<50) { THECOUNT++; return 0x0;}
+	else return standardToColors(((double)counted), ((double)DRAWING));
 }
 
-
-#define BIGGERPHASESIZE PHASESIZE
-#define SMALLERPHASESIZE PHASESIZE/8
-
-int alternateCountPhasePlotSSEGetDimensionSMALLER(MenagFastSettings*settings,double c1, double c2, int whichThread)
+int countPhasePlotLyapunov(MenagFastSettings*settings,double c1, double c2, int whichThread)
 {
-	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
-	int*arr = whichThread? arrThread1:arrThread2;
-	int counted=0;
-	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
-	double X0=-3, X1=1, Y0=-3, Y1=3;
-
-	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
-	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
-	__m128 mXTmp;
-	burgerSetup;
-
-	for (int i=0; i<SETTLING/4; i++)
+	//http://sprott.physics.wisc.edu/chaos/lyapexp.htm
+	double d0 = 1e-3, d1;
+	//int N = 400; int settle = 300; //used to be 20. 1000/600 causes moire patterns
+	int N = 900; int settle = 800; //used to be 20. 1000/600 causes moire patterns
+	double total = 0.0;
+	double sx = 0.0;double sy=0.00001;
+	double x=sx, y=sy, x_;
+	double x2=sx, y2=sy+d0, x2_;
+	for (int i=0; i<N; i++)
 	{
-		burgerExpression; 
-		burgerExpression;
-		burgerExpression;
-		burgerExpression;
-		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
-			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
-		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+		x2_ = c1*x2 - y2*y2; y2= c2*y2 + x2*y2;
+		x2=x2_;
+
+		d1 = sqrt( (x2-x)*(x2-x) + (y2-y)*(y2-y) ); //distance
+		x2=x+ (d0/d1)*(x2-x); //also looks interesting when these are commented out
+		y2=y+ (d0/d1)*(y2-y);
+		if (i>settle) total+= log(d1/d0 );
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return 0xffffff;//255<<8; //pure green xxrrggxx
 	}
-	//drawing time.
-	float CW = 1.0f/(X1-X0);
-	__m128 mMultW = _mm_set1_ps(CW * SMALLERPHASESIZE * SMALLERPHASESIZE);  //EXTRA FACTOR
-	int ShiftW = (int) (-X0 * SMALLERPHASESIZE * CW * SMALLERPHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
-									//This is sometimes an approximation, but ok due to speed
-	float CH = 1.0f/(Y1-Y0);
-	__m128 mMultH = _mm_set1_ps(CH * SMALLERPHASESIZE ); 
-	int ShiftH = (int) (-Y0 * SMALLERPHASESIZE * CH );
-	__m128 xPrelimTimes256, yPrelim;
-	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
-	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
-	for (int i=0; i<DRAWING/4; i++) //see how changes if drawing increases?
+	double val = total / (N-settle);
+	if (val < 0) { THECOUNT++; return 0x0;//50<<8;
+		//val = sqrt(sqrt(-val));
+		//return standardToColors((double)val, .9);
+
+	} 
+	val = sqrt(sqrt(val));
+	return standardToColors((double)val, .9);
+}
+
+int countPhasePlotAverage(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	double d0 = 1e-3, d1;
+	int N = 900; int settle = 800; //used to be 20. 1000/600 causes moire patterns
+	double total = 0.0;
+	double sx = 0.0;double sy=0.00001;
+	double x=sx, y=sy, x_;
+	for (int i=0; i<N; i++)
 	{
-		burgerExpression;
-		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
-		yPrelim = _mm_mul_ps(mmY, mMultH);
-		
-		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
-		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
-		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
-		yPt = _mm_add_epi32(yPt, mmShiftH);
-		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
-		
-		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < SMALLERPHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
-		}
-		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < SMALLERPHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
-		}
-		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < SMALLERPHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
-		}
-		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < SMALLERPHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
-		}
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+
+		d1 = sqrt( x*x + y*y ); //distance
+		if (i>settle) total+= d1;
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return 0xffffff;//255<<8; //pure green xxrrggxx
 	}
+	double val = total / (N-settle);
 	
-theend:
-	if (counted==0) return 0x0;
-	else return counted;//return standardToColors((double)counted, DRAWING);
+	return standardToColors((double)val, 3);
 }
-int alternateCountPhasePlotSSEGetDimensionBIGGER(MenagFastSettings*settings,double c1, double c2, int whichThread)
-{
-	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
-	int*arr = whichThread? arrThread1:arrThread2;
-	int counted=0;
-	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
-	double X0=-3, X1=1, Y0=-3, Y1=3;
 
-	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
-	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
-	__m128 mXTmp;
-	burgerSetup;
-
-	for (int i=0; i<SETTLING/4; i++)
-	{
-		burgerExpression; 
-		burgerExpression;
-		burgerExpression;
-		burgerExpression;
-		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
-			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
-		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
-	}
-	//drawing time.
-	float CW = 1.0f/(X1-X0);
-	__m128 mMultW = _mm_set1_ps(CW * BIGGERPHASESIZE * BIGGERPHASESIZE);  //EXTRA FACTOR
-	int ShiftW = (int) (-X0 * BIGGERPHASESIZE * CW * BIGGERPHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
-									//This is sometimes an approximation, but ok due to speed
-	float CH = 1.0f/(Y1-Y0);
-	__m128 mMultH = _mm_set1_ps(CH * BIGGERPHASESIZE ); 
-	int ShiftH = (int) (-Y0 * BIGGERPHASESIZE * CH );
-	__m128 xPrelimTimes256, yPrelim;
-	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
-	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
-	for (int i=0; i<DRAWING/4; i++) //see how changes if drawing increases?
-	{
-		burgerExpression;
-		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
-		yPrelim = _mm_mul_ps(mmY, mMultH);
-		
-		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
-		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
-		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
-		yPt = _mm_add_epi32(yPt, mmShiftH);
-		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
-		
-		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < BIGGERPHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
-		}
-		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < BIGGERPHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
-		}
-		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < BIGGERPHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
-		}
-		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < BIGGERPHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
-			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
-		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
-		}
-	}
-	
-theend:
-	if (counted==0) return 0x0;
-	else return counted; //return standardToColors((double)counted, DRAWING);
-}
-int alternateCountPhasePlotSSEGetDimension(MenagFastSettings*settings,double c1, double c2, int whichThread)
+int countPhasePlotVariance(MenagFastSettings*settings,double c1, double c2, int whichThread)
 {
-	int smaller=alternateCountPhasePlotSSEGetDimensionSMALLER(settings,c1,c2,whichThread);
-	int bigger=alternateCountPhasePlotSSEGetDimensionBIGGER(settings,c1,c2,whichThread);
-	if (smaller==0) return 0; //diverges
-	double dimEstimate = (double)bigger/(double)smaller    ;
-	//we've increased height/width by 4. so 2d inc by 16, 1d inc by 4, 0d inc by 1
-	return standardToColors(dimEstimate, 16.1);
+	double d0 = 1e-3, d1;
+	int N = 900; int settle = 800; //used to be 20. 1000/600 causes moire patterns
+	double total = 0.0;
+	double x=0.0, y=0.00001, x_;
+	//find avg x value
+	for (int i=0; i<N; i++)
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+
+		d1 = x; //
+		if (i>settle) total+= d1;
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return 0xffffff;//255<<8; //pure green xxrrggxx
+	}
+	double avgx = total / (N-settle);
+	//find variance
+	total=0;
+	for (int i=0; i<N; i++)
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+
+		d1 = (x-avgx)*(x-avgx); //
+		if (i>settle) total+= d1;
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return 0xffffff;//255<<8; //pure green xxrrggxx
+	}
+	double variance = total / (N-settle);
+
+	//normalize!!
+	double val = variance / ( avgx*avgx);
+	return standardToColors((double)val, 6); //2
 }
+
+int countPhasePlotDualS(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	double d0 = 1e-3, d1;
+	int N = 900; int settle = 800; //used to be 20. 1000/600 causes moire patterns
+	double total = 0.0;
+	double sx = 0.0;double sy=0.00001;
+	double x=sx, y=sy, x_;
+	for (int i=0; i<N; i++)
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+
+		d1 = sqrt( x*x + y*y ); //distance
+		if (i>settle) total+= d1;
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return 0xffffff;//255<<8; //pure green xxrrggxx
+	}
+	double valAtZero = total / (N-settle);
+	total = 0.0;
+	 //sx = -.79296875; sy=0.546875;
+	 sx = -.79296875; sy=0.546875;
+	 x=sx, y=sy, x_;
+	for (int i=0; i<N; i++)
+	{
+		x_ = c1*x - y*y; y= c2*y + x*y;
+		x=x_;
+
+		d1 = sqrt( x*x + y*y ); //distance
+		if (i>settle) total+= d1;
+		if (ISTOOBIG(x) || ISTOOBIG(y)) return 0xffffff;//255<<8; //pure green xxrrggxx
+	}
+	double valAtOther = total / (N-settle);
+	double v = abs(valAtZero - valAtOther);
+	return (v>0.15)?0xff:0xffffff; //standardToColors(v, 3);
+}
+
+ double getDetOfJacobian(double a, double b, double x,double y)
+{
+	double j00=a, j01=-2*y, j10=y, j11=x+b;
+	return j00*j11 - j10*j01; //a*(x+b) - -2*y*y, ax+ab+2yy
+}
+int countPhasePlotHowMuchTransience(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	int sm = alternateCountPhasePlotSSEGetCountForTransience(settings,c1,c2,whichThread, 1000);
+	int bg = alternateCountPhasePlotSSEGetCountForTransience(settings,c1,c2,whichThread, 25);
+	double val = (double)sm-bg;
+	if (val<=0) return 0;
+	else return standardToColors(val, (40.0));
+	//int bg = alternateCountPhasePlotSSEGetCountForTransience(settings,c1,c2,whichThread, 25);
+	//return standardToColors((double)bg, (DRAWING));
+}
+
+
+
 

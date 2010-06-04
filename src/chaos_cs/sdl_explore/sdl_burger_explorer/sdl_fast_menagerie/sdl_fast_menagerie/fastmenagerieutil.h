@@ -15,9 +15,9 @@ int CalcFastFastMenagerie(void* data);
 
 int * arrThread1 = NULL;
 int * arrThread2 = NULL;
-#define PHASEW 512
-#define PHASEH 512
-#define PHASESIZE 512
+#define PHASEW 256
+#define PHASEH 256
+#define PHASESIZE 256
 int CURRENTID1=35,CURRENTID2=35; //note that this should be threadsafe
 void startMenagCalculation(MenagFastSettings*ps, int direction, SDL_PixelFormat * pixelFormat)
 {
@@ -34,9 +34,11 @@ void startMenagCalculation(MenagFastSettings*ps, int direction, SDL_PixelFormat 
 	SDL_Thread *thread2 =  SDL_CreateThread(CalcFastFastMenagerie, &threadStruct2);
 	//SDL_WaitThread(thread1, NULL);
 }
+SDL_Surface* g_surface;
 
 void constructMenagerieSurface(MenagFastSettings*ps, SDL_Surface* pSurface)
 {
+	g_surface = pSurface;
 	//SDL_FillRect ( pSmallSurface , NULL , rand() ); 
 	if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
 	int height=MenagHeight; int width=MenagWidth;
@@ -251,4 +253,225 @@ theend:
 	if (counted==0) return 0x0;
 	else if (bHasBeenNeg) return  standardToColors((double)400, 1000);
 	else  return  standardToColors((double)800, 1000);
+}
+
+
+
+///////////////////
+#define BIGGERPHASESIZE PHASESIZE
+#define SMALLERPHASESIZE PHASESIZE/4
+
+int alternateCountPhasePlotSSEGetDimensionSMALLER(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
+	int*arr = whichThread? arrThread1:arrThread2;
+	int counted=0;
+	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
+	double X0=-3, X1=1, Y0=-3, Y1=3;
+
+	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
+	__m128 mXTmp;
+	burgerSetup;
+
+	for (int i=0; i<SETTLING/4; i++)
+	{
+		burgerExpression; 
+		burgerExpression;
+		burgerExpression;
+		burgerExpression;
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	//drawing time.
+	float CW = 1.0f/(X1-X0);
+	__m128 mMultW = _mm_set1_ps(CW * SMALLERPHASESIZE * SMALLERPHASESIZE);  //EXTRA FACTOR
+	int ShiftW = (int) (-X0 * SMALLERPHASESIZE * CW * SMALLERPHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
+									//This is sometimes an approximation, but ok due to speed
+	float CH = 1.0f/(Y1-Y0);
+	__m128 mMultH = _mm_set1_ps(CH * SMALLERPHASESIZE ); 
+	int ShiftH = (int) (-Y0 * SMALLERPHASESIZE * CH );
+	__m128 xPrelimTimes256, yPrelim;
+	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
+	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
+	for (int i=0; i<DRAWING/4; i++) //see how changes if drawing increases?
+	{
+		burgerExpression;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < SMALLERPHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < SMALLERPHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < SMALLERPHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < SMALLERPHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(SMALLERPHASESIZE* (SMALLERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+	}
+	
+theend:
+	if (counted==0) return 0x0;
+	else return counted;//return standardToColors((double)counted, DRAWING);
+}
+int alternateCountPhasePlotSSEGetDimensionBIGGER(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
+	int*arr = whichThread? arrThread1:arrThread2;
+	int counted=0;
+	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
+	double X0=-3, X1=1, Y0=-3, Y1=3;
+
+	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
+	__m128 mXTmp;
+	burgerSetup;
+
+	for (int i=0; i<SETTLING/4; i++)
+	{
+		burgerExpression; 
+		burgerExpression;
+		burgerExpression;
+		burgerExpression;
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	//drawing time.
+	float CW = 1.0f/(X1-X0);
+	__m128 mMultW = _mm_set1_ps(CW * BIGGERPHASESIZE * BIGGERPHASESIZE);  //EXTRA FACTOR
+	int ShiftW = (int) (-X0 * BIGGERPHASESIZE * CW * BIGGERPHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
+									//This is sometimes an approximation, but ok due to speed
+	float CH = 1.0f/(Y1-Y0);
+	__m128 mMultH = _mm_set1_ps(CH * BIGGERPHASESIZE ); 
+	int ShiftH = (int) (-Y0 * BIGGERPHASESIZE * CH );
+	__m128 xPrelimTimes256, yPrelim;
+	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
+	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
+	for (int i=0; i<DRAWING/4; i++) //see how changes if drawing increases?
+	{
+		burgerExpression;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < BIGGERPHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < BIGGERPHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < BIGGERPHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < BIGGERPHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+	}
+	
+theend:
+	if (counted==0) return 0x0;
+	else return counted; //return standardToColors((double)counted, DRAWING);
+}
+int alternateCountPhasePlotSSEGetCountForTransience(MenagFastSettings*settings,double c1, double c2, int whichThread, int TheSettling)
+{
+	int CURRENTID =  whichThread? ++CURRENTID1 : ++CURRENTID2;
+	int*arr = whichThread? arrThread1:arrThread2;
+	int counted=0;
+	///double X0=settings->menagphasex0, X1=settings->menagphasex1, Y0=settings->menagphasey0, Y1=settings->menagphasey1;
+	double X0=-3, X1=1, Y0=-3, Y1=3;
+
+	__m128 mmX = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 mmY = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f); //symmetrical, so don't just mult by 2.
+	__m128 mXTmp;
+	burgerSetup;
+
+	for (int i=0; i<TheSettling/4; i++)
+	{
+		burgerExpression; 
+		burgerExpression;
+		burgerExpression;
+		burgerExpression;
+		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
+			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
+		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+	}
+	//drawing time.
+	float CW = 1.0f/(X1-X0);
+	__m128 mMultW = _mm_set1_ps(CW * BIGGERPHASESIZE * BIGGERPHASESIZE);  //EXTRA FACTOR
+	int ShiftW = (int) (-X0 * BIGGERPHASESIZE * CW * BIGGERPHASESIZE); //if -3 to 3, this shifts by +128 (half the arrWidth). 
+									//This is sometimes an approximation, but ok due to speed
+	float CH = 1.0f/(Y1-Y0);
+	__m128 mMultH = _mm_set1_ps(CH * BIGGERPHASESIZE ); 
+	int ShiftH = (int) (-Y0 * BIGGERPHASESIZE * CH );
+	__m128 xPrelimTimes256, yPrelim;
+	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
+	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
+	for (int i=0; i<DRAWING/4; i++) //see how changes if drawing increases?
+	{
+		burgerExpression;
+		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
+		yPrelim = _mm_mul_ps(mmY, mMultH);
+		
+		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
+		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
+		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
+		yPt = _mm_add_epi32(yPt, mmShiftH);
+		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
+		
+		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < BIGGERPHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < BIGGERPHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < BIGGERPHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
+		}
+		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < BIGGERPHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(BIGGERPHASESIZE* (BIGGERPHASESIZE-1))) { 
+			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
+		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}
+		}
+	}
+	
+theend:
+	if (counted==0) return 0x0;
+	else return counted; //return standardToColors((double)counted, DRAWING);
+}
+
+int alternateCountPhasePlotSSEGetDimension(MenagFastSettings*settings,double c1, double c2, int whichThread)
+{
+	int smaller=alternateCountPhasePlotSSEGetDimensionSMALLER(settings,c1,c2,whichThread);
+	int bigger=alternateCountPhasePlotSSEGetDimensionBIGGER(settings,c1,c2,whichThread);
+	if (smaller==0) return 0; //diverges
+	double dimEstimate = (double)bigger/(double)smaller    ;
+	//we've increased height/width by 4. so 2d inc by 16, 1d inc by 4, 0d inc by 1
+	return standardToColors(dimEstimate, 4.1);
 }

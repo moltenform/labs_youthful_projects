@@ -1,5 +1,6 @@
 #include "common.h"
 #include "phaseportrait.h"
+#include <math.h>
 
 /*inline*/ void plotpoint(SDL_Surface* pSurface, int px, int py, int color)
 {
@@ -54,6 +55,8 @@ PhasePortraitSettings * currentphasesettings = &phaseWithoutTransients;
 void togglePhasePortraitTransients() {currentphasesettings=(currentphasesettings==&phaseWithoutTransients)?&phaseWithTransients:&phaseWithoutTransients; }
 void DrawPhasePortrait( SDL_Surface* pSurface, MenagFastSettings*mfastsettings, double c1, double c2 ) 
 {
+
+
 	//double sx0= -2, sx1=2, sy0= -2, sy1=2;
 	double sx0= 0.01, sx1=2, sy0= 0.01, sy1=2;
 	PhasePortraitSettings * settings = currentphasesettings;
@@ -116,6 +119,43 @@ void DrawPhasePortrait( SDL_Surface* pSurface, MenagFastSettings*mfastsettings, 
             }
         }
     }
+			//BEGIN: draw fixed pt
+	double a =c1, b=c2;
+	 x = 1-b;  y=sqrt((1-b)*(a-1));
+int ppx = (int)(width * ((x - X0) / (X1 - X0)));
+int ppy = (int)(height - height * ((y - Y0) / (Y1 - Y0)));
+if (ppy >= 0 && ppy < height && ppx>=0 && ppx<width)
+{
+	ppx += PhasePlotX;
+	for (int px=ppx-2; px<ppx+2; px++) {
+		int py = ppy;
+  char* pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * py ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
+
+    Uint32 newcol = SDL_MapRGB ( pSurface->format , 255 , 0 , 0 ) ;
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+  //END: draw fixed pt
+	}
+}
+ y=-sqrt((1-b)*(a-1));
+ ppx = (int)(width * ((x - X0) / (X1 - X0)));
+ ppy = (int)(height - height * ((y - Y0) / (Y1 - Y0)));
+if (ppy >= 0 && ppy < height && ppx>=0 && ppx<width)
+{
+	ppx += PhasePlotX;
+	for (int px=ppx-2; px<ppx+2; px++) {
+		int py = ppy;
+  char* pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * py ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
+
+    Uint32 newcol = SDL_MapRGB ( pSurface->format , 255 , 0 , 0 ) ;
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+  //END: draw fixed pt
+	}
+}
+return;
 }
 
 void zoomPortrait(int direction, MenagFastSettings * fmenagsettings )

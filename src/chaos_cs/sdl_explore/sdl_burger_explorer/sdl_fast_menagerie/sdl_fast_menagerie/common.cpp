@@ -11,6 +11,11 @@ void DoubleMenagCoordsToInt(MenagFastSettings*settings, double fx, double fy, in
 	*outX = (int)(MenagWidth * (fx- settings->browsex0) / (settings->browsex1 - settings->browsex0) + 0);
 	*outY = MenagHeight - (int)(MenagHeight * (fy- settings->browsey0) / (settings->browsey1 - settings->browsey0) + 0);
 }
+void DoubleSeedCoordsToInt(MenagFastSettings*settings, double fx, double fy, int* outX, int* outY)
+{
+	*outX = (int)(MenagWidth * (fx- settings->seedx0) / (settings->seedx1 - settings->seedx0) + 0);
+	*outY = MenagHeight - (int)(MenagHeight * (fy- settings->seedy0) / (settings->seedy1 - settings->seedy0) + 0);
+}
 /*void IntPhaseCoordsToDouble(PhasePortraitSettings*settings, int mouse_x, int mouse_y, double*outX, double *outY)
 {
 	*outX = (mouse_x-0)/((double)PhaseWidth)*(settings->x1-settings->x0) + settings->x0;
