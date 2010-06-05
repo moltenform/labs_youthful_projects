@@ -14,7 +14,7 @@
 #include "menagerie.h"
 
 CoordsDiagramStruct diagramsLayout[] = {
-	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 560,200, 200,200,	0.0,1.0,0.0,1.0},
+	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 560,0, 200,200,	0.0,1.0,0.0,1.0},
 	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 0,0,512,512,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
 };
