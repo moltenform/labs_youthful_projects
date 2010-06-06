@@ -1,4 +1,6 @@
+#if defined(_MSC_VER)
 #pragma warning (disable:4996)
+#endif
 
 void deleteAllFrames();
 void deleteFrame(int frame);

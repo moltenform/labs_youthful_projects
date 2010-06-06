@@ -170,7 +170,7 @@ while(TRUE)
 	  else if ( event.type == SDL_MOUSEBUTTONUP )
 	  {
 		needRedraw=TRUE;
-		int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+		SDL_GetMouseState(&mouse_x, &mouse_y);
 
 		// when done with a super drag, set the zoom.
 		if (isSuperDrag && (event.button.button == SDL_BUTTON_LEFT))

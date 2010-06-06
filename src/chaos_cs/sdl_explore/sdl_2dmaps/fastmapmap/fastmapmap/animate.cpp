@@ -156,7 +156,7 @@ BOOL renderAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_LockSurface ( pFrameSurface ) ;
 		DrawFigure(pFrameSurface, g_settings->a, g_settings->b, width);
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_UnlockSurface ( pFrameSurface ) ;
-		snprintf(buf, sizeof(buf), "%s/frame%00d.bmp", SAVESFOLDER, n++);
+		snprintf(buf, sizeof(buf), "%s/frame%03d.bmp", SAVESFOLDER, n++);
 		SDL_SaveBMP(pFrameSurface, buf);
 
 		t+= dt;
@@ -193,7 +193,7 @@ BOOL renderBreathing(SDL_Surface* pSurface, int width)
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_LockSurface ( pFrameSurface ) ;
 		DrawFigure(pFrameSurface, breatheA, breatheB, width);
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_UnlockSurface ( pFrameSurface ) ;
-		snprintf(buf, sizeof(buf), "%s/frame%00d.bmp", SAVESFOLDER, i);
+		snprintf(buf, sizeof(buf), "%s/frame%03d.bmp", SAVESFOLDER, i);
 		SDL_SaveBMP(pFrameSurface, buf);
 	}
 

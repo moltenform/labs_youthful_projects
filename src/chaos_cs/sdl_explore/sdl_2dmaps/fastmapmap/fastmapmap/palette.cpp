@@ -54,12 +54,12 @@ void DrawColorsDisk( SDL_Surface* pSurface, double c1, double c2, int width )
 	int height=width;
 
 	double PI = 3.14159, x_, y_; int px,py;
-	double xradius=g_settings->colorDiskRadius, yradius=g_settings->colorDiskRadius;
+	double radius=g_settings->colorDiskRadius;
 	for (double t=0; t<1.0; t+=0.001)
 	{
-		for (double r=0; r<xradius; r+=0.005)
+		for (double r=0; r<radius; r+=0.005)
 		{
-			double lum = (r/xradius)*0.7;
+			double lum = (r/radius)*0.7;
 			int color = HSL2RGB(pSurface,t, .5,lum);
 			double x = cos(t * 2*PI)*r;
 			double y = sin(t * 2*PI)*r;

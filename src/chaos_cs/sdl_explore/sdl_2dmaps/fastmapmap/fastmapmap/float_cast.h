@@ -60,7 +60,8 @@ http://www.mega-nerd.com/FPcast/#Macro
 
 	#include	<math.h>
 	
-#elif (defined (WIN32) || defined (_WIN32))
+//#elif (defined (WIN32) || defined (_WIN32))
+#elif defined(_MSC_VER)
 
 	#include	<math.h>
 
