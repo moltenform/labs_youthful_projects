@@ -41,7 +41,7 @@ int main( int argc, char* argv[] )
 	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
 	int PlotX = diagramsLayout[1].screen_x, PlotY = diagramsLayout[1].screen_y;
 	int PlotWidth = diagramsLayout[1].screen_width, PlotHeight = diagramsLayout[1].screen_height;
-	BOOL isSuperDrag = FALSE, isSuperDragSqr; int superDragIndex=-1, superDragPx, superDragPy; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
+	BOOL isSuperDrag = FALSE, isSuperDragSqr=FALSE; int superDragIndex=-1, superDragPx=0, superDragPy=0; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
 	BOOL bShowDiagram = FALSE;
 
 	initializeObjectToDefaults();

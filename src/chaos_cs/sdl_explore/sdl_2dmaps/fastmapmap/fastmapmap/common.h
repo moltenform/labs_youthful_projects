@@ -1,11 +1,11 @@
 #pragma once
 
-#if WIN32
+#ifdef _MSC_VER
 #include "SDL.h"
 #else
 #include "SDL/SDL.h"
 #endif
-#if WIN32
+#ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
 
