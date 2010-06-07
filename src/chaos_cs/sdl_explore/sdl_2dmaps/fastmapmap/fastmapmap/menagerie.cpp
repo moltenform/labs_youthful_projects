@@ -164,11 +164,11 @@ int DrawMenagerieThread( void* pStruct)
 	double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
 	double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
 	fx = X0; fy = Y1; //y counts downwards
-	//only compute half per thread.
-	if (!whichHalf) fy -= (g_settings->diagramy1 - g_settings->diagramy0)/2; 
-	else fy = Y1;
+	if (whichHalf) fy = Y1; 
+	else fy = Y1 - dy;
+	//don't assign to threads upper/lower half, instead interleave for better load balancing. (want both threads to finish at about same time)
 
-	for (int py=(whichHalf?0:height/2); py<(whichHalf?height/2:height); py++)
+	for (int py=(whichHalf?0:1); py<(height); py+=2)
 	{
 		fx=X0;
 		for (int px = 0; px < width; px++)
@@ -185,7 +185,7 @@ int DrawMenagerieThread( void* pStruct)
 
 			fx += dx;
 		}
-	fy -= dy;
+	fy -= 2*dy;
 	}
 	return 0;
 }
