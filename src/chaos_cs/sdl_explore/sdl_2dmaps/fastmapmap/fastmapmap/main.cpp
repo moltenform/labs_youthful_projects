@@ -6,7 +6,6 @@
 //todo: make compatible w csphaseportrait.
 //todo: consider caching the first drawn diagram, of default view.
 //todo: support zoom animations? other params animated?
-//todo: shift-arrow keys (fine adjust) could be relative to diagram zoom level.
 //todo: have settings for faster cpus (i.e. bigger diagram, or bigger plots)
 //todo: use a varargs version of showtext? low priority, just for convenience.
 //todo: parameters for adjusting color, like for basins, gWithBlueAlso and shifting hue.
@@ -74,10 +73,14 @@ while(TRUE)
 	  {
 		switch(event.key.keysym.sym)
 		{
-			case SDLK_UP: *b += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
-			case SDLK_DOWN: *b -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
-			case SDLK_LEFT: *a -= (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
-			case SDLK_RIGHT: *a += (event.key.keysym.mod & KMOD_SHIFT) ? 0.0005 : 0.005; needRedraw=TRUE; break;
+		case SDLK_UP: *b += (event.key.keysym.mod & KMOD_SHIFT) ? 
+						(g_settings->diagramy1-g_settings->diagramy0)/1024 : 0.005; needRedraw=TRUE; break;
+			case SDLK_DOWN: *b -= (event.key.keysym.mod & KMOD_SHIFT) ? 
+						(g_settings->diagramy1-g_settings->diagramy0)/1024 : 0.005; needRedraw=TRUE; break;
+			case SDLK_LEFT: *a -= (event.key.keysym.mod & KMOD_SHIFT) ? 
+						(g_settings->diagramx1-g_settings->diagramx0)/1024 : 0.005; needRedraw=TRUE; break;
+			case SDLK_RIGHT: *a += (event.key.keysym.mod & KMOD_SHIFT) ? 
+						(g_settings->diagramx1-g_settings->diagramx0)/1024 : 0.005; needRedraw=TRUE; break;
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: if (event.key.keysym.mod & KMOD_ALT) return 0; break;
 			default: break;
