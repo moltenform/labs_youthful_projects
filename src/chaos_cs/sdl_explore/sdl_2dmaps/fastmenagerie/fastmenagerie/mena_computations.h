@@ -59,10 +59,13 @@ count0=count1=count2=count3=UnseenBasinSettling + 10; //make them all expired.
 while (TRUE)
 {
 	count0++; count1++; count2++; count3++;
-	BOOL isTooBig3 = ISTOOBIGF(mmX.m128_f32[3]) || ISTOOBIGF(mmY.m128_f32[3]); //could do all istoobigs?
-	if (isTooBig3 || count3 > UnseenBasinSettling)
+	__m128 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
+	__m128 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
+	__m128 istoobig = _mm_or_ps(istoobigX, istoobigY);
+
+	if (istoobig.m128_i32[3]!=0 || count3 > UnseenBasinSettling)
 	{
-		if (isTooBig3) escaped++;
+		if (count3 <= UnseenBasinSettling) escaped++;
 		totalComputed++;
 		//assign new number.
 		curx += dx;
@@ -77,10 +80,10 @@ while (TRUE)
 		mmY.m128_f32[3] = cury;
 		count3 = 0;
 	}
-	BOOL isTooBig2 = ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[2]); //could do all istoobigs?
-	if (isTooBig2 || count2 > UnseenBasinSettling)
+	
+	if (istoobig.m128_i32[2]!=0 || count2 > UnseenBasinSettling)
 	{
-		if (isTooBig2) escaped++;
+		if (count2 <= UnseenBasinSettling) escaped++;
 		totalComputed++;
 		//assign new number.
 		curx += dx;
@@ -95,10 +98,10 @@ while (TRUE)
 		mmY.m128_f32[2] = cury;
 		count2 = 0;
 	}
-	BOOL isTooBig1 = ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[1]); //could do all istoobigs?
-	if (isTooBig1 || count1 > UnseenBasinSettling)
+	
+	if (istoobig.m128_i32[1]!=0 || count1 > UnseenBasinSettling)
 	{
-		if (isTooBig1) escaped++;
+		if (count1 <= UnseenBasinSettling) escaped++;
 		totalComputed++;
 		//assign new number.
 		curx += dx;
@@ -113,10 +116,10 @@ while (TRUE)
 		mmY.m128_f32[1] = cury;
 		count1 = 0;
 	}
-	BOOL isTooBig0 = ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[0]); //could do all istoobigs?
-	if (isTooBig0 || count0 > UnseenBasinSettling)
+	
+	if (istoobig.m128_i32[0]!=0 || count0 > UnseenBasinSettling)
 	{
-		if (isTooBig0) escaped++;
+		if (count0 <= UnseenBasinSettling) escaped++;
 		totalComputed++;
 		//assign new number.
 		curx += dx;
