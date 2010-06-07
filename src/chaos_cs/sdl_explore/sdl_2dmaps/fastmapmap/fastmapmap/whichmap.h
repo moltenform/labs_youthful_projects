@@ -14,6 +14,8 @@
 #define DUFFINGSUF "_duffing"
 #define GINGER x_ = 1 - c1*y + fabs(x); y_ = c2*x;
 #define GINGERSUF "_ginger"
+#define JULIA x_ = x*x-y*y + c1; y_=2*x*y + c2;
+#define JULIASUF "_julia"
 
 #define CHSTD x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ x_),6.2831853);
 #define CHSTDSUF "_chstandard"
@@ -22,8 +24,8 @@
 #define BEN2 x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ c2*x),6.2831853);
 #define BEN2SUF "_ben2"
 
-#define MAPEXPRESSION BURGER
-#define MAPSUFFIX BURGERSUF
+#define MAPEXPRESSION JULIA
+#define MAPSUFFIX JULIASUF
 #define DRAWPERIODIC 0
 
 #define SAVESFOLDER ("saves" MAPSUFFIX  )
