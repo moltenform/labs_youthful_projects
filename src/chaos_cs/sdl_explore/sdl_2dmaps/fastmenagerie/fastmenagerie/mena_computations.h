@@ -1,19 +1,21 @@
 
+//could also draw which plots have the most transience. but
+//additional figures: which have multiple attractors, average values, variance
 
 //#define UnseenBasinSize 256
 //#define UnseenBasinSettling 40 works
 #define UnseenBasinSize 128
 #define UnseenBasinSettling 20
 #define UnseenBasinAttractorDrawing 40
-#define UnseenBasinX0 -4
-#define UnseenBasinX1 1
-#define UnseenBasinY0 -2.5
-#define UnseenBasinY1 2.5
+#define UnseenBasinX0 -4.0f
+#define UnseenBasinX1 1.0f
+#define UnseenBasinY0 -2.5f
+#define UnseenBasinY1 2.5f
 
 
 int GetSizeOfAttractionBasinSimple(SDL_Surface* pSurface, double c1, double c2) 
 {
-double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
+double fx,fy, x_,y_,x,y; 
 double X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
 double dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
 fx = X0; fy = Y1; //y counts downwards
@@ -41,106 +43,65 @@ return standardToColors(pSurface, ratio, 0.75);
 }
 
 
+
 int GetSizeOfAttractionBasinSSE(SDL_Surface* pSurface, double c1, double c2) 
 {
-double X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
-double dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
-double curx = X0, cury = Y0; 
-int escaped = 0, totalComputed=0; //runs perfectly, 16384 iterations
-int count0, count1,count2,count3;
-count0=count1=count2=count3=UnseenBasinSettling + 10; //make them all expired.
+float X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
+float dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
+
+__m128i allZeros; allZeros.m128_i32[0]=allZeros.m128_i32[1]=allZeros.m128_i32[2]=allZeros.m128_i32[3] =0;
+__m128i allNumberOne; allNumberOne.m128_i32[0]=allNumberOne.m128_i32[1]=allNumberOne.m128_i32[2]=allNumberOne.m128_i32[3] =1;
+__m128i allOnes; allOnes.m128_i32[0]=allOnes.m128_i32[1]=allOnes.m128_i32[2]=allOnes.m128_i32[3] = 0xffffffff; //-1; 
+__m128i allToobig; allToobig.m128i_i32[0]=allToobig.m128i_i32[1]=allToobig.m128i_i32[2]=allToobig.m128i_i32[3] = UnseenBasinSettling; //-1; 
+
+__m128 curx; curx.m128_f32[0]=curx.m128_f32[1]=curx.m128_f32[2]=curx.m128_f32[3] = X0;
+__m128 cury; cury.m128_f32[0]=Y0; cury.m128_f32[1]=Y0+dy; cury.m128_f32[2]=Y0+dy+dy; cury.m128_f32[3]=Y0+dy+dy+dy;
 
 	__m128 mmX = _mm_setr_ps( 0.0,0.0,0.0,0.0);
-	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0); //symmetrical, so don't just mult by 2.
+	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0);
 	__m128 mXTmp;
 	MAPSSEINIT;
 
+	__m128 Counts; Counts.m128_i32[0]=Counts.m128_i32[1]=Counts.m128_i32[2]=Counts.m128_i32[3] = 0; //UnseenBasinSettling + 10;
+	__m128 Howmanyescaped = allZeros;
+	__m128 TotalComputed = allZeros;
 //state machine.
 while (TRUE)
 {
-	count0++; count1++; count2++; count3++;
+	Counts = _mm_add_epi32(Counts, allNumberOne); //inc counts
+	//doing all conditionals at once like this created a huge speedup: from 4975 to 2544!
 	__m128 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
 	__m128 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
 	__m128 istoobig = _mm_or_ps(istoobigX, istoobigY);
 
-	if (istoobig.m128_i32[3]!=0 || count3 > UnseenBasinSettling)
-	{
-		if (count3 <= UnseenBasinSettling) escaped++;
-		totalComputed++;
-		//assign new number.
-		curx += dx;
-		if (curx>=UnseenBasinX1)
-		{
-			curx=UnseenBasinX0;
-			cury += dy;
-			if (cury>=UnseenBasinY1)
-				goto outsideloop;
-		}
-		mmX.m128_f32[3] = curx;
-		mmY.m128_f32[3] = cury;
-		count3 = 0;
-	}
+	__m128 toomanycounts = _mm_cmpgt_epi32(Counts, UnseenBasinSettling);
+	__m128 needsnew = _mm_or_ps(toomanycounts, istoobig);
+
+	TotalComputed = _mm_add_epi32(TotalComputed, _mm_and_ps( allNumberOne, needsnew));
+	Howmanyescaped = _mm_add_epi32(Howmanyescaped, _mm_and_ps( allNumberOne, istoobig));
+	Counts = _mm_andnot_ps(needsnew, Counts); //if needsnew is true, set counts to 0
+
+	// if needsnew[0] != 0 || needsnew[1] != 0 || needsnew[2] != 0 ... {
 	
-	if (istoobig.m128_i32[2]!=0 || count2 > UnseenBasinSettling)
-	{
-		if (count2 <= UnseenBasinSettling) escaped++;
-		totalComputed++;
-		//assign new number.
-		curx += dx;
-		if (curx>=UnseenBasinX1)
-		{
-			curx=UnseenBasinX0;
-			cury += dy;
-			if (cury>=UnseenBasinY1)
-				goto outsideloop;
-		}
-		mmX.m128_f32[2] = curx;
-		mmY.m128_f32[2] = cury;
-		count2 = 0;
-	}
-	
-	if (istoobig.m128_i32[1]!=0 || count1 > UnseenBasinSettling)
-	{
-		if (count1 <= UnseenBasinSettling) escaped++;
-		totalComputed++;
-		//assign new number.
-		curx += dx;
-		if (curx>=UnseenBasinX1)
-		{
-			curx=UnseenBasinX0;
-			cury += dy;
-			if (cury>=UnseenBasinY1)
-				goto outsideloop;
-		}
-		mmX.m128_f32[1] = curx;
-		mmY.m128_f32[1] = cury;
-		count1 = 0;
-	}
-	
-	if (istoobig.m128_i32[0]!=0 || count0 > UnseenBasinSettling)
-	{
-		if (count0 <= UnseenBasinSettling) escaped++;
-		totalComputed++;
-		//assign new number.
-		curx += dx;
-		if (curx>=UnseenBasinX1)
-		{
-			curx=UnseenBasinX0;
-			cury += dy;
-			if (cury>=UnseenBasinY1)
-				goto outsideloop;
-		}
-		mmX.m128_f32[0] = curx;
-		mmY.m128_f32[0] = cury;
-		count0 = 0;
-	}
+	curx = _mm_add_ps(curx, _mm_and_ps( needsnew, _mm_set1_ps(dx)));
+	__m128 iscurxlocationtoobig = _mm_cmpge_ps(curx, _mm_set1_ps(UnseenBasinX1));
+	cury = _mm_add_ps(cury, _mm_and_ps( iscurxlocationtoobig, _mm_set1_ps(dy * 4))); //skip ahead 4 at once
+	__m128 iscurylocationtoobig = _mm_cmpge_ps(cury, _mm_set1_ps(UnseenBasinY1));
+	if (iscurylocationtoobig.m128_i32[0] != 0 || iscurylocationtoobig.m128_i32[0] != 0 || iscurylocationtoobig.m128_i32[0] != 0
+		|| iscurylocationtoobig.m128_i32[0] != 0)
+		goto outsideloop;
+	mmX = _mm_or_ps( _mm_and_ps(needsnew,curx), _mm_andnot_ps(needsnew,mmX)); //with no if conditional!
+	mmY = _mm_or_ps( _mm_and_ps(needsnew,cury), _mm_andnot_ps(needsnew,mmY)); //with no if conditional!
+	// }
 
 	MAPSSE;
 
 }
 outsideloop:
 
-//printf("o%d\n", totalComputed);
+int totalC = TotalComputed.m128_i32[0]+TotalComputed.m128_i32[1]+TotalComputed.m128_i32[2]+TotalComputed.m128_i32[3];
+printf("o%d\n", totalC);
+int escaped = Howmanyescaped.m128_i32[0]+Howmanyescaped.m128_i32[1]+Howmanyescaped.m128_i32[2]+Howmanyescaped.m128_i32[3];
 int unescaped = (UnseenBasinSize*UnseenBasinSize) - escaped;
 double ratio = unescaped / ((double)UnseenBasinSize*UnseenBasinSize);
 return standardToColors(pSurface, ratio, 0.75);
@@ -183,3 +144,16 @@ fy -= dy;
 
 return standardToColors(pSurface, totalDistance, UnseenBasinSize*UnseenBasinSize*1.2);
 }
+
+
+/*
+	if (key==SDLK_z) {
+	*needRedraw = getBinaryOpt(wasKeyCombo, key, bShift);
+	}
+int getBinaryOpt(int a, int b, int q)
+{
+	return (a & q)|(b & ~q);
+}
+looking for optimization
+*/
+
