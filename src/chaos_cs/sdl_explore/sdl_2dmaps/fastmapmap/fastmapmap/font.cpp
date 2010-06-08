@@ -234,8 +234,8 @@ SDLFont *initFontStruct(char *fontdir, float r, float g, float b, float a)
   fclose(fp);
 
   // let's create our font structure now
-  tempFont = new SDLFont;
-  tempFont->data = new unsigned char[width*width*4];
+  tempFont = (SDLFont*) malloc(sizeof( SDLFont));
+  tempFont->data = (unsigned char*) calloc(sizeof(unsigned char), width*width*4);
   tempFont->width = width;
   tempFont->charWidth = width/16;
 
@@ -275,7 +275,7 @@ SDLFont *initFontStruct(char *fontdir, float r, float g, float b, float a)
   SDL_FreeSurface(tempSurface);
 
   // let's create a variable to hold all the widths of the font
-  tempFont->widths = new int[256];
+  tempFont->widths = (int*) calloc(sizeof(int), 256);
 
   // now read in the information about the width of each character
   sprintf(tempString,"%s/%s",fontdir,"font.dat");
@@ -404,10 +404,10 @@ int stringWidth(SDLFont *font,char *str,...)
 // Clear up
 void freeFont(SDLFont *font)
 {
-  delete [] font->widths;
-  delete [] font->data;
+  free (font->widths);
+  free(font->data);
   SDL_FreeSurface(font->font);
-  delete font;
+  free( font);
 }
 
 
