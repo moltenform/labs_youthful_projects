@@ -62,17 +62,18 @@ __m128 iscurylocationtoobig = allZeros;
 	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0); //symmetrical, so don't just mult by 2.
 	__m128 mXTmp;
 	MAPSSEINIT;
+__m128 istoobigX, istoobigY, istoobig, toomanyiters, needsnew;
 
 //state machine.
 while (TRUE)
 {
 	counts = _mm_add_ps(counts, allNumberOne); //inc counts
-	__m128 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
-	__m128 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
-	__m128 istoobig = _mm_or_ps(istoobigX, istoobigY);
+	 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
+	 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
+	 istoobig = _mm_or_ps(istoobigX, istoobigY);
 
-	__m128 toomanyiters = _mm_cmpgt_ps(counts, _mm_set1_ps(UnseenBasinSettling));
-	__m128 needsnew = _mm_or_ps(istoobig, toomanyiters);
+	 toomanyiters = _mm_cmpgt_ps(counts, _mm_set1_ps(UnseenBasinSettling));
+	 needsnew = _mm_or_ps(istoobig, toomanyiters);
 
 	if (needsnew.m128_i32[3]!=0||needsnew.m128_i32[2]!=0||needsnew.m128_i32[1]!=0||needsnew.m128_i32[0]!=0)
 	{
@@ -92,11 +93,23 @@ while (TRUE)
 		mmY = _mm_or_ps( _mm_and_ps(needsnew,cury), _mm_andnot_ps(needsnew,mmY));
 
 	}
-		//FIXES jaggedness! :
+	MAPSSE;
+	//FIXES jaggedness! :
 	counts = _mm_andnot_ps(iscurylocationtoobig, counts); //if iscurylocationtoobig is true, set counts to 0
 	
-	MAPSSE;
 
+	///UNROLL/////////////////
+	counts = _mm_add_ps(counts, allNumberOne); //inc counts
+	MAPSSE;
+	///END_UNROLL/////////////////
+	///UNROLL/////////////////
+	counts = _mm_add_ps(counts, allNumberOne); //inc counts
+	MAPSSE;
+	///END_UNROLL/////////////////
+	///UNROLL/////////////////
+	counts = _mm_add_ps(counts, allNumberOne); //inc counts
+	MAPSSE;
+	///END_UNROLL/////////////////
 }
 outsideloop:
 
