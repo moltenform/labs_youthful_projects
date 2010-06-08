@@ -5,7 +5,7 @@
 //#define UnseenBasinSize 256
 //#define UnseenBasinSettling 40 works
 #define UnseenBasinSize 128
-#define UnseenBasinSettling 20
+#define UnseenBasinSettling 40
 #define UnseenBasinAttractorDrawing 40
 #define UnseenBasinX0 -4.0f
 #define UnseenBasinX1 1.0f
@@ -43,71 +43,71 @@ return standardToColors(pSurface, ratio, 0.75);
 }
 
 
-
 int GetSizeOfAttractionBasinSSE(SDL_Surface* pSurface, double c1, double c2) 
 {
 float X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
 float dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
-
-__m128i allZeros = _mm_set1_epi32(0);
-__m128i allNumberOne = _mm_set1_epi32(1);//note that we might be able to add one by subtracting allOnes...
-__m128i allOnes = _mm_set1_epi32(0xffffffff); //-1; 
-
+//float curx = X0, cury = Y0; 
 __m128 curx = _mm_setr_ps(X0,X0,X0,X0); 
-__m128 cury;// = _mm_setr_ps(Y0,Y0+dy,Y0+dy+dy,Y0+dy+dy+dy);
-cury.m128_f32[0] = Y0; cury.m128_f32[1] = Y0+dy; cury.m128_f32[2] = Y0+dy*2; cury.m128_f32[3] = Y0+dy*3;
+__m128 cury; cury.m128_f32[0] = Y0; cury.m128_f32[1] = Y0+dy; cury.m128_f32[2] = Y0+dy*2; cury.m128_f32[3] = Y0+dy*3;
+
+__m128 allZeros = _mm_set1_ps(0.0f);
+__m128 counts = _mm_set1_ps((float) (UnseenBasinSettling + 10));
+__m128 allNumberOne = _mm_set1_ps(1.0f);
+__m128 Howmanyescaped = allZeros;
+__m128 totalComputed = allZeros;
+__m128 iscurylocationtoobig = allZeros;
 
 	__m128 mmX = _mm_setr_ps( 0.0,0.0,0.0,0.0);
-	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0);
+	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0); //symmetrical, so don't just mult by 2.
 	__m128 mXTmp;
 	MAPSSEINIT;
 
-	__m128i Counts = allZeros;
-	__m128i Howmanyescaped = allZeros;
-	__m128i TotalComputed = allZeros;
 //state machine.
 while (TRUE)
 {
-	Counts = _mm_add_epi32(Counts, allNumberOne); //inc counts
-	//doing all conditionals at once like this created a huge speedup: from 4975 to 2544!
+	counts = _mm_add_ps(counts, allNumberOne); //inc counts
 	__m128 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
 	__m128 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
-	union {__m128 m128; __m128i m128i;} istoobigU; istoobigU.m128 = _mm_or_ps(istoobigX, istoobigY);
-	__m128i istoobig = istoobigU.m128i;
+	__m128 istoobig = _mm_or_ps(istoobigX, istoobigY);
 
-	__m128i toomanycounts = _mm_cmpgt_epi32(Counts, _mm_set1_epi32(UnseenBasinSettling));
-	union {__m128 m128; __m128i m128i;} needsnewU; needsnewU.m128i = _mm_or_si128(toomanycounts, istoobig);
-	__m128 needsnew = needsnewU.m128;
+	__m128 toomanyiters = _mm_cmpgt_ps(counts, _mm_set1_ps(UnseenBasinSettling));
+	__m128 needsnew = _mm_or_ps(istoobig, toomanyiters);
 
-	TotalComputed = _mm_add_epi32(TotalComputed, _mm_and_si128( allNumberOne, needsnewU.m128i));
-	Howmanyescaped = _mm_add_epi32(Howmanyescaped, _mm_and_si128( allNumberOne, istoobig));
-	Counts = _mm_andnot_si128(needsnewU.m128i, Counts); //if needsnew is true, set counts to 0
+	if (needsnew.m128_i32[3]!=0||needsnew.m128_i32[2]!=0||needsnew.m128_i32[1]!=0||needsnew.m128_i32[0]!=0)
+	{
+		Howmanyescaped = _mm_add_ps(Howmanyescaped, _mm_and_ps(istoobig, allNumberOne));
+		totalComputed = _mm_add_ps(totalComputed, _mm_and_ps(needsnew, allNumberOne));
+		counts = _mm_andnot_ps(needsnew, counts); //if needsnew is true, set counts to 0
 
-	// if needsnew[0] != 0 || needsnew[1] != 0 || needsnew[2] != 0 ... {
-	curx = _mm_add_ps(curx, _mm_and_ps( needsnew, _mm_set1_ps(dx)));
-	__m128 iscurxlocationtoobig = _mm_cmpge_ps(curx, _mm_set1_ps(UnseenBasinX1));
-	cury = _mm_add_ps(cury, _mm_and_ps( iscurxlocationtoobig, _mm_set1_ps(dy * 4))); //skip ahead 4 at once
-	__m128 iscurylocationtoobig = _mm_cmpge_ps(cury, _mm_set1_ps(UnseenBasinY1));
-	if (iscurylocationtoobig.m128_i32[0] != 0 || iscurylocationtoobig.m128_i32[0] != 0 || iscurylocationtoobig.m128_i32[0] != 0
-		|| iscurylocationtoobig.m128_i32[0] != 0)
-		goto outsideloop;
-	mmX = _mm_or_ps( _mm_and_ps(needsnew,curx), _mm_andnot_ps(needsnew,mmX)); //with no if conditional!
-	mmY = _mm_or_ps( _mm_and_ps(needsnew,cury), _mm_andnot_ps(needsnew,mmY)); //with no if conditional!
-	// }
+		curx = _mm_add_ps(curx, _mm_and_ps(needsnew, _mm_set1_ps(dx)));
+		__m128 iscurxlocationtoobig = _mm_cmpge_ps(curx, _mm_set1_ps(UnseenBasinX1));
+		cury = _mm_add_ps(cury, _mm_and_ps( iscurxlocationtoobig, _mm_set1_ps(dy * 4))); //skip ahead 4 at once
+		iscurylocationtoobig = _mm_cmpge_ps(cury, _mm_set1_ps(UnseenBasinY1));
+		curx = _mm_or_ps( _mm_and_ps(iscurxlocationtoobig,_mm_set1_ps(UnseenBasinX0)), _mm_andnot_ps(iscurxlocationtoobig,curx)); 
+		if (iscurylocationtoobig.m128_i32[0]!=0 && iscurylocationtoobig.m128_i32[1]!=0 && iscurylocationtoobig.m128_i32[2]!=0 && iscurylocationtoobig.m128_i32[3]!=0)
+			goto outsideloop;
 
+		mmX = _mm_or_ps( _mm_and_ps(needsnew,curx), _mm_andnot_ps(needsnew,mmX));
+		mmY = _mm_or_ps( _mm_and_ps(needsnew,cury), _mm_andnot_ps(needsnew,mmY));
+
+	}
+		//FIXES jaggedness! :
+	counts = _mm_andnot_ps(iscurylocationtoobig, counts); //if iscurylocationtoobig is true, set counts to 0
+	
 	MAPSSE;
 
 }
 outsideloop:
 
-int totalC = TotalComputed.m128i_i32[0]+TotalComputed.m128i_i32[1]+TotalComputed.m128i_i32[2]+TotalComputed.m128i_i32[3];
-int escaped = Howmanyescaped.m128i_i32[0]+Howmanyescaped.m128i_i32[1]+Howmanyescaped.m128i_i32[2]+Howmanyescaped.m128i_i32[3];
-printf("o%d escaped%d\n", totalC, escaped );
-int unescaped = (UnseenBasinSize*UnseenBasinSize) - escaped;
-double ratio = unescaped / ((double)UnseenBasinSize*UnseenBasinSize);
+int totalC = (int)(totalComputed.m128_f32[0]+totalComputed.m128_f32[1]+totalComputed.m128_f32[2]+totalComputed.m128_f32[3]);
+int escaped = (int)(Howmanyescaped.m128_f32[0]+Howmanyescaped.m128_f32[1]+Howmanyescaped.m128_f32[2]+Howmanyescaped.m128_f32[3]);
+//printf("o%d\n", totalC);
+//int unescaped = (UnseenBasinSize*UnseenBasinSize) - escaped;
+int unescaped = (totalC) - escaped;
+double ratio = unescaped / ((double)totalC);
 return standardToColors(pSurface, ratio, 0.75);
 }
-
 
 
 int GetNumberOfAttractors(SDL_Surface* pSurface, double c1, double c2) 
