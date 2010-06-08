@@ -49,22 +49,22 @@ int GetSizeOfAttractionBasinSSE(SDL_Surface* pSurface, double c1, double c2)
 float X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
 float dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
 
-__m128i allZeros; allZeros.m128_i32[0]=allZeros.m128_i32[1]=allZeros.m128_i32[2]=allZeros.m128_i32[3] =0;
-__m128i allNumberOne; allNumberOne.m128_i32[0]=allNumberOne.m128_i32[1]=allNumberOne.m128_i32[2]=allNumberOne.m128_i32[3] =1;
-__m128i allOnes; allOnes.m128_i32[0]=allOnes.m128_i32[1]=allOnes.m128_i32[2]=allOnes.m128_i32[3] = 0xffffffff; //-1; 
-__m128i allToobig; allToobig.m128i_i32[0]=allToobig.m128i_i32[1]=allToobig.m128i_i32[2]=allToobig.m128i_i32[3] = UnseenBasinSettling; //-1; 
+__m128i allZeros = _mm_set1_epi32(0);
+__m128i allNumberOne = _mm_set1_epi32(1);//note that we might be able to add one by subtracting allOnes...
+__m128i allOnes = _mm_set1_epi32(0xffffffff); //-1; 
 
-__m128 curx; curx.m128_f32[0]=curx.m128_f32[1]=curx.m128_f32[2]=curx.m128_f32[3] = X0;
-__m128 cury; cury.m128_f32[0]=Y0; cury.m128_f32[1]=Y0+dy; cury.m128_f32[2]=Y0+dy+dy; cury.m128_f32[3]=Y0+dy+dy+dy;
+__m128 curx = _mm_setr_ps(X0,X0,X0,X0); 
+__m128 cury;// = _mm_setr_ps(Y0,Y0+dy,Y0+dy+dy,Y0+dy+dy+dy);
+cury.m128_f32[0] = Y0; cury.m128_f32[1] = Y0+dy; cury.m128_f32[2] = Y0+dy*2; cury.m128_f32[3] = Y0+dy*3;
 
 	__m128 mmX = _mm_setr_ps( 0.0,0.0,0.0,0.0);
 	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0);
 	__m128 mXTmp;
 	MAPSSEINIT;
 
-	__m128 Counts; Counts.m128_i32[0]=Counts.m128_i32[1]=Counts.m128_i32[2]=Counts.m128_i32[3] = 0; //UnseenBasinSettling + 10;
-	__m128 Howmanyescaped = allZeros;
-	__m128 TotalComputed = allZeros;
+	__m128i Counts = allZeros;
+	__m128i Howmanyescaped = allZeros;
+	__m128i TotalComputed = allZeros;
 //state machine.
 while (TRUE)
 {
@@ -72,17 +72,18 @@ while (TRUE)
 	//doing all conditionals at once like this created a huge speedup: from 4975 to 2544!
 	__m128 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
 	__m128 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
-	__m128 istoobig = _mm_or_ps(istoobigX, istoobigY);
+	union {__m128 m128; __m128i m128i;} istoobigU; istoobigU.m128 = _mm_or_ps(istoobigX, istoobigY);
+	__m128i istoobig = istoobigU.m128i;
 
-	__m128 toomanycounts = _mm_cmpgt_epi32(Counts, UnseenBasinSettling);
-	__m128 needsnew = _mm_or_ps(toomanycounts, istoobig);
+	__m128i toomanycounts = _mm_cmpgt_epi32(Counts, _mm_set1_epi32(UnseenBasinSettling));
+	union {__m128 m128; __m128i m128i;} needsnewU; needsnewU.m128i = _mm_or_si128(toomanycounts, istoobig);
+	__m128 needsnew = needsnewU.m128;
 
-	TotalComputed = _mm_add_epi32(TotalComputed, _mm_and_ps( allNumberOne, needsnew));
-	Howmanyescaped = _mm_add_epi32(Howmanyescaped, _mm_and_ps( allNumberOne, istoobig));
-	Counts = _mm_andnot_ps(needsnew, Counts); //if needsnew is true, set counts to 0
+	TotalComputed = _mm_add_epi32(TotalComputed, _mm_and_si128( allNumberOne, needsnewU.m128i));
+	Howmanyescaped = _mm_add_epi32(Howmanyescaped, _mm_and_si128( allNumberOne, istoobig));
+	Counts = _mm_andnot_si128(needsnewU.m128i, Counts); //if needsnew is true, set counts to 0
 
 	// if needsnew[0] != 0 || needsnew[1] != 0 || needsnew[2] != 0 ... {
-	
 	curx = _mm_add_ps(curx, _mm_and_ps( needsnew, _mm_set1_ps(dx)));
 	__m128 iscurxlocationtoobig = _mm_cmpge_ps(curx, _mm_set1_ps(UnseenBasinX1));
 	cury = _mm_add_ps(cury, _mm_and_ps( iscurxlocationtoobig, _mm_set1_ps(dy * 4))); //skip ahead 4 at once
@@ -99,9 +100,9 @@ while (TRUE)
 }
 outsideloop:
 
-int totalC = TotalComputed.m128_i32[0]+TotalComputed.m128_i32[1]+TotalComputed.m128_i32[2]+TotalComputed.m128_i32[3];
-printf("o%d\n", totalC);
-int escaped = Howmanyescaped.m128_i32[0]+Howmanyescaped.m128_i32[1]+Howmanyescaped.m128_i32[2]+Howmanyescaped.m128_i32[3];
+int totalC = TotalComputed.m128i_i32[0]+TotalComputed.m128i_i32[1]+TotalComputed.m128i_i32[2]+TotalComputed.m128i_i32[3];
+int escaped = Howmanyescaped.m128i_i32[0]+Howmanyescaped.m128i_i32[1]+Howmanyescaped.m128i_i32[2]+Howmanyescaped.m128i_i32[3];
+printf("o%d escaped%d\n", totalC, escaped );
 int unescaped = (UnseenBasinSize*UnseenBasinSize) - escaped;
 double ratio = unescaped / ((double)UnseenBasinSize*UnseenBasinSize);
 return standardToColors(pSurface, ratio, 0.75);
