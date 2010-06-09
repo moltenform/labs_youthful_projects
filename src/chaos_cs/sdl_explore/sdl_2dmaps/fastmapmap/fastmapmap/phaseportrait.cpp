@@ -146,6 +146,76 @@ fy -= dy;
 }
 }
 
+
+void DrawEscapeTime( SDL_Surface* pSurface, double c1, double c2, int width) 
+{
+double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
+int height=width;
+double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+fx = X0; fy = Y1; //y counts downwards
+int i, previousI=-1;
+for (int py=0; py<height; py+=1)
+{
+	fx=X0;
+	for (int px = 0; px < width; px+=1)
+	{
+		x=fx; y=fy;
+
+		for (i=0; i<g_settings->basinsTime; i++)
+		{
+			MAPEXPRESSION;
+			x=x_; y=y_;
+			//note different break condition
+			if (ISTOOBIG(x*x+y*y)) break;
+		}
+		if (0) {
+		if (i == g_settings->basinsTime)
+			val = 0;//sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
+		else
+			//val = sqrt((double)i)/2.0;
+			val = (i/(double)g_settings->basinsTime)*4;
+
+		if (!gParamDrawBasinsWithBlueAlso) {
+			val = val / g_settings->basinsMaxColor;
+			if (val>=1.0)
+				newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
+			else {
+				int v = (int)(val*255);
+				newcol = SDL_MapRGB( pSurface->format , v,v,v );
+			}
+		}else {
+			//val += 0.5; if (val>1) val-=1;
+			//newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
+			val = sqrt(val) / sqrt(g_settings->basinsMaxColor);
+			if (val>=1.0) val=1.0; if (val<0.0) val=0.0;
+			val=val*2-1;
+			if (val<=0)
+				b=255, r=g= (Uint32) ((1+val)*255.0);
+			else
+				r=g=b= (Uint32) ((1-val)*255.0);
+			newcol = SDL_MapRGB( pSurface->format , r,g,b );
+		}
+		} else {
+			if (i == g_settings->basinsTime)
+				newcol = g_white;//SDL_MapRGB( pSurface->format , 245,245,245 );
+			else
+				newcol = (i==previousI || px==0)?g_white:0, previousI=i;
+		}
+		
+		
+		pPosition = ( char* ) pSurface->pixels ; //determine position
+		pPosition += ( pSurface->pitch * py ); //offset by y
+		pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+
+		fx += dx;
+	}
+fy -= dy;
+}
+}
+
+
 BOOL gParamMoreQuadrantContrast=FALSE;
 //Same as DrawBasins but quantize to 4 colors based on which quadrant.
 void DrawBasinsQuadrant( SDL_Surface* pSurface, double c1, double c2, int width) 
@@ -225,4 +295,6 @@ void renderLargeFigure( SDL_Surface* pSurface, int width, const char*filename )
 	SDL_SaveBMP(pRenderSurface, filenameext);
 	SDL_FreeSurface(pRenderSurface);
 }
+
+
 
