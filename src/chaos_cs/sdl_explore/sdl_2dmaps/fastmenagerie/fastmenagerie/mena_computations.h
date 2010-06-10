@@ -1,3 +1,9 @@
+//SSE Integer instructions. but why does a mask from return ?
+//http://msdn.microsoft.com/en-us/library/8ayabe4k%28v=VS.80%29.aspx
+//http://msdn.microsoft.com/en-US/library/h4xscxat%28v=VS.80%29.aspx
+//http://msdn.microsoft.com/en-us/library/w8kez9sf%28v=VS.80%29.aspx
+//http://msdn.microsoft.com/en-us/library/k87x524b%28VS.71%29.aspx
+
 
 //could also draw which plots have the most transience. but
 //additional figures: which have multiple attractors, average values, variance
@@ -5,7 +11,7 @@
 //#define UnseenBasinSize 256
 //#define UnseenBasinSettling 40 works
 #define UnseenBasinSize 128
-#define UnseenBasinSettling 40
+#define UnseenBasinSettling 42
 #define UnseenBasinAttractorDrawing 40
 #define UnseenBasinX0 -4.0f
 #define UnseenBasinX1 1.0f
@@ -68,11 +74,17 @@ __m128 istoobigX, istoobigY, istoobig, toomanyiters, needsnew;
 while (TRUE)
 {
 	counts = _mm_add_ps(counts, allNumberOne); //inc counts
-	 istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
-	 istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
-	 istoobig = _mm_or_ps(istoobigX, istoobigY);
+	 //istoobigX =  _mm_or_ps(_mm_cmplt_ps( mmX, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmX, _mm_set1_ps(1e2f)));
+	 //istoobigY =  _mm_or_ps(_mm_cmplt_ps( mmY, _mm_set1_ps(-1e2f)), _mm_cmpgt_ps( mmY, _mm_set1_ps(1e2f)));
+	 //istoobig = _mm_or_ps(istoobigX, istoobigY);
+	//avoid abs value by flipping a sign every time? well, what if it changes sign every time too?
+//__m128 magnitude = _mm_add_ps(_mm_mul_ps(mmX,mmX),_mm_mul_ps(mmY,mmY));
+//istoobig = _mm_cmpgt_ps( magnitude, _mm_set1_ps(1e3f)); //use SSE exp itself here?
+__m128 xplusy = _mm_add_ps(mmX, mmY);
+__m128 magnitudeEstimate = _mm_mul_ps(xplusy,xplusy);
+istoobig = _mm_cmpgt_ps( magnitudeEstimate, _mm_set1_ps(1e3f));
 
-	 toomanyiters = _mm_cmpgt_ps(counts, _mm_set1_ps(UnseenBasinSettling));
+	 toomanyiters = _mm_cmpgt_ps(counts, _mm_set1_ps(UnseenBasinSettling/6));
 	 needsnew = _mm_or_ps(istoobig, toomanyiters);
 
 	if (needsnew.m128_i32[3]!=0||needsnew.m128_i32[2]!=0||needsnew.m128_i32[1]!=0||needsnew.m128_i32[0]!=0)
@@ -94,22 +106,15 @@ while (TRUE)
 
 	}
 	MAPSSE;
-	//FIXES jaggedness! :
-	counts = _mm_andnot_ps(iscurylocationtoobig, counts); //if iscurylocationtoobig is true, set counts to 0
+	MAPSSE;
+	MAPSSE;
+	MAPSSE;
+	MAPSSE;
+	MAPSSE;
 	
 
-	///UNROLL/////////////////
-	counts = _mm_add_ps(counts, allNumberOne); //inc counts
-	MAPSSE;
-	///END_UNROLL/////////////////
-	///UNROLL/////////////////
-	counts = _mm_add_ps(counts, allNumberOne); //inc counts
-	MAPSSE;
-	///END_UNROLL/////////////////
-	///UNROLL/////////////////
-	counts = _mm_add_ps(counts, allNumberOne); //inc counts
-	MAPSSE;
-	///END_UNROLL/////////////////
+	//FIXES jaggedness! :
+	counts = _mm_andnot_ps(iscurylocationtoobig, counts); //if iscurylocationtoobig is true, set counts to 0
 }
 outsideloop:
 
@@ -119,7 +124,8 @@ int escaped = (int)(Howmanyescaped.m128_f32[0]+Howmanyescaped.m128_f32[1]+Howman
 //int unescaped = (UnseenBasinSize*UnseenBasinSize) - escaped;
 int unescaped = (totalC) - escaped;
 double ratio = unescaped / ((double)totalC);
-return standardToColors(pSurface, ratio, 0.75);
+//ratio = fmod(ratio*5, 0.75);
+return standardToColors(pSurface, sqrt(ratio), sqrt(0.75));
 }
 
 
