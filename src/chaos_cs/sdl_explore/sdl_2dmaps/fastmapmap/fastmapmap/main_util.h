@@ -29,8 +29,8 @@ void util_savefile(SDL_Surface* pSurface)
 
 void util_switchModes(BOOL bShift)
 {
-	if (bShift) { //get back to before where started by calling many times. there are 7 modes, so go 6.
-		for (int i=0; i<6; i++) util_switchModes(FALSE);
+	if (bShift) { //get back to before where started by calling many times. there are 9 modes, so go 8.
+		for (int i=0; i<9-1; i++) util_switchModes(FALSE);
 		return;}
 	switch(g_settings->drawingMode)
 	{
@@ -40,8 +40,10 @@ void util_switchModes(BOOL bShift)
 		case DrawModeBasinsDifference: g_settings->drawingMode = DrawModePhase; break;
 		case DrawModePhase: g_settings->drawingMode = DrawModeColorLine; break;
 		case DrawModeColorLine: g_settings->drawingMode = DrawModeColorDisk; break;
-		case DrawModeColorDisk: g_settings->drawingMode = DrawModeBasinsDistance; break;
-		default: g_settings->drawingMode = DrawModePhase; break; //shouldn't be here
+		case DrawModeColorDisk: g_settings->drawingMode = DrawModeEscapeTimeLines; break;
+		case DrawModeEscapeTimeLines: g_settings->drawingMode = DrawModeEscapeTime; break;
+		case DrawModeEscapeTime: g_settings->drawingMode = DrawModeBasinsDistance; break;
+		default: g_settings->drawingMode = DrawModeBasinsDistance; break; //should not occur.
 	}
 }
 void util_getNumberFrames(SDL_Surface *pSurface)
@@ -69,7 +71,7 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
 			g_settings->colorsStep = MAX(0, g_settings->colorsStep+ direction*1);
 		else if (g_settings->drawingMode == DrawModeEscapeTime || g_settings->drawingMode == DrawModeEscapeTimeLines)
-			;
+			g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
 		else
 			g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
 		
@@ -79,7 +81,7 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
 			g_settings->colorDiskRadius *= (direction==1)? 1.1 : (1/1.1);
 		else if (g_settings->drawingMode == DrawModeEscapeTime || g_settings->drawingMode == DrawModeEscapeTimeLines)
-			;
+			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);
 		else
 			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);
 	}
@@ -161,6 +163,8 @@ void showInfoN(SDL_Surface *pSurface, int n)
 "\n"
 "4	Color lines\n"
 "	(Shift-4 for shaded disk, Shift + and Shift - change disk size, Alt-4 for one) \n"
+"5	Escape time\n"
+"	(Shift-5 for basins view, Alt-5 to fill basins) \n"
 "\n"
 "Alt-b		starts 'breathing' mode\n"
 "b, shift-b		adjust amplitude of breathing"
@@ -188,7 +192,7 @@ void showInfoN(SDL_Surface *pSurface, int n)
 "\n"
 "= or -		increase or decrease iterations\n"
 "Shift = or -		adjust coloring, shading\n"
-"Alt-D		change diagram coloring\n"
+"Alt-D, Alt-C		change diagram coloring\n"
 		, 30, 30, pSurface);
 
 	SDL_UpdateRect ( pSurface , 0 , 0 , 0 , 0 ) ;

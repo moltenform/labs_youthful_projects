@@ -1,7 +1,5 @@
 //Fastmapmap, Ben Fisher, 2010, GPL License.
-//There are 2 types of settings:
-//g_settings->foo 	persists when saved to disk.
-//gParamFoo			just held in memory
+// gParamBreathing and gParamFramesPerKeyframe are currently just held in memory, not persisted.
 
 //todo: make compatible w csphaseportrait.
 //todo: consider caching the first drawn diagram, of default view.
@@ -253,6 +251,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 			if (bShift) util_getNumberFrames(pSurface);
 			else g_settings->drawingMode = DrawModePhase; break;
 		case SDLK_4: g_settings->drawingMode = bShift? DrawModeColorDisk : DrawModeColorLine; break;
+		case SDLK_5: g_settings->drawingMode = bShift? DrawModeEscapeTime : DrawModeEscapeTimeLines; break;
 		case SDLK_TAB: util_switchModes(bShift); break;
 
 		//increase/decrease iters
@@ -288,12 +287,14 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	switch (key)
 	{
 		case SDLK_b: gParamBreathing = !gParamBreathing; break;
-		case SDLK_1: gParamDrawBasinsWithBlueAlso=!gParamDrawBasinsWithBlueAlso; break;
-		case SDLK_2: gParamMoreQuadrantContrast=!gParamMoreQuadrantContrast; break;
 		//bitwise operation. use xor. 1 causes bit to flip, 0 causes it to remain.
+		case SDLK_1: g_settings->drawingOptions ^= maskOptionsBasinColor; break;
+		case SDLK_2: g_settings->drawingOptions ^= maskOptionsQuadrantContrast; break;
 		case SDLK_4: g_settings->drawingOptions ^= maskOptionsColorShowJustOneLine; break;
+		case SDLK_5: g_settings->drawingOptions ^= maskOptionsEscapeFillIn; break;
 
-		case SDLK_d: toggleMenagerieMode(); *needDrawDiagram=TRUE; break;
+		case SDLK_c: g_settings->drawingOptions ^= maskOptionsDiagramColoring; *needDrawDiagram=TRUE; break;
+		case SDLK_d: g_settings->drawingOptions ^= maskOptionsDiagramMethod; *needDrawDiagram=TRUE; break;
 		default: wasKeyCombo =FALSE;
 	}
 

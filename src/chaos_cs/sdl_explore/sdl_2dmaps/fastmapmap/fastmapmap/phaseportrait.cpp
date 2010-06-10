@@ -69,9 +69,8 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width )
     }
 }
 
-//double largestSeenBasins; It didn't look very good when we used greatest-value to set colors.
+//It didn't look good to use greatest-value to set colors. Maybe 90th percentile would work better.
 
-BOOL gParamDrawBasinsWithBlueAlso=FALSE;
 //estimate "basins of attraction". Pixel is x0,y0, colored by final value after n iterations.
 void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
@@ -95,7 +94,7 @@ for (int py=0; py<height; py+=1)
 
 		if (g_settings->drawingMode==DrawModeBasinsDistance)
 		{
-			val = sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
+			val = sqrt( (x-fx)*(x-fx)+(y-fy)*(y-fy));
 		}
 		else if (g_settings->drawingMode==DrawModeBasinsX)
 		{
@@ -112,8 +111,7 @@ for (int py=0; py<height; py+=1)
 		}
 		else
 		{
-			
-			if (!gParamDrawBasinsWithBlueAlso) {
+			if (!(g_settings->drawingOptions & maskOptionsBasinColor)) {
 				val = val / g_settings->basinsMaxColor;
 				if (val>=1.0)
 					newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
@@ -149,7 +147,7 @@ fy -= dy;
 
 void DrawEscapeTime( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
-double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
+double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val, expectedMax;
 int height=width;
 double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
@@ -161,41 +159,42 @@ for (int py=0; py<height; py+=1)
 	for (int px = 0; px < width; px+=1)
 	{
 		x=fx; y=fy;
-
 		for (i=0; i<g_settings->basinsTime; i++)
 		{
-			MAPEXPRESSION;
-			x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
 			//note different break condition
-			if (ISTOOBIG(x*x+y*y)) break;
+			if ((x*x+y*y)>500) break;
 		}
-		if (0) {
-		if (i == g_settings->basinsTime)
-			val = 0;//sqrt( (x-fx)*(x-fx)+(y-fx)*(y-fx));
-		else
-			//val = sqrt((double)i)/2.0;
-			val = (i/(double)g_settings->basinsTime)*4;
-
-		if (!gParamDrawBasinsWithBlueAlso) {
-			val = val / g_settings->basinsMaxColor;
-			if (val>=1.0)
-				newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
-			else {
-				int v = (int)(val*255);
-				newcol = SDL_MapRGB( pSurface->format , v,v,v );
+		if (g_settings->drawingMode == DrawModeEscapeTime) {
+			//color based on how long it took to escape (like classic mandelbrot set method)
+			if (i == g_settings->basinsTime) {
+				val = (g_settings->drawingOptions & maskOptionsEscapeFillIn) ? 
+					sqrt( (x-fx)*(x-fx)+(y-fy)*(y-fy)) : 0; //as an option, also color the interior by distance from origin.
+				 expectedMax = g_settings->basinsMaxColor;
+			} else {
+				val = (i/(double)g_settings->basinsTime);
+				 expectedMax = g_settings->basinsMaxColor / 4.0; //4 as an approximate scaling
 			}
-		}else {
-			//val += 0.5; if (val>1) val-=1;
-			//newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
-			val = sqrt(val) / sqrt(g_settings->basinsMaxColor);
-			if (val>=1.0) val=1.0; if (val<0.0) val=0.0;
-			val=val*2-1;
-			if (val<=0)
-				b=255, r=g= (Uint32) ((1+val)*255.0);
-			else
-				r=g=b= (Uint32) ((1-val)*255.0);
-			newcol = SDL_MapRGB( pSurface->format , r,g,b );
-		}
+
+
+				if (!(g_settings->drawingOptions & maskOptionsBasinColor)) {
+					val = val / expectedMax;
+					if (val>=1.0)
+						newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
+					else {
+						int v = (int)(val*255);
+						newcol = SDL_MapRGB( pSurface->format , v,v,v );
+					}
+				}else {
+					val = sqrt(val) / sqrt(expectedMax);
+					if (val>=1.0) val=1.0; if (val<0.0) val=0.0;
+					val=val*2-1;
+					if (val<=0)
+						b=255, r=g= (Uint32) ((1+val)*255.0);
+					else
+						r=g=b= (Uint32) ((1-val)*255.0);
+					newcol = SDL_MapRGB( pSurface->format , r,g,b );
+				}
 		} else {
 			if (i == g_settings->basinsTime)
 				newcol = g_white;//SDL_MapRGB( pSurface->format , 245,245,245 );
@@ -216,7 +215,6 @@ fy -= dy;
 }
 
 
-BOOL gParamMoreQuadrantContrast=FALSE;
 //Same as DrawBasins but quantize to 4 colors based on which quadrant.
 void DrawBasinsQuadrant( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
@@ -224,7 +222,7 @@ int col1 = HSL2RGB(pSurface, 0.60277, 1.0, .45);
 int col2 = HSL2RGB(pSurface, 0.69444, 1.0, .45);
 int col3 = HSL2RGB(pSurface, 0.133, 1.0, .45);
 int col4 = HSL2RGB(pSurface, 0.1055, 1.0, .45);
-if (gParamMoreQuadrantContrast) { int tmp=col2; col2=col4; col4=tmp; }
+if (g_settings->drawingOptions & maskOptionsQuadrantContrast) { int tmp=col2; col2=col4; col4=tmp; }
 
 double fx,fy, x_,y_,x,y; char* pPosition; Uint32 newcol;
 int height=width;
@@ -276,6 +274,9 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 		case DrawModeBasinsQuadrant:  DrawBasinsQuadrant(pSurface, c1, c2, width); break;
 		case DrawModeColorLine:	DrawColorsLine(pSurface, c1, c2, width); break;
 		case DrawModeColorDisk:	DrawColorsDisk(pSurface, c1, c2, width); break;
+		case DrawModeEscapeTime:
+		case DrawModeEscapeTimeLines:
+			DrawEscapeTime(pSurface, c1, c2, width); break;
 		default: {massert(0, "Unknown drawing mode."); }
 	}
 }

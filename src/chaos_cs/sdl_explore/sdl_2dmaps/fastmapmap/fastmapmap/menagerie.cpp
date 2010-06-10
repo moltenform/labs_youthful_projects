@@ -19,11 +19,10 @@ we should, though, consider caching the main diagram.
 // This file computes the "menagerie diagram", a plot in parameter space.
 // there are two methods: computing lyapunov exponent, and counting pixels drawn in a phase portrait
 
-int gParamMenagerieMode=0;
-void toggleMenagerieMode() {gParamMenagerieMode = (gParamMenagerieMode+1)%4; }
+
 __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, double estimatedMax)
 {
-	if (!(gParamMenagerieMode&1)) {
+	if (!(g_settings->drawingOptions & maskOptionsDiagramColoring)) {
 		//rainbow colors
 		double val = (valin) / (estimatedMax);
 		if (val > estimatedMax) return SDL_MapRGB(pSurface->format, 50,0,0);
@@ -173,7 +172,7 @@ int DrawMenagerieThread( void* pStruct)
 		fx=X0;
 		for (int px = 0; px < width; px++)
 		{
-			if (gParamMenagerieMode==0||gParamMenagerieMode==1) 
+			if (!(g_settings->drawingOptions & maskOptionsDiagramMethod)) 
 				newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
 			else 
 				newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);

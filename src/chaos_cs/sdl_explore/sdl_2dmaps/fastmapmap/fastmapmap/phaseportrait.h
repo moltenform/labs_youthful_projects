@@ -8,8 +8,8 @@
 #define DrawModeBasinsX 11
 #define DrawModeBasinsDifference 12
 #define DrawModeBasinsQuadrant 13
-#define DrawModeEscapeTime 20
-#define DrawModeEscapeTimeLines 21
+#define DrawModeEscapeTimeLines 20
+#define DrawModeEscapeTime 21
 
 enum {
   maskOptionsDiagramMethod = 0xf0000000, //Diagram is lyapunov or countpixels
@@ -23,7 +23,6 @@ enum {
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
 void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename ) ;
-extern BOOL gParamMoreQuadrantContrast, gParamDrawBasinsWithBlueAlso;
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)
