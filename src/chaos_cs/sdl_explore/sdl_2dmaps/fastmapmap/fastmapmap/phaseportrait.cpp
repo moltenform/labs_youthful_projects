@@ -195,11 +195,19 @@ for (int py=0; py<height; py+=1)
 						r=g=b= (Uint32) ((1-val)*255.0);
 					newcol = SDL_MapRGB( pSurface->format , r,g,b );
 				}
-		} else {
-			if (i == g_settings->basinsTime)
-				newcol = g_white;//SDL_MapRGB( pSurface->format , 245,245,245 );
-			else
-				newcol = (i==previousI || px==0)?g_white:0, previousI=i;
+		} else if (g_settings->drawingMode == DrawModeEscapeTimeLines)  {
+			if (g_settings->drawingOptions & maskOptionsEscapeFillIn) //simply black if in attractor, white if not.
+				newcol = (i==g_settings->basinsTime) ? 0 : g_white; 
+			else {
+				//the result is an edge-detection of the escape-time plot.
+				//Credit: http://en.wikibooks.org/w/index.php?title=File:LCMJ_rabbit.jpg&filetimestamp=20080604124554
+				if (i == g_settings->basinsTime) //color inside white, and edge-detect the rest of the lines.
+					newcol = g_white;
+				else
+					newcol = (i==previousI || px==0)?g_white:0, previousI=i;
+			}
+
+			// when px==0, first encountered, and we don't want to draw a pixel there, so ignore.
 		}
 		
 		
@@ -211,6 +219,36 @@ for (int py=0; py<height; py+=1)
 		fx += dx;
 	}
 fy -= dy;
+}
+//draw again, but from left to right instead of from top to bottom.
+if (g_settings->drawingMode == DrawModeEscapeTimeLines && (g_settings->drawingOptions & maskOptionsEscapeAdditionalPass))
+{
+	previousI=-1;
+	fx = X0; 
+	for (int px = 0; px < width; px+=1)
+	{
+	fy = Y1; 
+	for (int py=0; py<height; py+=1)
+	{
+		x=fx; y=fy;
+		for (i=0; i<g_settings->basinsTime; i++) {
+			MAPEXPRESSION; x=x_; y=y_;
+			if ((x*x+y*y)>500) break;
+		}
+		if (i == g_settings->basinsTime) //color inside white, and edge-detect the rest of the lines.
+			newcol = g_white;
+		else
+			newcol = (i==previousI || py==0)?g_white:0, previousI=i;
+		if (newcol!=g_white) {
+		pPosition = ( char* ) pSurface->pixels ; //determine position
+		pPosition += ( pSurface->pitch * py ); //offset by y
+		pPosition += ( pSurface->format->BytesPerPixel * px ); //offset by x
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+		}
+		fy -= dy;
+	}
+	fx += dx;
+	}
 }
 }
 

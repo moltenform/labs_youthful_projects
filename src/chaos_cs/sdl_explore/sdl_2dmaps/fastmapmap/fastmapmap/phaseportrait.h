@@ -12,12 +12,13 @@
 #define DrawModeEscapeTime 21
 
 enum {
-  maskOptionsDiagramMethod = 0xf0000000, //Diagram is lyapunov or countpixels
-  maskOptionsDiagramColoring = 0x0f000000, //Diagram is hsl or black/white
-  maskOptionsBasinColor = 0x00f00000, //Basin colors include blue.
-  maskOptionsQuadrantContrast = 0x000f0000, //Contrast in quadrants.
-  maskOptionsEscapeFillIn = 0x0000f000, //Fill in basin when in escapetime mode.
-  maskOptionsColorShowJustOneLine = 0x00000f00 //when in color mode, show just one line.
+  maskOptionsDiagramMethod = 0x1<<31, //Diagram is lyapunov or countpixels
+  maskOptionsDiagramColoring = 0x1<<30, //Diagram is hsl or black/white
+  maskOptionsBasinColor = 0x1<<29, //Basin colors include blue.
+  maskOptionsQuadrantContrast = 0x1<<28, //Contrast in quadrants.
+  maskOptionsEscapeFillIn = 0x1<<27, //Fill in basin when in escapetime mode.
+  maskOptionsEscapeAdditionalPass = 0x1<<26, //In escapetime mode draw more lines
+  maskOptionsColorShowJustOneLine = 0x1<<25 //when in color mode, show just one line.
 
 } ;
 

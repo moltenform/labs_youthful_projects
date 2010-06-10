@@ -1,6 +1,7 @@
 //Fastmapmap, Ben Fisher, 2010, GPL License.
 // gParamBreathing and gParamFramesPerKeyframe are currently just held in memory, not persisted.
 
+//todo: warning when opening wrong formula.
 //todo: make compatible w csphaseportrait.
 //todo: consider caching the first drawn diagram, of default view.
 //todo: support zoom animations? other params animated?
@@ -291,7 +292,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_1: g_settings->drawingOptions ^= maskOptionsBasinColor; break;
 		case SDLK_2: g_settings->drawingOptions ^= maskOptionsQuadrantContrast; break;
 		case SDLK_4: g_settings->drawingOptions ^= maskOptionsColorShowJustOneLine; break;
-		case SDLK_5: g_settings->drawingOptions ^= maskOptionsEscapeFillIn; break;
+		case SDLK_5: if (!bShift) g_settings->drawingOptions ^= maskOptionsEscapeFillIn; 
+					 else g_settings->drawingOptions ^= maskOptionsEscapeAdditionalPass; break;
 
 		case SDLK_c: g_settings->drawingOptions ^= maskOptionsDiagramColoring; *needDrawDiagram=TRUE; break;
 		case SDLK_d: g_settings->drawingOptions ^= maskOptionsDiagramMethod; *needDrawDiagram=TRUE; break;
