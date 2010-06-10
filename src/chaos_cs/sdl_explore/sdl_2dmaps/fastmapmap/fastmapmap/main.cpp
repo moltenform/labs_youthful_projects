@@ -290,7 +290,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_b: gParamBreathing = !gParamBreathing; break;
 		case SDLK_1: gParamDrawBasinsWithBlueAlso=!gParamDrawBasinsWithBlueAlso; break;
 		case SDLK_2: gParamMoreQuadrantContrast=!gParamMoreQuadrantContrast; break;
-		case SDLK_4: g_settings->colorDiskRadius *= bShift?(1/1.1):1.1; break;
+		//bitwise operation. use xor. 1 causes bit to flip, 0 causes it to remain.
+		case SDLK_4: g_settings->drawingOptions ^= maskOptionsColorShowJustOneLine; break;
 
 		case SDLK_d: toggleMenagerieMode(); *needDrawDiagram=TRUE; break;
 		default: wasKeyCombo =FALSE;

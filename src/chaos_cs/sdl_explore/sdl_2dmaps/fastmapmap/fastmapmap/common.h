@@ -48,11 +48,13 @@ typedef struct
 	double seedy0;
 	double seedy1;
 
+	int drawingOptions; //a bit field. contains 8 settings.
 	int colorsStep;
 	double basinsMaxColor;
 	double colorDiskRadius;
 	double breatheRadius;
 } FastMapMapSettings;
+
 
 typedef struct
 {

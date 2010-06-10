@@ -104,6 +104,11 @@ You may need to edit common.h to specify the path to sdl.h.
 Move the binary into the 'out' directory, currently the 'data' and 'saves_b' directories
 must be in the same directory as the binary.
 
+In Windows mingw32,
+Rename the file 'Makefile' to 'Makefile_linux'
+Rename the file ''Makefile_mingw32' to 'Makefile'
+use mingw32-make to build.
+
 Some explanation
 -------------
 This is the first release of "fastmapmap", a program I wrote that plots 2D chaotic maps. 

@@ -68,6 +68,8 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 			g_settings->settlingTime = MAX(0, g_settings->settlingTime+ direction*15);
 		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
 			g_settings->colorsStep = MAX(0, g_settings->colorsStep+ direction*1);
+		else if (g_settings->drawingMode == DrawModeEscapeTime || g_settings->drawingMode == DrawModeEscapeTimeLines)
+			;
 		else
 			g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
 		
@@ -75,7 +77,9 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 		if (g_settings->drawingMode == DrawModePhase)
 			g_settings->seedsPerAxis = MAX(0, g_settings->seedsPerAxis+ direction*2);
 		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
-			gParamShowOnlyOneColorLine = !gParamShowOnlyOneColorLine;
+			g_settings->colorDiskRadius *= (direction==1)? 1.1 : (1/1.1);
+		else if (g_settings->drawingMode == DrawModeEscapeTime || g_settings->drawingMode == DrawModeEscapeTimeLines)
+			;
 		else
 			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);
 	}
@@ -156,7 +160,7 @@ void showInfoN(SDL_Surface *pSurface, int n)
 "3	Phase Portrait\n"
 "\n"
 "4	Color lines\n"
-"	(Shift-4 for shaded disk, Alt-4 and Alt-shift 4 change disk size) \n"
+"	(Shift-4 for shaded disk, Shift + and Shift - change disk size, Alt-4 for one) \n"
 "\n"
 "Alt-b		starts 'breathing' mode\n"
 "b, shift-b		adjust amplitude of breathing"

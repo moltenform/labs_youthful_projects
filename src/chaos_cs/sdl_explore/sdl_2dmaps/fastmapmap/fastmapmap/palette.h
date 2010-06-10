@@ -6,4 +6,3 @@ void switchPalette(SDL_Surface* pSurface);
 void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width ) ;
 void DrawColorsDisk( SDL_Surface* pSurface, double c1, double c2, int width ); 
 
-extern bool gParamShowOnlyOneColorLine;

@@ -31,6 +31,7 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","seedy0",(void *)&g_settings->seedy0, -2},
 {"double","seedy1",(void *)&g_settings->seedy1, 2},
 
+{"int","drawingOptions",(void *)&g_settings->drawingOptions, 0},
 {"int","colorsStep",(void *)&g_settings->colorsStep, 1},
 {"double","basinsMaxColor",(void *)&g_settings->basinsMaxColor, 4},
 {"double","colorDiskRadius",(void *)&g_settings->colorDiskRadius, 1},

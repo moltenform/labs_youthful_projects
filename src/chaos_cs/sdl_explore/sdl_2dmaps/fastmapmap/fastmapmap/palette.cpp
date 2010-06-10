@@ -3,13 +3,14 @@
 #include "palette.h"
 #include "float_cast.h"
 #include "whichmap.h"
+#include "phaseportrait.h"
 #include <math.h>
 
 //HSLRGB from http://www.geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm
 
 //we don't use a precomputed palette anymore. that might be more efficient, though.
 
-bool gParamShowOnlyOneColorLine = FALSE; //toggle with shift-plus
+
 void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 	int iter = g_settings->colorsStep;
@@ -31,7 +32,7 @@ void DrawColorsLine( SDL_Surface* pSurface, double c1, double c2, int width)
 			plotpointcolor(pSurface, px,py,color);
 		}
 		for (int i=0; i<iter; i++) { 
-			if (!gParamShowOnlyOneColorLine && i!=0) 
+			if (!(g_settings->drawingOptions & maskOptionsColorShowJustOneLine) && i!=0) 
 			{
 				px = lrint(width * ((x - X0) / (X1 - X0)));
 				py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));

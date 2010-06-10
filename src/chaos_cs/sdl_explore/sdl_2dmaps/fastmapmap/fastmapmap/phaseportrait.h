@@ -8,6 +8,18 @@
 #define DrawModeBasinsX 11
 #define DrawModeBasinsDifference 12
 #define DrawModeBasinsQuadrant 13
+#define DrawModeEscapeTime 20
+#define DrawModeEscapeTimeLines 21
+
+enum {
+  maskOptionsDiagramMethod = 0xf0000000, //Diagram is lyapunov or countpixels
+  maskOptionsDiagramColoring = 0x0f000000, //Diagram is hsl or black/white
+  maskOptionsBasinColor = 0x00f00000, //Basin colors include blue.
+  maskOptionsQuadrantContrast = 0x000f0000, //Contrast in quadrants.
+  maskOptionsEscapeFillIn = 0x0000f000, //Fill in basin when in escapetime mode.
+  maskOptionsColorShowJustOneLine = 0x00000f00 //when in color mode, show just one line.
+
+} ;
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
 void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename ) ;
