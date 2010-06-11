@@ -73,6 +73,9 @@ int countPhasePlotBasic(SDL_Surface* pSurface,double c1, double c2)
 	return g_white; //everything escaped.
 }
 
+
+
+
 //keep going until find one that goes the whole ways without escaping.
 //todo: it'd be better to try seedx/seedy points that are not close to the previous tried...
 int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)

@@ -218,7 +218,11 @@ while(TRUE)
 		
 		SDL_FillRect ( pSurface , NULL , g_white );  //clear surface
 		if (bShowDiagram) 
+		{
 			blitDiagram(pSurface, pSmallerSurface, diagramsLayout[1].screen_x,diagramsLayout[1].screen_y); 
+			double whicha = g_settings->a, whichb = g_settings->b;
+			DrawBasinsBasic(pSurface, whicha, whichb, &diagramsLayout[2]);
+		}
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		if (!gParamBreathing) { oscA=*a; oscB = *b; }
 		else { oscillateBreathing(*a,*b, &oscA, &oscB); }

@@ -1,5 +1,6 @@
 
 #include "common.h"
+#include "coordsdiagram.h" //maybe not the best architecturally
 
 
 #define DrawModeLeavesPhase 1
@@ -26,6 +27,7 @@ enum {
 
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width, int px ); 
 void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename ) ;
+void DrawBasinsBasic( SDL_Surface* pSurface, double c1, double c2, CoordsDiagramStruct * diagram); 
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)

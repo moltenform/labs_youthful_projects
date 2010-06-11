@@ -108,9 +108,9 @@ void drawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double 
 
 	// draw the first marker
 	doubleToScreenPixels(diagram, mark1x,mark1y, &xtic, &ytic);
-	plotlineRectangle(pSurface,xtic-4,xtic+5,ytic-4,ytic+5, SDL_MapRGB(pSurface->format, 255,0,255));
+	plotlineRectangle(pSurface,xtic-4,xtic+5,ytic-4,ytic+5, SDL_MapRGB(pSurface->format, 255,0,0));
 	
 	doubleToScreenPixels(diagram, mark2x,mark2y, &xtic, &ytic);
-	plotlineRectangle(pSurface,xtic-4,xtic+5,ytic-4,ytic+5, SDL_MapRGB(pSurface->format, 255,0,0));
+	plotlineRectangle(pSurface,xtic-4,xtic+5,ytic-4,ytic+5, SDL_MapRGB(pSurface->format, 255,0,255));
 }
 

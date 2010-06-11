@@ -2,6 +2,7 @@
 #include "float_cast.h"
 #include "whichmap.h"
 #include "palette.h"
+#include "coordsdiagram.h" //maybe not the best architecturally
 
 //note that these functions don't use the a and b from g_settings.
 //a "seed point" is an initial point. In some maps, choice of (x0,y0) changes behavior.
@@ -122,7 +123,43 @@ fy -= dy;
 }
 }
 
+void DrawBasinsBasic( SDL_Surface* pSurface, double c1, double c2, CoordsDiagramStruct * diagram) 
+{
+int width = diagram->screen_width, height=diagram->screen_height, xstart=diagram->screen_x, ystart=diagram->screen_y;
+double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
+double X0=*diagram->px0, X1=*diagram->px1, Y0=*diagram->py0, Y1=*diagram->py1;
+double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
+fx = X0; fy = Y1; //y counts downwards
+for (int py=0; py<height; py++)
+{
+	fx=X0;
+	for (int px = 0; px < width; px++)
+	{
+		x=fx; y=fy;
+		for (int i=0; i<120/4; i++)
+		{
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+		}
+		
+		if (ISTOOBIG(x)||ISTOOBIG(y))
+			newcol = g_white;
+		else
+			newcol = 0;
+		
+		pPosition = ( char* ) pSurface->pixels ; //determine position
+		pPosition += ( pSurface->pitch * (py+ystart) ); //offset by y
+		pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 
+		fx += dx;
+	}
+fy -= dy;
+}
+}
 
 
 
