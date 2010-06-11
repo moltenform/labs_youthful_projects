@@ -24,8 +24,8 @@
 #define BEN2 x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ c2*x),6.2831853);
 #define BEN2SUF "_ben2"
 
-#define MAPEXPRESSION BURGER
-#define MAPSUFFIX BURGERSUF
+#define MAPEXPRESSION HENON
+#define MAPSUFFIX HENONSUF
 #define DRAWPERIODIC 0
 
 #define SAVESFOLDER ("saves" MAPSUFFIX  )

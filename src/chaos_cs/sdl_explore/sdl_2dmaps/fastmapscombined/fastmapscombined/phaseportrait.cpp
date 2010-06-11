@@ -60,6 +60,60 @@ void DrawPhasePortraitStandard( SDL_Surface* pSurface, double c1, double c2, int
     }
 }
 
+void DrawPhasePortraitLeaves( SDL_Surface* pSurface, double c1, double c2, int width, int xstart ) 
+{
+	int SETTLE = 10, DRAWING = 22;
+	double sx0i= g_settings->sx, sx1i=g_settings->sx2, sy0i= g_settings->sy, sy1i=g_settings->sy2;
+	//keep higher one.
+	double sx0=MIN(sx0i,sx1i), sx1=MAX(sx0i,sx1i),sy0=MIN(sy0i,sy1i), sy1=MAX(sy0i,sy1i);
+	int nXpoints= 80; int nYpoints= 80;
+	int height=width;
+	double sxinc = (nXpoints==1 || sx1-sx0==0) ? 1e6 : (sx1-sx0)/(nXpoints-1);
+	double syinc = (nYpoints==1 || sy1-sy0==0) ? 1e6 : (sy1-sy0)/(nYpoints-1);
+
+	double x_,y_,x,y;
+	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+
+	for (double sx=sx0; sx<=sx1; sx+=sxinc)
+    {
+                for (double sy=sy0; sy<=sy1; sy+=syinc)
+                {
+                    x = sx; y=sy;
+					for (int ii=0; ii<SETTLE; ii++)
+                    {
+						MAPEXPRESSION;
+                        x=x_; y=y_;
+						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+                    }
+					for (int ii=0; ii<DRAWING; ii++)
+                    {
+						MAPEXPRESSION;
+                        x=x_; y=y_;
+						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+
+                        int px = lrint(width * ((x - X0) / (X1 - X0)));
+                        int py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
+                        if (py >= 0 && py < height && px>=0 && px<width)
+						{
+  Uint32 col = 0 ; Uint32 colR;  
+  char* pPosition = ( char* ) pSurface->pixels ; //determine position
+  pPosition += ( pSurface->pitch * py ); //offset by y
+  pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
+  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ; //copy pixel data
+
+  SDL_Color color ;
+  SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
+  colR = color.r;
+						Uint32 newcolor = (colR)-((colR)>>2); //add shade to that pixel
+
+  Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
+  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+				}
+            }
+        }
+    }
+}
+
 
 //estimate "basins of attraction". Pixel is x0,y0, colored by final value after n iterations.
 void DrawBasinsStandard( SDL_Surface* pSurface, double c1, double c2, int width, int xstart) 
@@ -168,8 +222,8 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width, int px 
 {
 	switch (g_settings->drawingMode)
 	{
-		case DrawModeStandardPhase: 
-		case DrawModeLeavesPhase: DrawPhasePortraitStandard(pSurface, c1, c2, width, px); break;
+		case DrawModeStandardPhase: DrawPhasePortraitStandard(pSurface, c1, c2, width, px); break;
+		case DrawModeLeavesPhase: DrawPhasePortraitLeaves(pSurface, c1, c2, width, px); break;
 		case DrawModeStandardBasins:  DrawBasinsStandard(pSurface, c1, c2, width, px); break;
 		
 		default: {massert(0, "Unknown drawing mode."); }
