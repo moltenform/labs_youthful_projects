@@ -41,11 +41,9 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"int","drawingTime",(void *)&g_settings->drawingTime, 80},
 {"int","basinsTime",(void *)&g_settings->basinsTime, 20},
 
-{"int","seedsPerAxis",(void *)&g_settings->seedsPerAxis, 40},
-{"double","seedx0",(void *)&g_settings->seedx0, -2},
-{"double","seedx1",(void *)&g_settings->seedx1, 2},
-{"double","seedy0",(void *)&g_settings->seedy0, -2},
-{"double","seedy1",(void *)&g_settings->seedy1, 2},
+{"int","numberSeedsX",(void *)&g_settings->numberSeedsX, 40},
+{"int","numberSeedsY",(void *)&g_settings->numberSeedsY, 40},
+
 
 {"int","drawingOptions",(void *)&g_settings->drawingOptions, 0},
 {"int","colorsStep",(void *)&g_settings->colorsStep, 1},

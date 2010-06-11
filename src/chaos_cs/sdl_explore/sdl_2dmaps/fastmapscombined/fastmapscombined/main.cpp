@@ -283,7 +283,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface); break;
-		case SDLK_SEMICOLON: if (bShift) util_onGetSeed(pSurface); else util_onGetMoreOptions(pSurface); break;
+		case SDLK_SEMICOLON: util_onGetMoreOptions(pSurface); break;
 		case SDLK_b:  renderBreathing(pSurface,diagramsLayout[0].screen_width); break;
 		case SDLK_RETURN: Dialog_Message("Rendering animation. This may take some time.", pSurface);
 						 if (!renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) 

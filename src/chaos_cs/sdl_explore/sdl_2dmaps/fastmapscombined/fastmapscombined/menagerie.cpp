@@ -49,7 +49,7 @@ __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, doub
 int countPhasePlotBasic(SDL_Surface* pSurface,double c1, double c2)
 {
 	double x, y, x_,y_, sx,sy;
-	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
+	double sx0= -2, sx1=2, sy0= -2, sy1=2;
 	int nXpoints=CountPixelsSeedsPerAxis, nYpoints=CountPixelsSeedsPerAxis;
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
@@ -84,7 +84,7 @@ int countPhasePlotLyapunov(SDL_Surface* pSurface,double c1, double c2)
 	double d0 = 1e-3, d1, total;
 	double x, y, x_,y_; double x2, y2; double xtmp, ytmp, sx, sy;
 	int N = CountPixelsSettle+CountPixelsDraw; int settle = CountPixelsSettle;
-	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
+	double sx0= -2, sx1=2, sy0= -2, sy1=2;
 	int nXpoints=CountPixelsSeedsPerAxis, nYpoints=CountPixelsSeedsPerAxis;
 	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
 	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);

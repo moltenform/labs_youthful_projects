@@ -49,16 +49,11 @@ typedef struct
 	double y0;
 	double y1;
 
-
 	int settlingTime;
 	int drawingTime;
 	int basinsTime;
-
-	int seedsPerAxis;
-	double seedx0;
-	double seedx1;
-	double seedy0;
-	double seedy1;
+	int numberSeedsX;
+	int numberSeedsY;
 
 	int drawingOptions; //a bit field. contains 8 settings.
 	int colorsStep;

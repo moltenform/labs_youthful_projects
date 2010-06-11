@@ -65,7 +65,7 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 		
 	} else {
 		if (g_settings->drawingMode == DrawModeStandardPhase)
-			g_settings->seedsPerAxis = MAX(0, g_settings->seedsPerAxis+ direction*2);
+			g_settings->drawingTime = MAX(0, g_settings->drawingTime + direction*10);
 		else if (g_settings->drawingMode == DrawModeStandardBasins)
 			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);			
 	}
@@ -80,20 +80,16 @@ void util_onGetExact(SDL_Surface *pSurface)
 }
 void util_onGetMoreOptions(SDL_Surface *pSurface)
 {
-	if (!Dialog_GetInt("Enter a value for seeds per axis:",pSurface,&g_settings->seedsPerAxis))
+	if (!Dialog_GetInt("Enter a value for # of x seeds:",pSurface,&g_settings->numberSeedsX))
+		return;
+	if (!Dialog_GetInt("Enter a value for # of y seeds:",pSurface,&g_settings->numberSeedsY))
 		return;
 	if (!Dialog_GetInt("Enter a value for settling:",pSurface,&g_settings->settlingTime))
 		return;
 	if (!Dialog_GetInt("Enter a value for how many points to draw:",pSurface,&g_settings->drawingTime))
 		return;
 }
-void util_onGetSeed(SDL_Surface *pSurface)
-{
-	if (!Dialog_GetDouble("Enter a value for seedx0:",pSurface,&g_settings->seedx0)) return;
-	if (!Dialog_GetDouble("Enter a value for seedx1:",pSurface,&g_settings->seedx1)) return;
-	if (!Dialog_GetDouble("Enter a value for seedy0:",pSurface,&g_settings->seedy0)) return;
-	if (!Dialog_GetDouble("Enter a value for seedy1:",pSurface,&g_settings->seedy1)) return;
-}
+
 
 enum {
 	BtnDiagramX = 10,
