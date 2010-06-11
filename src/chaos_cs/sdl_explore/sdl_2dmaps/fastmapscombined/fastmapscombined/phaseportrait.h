@@ -22,7 +22,8 @@ enum {
 
 } ;
 
-void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) ;
+
+void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width, int px ); 
 void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename ) ;
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)

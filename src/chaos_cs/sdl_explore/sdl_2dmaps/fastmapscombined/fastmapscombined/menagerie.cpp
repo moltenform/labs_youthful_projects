@@ -46,6 +46,32 @@ __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, doub
 	}
 }
 
+int countPhasePlotBasic(SDL_Surface* pSurface,double c1, double c2)
+{
+	double x, y, x_,y_; double x2, y2; double xtmp, ytmp, sx, sy;
+	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
+	int nXpoints=CountPixelsSeedsPerAxis, nYpoints=CountPixelsSeedsPerAxis;
+	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
+	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
+	for (double sxi=sx0; sxi<=sx1; sxi+=sxinc) {
+    for (double syi=sy0; syi<=sy1; syi+=syinc) {
+		if (StringsEqual(MAPSUFFIX,BURGERSUF) && sxi==sx0 && syi==sy0) {sx=0.0; sy=0.00001;}
+		else {sx=sxi; sy=syi;}
+		x=sx; y=sy; 
+		for (int i=0; i<100/4; i++)
+		{
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			if (ISTOOBIG(x) || ISTOOBIG(y)) break;
+		}
+		if (!(ISTOOBIG(x) || ISTOOBIG(y))) 
+			return SDL_MapRGB(pSurface->format, 60,60,60);
+	}
+	}
+	return g_white; //everything escaped.
+}
 
 //keep going until find one that goes the whole ways without escaping.
 //todo: it'd be better to try seedx/seedy points that are not close to the previous tried...
@@ -122,9 +148,7 @@ int DrawMenagerieThread( void* pStruct)
 		fx=X0;
 		for (int px = 0; px < width; px++)
 		{
-
-			newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
-			
+			newcol = countPhasePlotBasic(pMSurface, fx, fy);
 
 			pPosition = ( char* ) pMSurface->pixels ; //determine position
 			pPosition += ( pMSurface->pitch * py ); //offset by y
@@ -141,7 +165,7 @@ PassToThread pThread1; PassToThread pThread2;
 //#include "timecounter.h"
 void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
 {
-	//draw a color legend. todo: cache this?
+	/*draw a color legend
 	for (int px=pMSurface->w - LegendWidth; px<pMSurface->w; px++)
 	for (int py=0; py<pMSurface->h; py++) {
 		int color = standardToColors(pMSurface, (double)py, (double) pMSurface->h);
@@ -149,7 +173,7 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 		pPosition += ( pMSurface->pitch * (pMSurface->h - py-1) ); //offset by y
 		pPosition += ( pMSurface->format->BytesPerPixel * (px) ); //offset by x
 		memcpy ( pPosition , &color , pMSurface->format->BytesPerPixel ) ;
-	}
+	}*/
 	//put into boundsettings a copy of default bounds, which we'll use in countpixels.
 	FastMapsSettings currentSettings, boundsettings;
 	memcpy(&currentSettings, g_settings, sizeof(FastMapsSettings));

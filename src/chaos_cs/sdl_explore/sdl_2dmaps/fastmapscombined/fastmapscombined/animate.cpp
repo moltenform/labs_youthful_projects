@@ -106,7 +106,7 @@ BOOL previewAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 
 			SDL_FillRect ( pSurface , NULL , g_white );  //clear surface quickly
 			if (SDL_MUSTLOCK(pSurface)) SDL_LockSurface ( pSurface ) ;
-			DrawFigure(pSurface, g_settings->a, g_settings->b, width);
+			DrawFigure(pSurface, g_settings->a, g_settings->b, width, 0);
 			if (SDL_MUSTLOCK(pSurface)) SDL_UnlockSurface ( pSurface ) ;
 			
 			t+= dt;
@@ -154,7 +154,7 @@ BOOL renderAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
 
 		SDL_FillRect ( pFrameSurface , NULL , g_white );  //clear surface quickly
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_LockSurface ( pFrameSurface ) ;
-		DrawFigure(pFrameSurface, g_settings->a, g_settings->b, width);
+		DrawFigure(pFrameSurface, g_settings->a, g_settings->b, width, 0);
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_UnlockSurface ( pFrameSurface ) ;
 		snprintf(buf, sizeof(buf), "%s/frame%03d.bmp", SAVESFOLDER, n++);
 		SDL_SaveBMP(pFrameSurface, buf);
@@ -191,7 +191,7 @@ BOOL renderBreathing(SDL_Surface* pSurface, int width)
 		oscillateBreathing(g_settings->a,g_settings->b,&breatheA, &breatheB);
 		SDL_FillRect ( pFrameSurface , NULL , g_white );  //clear surface quickly
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_LockSurface ( pFrameSurface ) ;
-		DrawFigure(pFrameSurface, breatheA, breatheB, width);
+		DrawFigure(pFrameSurface, breatheA, breatheB, width, 0);
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_UnlockSurface ( pFrameSurface ) ;
 		snprintf(buf, sizeof(buf), "%s/frame%03d.bmp", SAVESFOLDER, i);
 		SDL_SaveBMP(pFrameSurface, buf);

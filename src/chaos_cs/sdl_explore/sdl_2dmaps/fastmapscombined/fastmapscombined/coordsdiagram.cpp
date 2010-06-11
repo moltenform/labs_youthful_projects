@@ -69,7 +69,7 @@ inline void plotpoint(SDL_Surface* pSurface, CoordsDiagramStruct * diagram, int 
   Uint32 newcol = 0x00ff0000; 
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 }
-void drawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double c1, double c2 ) 
+void drawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double mark1x, double mark1y, double mark2x, double mark2y ) 
 {
 	//find (0.0,0.0) in screen coords
 	int xzero, yzero;
@@ -80,8 +80,8 @@ void drawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double 
 	//draw vertical lines
 	for (int y=PlotY; y<PlotY+PlotHeight; y++)
 		plotpoint(pSurface,diagram, PlotX, y);
-	//for (int y=PlotY; y<PlotY+PlotHeight; y++) //with color bar, unnecessary.
-	//	plotpoint(pSurface,diagram, PlotX+PlotWidth-1, y);
+	for (int y=PlotY; y<PlotY+PlotHeight; y++)
+		plotpoint(pSurface,diagram, PlotX+PlotWidth-1, y);
 	if (xzero>PlotX && xzero<PlotX+PlotWidth) //y axis
 		for (int y=PlotY; y<PlotY+PlotHeight; y++)
 			plotpoint(pSurface,diagram, xzero, y);
@@ -106,11 +106,11 @@ void drawPlotGrid( SDL_Surface* pSurface, CoordsDiagramStruct * diagram, double 
 				plotpoint(pSurface,diagram, x, ytic);
 	}
 
-	// draw the marker
-	doubleToScreenPixels(diagram, c1,c2, &xtic, &ytic);
-	for (int x=xtic-4; x<xtic+5; x++)
-		for (int y=ytic-4; y<ytic+5; y++)
-				plotpoint(pSurface,diagram, x, y);
+	// draw the first marker
+	doubleToScreenPixels(diagram, mark1x,mark1y, &xtic, &ytic);
+	plotlineRectangle(pSurface,xtic-4,xtic+5,ytic-4,ytic+5, SDL_MapRGB(pSurface->format, 255,0,255));
 	
+	doubleToScreenPixels(diagram, mark2x,mark2y, &xtic, &ytic);
+	plotlineRectangle(pSurface,xtic-4,xtic+5,ytic-4,ytic+5, SDL_MapRGB(pSurface->format, 255,0,0));
 }
 

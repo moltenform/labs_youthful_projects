@@ -15,8 +15,9 @@
 #include "menagerie.h"
 
 CoordsDiagramStruct diagramsLayout[] = {
-	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 0,0,400,400,	0.0,1.0,0.0,1.0},
-	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 415,100,200,200,	0.0,1.0,0.0,1.0},
+	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 425,0,350,350,	0.0,1.0,0.0,1.0},
+	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 0,100,200,200,	0.0,1.0,0.0,1.0},
+	{&g_settings->seeddiagramx0, &g_settings->seeddiagramx1, &g_settings->seeddiagramy0, &g_settings->seeddiagramy1, 0,325,200,200,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
 };
 
@@ -26,12 +27,12 @@ BOOL gParamBreathing = FALSE;
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
-	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
+	double *a = &g_settings->a; double *b = &g_settings->b; 
+	double *a2 = &g_settings->a2; double *b2 = &g_settings->b2; double oscA, oscB;
 	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
-	int PlotX = diagramsLayout[1].screen_x, PlotY = diagramsLayout[1].screen_y;
-	int PlotWidth = diagramsLayout[1].screen_width, PlotHeight = diagramsLayout[1].screen_height;
+
 	BOOL isSuperDrag = FALSE, isSuperDragSqr=FALSE; int superDragIndex=-1, superDragPx=0, superDragPy=0; double superDragx0=0, superDragx1=0,superDragy0=0,superDragy1=0;
-	BOOL bShowDiagram = FALSE;
+	BOOL bShowDiagram = TRUE;
 
 	initializeObjectToDefaults();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
@@ -104,8 +105,16 @@ while(TRUE)
 		  // otherwise, moving a dot around in the diagram.
 		  else if ((buttons & SDL_BUTTON_LMASK))
 		  {
-			  if (mouse_x>PlotX && mouse_x<PlotX+PlotWidth && mouse_y>PlotY && mouse_y<PlotY+PlotHeight)
-				screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->a, &g_settings->b);
+			  int diagram = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
+			  if (diagram == 1) screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->a, &g_settings->b);
+			  else if (diagram == 2) screenPixelsToDouble(&diagramsLayout[2], mouse_x, mouse_y, &g_settings->sx, &g_settings->sy);
+			  needRedraw=TRUE;
+		  }
+		  else if ((buttons & SDL_BUTTON_RMASK))
+		  {
+			  int diagram = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
+			  if (diagram == 1) screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->a2, &g_settings->b2);
+			  else if (diagram == 2) screenPixelsToDouble(&diagramsLayout[2], mouse_x, mouse_y, &g_settings->sx2, &g_settings->sy2);
 			  needRedraw=TRUE;
 		  }
 	  }
@@ -212,8 +221,9 @@ while(TRUE)
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
 		if (!gParamBreathing) { oscA=*a; oscB = *b; }
 		else { oscillateBreathing(*a,*b, &oscA, &oscB); }
-		DrawFigure(pSurface, oscA, oscB, diagramsLayout[0].screen_width);
-		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[1], *a, *b);
+		DrawFigure(pSurface, oscA, oscB, diagramsLayout[0].screen_width, diagramsLayout[0].screen_x);
+		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[1], *a, *b, *a2, *b2);
+		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[2], g_settings->sx, g_settings->sy, g_settings->sx2, g_settings->sy2);
 		drawButtons(pSurface);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
