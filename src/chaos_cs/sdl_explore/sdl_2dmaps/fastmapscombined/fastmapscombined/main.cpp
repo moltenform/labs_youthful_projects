@@ -15,8 +15,8 @@
 #include "menagerie.h"
 
 CoordsDiagramStruct diagramsLayout[] = {
-	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 425,0,350,350,	0.0,1.0,0.0,1.0},
-	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 0,100,200,200,	0.0,1.0,0.0,1.0},
+	{&g_settings->x0, &g_settings->x1, &g_settings->y0, &g_settings->y1, 225,0,400,400,	0.0,1.0,0.0,1.0},
+	{&g_settings->diagramx0, &g_settings->diagramx1, &g_settings->diagramy0, &g_settings->diagramy1, 0,35,200,200,	0.0,1.0,0.0,1.0},
 	{&g_settings->seeddiagramx0, &g_settings->seeddiagramx1, &g_settings->seeddiagramy0, &g_settings->seeddiagramy1, 0,325,200,200,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
 };
@@ -115,6 +115,7 @@ while(TRUE)
 			  int diagram = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
 			  if (diagram == 1) screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->a2, &g_settings->b2);
 			  else if (diagram == 2) screenPixelsToDouble(&diagramsLayout[2], mouse_x, mouse_y, &g_settings->sx2, &g_settings->sy2);
+			  
 			  needRedraw=TRUE;
 		  }
 	  }
@@ -247,13 +248,13 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	switch (key)
 	{
 		//change drawing mode
-		case SDLK_1: g_settings->drawingMode = bShift? DrawModeBasinsX : DrawModeBasinsDistance; break;
-		case SDLK_2: g_settings->drawingMode = bShift? DrawModeBasinsDifference : DrawModeBasinsQuadrant ; break;
+		case SDLK_1: g_settings->drawingMode = bShift? DrawModeStandardBasins : DrawModeStandardPhase; break;
+		case SDLK_2: g_settings->drawingMode = bShift? DrawModeRandomPhase : DrawModeAlternatePhase; break;
 		case SDLK_3: 
 			if (bShift) util_getNumberFrames(pSurface);
-			else g_settings->drawingMode = DrawModePhase; break;
-		case SDLK_4: g_settings->drawingMode = bShift? DrawModeColorDisk : DrawModeColorLine; break;
-		case SDLK_5: g_settings->drawingMode = bShift? DrawModeEscapeTime : DrawModeEscapeTimeLines; break;
+			else g_settings->drawingMode = DrawModeLeavesPhase; break;
+		case SDLK_4: g_settings->drawingMode = bShift? DrawModeSmearRectangle : DrawModeSmearLine; break;
+		case SDLK_5: g_settings->drawingMode = bShift? DrawModePhasefircateHoriz : DrawModePhasefircate; break;
 		case SDLK_TAB: util_switchModes(bShift); break;
 
 		//increase/decrease iters

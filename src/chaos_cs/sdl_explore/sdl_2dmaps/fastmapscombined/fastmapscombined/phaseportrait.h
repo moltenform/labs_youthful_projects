@@ -1,15 +1,16 @@
 
 #include "common.h"
 
-#define DrawModePhase 1
-#define DrawModeColorLine 2
-#define DrawModeColorDisk 3
-#define DrawModeBasinsDistance 10
-#define DrawModeBasinsX 11
-#define DrawModeBasinsDifference 12
-#define DrawModeBasinsQuadrant 13
-#define DrawModeEscapeTimeLines 20
-#define DrawModeEscapeTime 21
+
+#define DrawModeLeavesPhase 1
+#define DrawModeAlternatePhase 10
+#define DrawModeRandomPhase 11
+#define DrawModeSmearLine 20
+#define DrawModeSmearRectangle 21
+#define DrawModePhasefircate 30
+#define DrawModePhasefircateHoriz 31
+#define DrawModeStandardPhase 90
+#define DrawModeStandardBasins 91
 
 enum {
   maskOptionsDiagramMethod = 0x1<<31, //Diagram is lyapunov or countpixels
@@ -28,12 +29,3 @@ void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename )
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)
-//floating point comparison. see also <float.h>'s DBL_EPSILON and DBL_MIN. 1e-11 also ok.
-#define VERYCLOSE(x1,x2) (fabs((x1)-(x2))<1e-8)
-
-#ifdef _MSC_VER //using Msvc
-#include <float.h>
-#define ISFINITE(x) (_finite(x))
-#else
-#define ISFINITE(x) (isfinite(x))
-#endif

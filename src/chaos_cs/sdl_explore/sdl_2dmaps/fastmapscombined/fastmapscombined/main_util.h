@@ -32,19 +32,11 @@ void util_switchModes(BOOL bShift)
 	if (bShift) { //get back to before where started by calling many times. there are 9 modes, so go 8.
 		for (int i=0; i<9-1; i++) util_switchModes(FALSE);
 		return;}
-	switch(g_settings->drawingMode)
+	g_settings->drawingMode = DrawModeStandardBasins;
+	/*switch(g_settings->drawingMode)
 	{
-		case DrawModeBasinsDistance: g_settings->drawingMode = DrawModeBasinsX; break;
-		case DrawModeBasinsX: g_settings->drawingMode = DrawModeBasinsQuadrant; break;
-		case DrawModeBasinsQuadrant: g_settings->drawingMode = DrawModeBasinsDifference; break;
-		case DrawModeBasinsDifference: g_settings->drawingMode = DrawModePhase; break;
-		case DrawModePhase: g_settings->drawingMode = DrawModeColorLine; break;
-		case DrawModeColorLine: g_settings->drawingMode = DrawModeColorDisk; break;
-		case DrawModeColorDisk: g_settings->drawingMode = DrawModeEscapeTimeLines; break;
-		case DrawModeEscapeTimeLines: g_settings->drawingMode = DrawModeEscapeTime; break;
-		case DrawModeEscapeTime: g_settings->drawingMode = DrawModeBasinsDistance; break;
-		default: g_settings->drawingMode = DrawModeBasinsDistance; break; //should not occur.
-	}
+	default: g_settings->drawingMode = DrawModeStandardBasins; break; //should not occur.
+	}*/
 }
 void util_getNumberFrames(SDL_Surface *pSurface)
 {
@@ -66,24 +58,16 @@ void util_showVals(SDL_Surface* pSurface)
 void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 {
 	if (!bShift) {
-		if (g_settings->drawingMode == DrawModePhase)
+		if (g_settings->drawingMode == DrawModeStandardPhase)
 			g_settings->settlingTime = MAX(0, g_settings->settlingTime+ direction*15);
-		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
-			g_settings->colorsStep = MAX(0, g_settings->colorsStep+ direction*1);
-		else if (g_settings->drawingMode == DrawModeEscapeTime || g_settings->drawingMode == DrawModeEscapeTimeLines)
-			g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
-		else
+		else if (g_settings->drawingMode == DrawModeStandardBasins)
 			g_settings->basinsTime = MAX(0, g_settings->basinsTime+ direction*1);
 		
 	} else {
-		if (g_settings->drawingMode == DrawModePhase)
+		if (g_settings->drawingMode == DrawModeStandardPhase)
 			g_settings->seedsPerAxis = MAX(0, g_settings->seedsPerAxis+ direction*2);
-		else if (g_settings->drawingMode == DrawModeColorDisk || g_settings->drawingMode == DrawModeColorLine)
-			g_settings->colorDiskRadius *= (direction==1)? 1.1 : (1/1.1);
-		else if (g_settings->drawingMode == DrawModeEscapeTime || g_settings->drawingMode == DrawModeEscapeTimeLines)
-			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);
-		else
-			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);
+		else if (g_settings->drawingMode == DrawModeStandardBasins)
+			g_settings->basinsMaxColor = MAX(0, g_settings->basinsMaxColor+ direction*0.7);			
 	}
 }
 
@@ -112,9 +96,9 @@ void util_onGetSeed(SDL_Surface *pSurface)
 }
 
 enum {
-	BtnDiagramX = 450,
+	BtnDiagramX = 10,
 	BtnDiagramY = 10,
-	BtnInfoX = 450+16+10,
+	BtnInfoX = 10+16+10,
 	BtnInfoY = 10,
 	BtnWidth=16, BtnHeight=16
 };
@@ -131,9 +115,8 @@ void drawButtons(SDL_Surface *pSurface)
 {
 	plotlineRectangle(pSurface, BtnDiagramX,BtnDiagramX+BtnWidth,BtnDiagramY,BtnDiagramY+BtnHeight, 0);
 	plotlineRectangle(pSurface, BtnInfoX,BtnInfoX+BtnWidth,BtnInfoY,BtnInfoY+BtnHeight, 0);
-	//draw a cross
-	plotlineHoriz(pSurface, BtnDiagramX, BtnDiagramX+BtnWidth, BtnDiagramY+BtnHeight/2, 0);
-	plotlineVert(pSurface, BtnDiagramX+BtnWidth/2, BtnDiagramY,BtnDiagramY+BtnHeight, 0);
+	//draw a smaller rect
+	plotlineRectangle(pSurface, BtnDiagramX+2,BtnDiagramX+BtnWidth-2,BtnDiagramY+2,BtnDiagramY+BtnHeight-2, 0);
 	//draw 3 dots
 	plotlineRectangle(pSurface, BtnInfoX+2,BtnInfoX+5,BtnInfoY+10,BtnInfoY+13, 0);
 	plotlineRectangle(pSurface, BtnInfoX+7,BtnInfoX+10,BtnInfoY+10,BtnInfoY+13, 0);

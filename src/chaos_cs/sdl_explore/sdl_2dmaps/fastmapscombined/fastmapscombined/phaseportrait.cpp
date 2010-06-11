@@ -5,8 +5,9 @@
 
 //note that these functions don't use the a and b from g_settings.
 //a "seed point" is an initial point. In some maps, choice of (x0,y0) changes behavior.
-void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width, int xstart ) 
+void DrawPhasePortraitStandard( SDL_Surface* pSurface, double c1, double c2, int width, int xstart ) 
 {
+	int SETTLE = 120, DRAWING = 80;
 	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
 	int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
 	int height=width;
@@ -17,32 +18,25 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width, 
 	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 
 	for (double sx=sx0; sx<=sx1; sx+=sxinc)
-            {
+    {
                 for (double sy=sy0; sy<=sy1; sy+=syinc)
                 {
                     x = sx; y=sy;
 
-					for (int ii=0; ii<(g_settings->settlingTime); ii++)
+					for (int ii=0; ii<SETTLE; ii++)
                     {
 						MAPEXPRESSION;
                         x=x_; y=y_;
 						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
                     }
-					for (int ii=0; ii<(g_settings->drawingTime); ii++)
+					for (int ii=0; ii<DRAWING; ii++)
                     {
 						MAPEXPRESSION;
                         x=x_; y=y_;
 						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 
-// DRAWPERIODIC means to draw many copies of the figure. set in whichmap.h
-#if DRAWPERIODIC
-						for (double rx=x-6.2831853*2; rx<x+6.2831853*2;rx+=6.2831853) {
-						for (double ry=y-6.2831853*2; ry<y+6.2831853*2;ry+=6.2831853) {
-#else
-						double rx=x, ry=y;
-#endif
-                        int px = lrint(width * ((rx - X0) / (X1 - X0)));
-                        int py = lrint(height - height * ((ry - Y0) / (Y1 - Y0)));
+                        int px = lrint(width * ((x - X0) / (X1 - X0)));
+                        int py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
                         if (py >= 0 && py < height && px>=0 && px<width)
 						{
 
@@ -55,24 +49,19 @@ void DrawPhasePortrait( SDL_Surface* pSurface, double c1, double c2, int width, 
   SDL_Color color ;
   SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
   colR = color.r;
-							
 						Uint32 newcolor = (colR)-((colR)>>2); //add shade to that pixel
 
   Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
   memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
-  #if DRAWPERIODIC
-						}}
-#endif
 				}
             }
         }
     }
 }
 
-//It didn't look good to use greatest-value to set colors. Maybe 90th percentile would work better.
 
 //estimate "basins of attraction". Pixel is x0,y0, colored by final value after n iterations.
-void DrawBasins( SDL_Surface* pSurface, double c1, double c2, int width, int xstart) 
+void DrawBasinsStandard( SDL_Surface* pSurface, double c1, double c2, int width, int xstart) 
 {
 double fx,fy, x_,y_,x,y; char* pPosition; Uint32 r,g,b, newcol; double val;
 int height=width;
@@ -91,20 +80,9 @@ for (int py=0; py<height; py+=1)
 			x=x_; y=y_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 		}
-
-		if (g_settings->drawingMode==DrawModeBasinsDistance)
-		{
-			val = sqrt( (x-fx)*(x-fx)+(y-fy)*(y-fy));
-		}
-		else if (g_settings->drawingMode==DrawModeBasinsX)
-		{
-			val = sqrt(fabs(x));
-		}
-		else if (g_settings->drawingMode==DrawModeBasinsDifference)
-		{
-			double prevx = x; MAPEXPRESSION;
-			val = fabs(x_-prevx);
-		}
+		
+		val = sqrt( (x-fx)*(x-fx)+(y-fy)*(y-fy));
+		
 		if (ISTOOBIG(x)||ISTOOBIG(y)) { 
 			// dark blue to distinguish from black.
 			newcol = SDL_MapRGB( pSurface->format , 0 , 0, 35 ) ; 
@@ -153,12 +131,10 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width, int px 
 {
 	switch (g_settings->drawingMode)
 	{
-		case DrawModePhase:  DrawPhasePortrait(pSurface, c1, c2, width, px); break;
-		case DrawModeBasinsDistance:  
-		case DrawModeBasinsDifference:  
-		case DrawModeBasinsX:  
-		case DrawModeBasinsQuadrant:
-			DrawBasins(pSurface, c1, c2, width, px); break;
+		case DrawModeStandardPhase: 
+		case DrawModeLeavesPhase: DrawPhasePortraitStandard(pSurface, c1, c2, width, px); break;
+		case DrawModeStandardBasins:  DrawBasinsStandard(pSurface, c1, c2, width, px); break;
+		
 		default: {massert(0, "Unknown drawing mode."); }
 	}
 }

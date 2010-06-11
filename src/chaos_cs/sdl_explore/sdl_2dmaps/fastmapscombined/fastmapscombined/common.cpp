@@ -26,10 +26,10 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","sy",(void *)&g_settings->sy, 0},
 {"double","sx2",(void *)&g_settings->sx2, 0},
 {"double","sy2",(void *)&g_settings->sy2, 0},
-{"double","seeddiagramx0",(void *)&g_settings->diagramx0, -1},
-{"double","seeddiagramx1",(void *)&g_settings->diagramx1, 1},
-{"double","seeddiagramy0",(void *)&g_settings->diagramy0, -1},
-{"double","seeddiagramy1",(void *)&g_settings->diagramy1, 1},
+{"double","seeddiagramx0",(void *)&g_settings->seeddiagramx0, -1},
+{"double","seeddiagramx1",(void *)&g_settings->seeddiagramx1, 1},
+{"double","seeddiagramy0",(void *)&g_settings->seeddiagramy0, -1},
+{"double","seeddiagramy1",(void *)&g_settings->seeddiagramy1, 1},
 
 
 {"double","x0",(void *)&g_settings->x0, -1},
