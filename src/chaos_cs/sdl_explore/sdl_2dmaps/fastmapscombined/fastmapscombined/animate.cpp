@@ -61,6 +61,8 @@ void getFrameInterpolate(double fwhere, FastMapsSettings * settings1, FastMapsSe
 
 	settingsOut->a = (1-fwhere)*settings1->a + fwhere*settings2->a;
 	settingsOut->b = (1-fwhere)*settings1->b + fwhere*settings2->b;
+	settingsOut->a2 = (1-fwhere)*settings1->a2 + fwhere*settings2->a2;
+	settingsOut->b2 = (1-fwhere)*settings1->b2 + fwhere*settings2->b2;
 	settingsOut->colorsStep = (int)((1-fwhere)*settings1->colorsStep + fwhere*settings2->colorsStep);
 }
 

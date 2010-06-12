@@ -157,6 +157,108 @@ void DrawPhasePortraitAlternate( SDL_Surface* pSurface, double a_one, double b_o
     }
 }
 
+void DrawPhasePortraitIntoArr( double c1, double c2, int width, int*arr ) 
+{
+	int SETTLE, DRAWING, nXpoints, nYpoints; double sx0,sx1,sy0,sy1;
+	if (g_settings->drawingMode==DrawModeSmearLine) SETTLE = 80, DRAWING = 100; //SETTLE = 100, DRAWING = 200;
+	else if (g_settings->drawingMode==DrawModeSmearRectangle) SETTLE = 80, DRAWING = 25000;
+		double sx0i= g_settings->sx, sx1i=g_settings->sx2, sy0i= g_settings->sy, sy1i=g_settings->sy2;
+		//keep higher one.
+		sx0=MIN(sx0i,sx1i), sx1=MAX(sx0i,sx1i),sy0=MIN(sy0i,sy1i), sy1=MAX(sy0i,sy1i);
+		nXpoints=4; nYpoints=4;
+//we could use a bit mask to force it only to contribute 1 (say reserve top bit to indicate that)
+	int height=width;
+	double sxinc = (nXpoints==1 || sx1-sx0==0) ? 1e6 : (sx1-sx0)/(nXpoints-1);
+	double syinc = (nYpoints==1 || sy1-sy0==0) ? 1e6 : (sy1-sy0)/(nYpoints-1);
+
+	double x_,y_,x,y;
+	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+
+	// if basin of attraction is smaller, will be fainter, but that's ok.
+	for (double sx=sx0; sx<=sx1; sx+=sxinc)
+    {
+                for (double sy=sy0; sy<=sy1; sy+=syinc)
+                {
+                    x = sx; y=sy;
+
+					for (int ii=0; ii<SETTLE/4; ii++)
+                    {
+						MAPEXPRESSION; x=x_; y=y_; MAPEXPRESSION; x=x_; y=y_;
+						MAPEXPRESSION; x=x_; y=y_; MAPEXPRESSION; x=x_; y=y_;
+						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+                    }
+					for (int ii=0; ii<DRAWING; ii++)
+                    {
+						MAPEXPRESSION; x=x_; y=y_;
+						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+
+                        int px = lrint(width * ((x - X0) / (X1 - X0)));
+                        int py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
+                        if (py >= 0 && py < height && px>=0 && px<width)
+						{
+							arr[py*width+px]++;
+						}
+					}
+        }
+    }
+}
+//what would it look like if all params ever were smeared together?
+int* SmearArray = NULL;
+void DrawSmear( SDL_Surface* pSurface, double a_one, double b_one, int width, int xstart) 
+{
+	int height=width;
+	if (!SmearArray) { SmearArray=(int*)malloc(sizeof(int)*width*height); }
+	memset(SmearArray, 0, sizeof(int)*width*height); 
+	int SMEARSTEPS = 25; //100;
+	//get data
+	double a_two= g_settings->a2,b_two= g_settings->b2;
+	double a0=MIN(a_one,a_two), a1=MAX(a_one,a_two),b0=MIN(b_one,b_two), b1=MAX(b_one,b_two);
+	for (double a=a0; a<a1; a+=(a1-a0)/SMEARSTEPS)
+		for (double b=b0; b<b1; b+=(b1-b0)/SMEARSTEPS)
+			DrawPhasePortraitIntoArr(a,b,width,SmearArray);
+int newcol; 
+for (int py=0; py<height; py++)
+{
+	for (int px = 0; px < width; px++)
+	{
+		double val = sqrt((double)SmearArray[py*width+px]) / sqrt((double)SMEARSTEPS*15); //each could have been hit many times
+		if (val>1.0) newcol= SDL_MapRGB(pSurface->format, 50,0,0);
+		else {val += 0.5; if (val>1) val-=1;
+		newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
+		}
+
+		char * pPosition = ( char* ) pSurface->pixels ; //determine position
+		pPosition += ( pSurface->pitch * py ); //offset by y
+		pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+	}
+}
+}
+//simply one phaseportrait but draw a long time.
+void DrawLongTime( SDL_Surface* pSurface, double a_one, double b_one, int width, int xstart) 
+{
+	int height=width;
+	if (!SmearArray) { SmearArray=(int*)malloc(sizeof(int)*width*height); }
+	memset(SmearArray, 0, sizeof(int)*width*height); 
+	DrawPhasePortraitIntoArr(a_one,b_one,width,SmearArray);
+int newcol; 
+for (int py=0; py<height; py++)
+{
+	for (int px = 0; px < width; px++)
+	{
+		double val = ((double)SmearArray[py*width+px]) / (150.0); //each could have been hit many times
+		if (val>1.0) newcol= SDL_MapRGB(pSurface->format, 50,0,0);
+		else {val += 0.5; if (val>1) val-=1;
+		newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
+		}
+
+		char * pPosition = ( char* ) pSurface->pixels ; //determine position
+		pPosition += ( pSurface->pitch * py ); //offset by y
+		pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+	}
+}
+}
 
 //estimate "basins of attraction". Pixel is x0,y0, colored by final value after n iterations.
 void DrawBasinsStandard( SDL_Surface* pSurface, double c1, double c2, int width, int xstart) 
@@ -273,7 +375,9 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width, int px 
 			DrawPhasePortraitAlternate(pSurface, c1, c2, width, px); break;
 			
 		case DrawModeStandardBasins:  DrawBasinsStandard(pSurface, c1, c2, width, px); break;
-		
+		case DrawModeSmearLine:  DrawSmear(pSurface, c1, c2, width, px); break;
+		case DrawModeSmearRectangle:  DrawLongTime(pSurface, c1, c2, width, px); break;
+
 		default: {massert(0, "Unknown drawing mode."); }
 	}
 }
