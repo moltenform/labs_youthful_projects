@@ -19,11 +19,12 @@
 #define UnseenBasinY1 2.5f
 
 
-int GetSizeOfAttractionBasinSimple(SDL_Surface* pSurface, double c1, double c2) 
+int GetSizeOfAttractionBasinSimple(SDL_Surface* pSurface, double dc1, double dc2) 
 {
-double fx,fy, x_,y_,x,y; 
-double X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
-double dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
+	float c1=(float)dc1, c2=(float)dc2;
+float fx,fy, x_,y_,x,y; 
+float X0=UnseenBasinX0, X1=UnseenBasinX1, Y0=UnseenBasinY0, Y1=UnseenBasinY1;
+float dx = (X1 - X0) / UnseenBasinSize, dy = (Y1 - Y0) / UnseenBasinSize;
 fx = X0; fy = Y1; //y counts downwards
 int escaped = 0, unescaped = 0;
 for (int py=0; py<UnseenBasinSize; py+=1)
@@ -32,10 +33,13 @@ for (int py=0; py<UnseenBasinSize; py+=1)
 	for (int px = 0; px < UnseenBasinSize; px+=1)
 	{
 		x=fx; y=fy;
-		for (int i=0; i<UnseenBasinSettling; i++)
+		for (int i=0; i<UnseenBasinSettling/5; i++)
 		{
-			MAPEXPRESSION;
-			x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
+			MAPEXPRESSION; x=x_; y=y_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 		}
 		if (!(ISTOOBIG(x)||ISTOOBIG(y))) unescaped++;
@@ -125,7 +129,7 @@ int escaped = (int)(Howmanyescaped.m128_f32[0]+Howmanyescaped.m128_f32[1]+Howman
 int unescaped = (totalC) - escaped;
 double ratio = unescaped / ((double)totalC);
 //ratio = fmod(ratio*5, 0.75);
-return standardToColors(pSurface, sqrt(ratio), sqrt(0.75));
+return standardToColors(pSurface, (ratio), (0.75));
 }
 
 
@@ -177,3 +181,148 @@ int getBinaryOpt(int a, int b, int q)
 looking for optimization
 */
 
+
+extern float compx, compy;
+
+int GetLookAtDualAttractorsForOnePoint(SDL_Surface* pSurface, double dc1, double dc2) 
+{
+	float c1=(float)dc1, c2=(float)dc2;
+float fx,fy, x_,y_,x,y; 
+
+x = 0.000001f; y = 0.0000011f;
+float totalFirst=0.0,totalSecond=0.0;
+for (int i=0; i<180/4; i++)
+{
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+}
+for (int i=0; i<3000/4; i++)
+{
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	MAPEXPRESSION; x=x_; y=y_; totalFirst += x*x+y*y;
+	MAPEXPRESSION; x=x_; y=y_; totalFirst += x*x+y*y;
+	MAPEXPRESSION; x=x_; y=y_; totalFirst += x*x+y*y;
+	MAPEXPRESSION; x=x_; y=y_; totalFirst += x*x+y*y;
+}
+x = compx; y = compy;
+for (int i=0; i<180/4; i++)
+{
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+}
+for (int i=0; i<3000/4; i++)
+{
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	MAPEXPRESSION; x=x_; y=y_; totalSecond += x*x+y*y;
+	MAPEXPRESSION; x=x_; y=y_; totalSecond += x*x+y*y;
+	MAPEXPRESSION; x=x_; y=y_; totalSecond += x*x+y*y;
+	MAPEXPRESSION; x=x_; y=y_; totalSecond += x*x+y*y;
+}
+
+if (ISTOOBIG(x)||ISTOOBIG(y)) return g_white;
+double val = fabs(totalFirst - totalSecond)/3000.0; //about that much
+
+return standardToColors(pSurface, val, 0.5);
+}
+
+FILE * fwritetest;
+int GetPhasePortraitSize(SDL_Surface* pSurface, double dc1, double dc2) 
+{
+	float c1=(float)dc1, c2=(float)dc2;
+float fx,fy, x_,y_,x,y; 
+
+x = 0.000001f; y = 0.0000011f;
+float totalFirst=0.0,totalSecond=0.0;
+float maxX=-100, minX=100, maxY=-100, minY=100;
+for (int i=0; i<280/4; i++)
+{
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+}
+for (int i=0; i<150/4; i++)
+{
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (x>maxX) maxX=x; if (y>maxY) maxY=y; if (x<minX) minX=x; if (y<minY) minY=y;
+	MAPEXPRESSION; x=x_; y=y_;
+	if (x>maxX) maxX=x; if (y>maxY) maxY=y; if (x<minX) minX=x; if (y<minY) minY=y;
+	MAPEXPRESSION; x=x_; y=y_;
+	if (x>maxX) maxX=x; if (y>maxY) maxY=y; if (x<minX) minX=x; if (y<minY) minY=y;
+	MAPEXPRESSION; x=x_; y=y_;
+	if (x>maxX) maxX=x; if (y>maxY) maxY=y; if (x<minX) minX=x; if (y<minY) minY=y;
+}
+
+if (ISTOOBIG(x)||ISTOOBIG(y)) {fprintf(fwritetest, "-1"); return g_white;}
+double val1 = (maxX-minX); 
+
+fprintf(fwritetest, "%f", val1);
+
+return standardToColors(pSurface, val1, 3.5);
+}
+//look at mean too? find relationship between value and slope? or location of fixed point?
+//if it changes linearly and fixed pt moves linearly, interesting.
+//if it changes sqr root and fixed pt moves sqr root, interesting.
+void dowritetest(SDL_Surface* pSurface)
+{
+	fwritetest=fopen("C:\\pydev\\mainsvn\\chaos_cs\\CsGraphingCalc\\online\\a_data.js","w");
+	double c1=0.35;
+	fprintf(fwritetest, "/*c1=%f*/ \n data=[", c1);
+	for (double c2 = 0.0; c2<2.0; c2+=0.005)
+	{
+		fprintf(fwritetest, "{x:%f,y:", c2);
+		GetPhasePortraitSize(pSurface, c1,c2);
+		fprintf(fwritetest, "},");
+	}
+	fprintf(fwritetest, "];");
+	fclose(fwritetest);
+}
+
+
+//the goal is to find the true m-set like shape, instead of fuzzy edges. Find which are connected, like a mandelbrot set?
+//wait until I get a faster computer to do this, I guess...
+int GetShapeOfWhichLeave(SDL_Surface* pSurface, double c1, double c2) 
+{
+double fx,fy, x_,y_,x,y; int i; 
+if (c1 < 0.917603 && c1 > -0.959229 && c2<1.733765 && c2>1.149658) return SDL_MapRGB(pSurface->format, 0,50,0);
+
+x = 0.0000000001; y = -0.00000000011;
+for (i=0; i<4000 / 16; i++)
+{
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	MAPEXPRESSION; x=x_; y=y_; 
+	if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+}
+
+if (ISTOOBIG(x)||ISTOOBIG(y)) {
+double escapeSpeed = i/4000.0;
+double val = 1-escapeSpeed;
+return standardToColors(pSurface, val, 1.0);
+}
+else return 0;
+}

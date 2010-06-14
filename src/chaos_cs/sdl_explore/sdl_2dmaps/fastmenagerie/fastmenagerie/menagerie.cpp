@@ -19,9 +19,22 @@ use strips to improve this. load balancing.
 
 Why lyapunov was slow: 
 -settle time only needs one pt, not two.
--log and sqrt were expensive calls. 
+-log and sqrt were expensive calls. sqrt takes up 140, on its own. log takes nearly 200. ouch...
 -no loop unrolling
+-using double is slightly slower than float
 
+The countpixels
+doesn't need any sqrt or log, and only needs 1/4 of drawing time because of its parallelism
+
+Loop unrolled 8 times was clearly better.
+Countpixels, without different cast to int:
+timeb:297timeb:441timeb:469timeb:450
+countpixels with different cast to int was about 307, 470,470,470
+
+might be useful: get sign.
+inline __m128 sign(__m128 m) {
+return _mm_and_ps(_mm_or_ps(_mm_and_ps(m, _mm_set1_ps(-0.0f)), _mm_set1_ps(1.0f)),
+ _mm_cmpneq_ps(m, _mm_setzero_ps())); }
 
 */
 #include "bit_approximations.h"
@@ -62,6 +75,9 @@ __inline unsigned int standardToColors(SDL_Surface* pSurface, double valin, doub
 
 	}
 }
+
+
+#include "mena_computations.h"
 
 
 //keep going until find one that goes the whole ways without escaping.
@@ -120,20 +136,20 @@ FoundTotal:
 
 
 //NOTE: use /fp:fast
-int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
+int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double dc1, double dc2)
 {
 	float d0 = 1e-3, d1, total;
 	float x, y, x_,y_; float x2, y2, x2_; float xtmp, ytmp, sx, sy;
-	
+	float c1=dc1, c2=dc2;
 	sx=0.0; sy=0.00001;
 	x=sx; y=sy; 
 	
-	for (int i=0; i<CountPixelsSettle/4; i++)
+	for (int i=0; i<CountPixelsSettle/8; i++)
 	{
-		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
-		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
-		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
-		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;  x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;  x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;  x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
+		x_ = c1*x - y*y; y= c2*y + x*y; x=x_;  x_ = c1*x - y*y; y= c2*y + x*y; x=x_;
 
 		if (ISTOOBIG(x) || ISTOOBIG(y))
 			return SDL_MapRGB(pSurface->format, 255,255,255);
@@ -159,6 +175,7 @@ int countPhasePlotLyapunovVector(SDL_Surface* pSurface,double c1, double c2)
 		//total+= log((1/d1_d0) );
 		//total+= wikipediaQuickLog((1/d1_d0) );	// and add about 5 to total
 		total+= flipcodefast_log2((1/d1_d0) );	//which works well!
+		//note that sqrt(x) = x*1/sqrt(x)
 
 		x_ = c1*x - y*y; y= c2*y + x*y;
 		x=x_;
@@ -205,6 +222,7 @@ FoundTotal:
 	total *= 1/(log(M_E)/log(2.0));
 	return standardToColors(pSurface, total, .8 * CountPixelsDraw);
 }
+
 
 
 
@@ -260,6 +278,44 @@ FoundTotal:
 		
 }
 
+
+int countPhasePlotPixelsSimple(SDL_Surface* pSurface, double c1, double c2, int whichThread, FastMapMapSettings * boundsettings)
+{
+	int * arr = whichThread ? arrT1:arrT2;
+	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
+	*whichID = (*whichID)+1;
+
+	float yseeds[4] = {0.000001f, 0.000002f,-0.0000011f,-0.0000019f};
+	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
+    float x, y, x_, y_; int counted=0;
+	for (int seed=0; seed<4; seed++)
+	{
+		x=0.0; y=yseeds[seed];
+		for (int ii=0; ii<(CountPixelsSettle); ii++)
+		{
+			MAPEXPRESSION;
+			x=x_; y=y_;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) {return 0;}
+		}
+		
+		for (int ii=0; ii<(CountPixelsDraw)/4; ii++)
+		{
+			MAPEXPRESSION;
+			x=x_; y=y_;
+			if (ISTOOBIG(x)||ISTOOBIG(y)) {return 0;}
+
+			//scale to pixel coordinates.
+			int px = lrint(PHASESIZE * ((x - X0) / (X1 - X0)));
+			int py = lrint(PHASESIZE - PHASESIZE * ((y - Y0) / (Y1 - Y0)));
+			if (py >= 0 && py < PHASESIZE && px>=0 && px<PHASESIZE)
+				if (arr[px+py*PHASESIZE]!=*whichID)
+				{ arr[px+py*PHASESIZE]=*whichID; counted++;}
+		}
+	}
+    	
+	return standardToColors(pSurface, (double)counted, (double)CountPixelsDraw);
+}
+
 // Each thread creates half of the diagram. The PassToThread struct simply passes arguments to function.
 #define LegendWidth 4
 typedef struct { int whichHalf; SDL_Surface* pMSurface; CoordsDiagramStruct*diagram; FastMapMapSettings * bounds; } PassToThread;
@@ -286,8 +342,9 @@ int DrawMenagerieThread( void* pStruct)
 				newcol = countPhasePlotLyapunov(pMSurface, fx, fy);
 			else 
 				newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);*/
-//newcol = alternateCountPhasePlotSSE(pMSurface,fx,fy,whichHalf);
-newcol = countPhasePlotLyapunovVector(pMSurface,fx,fy);
+			//newcol = GetShapeOfWhichLeave(pMSurface,fx,fy);
+newcol = countPhasePlotPixelsSimple(pMSurface,fx,fy,whichHalf,boundsettings);
+//newcol = GetSizeOfAttractionBasinSSE(pMSurface,fx,fy);
 
 			pPosition = ( char* ) pMSurface->pixels ; //determine position
 			pPosition += ( pMSurface->pitch * py ); //offset by y
@@ -304,6 +361,8 @@ PassToThread pThread1; PassToThread pThread2;
 #include "timecounter.h"
 void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*diagram) 
 {
+	dowritetest(pMSurface);
+
 	//draw a color legend. we don't need to cache this, it's very fast
 	for (int px=pMSurface->w - LegendWidth; px<pMSurface->w; px++)
 	for (int py=0; py<pMSurface->h; py++) {
@@ -325,9 +384,11 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
 	
 startTimer();
+for (int u=0; u<1; u++) {
 	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieThread, &pThread2);
 	DrawMenagerieThread(&pThread1);
 	SDL_WaitThread(thread2, NULL);
+}
 printf("timeb:%d", (int)stopTimer());
 
 /*startTimer();
@@ -336,6 +397,8 @@ printf("time1:%d", (int)stopTimer());
 startTimer();
 	DrawMenagerieThread(&pThread2);
 printf("time2:%d", (int)stopTimer());*/
+//printf("a%d b%d c%d d%d ", (int)flt_to_byte(0.1),(int)flt_to_byte(0.8),(int)flt_to_byte(45.2),(int)flt_to_byte(71.5));
+//printf("a%d b%d c%d d%d ", (int)flt_to_byte(0.0),(int)flt_to_byte(1.4),(int)flt_to_byte(255.4),(int)flt_to_byte(256.7));
 
 }
 
@@ -362,9 +425,19 @@ int alternateCountPhasePlotSSE(SDL_Surface* pSurface, double c1, double c2, int 
 		MAPSSE;
 		MAPSSE;
 		MAPSSE;
-		if (ISTOOBIGF(mmX.m128_f32[0]) || ISTOOBIGF(mmX.m128_f32[1]) || ISTOOBIGF(mmX.m128_f32[2]) || ISTOOBIGF(mmX.m128_f32[3]) ||
-			ISTOOBIGF(mmY.m128_f32[0]) || ISTOOBIGF(mmY.m128_f32[1]) || ISTOOBIGF(mmY.m128_f32[2]) || ISTOOBIGF(mmY.m128_f32[3]))
-		{counted=0; goto theend;} //note: shouldn't do this??? only one of the four dropped...
+// COOL: absolute value is apparently  _mm_andnot_ps(_mm_set1_ps(-0.0f), m);
+//significantly faster when we check istoobig for all at once like this,
+//check individual: timeb:365timeb:539timeb:541
+//check all at once, 32bit compare: timeb:300timeb:440timeb:442timeb:440timeb:446
+//check all at once, 64bit compare: timeb:289timeb:426timeb:423
+		
+		__m128 xplusy = _mm_add_ps(mmX, mmY);
+		__m128 magnitudeEstimate = _mm_mul_ps(xplusy,xplusy);
+		__m128 istoobig = _mm_cmpgt_ps( magnitudeEstimate, _mm_set1_ps(1e3f));
+		if (istoobig.m128_i64[0]!=0 || istoobig.m128_i64[1]!=0) // all 4 32bit compares is slower.
+		{counted=0; goto theend;} 
+		//note: shouldn't do this??? only one of the four dropped... we're making an assumption that if one isn't in the 
+		//attractor, than none of them are. fair assumption because the four starting points are close.
 	}
 	//drawing time.
 	float CW = 1.0f/(X1-X0);
@@ -377,34 +450,39 @@ int alternateCountPhasePlotSSE(SDL_Surface* pSurface, double c1, double c2, int 
 	__m128 xPrelimTimes256, yPrelim;
 	__m128i mmShiftW = _mm_set1_epi32(ShiftW);
 	__m128i mmShiftH = _mm_set1_epi32(ShiftH);
-	for (int i=0; i<CountPixelsDraw/2 /* /8 */; i++) //see how changes if drawing increases?
+	for (int i=0; i<CountPixelsDraw/8 /*/2 for comparison */; i++) //see how changes if drawing increases?
 	{
 		MAPSSE;
 		xPrelimTimes256 = _mm_mul_ps(mmX, mMultW);
 		yPrelim = _mm_mul_ps(mmY, mMultH);
 		
+/*yPrelim = _mm_add_ps(yPrelim, _mm_set1_ps( 256.0f)); //float x = a + 256.0f;
+		__m128i yPt = *(__m128i *)&yPrelim; //return ((*(int*)&x)&0x7fffff)>>15;
+		yPt = _mm_and_si128(yPt, _mm_set1_epi32(0x7fffff));
+		yPt = _mm_srli_epi32(yPt, 15); */
+
 		__m128i xPt256 = _mm_cvttps_epi32(xPrelimTimes256); //cast all to int at once. truncate mode.
 		__m128i yPt = _mm_cvttps_epi32(yPrelim); 
 		xPt256 = _mm_add_epi32(xPt256, mmShiftW);
 		yPt = _mm_add_epi32(yPt, mmShiftH);
 		__m128i xySum = _mm_add_epi32(xPt256, yPt); //this is worth doing, even though we don't always use it.
 		
-		//if (xySum.m128i_i32[0] >= 0 && xySum.m128i_i32[0] < PHASESIZE*PHASESIZE) { 
+		
 		if (yPt.m128i_i32[0] >= 0 && yPt.m128i_i32[0] < PHASESIZE && xPt256.m128i_i32[0]>=0 && xPt256.m128i_i32[0]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[0]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[0]]=CURRENTID; counted++;}
 		}
-		//if (xySum.m128i_i32[1] >= 0 && xySum.m128i_i32[1] < PHASESIZE*PHASESIZE) { 
+		
 		if (yPt.m128i_i32[1] >= 0 && yPt.m128i_i32[1] < PHASESIZE && xPt256.m128i_i32[1]>=0 && xPt256.m128i_i32[1]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[1]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[1]]=CURRENTID; counted++;}
 		}
-		//if (xySum.m128i_i32[2] >= 0 && xySum.m128i_i32[2] < PHASESIZE*PHASESIZE) { 
+		
 		if (yPt.m128i_i32[2] >= 0 && yPt.m128i_i32[2] < PHASESIZE && xPt256.m128i_i32[2]>=0 && xPt256.m128i_i32[2]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[2]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[2]]=CURRENTID; counted++;}
 		}
-		//if (xySum.m128i_i32[3] >= 0 && xySum.m128i_i32[3] < PHASESIZE*PHASESIZE) { 
+		
 		if (yPt.m128i_i32[3] >= 0 && yPt.m128i_i32[3] < PHASESIZE && xPt256.m128i_i32[3]>=0 && xPt256.m128i_i32[3]<(PHASESIZE* (PHASESIZE-1))) { 
 			if (arr[xySum.m128i_i32[3]]!=CURRENTID)
 		    { arr[xySum.m128i_i32[3]]=CURRENTID; counted++;}

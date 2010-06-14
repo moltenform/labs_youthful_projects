@@ -139,6 +139,7 @@ return ((val + log_2)* 0.69314718); //natural logarithm
 //fast int
 //http://www.stereopsis.com/sree/fpu2006.html
 
+//http://aavdev.blogspot.com/2009/02/fast-and-easy-float-to-int-conversion.html
 
 //http://www.devmaster.net/forums/showthread.php?t=10153
 //only valid if float is >=0 && < 256

@@ -117,8 +117,11 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
+				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="0"
 				AssemblerOutput="4"
@@ -227,6 +230,14 @@
 			</File>
 			<File
 				RelativePath=".\main_util.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mena_computations.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\mena_computations.h"
 				>
 			</File>
 			<File

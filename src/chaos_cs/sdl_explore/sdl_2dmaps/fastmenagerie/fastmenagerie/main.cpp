@@ -222,8 +222,7 @@ while(TRUE)
 	return 0;
 }
 
-
-
+float compx=-0.7873705, compy=0.566534;
 void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram )
 {
 	BOOL wasKeyCombo = TRUE;
@@ -268,14 +267,16 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_1: gParamDrawBasinsWithBlueAlso=!gParamDrawBasinsWithBlueAlso; break;
 		case SDLK_4: g_settings->colorDiskRadius *= bShift?(1/1.1):1.1; break;
 
+		case SDLK_i: compx += bShift? 0.01:-0.01; *needDrawDiagram=TRUE; break;
+		case SDLK_o: compy += bShift? 0.01:-0.01; *needDrawDiagram=TRUE; break;
+
 		case SDLK_d: toggleMenagerieMode(); *needDrawDiagram=TRUE; break;
 		default: wasKeyCombo =FALSE;
 	}
 
-	
-
 	if (wasKeyCombo) *needRedraw = TRUE;
 }
+
 
 
 
