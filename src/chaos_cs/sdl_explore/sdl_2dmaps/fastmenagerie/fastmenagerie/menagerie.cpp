@@ -278,38 +278,39 @@ FoundTotal:
 		
 }
 
-
+#define SIZE PHASESIZE
 int countPhasePlotPixelsSimple(SDL_Surface* pSurface, double c1, double c2, int whichThread, FastMapMapSettings * boundsettings)
 {
 	int * arr = whichThread ? arrT1:arrT2;
 	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
 	*whichID = (*whichID)+1;
 
+	float xseeds[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float yseeds[4] = {0.000001f, 0.000002f,-0.0000011f,-0.0000019f};
 	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
     float x, y, x_, y_; int counted=0;
 	for (int seed=0; seed<4; seed++)
 	{
-		x=0.0; y=yseeds[seed];
-		for (int ii=0; ii<(CountPixelsSettle); ii++)
+		x=xseeds[seed]; y=yseeds[seed];
+		for (int i=0; i<(CountPixelsSettle); i++)
 		{
-			MAPEXPRESSION;
+			x_ = c1*x - y*y; y_ = c2*y + x*y;
 			x=x_; y=y_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) {return 0;}
 		}
 		
-		for (int ii=0; ii<(CountPixelsDraw)/4; ii++)
+		for (int i=0; i<(CountPixelsDraw)/4; i++)
 		{
-			MAPEXPRESSION;
+			x_ = c1*x - y*y; y_ = c2*y + x*y;
 			x=x_; y=y_;
 			if (ISTOOBIG(x)||ISTOOBIG(y)) {return 0;}
 
 			//scale to pixel coordinates.
-			int px = lrint(PHASESIZE * ((x - X0) / (X1 - X0)));
-			int py = lrint(PHASESIZE - PHASESIZE * ((y - Y0) / (Y1 - Y0)));
-			if (py >= 0 && py < PHASESIZE && px>=0 && px<PHASESIZE)
-				if (arr[px+py*PHASESIZE]!=*whichID)
-				{ arr[px+py*PHASESIZE]=*whichID; counted++;}
+			int px = (int)(SIZE * ((x - X0) / (X1 - X0)));
+			int py = (int)(SIZE - SIZE * ((y - Y0) / (Y1 - Y0)));
+			if (py >= 0 && py < SIZE && px>=0 && px<SIZE)
+				if (arr[px+py*SIZE]!=*whichID)
+				{ arr[px+py*SIZE]=*whichID; counted++;}
 		}
 	}
     	
@@ -384,7 +385,7 @@ void DrawMenagerieMultithreaded( SDL_Surface* pMSurface, CoordsDiagramStruct*dia
 	pThread2.whichHalf=1; pThread2.bounds=&boundsettings; pThread2.diagram=diagram; pThread2.pMSurface=pMSurface; 
 	
 startTimer();
-for (int u=0; u<1; u++) {
+for (int u=0; u<5; u++) {
 	SDL_Thread *thread2 =  SDL_CreateThread(DrawMenagerieThread, &pThread2);
 	DrawMenagerieThread(&pThread1);
 	SDL_WaitThread(thread2, NULL);
