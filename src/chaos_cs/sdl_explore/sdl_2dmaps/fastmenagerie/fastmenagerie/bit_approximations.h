@@ -23,7 +23,7 @@ __inline float invSqrt(float xxx)
 __inline float wikipediaQuickLog(float v)
 {
 	int x = *(const int *) &v;
-	float f = x;
+	float f = (float) x;
 	return f/(1<<23) - 127.0f;
 }
 
@@ -105,10 +105,10 @@ int x = *exp_ptr; //x is the float treated as an integer
 x = 0x3F800000; //set the exponent to 0 so numlog=1.0
 *exp_ptr = x;
 int incr = 1 << (23-n); //amount to increase the mantissa
-int p=pow(2.0,n);
+int p=(int) pow(2.0,n);
 for(int i=0;i<p;++i)
 {
-lookup_table[i] = log(numlog)/log(2.0); //save the log value
+lookup_table[i] = (float) (log(numlog)/log(2.0)); //save the log value
 x += incr;
 *exp_ptr = x; //update the float value
 }
@@ -128,7 +128,7 @@ register const int log_2 = ((x >> 23) & 255) - 127;//exponent
 x &= 0x7FFFFF; //mantissa
 x = x >> (23-n); //quantize mantissa
 val = lookup_table[x]; //lookup precomputed value
-return ((val + log_2)* 0.69314718); //natural logarithm
+return (float) ((val + log_2)* 0.69314718); //natural logarithm
 }
 
 

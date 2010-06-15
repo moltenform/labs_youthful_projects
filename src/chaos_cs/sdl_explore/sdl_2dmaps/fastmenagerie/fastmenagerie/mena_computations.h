@@ -68,8 +68,8 @@ __m128 Howmanyescaped = allZeros;
 __m128 totalComputed = allZeros;
 __m128 iscurylocationtoobig = allZeros;
 
-	__m128 mmX = _mm_setr_ps( 0.0,0.0,0.0,0.0);
-	__m128 mmY = _mm_setr_ps( 0.0,0.0,0.0,0.0); //symmetrical, so don't just mult by 2.
+	__m128 mmX = _mm_setr_ps( 0.0f,0.0f,0.0f,0.0f);
+	__m128 mmY = _mm_setr_ps( 0.0f,0.0f,0.0f,0.0f); //symmetrical, so don't just mult by 2.
 	__m128 mXTmp;
 	MAPSSEINIT;
 __m128 istoobigX, istoobigY, istoobig, toomanyiters, needsnew;

@@ -327,11 +327,13 @@ int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, i
 	__m128 x128 = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
 	__m128 y128 = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f);
 	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
+	massert( X1-X0 == Y1-Y0, "bounds inequal");
 	int counted=0;
 	__m128 mConst_a = _mm_setr_ps(c1,c1,c1,c1);
 	__m128 mConst_b = _mm_setr_ps(c2,c2,c2,c2);
-	__m128 nextx128;
-	
+	__m128 nextx128, tempx, tempy;
+	__m128 mConst_scale = _mm_set1_ps(SIZE / (X1 - X0));
+	__m128i const_size = _mm_set1_epi32(SIZE), const_zero = _mm_set1_epi32(0);
 	for (int i=0; i<(CountPixelsSettle); i++)
 	{
 		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
@@ -357,11 +359,29 @@ int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, i
 		 {return 0;}
 
 		//scale to pixel coordinates.
-		/*int px = (int)(SIZE * ((x - X0) / (X1 - X0)));
-		int py = (int)(SIZE * ((y - Y0) / (Y1 - Y0)));
-		if (py >= 0 && py < SIZE && px>=0 && px<SIZE)
-			if (arr[px+py*SIZE]!=*whichID)
-			{ arr[px+py*SIZE]=*whichID; counted++;}*/
+		tempx = _mm_sub_ps(x128, _mm_set1_ps(X0));
+		tempx = _mm_mul_ps(tempx, mConst_scale);
+		tempy = _mm_sub_ps(y128, _mm_set1_ps(Y0));
+		tempy = _mm_mul_ps(tempy, mConst_scale);
+		__m128i xPt = _mm_cvttps_epi32(tempx); 
+		__m128i yPt = _mm_cvttps_epi32(tempy); 
+		__m128i xInBounds =  _mm_and_si128(_mm_cmpgt_epi32(xPt, const_zero), _mm_cmplt_epi32(xPt, const_size));
+		__m128i yInBounds =  _mm_and_si128(_mm_cmpgt_epi32(yPt, const_zero), _mm_cmplt_epi32(yPt, const_size));
+			
+		if (xInBounds.m128i_i32[3] != 0 && yInBounds.m128i_i32[3] != 0)
+			if (arr[xPt.m128i_i32[3] +yPt.m128i_i32[3]*SIZE]!=*whichID)
+			{ arr[xPt.m128i_i32[3]+yPt.m128i_i32[3]*SIZE]=*whichID; counted++;}
+		if (xInBounds.m128i_i32[2] != 0 && yInBounds.m128i_i32[2] != 0)
+			if (arr[xPt.m128i_i32[2] +yPt.m128i_i32[2]*SIZE]!=*whichID)
+			{ arr[xPt.m128i_i32[2]+yPt.m128i_i32[2]*SIZE]=*whichID; counted++;}
+		if (xInBounds.m128i_i32[1] != 0 && yInBounds.m128i_i32[1] != 0)
+			if (arr[xPt.m128i_i32[1] +yPt.m128i_i32[1]*SIZE]!=*whichID)
+			{ arr[xPt.m128i_i32[1]+yPt.m128i_i32[1]*SIZE]=*whichID; counted++;}
+		if (xInBounds.m128i_i32[0] != 0 && yInBounds.m128i_i32[0] != 0)
+			if (arr[xPt.m128i_i32[0] +yPt.m128i_i32[0]*SIZE]!=*whichID)
+			{ arr[xPt.m128i_i32[0]+yPt.m128i_i32[0]*SIZE]=*whichID; counted++;}
+		//do one condition before the next? slightly faster? depends on drawing scale.
+		//could do more computation before conditional, x4, but if not in case, redundant.
 	}
     	
 	return standardToColors(pSurface, (double)counted, (double)CountPixelsDraw);
@@ -394,7 +414,7 @@ int DrawMenagerieThread( void* pStruct)
 			else 
 				newcol = countPhasePlotPixels(pMSurface,fx,fy,whichHalf,boundsettings);*/
 			//newcol = GetShapeOfWhichLeave(pMSurface,fx,fy);
-newcol = countPhasePlotPixelsSimple(pMSurface,fx,fy,whichHalf,boundsettings);
+newcol = countPhasePlotPixelsSimpleSSE(pMSurface,fx,fy,whichHalf,boundsettings);
 //newcol = GetSizeOfAttractionBasinSSE(pMSurface,fx,fy);
 
 			pPosition = ( char* ) pMSurface->pixels ; //determine position
