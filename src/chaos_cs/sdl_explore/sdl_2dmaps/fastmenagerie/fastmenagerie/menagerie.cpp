@@ -331,6 +331,7 @@ int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, i
 	int counted=0;
 	__m128 mConst_a = _mm_setr_ps(c1,c1,c1,c1);
 	__m128 mConst_b = _mm_setr_ps(c2,c2,c2,c2);
+	__m128 constToobig1 = _mm_set1_ps(100.0f);
 	__m128 nextx128, tempx, tempy;
 	__m128 mConst_scale = _mm_set1_ps(SIZE / (X1 - X0));
 	__m128i const_size = _mm_set1_epi32(SIZE), const_zero = _mm_set1_epi32(0);
@@ -340,10 +341,11 @@ int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, i
 		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
 		x128 = nextx128;
 		
-		if (ISTOOBIG(x128.m128_f32[0]) ||ISTOOBIG(x128.m128_f32[1]) ||
-			ISTOOBIG(x128.m128_f32[2]) ||ISTOOBIG(x128.m128_f32[3]) ||
-			ISTOOBIG(y128.m128_f32[0]) ||ISTOOBIG(y128.m128_f32[1]) ||
-			ISTOOBIG(y128.m128_f32[2]) ||ISTOOBIG(y128.m128_f32[3] ))
+		__m128 estimateMag = _mm_add_ps(x128,y128); 
+		estimateMag = _mm_mul_ps(estimateMag,estimateMag);
+		__m128 isTooBig = _mm_cmpgt_ps(estimateMag, constToobig1);
+		if (isTooBig.m128_i32[0]!=0||isTooBig.m128_i32[1]!=0||
+			isTooBig.m128_i32[2]!=0||isTooBig.m128_i32[3]!=0)
 		 {return 0;}
 	}
 	for (int i=0; i<(CountPixelsDraw)/4; i++)
@@ -352,10 +354,11 @@ int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, i
 		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
 		x128 = nextx128;
 
-		if (ISTOOBIG(x128.m128_f32[0]) ||ISTOOBIG(x128.m128_f32[1]) ||
-			ISTOOBIG(x128.m128_f32[2]) ||ISTOOBIG(x128.m128_f32[3]) ||
-			ISTOOBIG(y128.m128_f32[0]) ||ISTOOBIG(y128.m128_f32[1]) ||
-			ISTOOBIG(y128.m128_f32[2]) ||ISTOOBIG(y128.m128_f32[3] ))
+		__m128 estimateMag = _mm_add_ps(x128,y128); 
+		estimateMag = _mm_mul_ps(estimateMag,estimateMag);
+		__m128 isTooBig = _mm_cmpgt_ps(estimateMag, constToobig1);
+		if (isTooBig.m128_i32[0]!=0||isTooBig.m128_i32[1]!=0||
+			isTooBig.m128_i32[2]!=0||isTooBig.m128_i32[3]!=0)
 		 {return 0;}
 
 		//scale to pixel coordinates.
