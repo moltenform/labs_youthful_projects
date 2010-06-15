@@ -279,8 +279,9 @@ FoundTotal:
 }
 
 #define SIZE PHASESIZE
-int countPhasePlotPixelsSimple(SDL_Surface* pSurface, double c1, double c2, int whichThread, FastMapMapSettings * boundsettings)
+int countPhasePlotPixelsSimple(SDL_Surface* pSurface, double dc1, double dc2, int whichThread, FastMapMapSettings * boundsettings)
 {
+	float c1 = (float)dc1, c2=(float)dc2;
 	int * arr = whichThread ? arrT1:arrT2;
 	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
 	*whichID = (*whichID)+1;
@@ -306,12 +307,61 @@ int countPhasePlotPixelsSimple(SDL_Surface* pSurface, double c1, double c2, int 
 			if (ISTOOBIG(x)||ISTOOBIG(y)) {return 0;}
 
 			//scale to pixel coordinates.
-			int px = (int)(SIZE * ((x - X0) / (X1 - X0)));
-			int py = (int)(SIZE - SIZE * ((y - Y0) / (Y1 - Y0)));
+			int px = lrint(SIZE * ((x - X0) / (X1 - X0)));
+			int py = lrint(SIZE-SIZE * ((y - Y0) / (Y1 - Y0)));
 			if (py >= 0 && py < SIZE && px>=0 && px<SIZE)
 				if (arr[px+py*SIZE]!=*whichID)
 				{ arr[px+py*SIZE]=*whichID; counted++;}
 		}
+	}
+    	
+	return standardToColors(pSurface, (double)counted, (double)CountPixelsDraw);
+}
+
+int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, int whichThread, FastMapMapSettings * boundsettings)
+{
+	int * arr = whichThread ? arrT1:arrT2;
+	int * whichID = (whichThread)?&whichIDT1:&whichIDT2;
+	*whichID = (*whichID)+1;
+
+	__m128 x128 = _mm_setr_ps( 0.0f, 0.0f, 0.0f, 0.0f);
+	__m128 y128 = _mm_setr_ps( 0.000001f, 0.000002f,-0.0000011f,-0.0000019f);
+	double X0=boundsettings->x0, X1=boundsettings->x1, Y0=boundsettings->y0, Y1=boundsettings->y1;
+	int counted=0;
+	__m128 mConst_a = _mm_setr_ps(c1,c1,c1,c1);
+	__m128 mConst_b = _mm_setr_ps(c2,c2,c2,c2);
+	__m128 nextx128;
+	
+	for (int i=0; i<(CountPixelsSettle); i++)
+	{
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		
+		if (ISTOOBIG(x128.m128_f32[0]) ||ISTOOBIG(x128.m128_f32[1]) ||
+			ISTOOBIG(x128.m128_f32[2]) ||ISTOOBIG(x128.m128_f32[3]) ||
+			ISTOOBIG(y128.m128_f32[0]) ||ISTOOBIG(y128.m128_f32[1]) ||
+			ISTOOBIG(y128.m128_f32[2]) ||ISTOOBIG(y128.m128_f32[3] ))
+		 {return 0;}
+	}
+	for (int i=0; i<(CountPixelsDraw)/4; i++)
+	{
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+
+		if (ISTOOBIG(x128.m128_f32[0]) ||ISTOOBIG(x128.m128_f32[1]) ||
+			ISTOOBIG(x128.m128_f32[2]) ||ISTOOBIG(x128.m128_f32[3]) ||
+			ISTOOBIG(y128.m128_f32[0]) ||ISTOOBIG(y128.m128_f32[1]) ||
+			ISTOOBIG(y128.m128_f32[2]) ||ISTOOBIG(y128.m128_f32[3] ))
+		 {return 0;}
+
+		//scale to pixel coordinates.
+		/*int px = (int)(SIZE * ((x - X0) / (X1 - X0)));
+		int py = (int)(SIZE * ((y - Y0) / (Y1 - Y0)));
+		if (py >= 0 && py < SIZE && px>=0 && px<SIZE)
+			if (arr[px+py*SIZE]!=*whichID)
+			{ arr[px+py*SIZE]=*whichID; counted++;}*/
 	}
     	
 	return standardToColors(pSurface, (double)counted, (double)CountPixelsDraw);

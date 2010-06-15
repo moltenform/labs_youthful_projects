@@ -142,8 +142,8 @@ return ((val + log_2)* 0.69314718); //natural logarithm
 //http://aavdev.blogspot.com/2009/02/fast-and-easy-float-to-int-conversion.html
 
 //http://www.devmaster.net/forums/showthread.php?t=10153
-//only valid if float is >=0 && < 256
-unsigned char flt_to_byte (float a)
+//only valid if float is >=0 && < 256. actually, isn't that fast.
+__inline unsigned char flt_to_byte (float a)
 {
   float x = a + 256.0f;
   return ((*(int*)&x)&0x7fffff)>>15;
