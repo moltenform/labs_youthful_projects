@@ -309,8 +309,8 @@ int countPhasePlotPixelsSimple(SDL_Surface* pSurface, double dc1, double dc2, in
 			if (ISTOOBIG(x)||ISTOOBIG(y)) {return 0;}
 
 			//scale to pixel coordinates.
-			int px = lrint(SIZE * ((x - X0) / (X1 - X0)));
-			int py = lrint(SIZE-SIZE * ((y - Y0) / (Y1 - Y0)));
+			int px = (int)(SIZE * ((x - X0) / (X1 - X0)));
+			int py = (int)(SIZE * ((y - Y0) / (Y1 - Y0)));
 			if (py >= 0 && py < SIZE && px>=0 && px<SIZE)
 				if (arr[px+py*SIZE]!=*whichID)
 				{ arr[px+py*SIZE]=*whichID; counted++;}
@@ -333,76 +333,156 @@ int countPhasePlotPixelsSimpleSSE(SDL_Surface* pSurface, double c1, double c2, i
 	int counted=0;
 	__m128 mConst_a = _mm_setr_ps(c1,c1,c1,c1);
 	__m128 mConst_b = _mm_setr_ps(c2,c2,c2,c2);
-	__m128 constToobig1 = _mm_set1_ps(100.0f), constToobigAbs = _mm_set1_ps(100.0f);
-	__m128 nextx128, tempx, tempy;
-	
-	for (int i=0; i<(CountPixelsSettle); i++)
-	{
-		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
-		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
-		x128 = nextx128;
-		
-
-		//when sent off to infinity, sent along eigenvectors, which probably aren't usually 45 degree angle. 
-		__m128 estimateMag = _mm_add_ps(x128,y128); 
-		estimateMag = _mm_mul_ps(estimateMag,estimateMag);
-		__m128 isTooBig = _mm_cmpgt_ps(estimateMag, constToobig1);
-		// _mm_movemask_ps(isTooBig), condense to one int.
-		if (isTooBig.m128_i32[0]!=0||isTooBig.m128_i32[1]!=0||
-			isTooBig.m128_i32[2]!=0||isTooBig.m128_i32[3]!=0)
-		 {return 0;} //todo: use ORs and SHUFFLEs to only check isTooBig.m128_i32[0]!=0 !
-	}
+	__m128 nextx128, tempx, tempy, constToobig1=_mm_set1_ps(100.0f);
 	__m128 mConst_scale = _mm_set1_ps(SIZE / (X1 - X0));
 	__m128i const_size = _mm_set1_epi32(SIZE), const_zero = _mm_set1_epi32(0);
-	__m128 mConst_scale_tms_size = _mm_set1_ps(SIZE * (SIZE / (X1 - X0)));
-	__m128i const_size_tms_size = _mm_set1_epi32(SIZE*SIZE);
-	for (int i=0; i<((CountPixelsDraw)/4)*4/****************/; i++)
+	for (int i=0; i<(CountPixelsSettle/4); i++)
 	{
 		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
 		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
 		x128 = nextx128;
-
-		__m128 estimateMag = _mm_add_ps(x128,y128); 
-		estimateMag = _mm_mul_ps(estimateMag,estimateMag);
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		__m128 estimateMag = _mm_andnot_ps(_mm_set1_ps(-0.0f), _mm_add_ps(x128,y128));  //abs(x+y)
 		__m128 isTooBig = _mm_cmpgt_ps(estimateMag, constToobig1);
-		if (isTooBig.m128_i32[0]!=0||isTooBig.m128_i32[1]!=0||
-			isTooBig.m128_i32[2]!=0||isTooBig.m128_i32[3]!=0)
-		 {return 0;} //todo: use ORs and SHUFFLEs to only check isTooBig.m128_i32[0]!=0 !
+		if (_mm_movemask_ps(isTooBig) != 0) //if any of them are true
+			{return 0;}
+	}
+	for (int i=0; i<(CountPixelsDraw)/(4*4); i++)
+	{
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
 
 		//scale to pixel coordinates.
 		tempx = _mm_sub_ps(x128, _mm_set1_ps(X0));
 		tempx = _mm_mul_ps(tempx, mConst_scale);
-		tempy = _mm_sub_ps(y128, _mm_set1_ps(Y0));
-		tempy = _mm_mul_ps(tempy, mConst_scale); //intentional error, should be const_size_tms_size
 		__m128i xPt = _mm_cvttps_epi32(tempx); 
-		__m128i yPttms = _mm_cvttps_epi32(tempy); 
-
-		//note that multplication by SIZE is a shift.
-		
-		//perhaps a&(b&(c&d)) is better than (a&b)&(b&c)?
-		__m128i inBounds = _mm_and_si128(_mm_cmplt_epi32(yPttms, const_size),
-			_mm_and_si128(_mm_cmpgt_epi32(yPttms, const_zero),
+		tempy = _mm_sub_ps(y128, _mm_set1_ps(Y0));
+		tempy = _mm_mul_ps(tempy, mConst_scale);
+		__m128i yPt = _mm_cvttps_epi32(tempy); 
+		__m128i inBounds = _mm_and_si128(_mm_cmplt_epi32(yPt, const_size),
+			_mm_and_si128(_mm_cmpgt_epi32(yPt, const_zero),
 			_mm_and_si128(_mm_cmpgt_epi32(xPt, const_zero), _mm_cmplt_epi32(xPt, const_size))));
-		// this is order dependent. best order probably depends on data set; which is most likely to be false first.
-		__m128i ymultahead = _mm_mul_epu32(yPttms, const_size);
-		if (inBounds.m128i_i32[3] != 0 )
-			if (arr[xPt.m128i_i32[3] +ymultahead.m128i_i32[3]]!=*whichID)
-			{ arr[xPt.m128i_i32[3]+ymultahead.m128i_i32[3]]=*whichID; counted++;}
-		if (inBounds.m128i_i32[2] != 0 )
-			if (arr[xPt.m128i_i32[2] +ymultahead.m128i_i32[2]]!=*whichID)
-			{ arr[xPt.m128i_i32[2]+ymultahead.m128i_i32[2]]=*whichID; counted++;}
-		if (inBounds.m128i_i32[1] != 0 )
-			if (arr[xPt.m128i_i32[1] +ymultahead.m128i_i32[1]]!=*whichID)
-			{ arr[xPt.m128i_i32[1]+ymultahead.m128i_i32[1]]=*whichID; counted++;}
-		if (inBounds.m128i_i32[0] != 0 )
-			if (arr[xPt.m128i_i32[0] +ymultahead.m128i_i32[0]]!=*whichID)
-			{ arr[xPt.m128i_i32[0]+ymultahead.m128i_i32[0]]=*whichID; counted++;}
-		//do one condition before the next? slightly faster? depends on drawing scale.
-		//could do more computation before conditional, x4, but if not in case, redundant.
+		
+		//if we didn't think many points would be drawn, could do most computation inside conditional.
+		//the inbounds check could be before the cast to int, even.
+		
+		if (_mm_movemask_epi8(inBounds) != 0) {
+			__m128i pixel = _mm_add_epi32(xPt, _mm_slli_epi32(yPt, 7)); //massert(SIZE==128,"assumes size=128");
+			pixel = _mm_and_si128(inBounds, pixel);
+
+			if (arr[pixel.m128i_i32[3]]!=*whichID)
+				{ arr[pixel.m128i_i32[3]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[2]]!=*whichID)
+				{ arr[pixel.m128i_i32[2]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[1]]!=*whichID)
+				{ arr[pixel.m128i_i32[1]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[0]]!=*whichID)
+				{ arr[pixel.m128i_i32[0]]=*whichID; counted++;}
+			//do one condition before the next? slightly faster? depends on drawing scale.
+			//could do more computation before conditional, x4, but if not in case, redundant.
+		}
+		//////////////////////////////////////////////////////
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		tempx = _mm_sub_ps(x128, _mm_set1_ps(X0));
+		tempx = _mm_mul_ps(tempx, mConst_scale);
+		 xPt = _mm_cvttps_epi32(tempx); 
+		tempy = _mm_sub_ps(y128, _mm_set1_ps(Y0));
+		tempy = _mm_mul_ps(tempy, mConst_scale);
+		 yPt = _mm_cvttps_epi32(tempy); 
+		 inBounds = _mm_and_si128(_mm_cmplt_epi32(yPt, const_size),
+			_mm_and_si128(_mm_cmpgt_epi32(yPt, const_zero),
+			_mm_and_si128(_mm_cmpgt_epi32(xPt, const_zero), _mm_cmplt_epi32(xPt, const_size))));
+		if (_mm_movemask_epi8(inBounds) != 0) {
+			__m128i pixel = _mm_add_epi32(xPt, _mm_slli_epi32(yPt, 7)); //massert(SIZE==128,"assumes size=128");
+			pixel = _mm_and_si128(inBounds, pixel);
+
+			if (arr[pixel.m128i_i32[3]]!=*whichID)
+				{ arr[pixel.m128i_i32[3]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[2]]!=*whichID)
+				{ arr[pixel.m128i_i32[2]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[1]]!=*whichID)
+				{ arr[pixel.m128i_i32[1]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[0]]!=*whichID)
+				{ arr[pixel.m128i_i32[0]]=*whichID; counted++;}
+			//do one condition before the next? slightly faster? depends on drawing scale.
+			//could do more computation before conditional, x4, but if not in case, redundant.
+		}
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		tempx = _mm_sub_ps(x128, _mm_set1_ps(X0));
+		tempx = _mm_mul_ps(tempx, mConst_scale);
+		 xPt = _mm_cvttps_epi32(tempx); 
+		tempy = _mm_sub_ps(y128, _mm_set1_ps(Y0));
+		tempy = _mm_mul_ps(tempy, mConst_scale);
+		 yPt = _mm_cvttps_epi32(tempy); 
+		 inBounds = _mm_and_si128(_mm_cmplt_epi32(yPt, const_size),
+			_mm_and_si128(_mm_cmpgt_epi32(yPt, const_zero),
+			_mm_and_si128(_mm_cmpgt_epi32(xPt, const_zero), _mm_cmplt_epi32(xPt, const_size))));
+		if (_mm_movemask_epi8(inBounds) != 0) {
+			__m128i pixel = _mm_add_epi32(xPt, _mm_slli_epi32(yPt, 7)); //massert(SIZE==128,"assumes size=128");
+			pixel = _mm_and_si128(inBounds, pixel);
+
+			if (arr[pixel.m128i_i32[3]]!=*whichID)
+				{ arr[pixel.m128i_i32[3]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[2]]!=*whichID)
+				{ arr[pixel.m128i_i32[2]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[1]]!=*whichID)
+				{ arr[pixel.m128i_i32[1]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[0]]!=*whichID)
+				{ arr[pixel.m128i_i32[0]]=*whichID; counted++;}
+			//do one condition before the next? slightly faster? depends on drawing scale.
+			//could do more computation before conditional, x4, but if not in case, redundant.
+		}
+		nextx128 = _mm_sub_ps(_mm_mul_ps(mConst_a, x128), _mm_mul_ps(y128,y128));
+		y128 = _mm_mul_ps(y128, _mm_add_ps(x128, mConst_b)); 
+		x128 = nextx128;
+		tempx = _mm_sub_ps(x128, _mm_set1_ps(X0));
+		tempx = _mm_mul_ps(tempx, mConst_scale);
+		 xPt = _mm_cvttps_epi32(tempx); 
+		tempy = _mm_sub_ps(y128, _mm_set1_ps(Y0));
+		tempy = _mm_mul_ps(tempy, mConst_scale);
+		 yPt = _mm_cvttps_epi32(tempy); 
+		 inBounds = _mm_and_si128(_mm_cmplt_epi32(yPt, const_size),
+			_mm_and_si128(_mm_cmpgt_epi32(yPt, const_zero),
+			_mm_and_si128(_mm_cmpgt_epi32(xPt, const_zero), _mm_cmplt_epi32(xPt, const_size))));
+		if (_mm_movemask_epi8(inBounds) != 0) {
+			__m128i pixel = _mm_add_epi32(xPt, _mm_slli_epi32(yPt, 7)); //massert(SIZE==128,"assumes size=128");
+			pixel = _mm_and_si128(inBounds, pixel);
+
+			if (arr[pixel.m128i_i32[3]]!=*whichID)
+				{ arr[pixel.m128i_i32[3]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[2]]!=*whichID)
+				{ arr[pixel.m128i_i32[2]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[1]]!=*whichID)
+				{ arr[pixel.m128i_i32[1]]=*whichID; counted++;}
+			if (arr[pixel.m128i_i32[0]]!=*whichID)
+				{ arr[pixel.m128i_i32[0]]=*whichID; counted++;}
+			//do one condition before the next? slightly faster? depends on drawing scale.
+			//could do more computation before conditional, x4, but if not in case, redundant.
+		}
+		//////////////////////////////////////////////////////
+		__m128 estimateMag = _mm_andnot_ps(_mm_set1_ps(-0.0f), _mm_add_ps(x128,y128)); //abs(x+y)
+		__m128 isTooBig = _mm_cmpgt_ps(estimateMag, constToobig1);
+		if (_mm_movemask_ps(isTooBig) != 0) //if any of them are true
+			{return 0;}
 	}
     	
 	return standardToColors(pSurface, (double)counted, (double)CountPixelsDraw);
 }
+
+
 
 // Each thread creates half of the diagram. The PassToThread struct simply passes arguments to function.
 #define LegendWidth 4
@@ -485,8 +565,6 @@ printf("time1:%d", (int)stopTimer());
 startTimer();
 	DrawMenagerieThread(&pThread2);
 printf("time2:%d", (int)stopTimer());*/
-//printf("a%d b%d c%d d%d ", (int)flt_to_byte(0.1),(int)flt_to_byte(0.8),(int)flt_to_byte(45.2),(int)flt_to_byte(71.5));
-//printf("a%d b%d c%d d%d ", (int)flt_to_byte(0.0),(int)flt_to_byte(1.4),(int)flt_to_byte(255.4),(int)flt_to_byte(256.7));
 
 }
 
