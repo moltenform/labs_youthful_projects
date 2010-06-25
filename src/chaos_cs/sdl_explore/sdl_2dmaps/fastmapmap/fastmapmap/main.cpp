@@ -299,7 +299,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 
 		case SDLK_c: g_settings->drawingOptions ^= maskOptionsDiagramColoring; *needDrawDiagram=TRUE; break;
 		case SDLK_d: g_settings->drawingOptions ^= maskOptionsDiagramMethod; *needDrawDiagram=TRUE; break;
-		case SDLK_RETURN: 
+		case SDLK_RETURN: Dialog_Message("Changing animation mode, animating all parameters.", pSurface); 
+			gParamAnimateMoreThanAB = !gParamAnimateMoreThanAB; break;
 		default: wasKeyCombo =FALSE;
 	}
 

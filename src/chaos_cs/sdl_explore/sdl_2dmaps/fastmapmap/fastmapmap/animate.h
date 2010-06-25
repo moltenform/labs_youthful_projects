@@ -9,4 +9,4 @@ void oscillateBreathing(double curA,double curB,double *outA, double *outB);
 BOOL renderBreathing(SDL_Surface* pSurface, int width);
 
 extern int gParamFramesPerKeyframe;
-
+extern BOOL gParamAnimateMoreThanAB;
