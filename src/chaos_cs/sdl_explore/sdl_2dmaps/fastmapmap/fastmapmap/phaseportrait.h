@@ -10,6 +10,8 @@
 #define DrawModeBasinsQuadrant 13
 #define DrawModeEscapeTimeLines 20
 #define DrawModeEscapeTime 21
+#define DrawModeHQPhase 50
+#define DrawModeHQPhaseColor 51
 
 enum {
   maskOptionsDiagramMethod = 0x1<<31, //Diagram is lyapunov or countpixels

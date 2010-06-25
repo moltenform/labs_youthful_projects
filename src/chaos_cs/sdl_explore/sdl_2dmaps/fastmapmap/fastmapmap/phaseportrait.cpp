@@ -300,6 +300,89 @@ fy -= dy;
 }
 }
 
+
+void DrawPhasePortraitIntoArr( double c1, double c2, int width, int drawingTime, int*arr ) 
+{
+	int SETTLE = g_settings->settlingTime, DRAWING = drawingTime; //lots of drawing
+	
+	double sx0= g_settings->seedx0, sx1=g_settings->seedx1, sy0= g_settings->seedy0, sy1=g_settings->seedy1;
+	int nXpoints=g_settings->seedsPerAxis; int nYpoints=g_settings->seedsPerAxis;
+	int height=width;
+	double sxinc = (nXpoints==1) ? 1e6 : (sx1-sx0)/(nXpoints-1);
+	double syinc = (nYpoints==1) ? 1e6 : (sy1-sy0)/(nYpoints-1);
+	double x_,y_,x,y;
+	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
+
+	// if basin of attraction is smaller, will be fainter, but that's ok.
+	for (double sx=sx0; sx<=sx1; sx+=sxinc)
+    {
+                for (double sy=sy0; sy<=sy1; sy+=syinc)
+                {
+                    x = sx; y=sy;
+
+					for (int ii=0; ii<SETTLE/4; ii++)
+                    {
+						MAPEXPRESSION; x=x_; y=y_; MAPEXPRESSION; x=x_; y=y_;
+						MAPEXPRESSION; x=x_; y=y_; MAPEXPRESSION; x=x_; y=y_;
+						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+                    }
+					for (int ii=0; ii<DRAWING; ii++)
+                    {
+						MAPEXPRESSION; x=x_; y=y_;
+						if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+
+                        int px = lrint(width * ((x - X0) / (X1 - X0)));
+                        int py = lrint(height - height * ((y - Y0) / (Y1 - Y0)));
+                        if (py >= 0 && py < height && px>=0 && px<width)
+						{
+							arr[py*width+px]++;
+						}
+					}
+        }
+    }
+}
+//what would it look like if all params ever were smeared together?
+int* ResultsArray = NULL;
+//simply one phaseportrait but draw a long time.
+void DrawLongTime( SDL_Surface* pSurface, double c1, double c2, int width) 
+{
+	int height=width;
+	int DRAWING = g_settings->drawingTime*50;
+	if (!ResultsArray) { ResultsArray=(int*)malloc(sizeof(int)*width*height); }
+	memset(ResultsArray, 0, sizeof(int)*width*height); 
+	DrawPhasePortraitIntoArr(c1,c2,width,DRAWING,ResultsArray);
+
+int newcol; 
+for (int py=0; py<height; py++)
+{
+	for (int px = 0; px < width; px++)
+	{
+		if (g_settings->drawingMode==DrawModeHQPhaseColor) {
+			double val = ((double)ResultsArray[py*width+px]) / ((double)DRAWING); //each could have been hit many times
+			//actually, drawing * nseeds * nseeds would be factor
+			if (val>1.0) newcol= SDL_MapRGB(pSurface->format, 50,0,0);
+			else {val += 0.5; if (val>1) val-=1;
+			newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
+			}
+		}
+		else
+		{
+			double val = (sqrt((double)ResultsArray[py*width+px])) / (sqrt((double)DRAWING)); //each could have been hit many times
+			//actually, drawing * nseeds * nseeds would be factor
+			if (val>1.0) val=1.0; 
+			int v = 255-(int)(val*255);
+			newcol = SDL_MapRGB(pSurface->format, v,v,v);
+		}
+
+		char * pPosition = ( char* ) pSurface->pixels ; //determine position
+		pPosition += ( pSurface->pitch * py ); //offset by y
+		pPosition += ( pSurface->format->BytesPerPixel * (px) ); //offset by x
+		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+	}
+}
+}
+
+
 void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width ) 
 {
 	switch (g_settings->drawingMode)
@@ -315,6 +398,9 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width )
 		case DrawModeEscapeTime:
 		case DrawModeEscapeTimeLines:
 			DrawEscapeTime(pSurface, c1, c2, width); break;
+		case DrawModeHQPhase:
+		case DrawModeHQPhaseColor:
+			DrawLongTime(pSurface, c1, c2, width); break;
 		default: {massert(0, "Unknown drawing mode."); }
 	}
 }

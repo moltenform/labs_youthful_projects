@@ -254,6 +254,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 			else g_settings->drawingMode = DrawModePhase; break;
 		case SDLK_4: g_settings->drawingMode = bShift? DrawModeColorDisk : DrawModeColorLine; break;
 		case SDLK_5: g_settings->drawingMode = bShift? DrawModeEscapeTime : DrawModeEscapeTimeLines; break;
+		case SDLK_6: g_settings->drawingMode = bShift? DrawModeHQPhase : DrawModeHQPhaseColor; break;
 		case SDLK_TAB: util_switchModes(bShift); break;
 
 		//increase/decrease iters
@@ -298,6 +299,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 
 		case SDLK_c: g_settings->drawingOptions ^= maskOptionsDiagramColoring; *needDrawDiagram=TRUE; break;
 		case SDLK_d: g_settings->drawingOptions ^= maskOptionsDiagramMethod; *needDrawDiagram=TRUE; break;
+		case SDLK_RETURN: 
 		default: wasKeyCombo =FALSE;
 	}
 
