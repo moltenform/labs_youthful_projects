@@ -16,6 +16,8 @@
 #define GINGERSUF "_ginger"
 #define JULIA x_ = x*x-y*y + c1; y_=2*x*y + c2;
 #define JULIASUF "_julia"
+#define BURGERRAND if ((rand()&0x1<<1)) {x_ = c1*x - y*y; y_ = c2*y + x*y;} else {x_ = 0.313477*x - y*y; y_ = 1.158945*y + x*y;}
+#define BURGERRANDSUF "_brand"
 
 #define CHSTD x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ x_),6.2831853);
 #define CHSTDSUF "_chstandard"

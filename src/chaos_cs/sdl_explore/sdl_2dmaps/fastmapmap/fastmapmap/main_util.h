@@ -164,7 +164,7 @@ void showInfoN(SDL_Surface *pSurface, int n)
 "4	Color lines\n"
 "	(Shift-4 for shaded disk, Shift + and Shift - change disk size, Alt-4 for one) \n"
 "5	Escape time\n"
-"	(Shift-5 for basins view, Alt-5 to fill basins) \n"
+"	(Shift-5 for basins view, Alt-5 to fill basins, Alt-Shift-5 more drawing ) \n"
 "\n"
 "Alt-b		starts 'breathing' mode\n"
 "b, shift-b		adjust amplitude of breathing"

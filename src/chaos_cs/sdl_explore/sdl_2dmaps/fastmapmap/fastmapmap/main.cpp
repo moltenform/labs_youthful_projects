@@ -44,6 +44,7 @@ int main( int argc, char* argv[] )
 
 	initializeObjectToDefaults();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
+	srand(1334);
 
 	atexit ( SDL_Quit ) ;
 	SDL_Init ( SDL_INIT_VIDEO ) ;

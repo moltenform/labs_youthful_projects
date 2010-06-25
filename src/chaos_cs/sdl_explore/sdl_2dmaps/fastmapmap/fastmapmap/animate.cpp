@@ -58,10 +58,20 @@ BOOL openFrameIntoSettings(int frame, FastMapMapSettings * settingsOut)
 void getFrameInterpolate(double fwhere, FastMapMapSettings * settings1, FastMapMapSettings * settings2, FastMapMapSettings * settingsOut)
 {
 	//for now, we only interpolate a, b, and colorsStep.
-
+	if (1) { //linear
+		fwhere = fwhere;
+	} 
 	settingsOut->a = (1-fwhere)*settings1->a + fwhere*settings2->a;
 	settingsOut->b = (1-fwhere)*settings1->b + fwhere*settings2->b;
 	settingsOut->colorsStep = (int)((1-fwhere)*settings1->colorsStep + fwhere*settings2->colorsStep);
+
+	//speeding up, for zoom in.
+	//fwhere = (exp(fwhere)-1.0)/(2.718281828 - 1.0); ?
+	//1-(exp(1-x)-1)/(E-1)
+	settingsOut->x0 = (1-fwhere)*settings1->x0 + fwhere*settings2->x0;
+	settingsOut->x1 = (1-fwhere)*settings1->x1 + fwhere*settings2->x1;
+	settingsOut->y0 = (1-fwhere)*settings1->y0 + fwhere*settings2->y0;
+	settingsOut->y1 = (1-fwhere)*settings1->y1 + fwhere*settings2->y1;
 }
 
 BOOL previewAnimation(SDL_Surface* pSurface, int nframesPerKeyframe, int width)
