@@ -342,13 +342,13 @@ void DrawPhasePortraitIntoArr( double c1, double c2, int width, int drawingTime,
     }
 }
 //what would it look like if all params ever were smeared together?
-int* ResultsArray = NULL;
+int* ResultsArray = NULL; int resultsArraySize=0;
 //simply one phaseportrait but draw a long time.
 void DrawLongTime( SDL_Surface* pSurface, double c1, double c2, int width) 
 {
 	int height=width;
 	int DRAWING = g_settings->drawingTime*50;
-	if (!ResultsArray) { ResultsArray=(int*)malloc(sizeof(int)*width*height); }
+	if (!ResultsArray || resultsArraySize!=width) { if (resultsArraySize!=width) free(ResultsArray); ResultsArray=(int*)malloc(sizeof(int)*width*height);resultsArraySize=width; }
 	memset(ResultsArray, 0, sizeof(int)*width*height); 
 	DrawPhasePortraitIntoArr(c1,c2,width,DRAWING,ResultsArray);
 
