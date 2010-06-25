@@ -124,7 +124,8 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 	//Now add compatibility for cs phaseportrait
 	fprintf(f, "\n\n"
 		";saved from fastmapscombined\n"
-		";the following is just so that it can be opened in cs_phase_portrait\n"
+		";formula is %s \n", expressiontext);
+	/*	";the following is just so that it can be opened in cs_phase_portrait\n"
 		"[main_portrait]\n"
 		"X0=%f\n"
 		"X1=%f\n"
@@ -143,7 +144,7 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 		"paramInit=//saved from fastmapscombined, by Ben Fisher\n"
 		"programVersion=0.0.1"
 		, g_settings->a,g_settings->b, g_settings->settlingTime, expressiontext
-		);
+		);*/
 	fclose(f);
 	return TRUE;
 }

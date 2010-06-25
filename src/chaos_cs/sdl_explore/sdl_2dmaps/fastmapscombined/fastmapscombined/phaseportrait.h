@@ -13,14 +13,12 @@
 #define DrawModeStandardPhase 90
 #define DrawModeStandardBasins 91
 
+
+extern double gParamAcquireCoord;
+
 enum {
-  maskOptionsDiagramMethod = 0x1<<31, //Diagram is lyapunov or countpixels
-  maskOptionsDiagramColoring = 0x1<<30, //Diagram is hsl or black/white
-  maskOptionsBasinColor = 0x1<<29, //Basin colors include blue.
-  maskOptionsQuadrantContrast = 0x1<<28, //Contrast in quadrants.
-  maskOptionsEscapeFillIn = 0x1<<27, //Fill in basin when in escapetime mode.
-  maskOptionsEscapeAdditionalPass = 0x1<<26, //In escapetime mode draw more lines
-  maskOptionsColorShowJustOneLine = 0x1<<25 //when in color mode, show just one line.
+  maskOptionsSmearRectangle = 0x1<<31, //Smear line or whole rectangle?
+ 
 
 } ;
 

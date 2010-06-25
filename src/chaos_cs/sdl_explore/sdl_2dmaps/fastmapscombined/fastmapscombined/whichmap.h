@@ -16,6 +16,10 @@
 #define GINGERSUF "_ginger"
 #define JULIA x_ = x*x-y*y + c1; y_=2*x*y + c2;
 #define JULIASUF "_julia"
+#define DEQ x_ = x+(0.001)*(c1*x+y); y_= y+(0.001)*(c2*x); 
+#define DEQSUF "_deq"
+#define LINEAR {double det=c1,tr=c2,a=1.5;double d=tr-a,b=1.25,c=(a*d-det)/b;x_=a*x+b*y;y_=c*x+d*y;}
+#define LINEARSUF "_linear"
 
 #define CHSTD x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ x_),6.2831853);
 #define CHSTDSUF "_chstandard"
@@ -24,8 +28,8 @@
 #define BEN2 x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ c2*x),6.2831853);
 #define BEN2SUF "_ben2"
 
-#define MAPEXPRESSION BURGER
-#define MAPSUFFIX BURGERSUF
+#define MAPEXPRESSION IKEDA
+#define MAPSUFFIX IKEDASUF
 #define DRAWPERIODIC 0
 
 #define SAVESFOLDER ("saves" MAPSUFFIX  )

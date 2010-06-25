@@ -71,7 +71,9 @@ void DrawPhasePortraitStyle( SDL_Surface* pSurface, double c1, double c2, int wi
     }
 }
 
+
 #define pickrandom {if (rand()&(0x1<<1)) c1=a_one,c2=b_one; else c1=a_two,c2=b_two;}
+//#define pickrandom {if (rand()&(0x1<<1)) c1=a_one; else c1=a_two; if (rand()&(0x1<<1)) c2=b_one; else c2=b_two;}
 //alternating is like the 2nd return map with different params. so the result is clearly another 2d discrete map that could be found.
 //alternate between 3? any more interesting?
 void DrawPhasePortraitAlternate( SDL_Surface* pSurface, double a_one, double b_one, int width, int xstart  ) 
@@ -210,15 +212,16 @@ void DrawSmear( SDL_Surface* pSurface, double a_one, double b_one, int width, in
 	int height=width;
 	if (!SmearArray) { SmearArray=(int*)malloc(sizeof(int)*width*height); }
 	memset(SmearArray, 0, sizeof(int)*width*height); 
-	int SMEARSTEPS = 200;
+	int SMEARSTEPS = 25; //or 25?
 	//get data
 	double a_two= g_settings->a2,b_two= g_settings->b2;
 	double a0=MIN(a_one,a_two), a1=MAX(a_one,a_two),b0=MIN(b_one,b_two), b1=MAX(b_one,b_two);
+	// g_settings->drawingOptions & maskOptionsSmearRectangle
 	//smear entire rectangle
-	/* SMEARSTEPS = 25;
-	for (double a=a0; a<a1; a+=(a1-a0)/SMEARSTEPS)
-		for (double b=b0; b<b1; b+=(b1-b0)/SMEARSTEPS)
-			DrawPhasePortraitIntoArr(a,b,width,SmearArray);*/
+	 SMEARSTEPS = 300;
+	//for (double a=a0; a<a1; a+=(a1-a0)/SMEARSTEPS)
+	//	for (double b=b0; b<b1; b+=(b1-b0)/SMEARSTEPS)
+	//		DrawPhasePortraitIntoArr(a,b,width,SmearArray);
 	double da=(a1-a0)/SMEARSTEPS, db = (b1-b0)/SMEARSTEPS;
 	for (int i=0; i<SMEARSTEPS; i++)
 		DrawPhasePortraitIntoArr(a0+i*da,b0+i*db,width,SmearArray);
@@ -228,32 +231,7 @@ for (int py=0; py<height; py++)
 	for (int px = 0; px < width; px++)
 	{
 		//double val = sqrt((double)SmearArray[py*width+px]) / sqrt((double)SMEARSTEPS*15); //each could have been hit many times
-		double val = sqrt((double)SmearArray[py*width+px]) / sqrt((double)SMEARSTEPS*4); //each could have been hit many times
-		if (val>1.0) newcol= SDL_MapRGB(pSurface->format, 50,0,0);
-		else {val += 0.5; if (val>1) val-=1;
-		newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
-		}
-
-		char * pPosition = ( char* ) pSurface->pixels ; //determine position
-		pPosition += ( pSurface->pitch * py ); //offset by y
-		pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
-		memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
-	}
-}
-}
-//simply one phaseportrait but draw a long time.
-void DrawLongTime( SDL_Surface* pSurface, double a_one, double b_one, int width, int xstart) 
-{
-	int height=width;
-	if (!SmearArray) { SmearArray=(int*)malloc(sizeof(int)*width*height); }
-	memset(SmearArray, 0, sizeof(int)*width*height); 
-	DrawPhasePortraitIntoArr(a_one,b_one,width,SmearArray);
-int newcol; 
-for (int py=0; py<height; py++)
-{
-	for (int px = 0; px < width; px++)
-	{
-		double val = ((double)SmearArray[py*width+px]) / (150.0); //each could have been hit many times
+		double val = sqrt((double)SmearArray[py*width+px]) / sqrt((double)SMEARSTEPS*20); //each could have been hit many times
 		if (val>1.0) newcol= SDL_MapRGB(pSurface->format, 50,0,0);
 		else {val += 0.5; if (val>1) val-=1;
 		newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
@@ -268,10 +246,11 @@ for (int py=0; py<height; py++)
 }
 
 
+double gParamAcquireCoord = 0.0;
 //too computationally expensive to send to DrawPhasePortraitIntoArr.
 void DrawPhasefircate( SDL_Surface* pSurface, double a_one, double b_one, int width, int xstart) 
 {
-	int SMEARSTEPS = width; int ACQUIREY = 200;
+	int SMEARSTEPS = width;// int ACQUIREY = 200;
 	double a_two= g_settings->a2,b_two= g_settings->b2;
 	double a0=MIN(a_one,a_two), a1=MAX(a_one,a_two),b0=MIN(b_one,b_two), b1=MAX(b_one,b_two);
 	double da=(a1-a0)/SMEARSTEPS, db = (b1-b0)/SMEARSTEPS;
@@ -280,7 +259,7 @@ void DrawPhasefircate( SDL_Surface* pSurface, double a_one, double b_one, int wi
 		double c1 = a0+i*da, c2 = b0+i*db;
 
 	int SETTLE, DRAWING, nXpoints, nYpoints; double sx0,sx1,sy0,sy1;
-	 SETTLE = 40, DRAWING = 400;
+	 SETTLE = 40, DRAWING = 1400;
 		double sx0i= g_settings->sx, sx1i=g_settings->sx2, sy0i= g_settings->sy, sy1i=g_settings->sy2;
 		sx0=MIN(sx0i,sx1i), sx1=MAX(sx0i,sx1i),sy0=MIN(sy0i,sy1i), sy1=MAX(sy0i,sy1i);
 		nXpoints=4; nYpoints=4; int height=width;
@@ -289,7 +268,8 @@ void DrawPhasefircate( SDL_Surface* pSurface, double a_one, double b_one, int wi
 
 	double x_,y_,x,y;
 	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
-
+	
+	int ACQUIREY = lrint(height - height * ((gParamAcquireCoord - Y0) / (Y1 - Y0)));  
 	// if basin of attraction is smaller, will be fainter, but that's ok.
 	for (double sx=sx0; sx<=sx1; sx+=sxinc)
     {
@@ -315,11 +295,16 @@ void DrawPhasefircate( SDL_Surface* pSurface, double a_one, double b_one, int wi
 							int py = i; 
 							if (py >= 0 && py < height && px>=0 && px<width)
 							{
-								int newcol=0;
-								char * pPosition = ( char* ) pSurface->pixels ; //determine position
-								pPosition += ( pSurface->pitch * py ); //offset by y
-								pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
-								memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
+							 Uint32 col = 0 ; Uint32 colR;    SDL_Color color ;
+								char* pPosition = ( char* ) pSurface->pixels ; //determine position
+								  pPosition += ( pSurface->pitch * py ); //offset by y
+								  pPosition += ( pSurface->format->BytesPerPixel * (px+xstart) ); //offset by x
+								  memcpy ( &col , pPosition , pSurface->format->BytesPerPixel ) ; //copy pixel data
+								  SDL_GetRGB ( col , pSurface->format , &color.r , &color.g , &color.b ) ;
+								  colR = color.r;
+														Uint32 newcolor = (colR)-((colR)>>2); //add shade to that pixel
+								  Uint32 newcol = SDL_MapRGB ( pSurface->format , newcolor , newcolor , newcolor ) ;
+								  memcpy ( pPosition , &newcol , pSurface->format->BytesPerPixel ) ;
 
 							}
 						}
@@ -417,15 +402,6 @@ for (int py=0; py<height; py+=1)
 		}
 		else
 		{
-			if (!(g_settings->drawingOptions & maskOptionsBasinColor)) {
-				val = val / g_settings->basinsMaxColor;
-				if (val>=1.0)
-					newcol = SDL_MapRGB( pSurface->format , 220 , 220, 255 );
-				else {
-					int v = (int)(val*255);
-					newcol = SDL_MapRGB( pSurface->format , v,v,v );
-				}
-			}else {
 				//val += 0.5; if (val>1) val-=1;
 				//newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
 				val = sqrt(val) / sqrt(g_settings->basinsMaxColor);
@@ -436,7 +412,7 @@ for (int py=0; py<height; py+=1)
 				else
 					r=g=b= (Uint32) ((1-val)*255.0);
 				newcol = SDL_MapRGB( pSurface->format , r,g,b );
-			}
+
 		}
 		
 		pPosition = ( char* ) pSurface->pixels ; //determine position

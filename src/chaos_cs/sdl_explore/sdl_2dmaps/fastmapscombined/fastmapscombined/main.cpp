@@ -1,5 +1,5 @@
 //Fastmapscombined, Ben Fisher, 2010, GPL License.
-//
+//todo: different programs/different maps should be incompatible.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -166,6 +166,7 @@ while(TRUE)
 				loadFromFile(MAPDEFAULTFILE);
 				tmp.diagramx0=g_settings->diagramx0;tmp.diagramx1=g_settings->diagramx1;tmp.diagramy0=g_settings->diagramy0;tmp.diagramy1=g_settings->diagramy1;
 				tmp.x0=g_settings->x0;tmp.x1=g_settings->x1;tmp.y0=g_settings->y0;tmp.y1=g_settings->y1;
+				//todo: also, reset gParamAcquireCoord
 				memcpy(g_settings, &tmp,  sizeof(FastMapsSettings));
 				needDrawDiagram = needRedraw = TRUE;
 			}
@@ -270,8 +271,12 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_PAGEDOWN: onClickTryZoom(diagramsLayout, -1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
 		case SDLK_b: g_settings->breatheRadius += bShift? 20 : -20; break;
 
+		case SDLK_LEFTBRACKET:  util_moveFircate(-1,diagramsLayout[0].screen_width); break;
+		case SDLK_RIGHTBRACKET:  util_moveFircate(1,diagramsLayout[0].screen_width); break;
+
 		case SDLK_RETURN: if (!previewAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) Dialog_Message("Not enough keyframes to animate.",pSurface); break;
 		case SDLK_DELETE: if (Dialog_GetBool("Delete all keyframes?",pSurface)) deleteAllFrames(); break;
+		
 		default: wasKeyCombo = FALSE;
 	}
 	else if (bControl && !bAlt)
@@ -288,6 +293,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_RETURN: Dialog_Message("Rendering animation. This may take some time.", pSurface);
 						 if (!renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) 
 							 Dialog_Message("Not enough keyframes to animate.",pSurface); break;
+
+		
 		default: wasKeyCombo = FALSE;
 	}
 	else if (!bControl && bAlt)
@@ -295,14 +302,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	{
 		case SDLK_b: gParamBreathing = !gParamBreathing; break;
 		//bitwise operation. use xor. 1 causes bit to flip, 0 causes it to remain.
-		case SDLK_1: g_settings->drawingOptions ^= maskOptionsBasinColor; break;
-		case SDLK_2: g_settings->drawingOptions ^= maskOptionsQuadrantContrast; break;
-		case SDLK_4: g_settings->drawingOptions ^= maskOptionsColorShowJustOneLine; break;
-		case SDLK_5: if (!bShift) g_settings->drawingOptions ^= maskOptionsEscapeFillIn; 
-					 else g_settings->drawingOptions ^= maskOptionsEscapeAdditionalPass; break;
-
-		case SDLK_c: g_settings->drawingOptions ^= maskOptionsDiagramColoring; *needDrawDiagram=TRUE; break;
-		case SDLK_d: g_settings->drawingOptions ^= maskOptionsDiagramMethod; *needDrawDiagram=TRUE; break;
+		case SDLK_4: g_settings->drawingOptions ^= maskOptionsSmearRectangle; break;
+		
 		default: wasKeyCombo =FALSE;
 	}
 

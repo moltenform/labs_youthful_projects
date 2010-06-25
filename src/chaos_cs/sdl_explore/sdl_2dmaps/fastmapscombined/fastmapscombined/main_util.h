@@ -53,7 +53,13 @@ void util_showVals(SDL_Surface* pSurface)
 	snprintf(buf, sizeof(buf),"a:%f b:%f", g_settings->a, g_settings->b);
 	Dialog_Message(buf, pSurface);
 }
-
+void util_moveFircate(int direction, int width)
+{
+	if (g_settings->drawingMode == DrawModePhasefircate)
+		gParamAcquireCoord += direction * (g_settings->x1-g_settings->x0)/width;
+	else
+		gParamAcquireCoord += direction * (g_settings->y1-g_settings->y0)/width;
+}
 
 void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 {
