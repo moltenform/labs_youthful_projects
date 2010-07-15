@@ -29,6 +29,8 @@ CoordsDiagramStruct diagramsLayout[] = {
 	{&g_settings->diagram_c_x0, &g_settings->diagram_c_x1, &g_settings->diagram_c_y0, &g_settings->diagram_c_y1,  0,4+192+4+192+4,192,192,	0.0,1.0,0.0,1.0},
 	{NULL,NULL, NULL, NULL, 0,1,0,1,	0.0,1.0,0.0,1.0} //must end with null entry.
 };
+double* paramsX[] = {NULL, &g_settings->pc1, &g_settings->pc3, &g_settings->pc5, NULL};
+double* paramsY[] = {NULL, &g_settings->pc2, &g_settings->pc4, &g_settings->pc6, NULL};
 
 #include "main_util.h"
 
@@ -36,7 +38,7 @@ BOOL gParamBreathing = FALSE;
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
-	double *a = &g_settings->pc1; double *b = &g_settings->pc2; 
+	int activeDiag = -1;
 	
 	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
 
@@ -78,16 +80,20 @@ while(TRUE)
 		{
 			case SDLK_UP:
 			case SDLK_DOWN:{
-				double amount = (event.key.keysym.mod & KMOD_SHIFT) ? (g_settings->diagram_a_y1-g_settings->diagram_a_y0)/1024 : 0.005;
-				if (event.key.keysym.sym==SDLK_UP) *b+=amount;
-				else *b-=amount;
+				if (activeDiag==-1) break;
+				double width = (*diagramsLayout[activeDiag].py1- *diagramsLayout[activeDiag].py0);
+				double amount = getAmountToMove(width,event.key.keysym.mod&KMOD_SHIFT,event.key.keysym.mod&KMOD_CTRL,event.key.keysym.mod&KMOD_ALT);
+				if (event.key.keysym.sym==SDLK_UP) *paramsY[activeDiag]+=amount; 
+				else *paramsY[activeDiag]-=amount;
 				needRedraw=TRUE; }
 				break;
 			case SDLK_LEFT:
 			case SDLK_RIGHT: {
-				double amount = (event.key.keysym.mod & KMOD_SHIFT) ? (g_settings->diagram_a_x1-g_settings->diagram_a_x0)/1024 : 0.005;
-				if (event.key.keysym.sym==SDLK_RIGHT) *a+=amount;
-				else *a-=amount;
+				if (activeDiag==-1) break;
+				double width = (*diagramsLayout[activeDiag].px1- *diagramsLayout[activeDiag].px0);
+				double amount = getAmountToMove(width,event.key.keysym.mod&KMOD_SHIFT,event.key.keysym.mod&KMOD_CTRL,event.key.keysym.mod&KMOD_ALT);
+				if (event.key.keysym.sym==SDLK_RIGHT) *paramsX[activeDiag]+=amount;
+				else *paramsX[activeDiag]-=amount;
 				needRedraw=TRUE; }
 				break;
 			case SDLK_ESCAPE: return 0; break;
@@ -127,6 +133,7 @@ while(TRUE)
 			  if (diagram == 1) screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->pc1, &g_settings->pc2);
 			  else if (diagram == 2) screenPixelsToDouble(&diagramsLayout[2], mouse_x, mouse_y, &g_settings->pc3, &g_settings->pc4);
 			  else if (diagram == 3) screenPixelsToDouble(&diagramsLayout[3], mouse_x, mouse_y, &g_settings->pc5, &g_settings->pc6);
+			  if (diagram!=0) activeDiag = diagram;
 			  needRedraw=TRUE;
 		  }
 		  else if ((buttons & SDL_BUTTON_RMASK))
@@ -135,6 +142,7 @@ while(TRUE)
 			  if (diagram == 1) screenPixelsToDouble(&diagramsLayout[1], mouse_x, mouse_y, &g_settings->pc1b, &g_settings->pc2b);
 			  else if (diagram == 2) screenPixelsToDouble(&diagramsLayout[2], mouse_x, mouse_y, &g_settings->pc3b, &g_settings->pc4b);
 			  else if (diagram == 3) screenPixelsToDouble(&diagramsLayout[3], mouse_x, mouse_y, &g_settings->pc5b, &g_settings->pc6b);
+			  if (diagram!=0) activeDiag = diagram;
 			  needRedraw=TRUE;
 		  }
 	  }
@@ -176,7 +184,12 @@ while(TRUE)
 			{
 				if (didClickOnButton(pSurface, mouse_x, mouse_y)==1)
 				{ bShowDiagram=!bShowDiagram; needDrawDiagram=TRUE; }
-
+				else 
+				{
+					//set the active diagram, even when not dragging.
+					int diagram = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
+					if (diagram!=0) activeDiag = diagram;
+				}
 				gParamBreathing = FALSE; //turn off breathing when click.
 			}
 			else if (buttons & SDL_BUTTON_MIDDLE) //reset the view, but leave the rest of settings intact.
@@ -253,6 +266,7 @@ while(TRUE)
 		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[2], g_settings->pc3, g_settings->pc4, g_settings->pc3b, g_settings->pc4b);
 		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[3], g_settings->pc5, g_settings->pc6, g_settings->pc5b, g_settings->pc6b);
 		drawButtons(pSurface);
+		drawActive(pSurface, activeDiag);
 		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
 
 		needRedraw = FALSE;

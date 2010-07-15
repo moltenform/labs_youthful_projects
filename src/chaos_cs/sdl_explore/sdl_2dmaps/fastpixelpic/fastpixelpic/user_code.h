@@ -73,28 +73,28 @@ __inline void getSetup(int width)
 //}
 
 
-//__inline double getValAt(double fx, double fy)
-//{
-//	double c1= g_settings->pc1,c2= g_settings->pc2,c3= g_settings->pc3;
-//	double c4= g_settings->pc4,c5= g_settings->pc5,c6= g_settings->pc6;
-//	double c1b= g_settings->pc1b,c2b= g_settings->pc2b,c3b= g_settings->pc3;
-//	double c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6;
-//	int paramIters = g_settings->iters;
-//	double maxValue = g_settings->maxValue;
-//	
-//	///// User code here
-//	double x=fx, y=fy, x_, y_;
-//	for (int i=0; i<paramIters; i++)
-//	{
-//		x_ = c1*x - y*y;
-//		y_ = c2*y + x*y;
-//		x=x_;
-//		y=y_;
-//		if (ISTOOBIG(x)||ISTOOBIG(y)) break;
-//	}
-//	if (ISTOOBIG(x)||ISTOOBIG(y)) return maxValue+10;
-//	return standardToColor(pSurface, sqrt( (x-fx)*(x-fx)+(y-fy)*(y-fy)) / maxValue);
-//}
+__inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
+{
+	double c1= g_settings->pc1,c2= g_settings->pc2,c3= g_settings->pc3;
+	double c4= g_settings->pc4,c5= g_settings->pc5,c6= g_settings->pc6;
+	double c1b= g_settings->pc1b,c2b= g_settings->pc2b,c3b= g_settings->pc3;
+	double c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6;
+	int paramIters = g_settings->iters;
+	double maxValue = g_settings->maxValue;
+	
+	///// User code here
+	double x=fx, y=fy, x_, y_;
+	for (int i=0; i<paramIters; i++)
+	{
+		x_ = c1*x - y*y;
+		y_ = c2*y + x*y;
+		x=x_;
+		y=y_;
+		if (ISTOOBIG(x)||ISTOOBIG(y)) break;
+	}
+	if (ISTOOBIG(x)||ISTOOBIG(y)) return g_white; //maxValue+10;
+	return standardToColor(pSurface, sqrt( (x-fx)*(x-fx)+(y-fy)*(y-fy)) / maxValue);
+}
 
 //__inline int getValAt(double fx, double fy)
 //{
@@ -140,56 +140,56 @@ __inline float apxlog(float v) //wikipediaQuickLog
 	return f/(1<<23) - 127.0f;
 }
 
-__inline int getValAt(SDL_Surface* pSurface, double dfx, double dfy,int width)
-{
-	float fx=(float)dfx, fy=(float)dfy;
-	float c1= g_settings->pc1,c2= g_settings->pc2,c3= g_settings->pc3;
-	float c4= g_settings->pc4,c5= g_settings->pc5,c6= g_settings->pc6;
-	float c1b= g_settings->pc1b,c2b= g_settings->pc2b,c3b= g_settings->pc3;
-	float c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6;
-	int paramIters = g_settings->iters;
-	float maxValue = g_settings->maxValue;
-	
-	///// User code here
-	int N = 70;//paramIters;//////////////////
-	float p0 = 0.5;
-	c1=0.018+g_settings->pc1;//////////////////
-
-	float total = 0, p=p0; float r;
-	for (int i = 0; i < 20; i++)
-	{
-		p = (100*c1)/sin(r*p);
-	}
-	for (int i = 0; i < N/4; i++)
-	{
-		r = fy;
-		//note imbalance: 1 more fy than fx
-
-		p = (100*c1)/sin(r*p);
-		float sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
-		total += apxlog(fabs(sinmapDeriv));
-		p = (100*c1)/sin(r*p);
-		sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
-		total += apxlog(fabs(sinmapDeriv));
-		
-
-		r = fx;
-		p = (100*c1)/sin(r*p);
-		sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
-		total += apxlog(fabs(sinmapDeriv));
-		p = (100*c1)/sin(r*p);
-		sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
-		total += apxlog(fabs(sinmapDeriv));
-		
-		if (total<-1000) break;
-	}
-	total = -total/N;
-	if (total<-1000) total=0.0;
-	if (total<0) total= /*-*/ sqrt(-total)/4;
-	else total=sqrt(total)/2;
-
-	return standardToColor(pSurface, total / maxValue);
-}
+//__inline int getValAt(SDL_Surface* pSurface, double dfx, double dfy,int width)
+//{
+//	float fx=(float)dfx, fy=(float)dfy;
+//	float c1= g_settings->pc1,c2= g_settings->pc2,c3= g_settings->pc3;
+//	float c4= g_settings->pc4,c5= g_settings->pc5,c6= g_settings->pc6;
+//	float c1b= g_settings->pc1b,c2b= g_settings->pc2b,c3b= g_settings->pc3;
+//	float c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6;
+//	int paramIters = g_settings->iters;
+//	float maxValue = g_settings->maxValue;
+//	
+//	///// User code here
+//	int N = 70;//paramIters;//////////////////
+//	float p0 = 0.5;
+//	c1=0.018+g_settings->pc1;//////////////////
+//
+//	float total = 0, p=p0; float r;
+//	for (int i = 0; i < 20; i++)
+//	{
+//		p = (100*c1)/sin(r*p);
+//	}
+//	for (int i = 0; i < N/4; i++)
+//	{
+//		r = fy;
+//		//note imbalance: 1 more fy than fx
+//
+//		p = (100*c1)/sin(r*p);
+//		float sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
+//		total += apxlog(fabs(sinmapDeriv));
+//		p = (100*c1)/sin(r*p);
+//		sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
+//		total += apxlog(fabs(sinmapDeriv));
+//		
+//
+//		r = fx;
+//		p = (100*c1)/sin(r*p);
+//		sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
+//		total += apxlog(fabs(sinmapDeriv));
+//		p = (100*c1)/sin(r*p);
+//		sinmapDeriv = -c2*cos(r+p)/(sin(r+p)*sin(r+p));
+//		total += apxlog(fabs(sinmapDeriv));
+//		
+//		if (total<-1000) break;
+//	}
+//	total = -total/N;
+//	if (total<-1000) total=0.0;
+//	if (total<0) total= /*-*/ sqrt(-total)/4;
+//	else total=sqrt(total)/2;
+//
+//	return standardToColor(pSurface, total / maxValue);
+//}
 
 
 //__inline int getValAt(SDL_Surface* pSurface, double fx, double fy)

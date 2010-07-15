@@ -493,7 +493,7 @@ __inline int standardToColor(SDL_Surface* pSurface, double val /*normalized 0-1*
 
 void DrawFigureSingleThread( SDL_Surface* pSurface, int width) 
 {
-	int height=width; int newcol;
+	int height=width; 
 	getSetup(width);
 	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 	double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
@@ -537,7 +537,7 @@ int DrawMainFigureThread4( void* pStruct)
 	int width = g_tmpwidth; int height= g_tmpwidth;
 	SDL_Surface* pSurface=g_tmpsurface;
 	int whichHalf = ((int)pStruct);
-	double fx,fy; char*pPosition; Uint32 newcol;
+	double fx,fy; Uint32 newcol;
 	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 	double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
 	fx = X0; fy = Y1; //y counts downwards

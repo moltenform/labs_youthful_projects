@@ -109,6 +109,27 @@ void drawButtons(SDL_Surface *pSurface)
 	plotlineRectangle(pSurface, BtnInfoX+7,BtnInfoX+10,BtnInfoY+10,BtnInfoY+13, 0);
 	plotlineRectangle(pSurface, BtnInfoX+12,BtnInfoX+15,BtnInfoY+10,BtnInfoY+13, 0);
 }
+void drawActive(SDL_Surface *pSurface, int nActive)
+{
+	if (nActive==-1) return;
+	if (nActive==1 || nActive==2 || nActive==3) {
+	SDL_Rect r; r.h = 25, r.w=2; 
+	r.x = diagramsLayout[nActive].screen_x+diagramsLayout[nActive].screen_width;
+	r.y = diagramsLayout[nActive].screen_y;
+	SDL_FillRect(pSurface, &r, 0); //black mark to next to it
+	}
+}
+double getAmountToMove(double width, BOOL bShift, BOOL bControl, BOOL bAlt)
+{
+	if (!bShift && !bControl && !bAlt)
+		return 0.005;
+	if (!bShift && bControl && !bAlt) //fine control
+		return width/1024.0;
+	if (bShift && !bControl && !bAlt) //course control
+		return width/16.0;
+}
+
+
 void showInfoN(SDL_Surface *pSurface, int n)
 {
 	SDL_FillRect ( pSurface , NULL , g_white );
