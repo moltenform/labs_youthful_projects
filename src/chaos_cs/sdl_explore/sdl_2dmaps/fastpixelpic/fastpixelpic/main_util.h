@@ -127,6 +127,7 @@ double getAmountToMove(double width, BOOL bShift, BOOL bControl, BOOL bAlt)
 		return width/1024.0;
 	if (bShift && !bControl && !bAlt) //course control
 		return width/16.0;
+	return 0.0;
 }
 
 

@@ -6,6 +6,7 @@ __inline void getSetup(int width)
 	int height=width;
 	if (!g_arr || width!=g_arr_size) { if(g_arr)free(g_arr); g_arr=(int*)malloc(sizeof(int)*width*height); }
 	
+
 	return; //////////////////////////////////////////////////
 	///// User code here
 	memset(g_arr, 0, sizeof(int)*width*width); 
@@ -30,13 +31,13 @@ __inline void getSetup(int width)
 
 			for (int ii=0; ii<SETTLE/4; ii++)
 			{
-				MAPEXPRESSION; x=x_; y=y_; MAPEXPRESSION; x=x_; y=y_;
-				MAPEXPRESSION; x=x_; y=y_; MAPEXPRESSION; x=x_; y=y_;
+				x_ = c1*x - y*y; y_ = c2*y + x*y;; x=x_; y=y_; x_ = c1*x - y*y; y_ = c2*y + x*y;; x=x_; y=y_;
+				x_ = c1*x - y*y; y_ = c2*y + x*y;; x=x_; y=y_; x_ = c1*x - y*y; y_ = c2*y + x*y;; x=x_; y=y_;
 				if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 			}
 			for (int ii=0; ii<DRAWING; ii++)
 			{
-				MAPEXPRESSION; x=x_; y=y_;
+				x_ = c1*x - y*y; y_ = c2*y + x*y;; x=x_; y=y_;
 				if (ISTOOBIG(x)||ISTOOBIG(y)) break;
 
 				int px = (int)(width * ((x - X0) / (X1 - X0)));
