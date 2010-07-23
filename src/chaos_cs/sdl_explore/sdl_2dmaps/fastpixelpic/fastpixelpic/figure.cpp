@@ -1,6 +1,5 @@
 #include <math.h>
 #include "figure.h"
-#include "whichmap.h"
 #include "palette.h"
 #include "coordsdiagram.h" //maybe not the best architecturally
 
@@ -489,12 +488,12 @@ __inline int standardToColor(SDL_Surface* pSurface, double val /*normalized 0-1*
 	
 	//apply color effect
 
-	if (g_settings->coloringMode == ColorModeRainbow) {
+	if (g_settings->colorMode == ColorModeRainbow) {
 		val += g_settings->hueShift;
 		if (val>1) val-=1;
 		newcol = HSL2RGB(pSurface, val, 0.5, .5);
 	}
-	else if (g_settings->coloringMode == ColorModeBlackWhite) {
+	else if (g_settings->colorMode == ColorModeBlackWhite) {
 		if (val>=0.0)
 		{
 			int v= (int)(255*val);

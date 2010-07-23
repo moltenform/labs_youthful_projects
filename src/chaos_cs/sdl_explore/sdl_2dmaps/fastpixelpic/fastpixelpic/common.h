@@ -54,7 +54,7 @@ typedef struct
 	double diagram_c_y0;
 	double diagram_c_y1;
 
-	int coloringMode; //color with black/white, black/blue, or rainbow, use alt-U to change
+	int colorMode; //color with black/white, black/blue, or rainbow, use alt-U to change
 	int colorWrapping; //wrap values or not? use alt-W to change. 'cycle gradients?.
 	double maxValueAddition; //use U, shift-U to adjust. importantn
 	double hueShift; //use space, shift-space to cycle, held down!

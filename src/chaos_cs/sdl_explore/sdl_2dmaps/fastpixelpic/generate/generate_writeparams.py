@@ -66,7 +66,7 @@ def checkADict(d):
 	double diagram_c_x1;
 	double diagram_c_y0;
 	double diagram_c_y1;
-	int coloringMode; 
+	int colorMode; 
 	int colorWrapping; 
 	double maxValueAddition; 
 	double hueShift;
@@ -74,8 +74,9 @@ def checkADict(d):
 	int drawing; 
 	double breatheRadius_c1c2; '''
 	
+	thelistofnames = legalKeyNames.replace(';','').split()
 	for key in d:
-		if key not in legalKeyNames or key=='double' or key=='int':
+		if key not in thelistofnames or key=='double' or key=='int':
 			print 'Unknown parameter: ',key
 			return False
 	return True

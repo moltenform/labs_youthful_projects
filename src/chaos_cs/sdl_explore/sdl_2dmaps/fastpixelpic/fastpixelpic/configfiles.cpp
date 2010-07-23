@@ -150,26 +150,6 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 	fprintf(f, "\n\n"
 		";saved from fastmapscombined\n"
 		";formula is %s \n", expressiontext);
-	/*	";the following is just so that it can be opened in cs_phase_portrait\n"
-		"[main_portrait]\n"
-		"X0=%f\n"
-		"X1=%f\n"
-		"Y0=%f\n"
-		"Y1=%f\n"
-		, g_settings->x0, g_settings->x1, g_settings->y0, g_settings->y1
-		);
-	fprintf(f, "\n"
-		"param1=%f\n"
-		"param2=%f\n"
-		"param3=0\n"
-		"param4=0\n"
-		"paramSettle=%d\n"
-		"paramTotalIters=400\n"
-		"paramExpression=%s\n"
-		"paramInit=//saved from fastmapscombined, by Ben Fisher\n"
-		"programVersion=0.0.1"
-		, g_settings->a,g_settings->b, g_settings->settlingTime, expressiontext
-		);*/
 	fclose(f);
 	return TRUE;
 }

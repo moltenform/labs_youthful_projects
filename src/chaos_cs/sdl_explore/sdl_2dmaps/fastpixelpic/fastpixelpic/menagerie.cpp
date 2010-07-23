@@ -1,5 +1,4 @@
 #include "figure.h"
-#include "whichmap.h"
 #include "coordsdiagram.h"
 #include "palette.h"
 #include "font.h"

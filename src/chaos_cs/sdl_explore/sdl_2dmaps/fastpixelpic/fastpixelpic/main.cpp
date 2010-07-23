@@ -14,7 +14,6 @@ Fast (/fp:fast)
 
 #include "common.h"
 #include "configfiles.h"
-#include "whichmap.h"
 #include "coordsdiagram.h"
 #include "font.h"
 #include "figure.h"
@@ -97,6 +96,7 @@ while(TRUE)
 				else *paramsX[activeDiag]-=amount;
 				needRedraw=TRUE; }
 				break;
+			case SDLK_SPACE: { util_shifthue(event.key.keysym.mod & KMOD_SHIFT); needRedraw=TRUE; break; }
 			case SDLK_ESCAPE: return 0; break;
 			case SDLK_F4: if (event.key.keysym.mod & KMOD_ALT) return 0; break;
 			default: break;
@@ -319,7 +319,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_s:  {
 			turnOffBreathing();
 			BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
-			Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface); break; }
+			Dialog_Message(bRes?"Savoed-.": "Save Faoiled.",pSurface); break; }
 		//case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;

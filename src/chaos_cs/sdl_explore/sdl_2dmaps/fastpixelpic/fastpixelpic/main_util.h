@@ -45,10 +45,10 @@ void turnOffBreathing()
 BOOL appendToFilePython(const char * filename)
 {
 	if (!filename || !filename[0]) return FALSE;
+	
 	FILE * f = fopen(filename, "a"); //append mode. do NOT overwrite the file.
 	if (!f) return FALSE;
-	fprintf(f,"HI there\n\n");
-	return TRUE;
+	
 	if (gParamHasSavedAFrame) //save all the frames...
 	{
 		FastMapsSettings currentSettings;
@@ -94,7 +94,7 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 	if (!bShift) {
 		g_settings->drawing = MAX(0, g_settings->drawing + direction*1);
 	} else {
-		g_settings->settling = MAX(0, g_settings->settling + direction*0.5);
+		g_settings->settling = MAX(0, g_settings->settling + direction*1);
 	}
 }
 void util_changeMaxValue(BOOL bShift)

@@ -48,6 +48,9 @@ def main(filename):
 	#write code to the file.
 	generate_templates.writeTemplates(partCode, PATHTOSLN)
 	
+	#get path BEFORE os.chdir!
+	filename = os.path.abspath(filename)
+	
 	#compile
 	os.chdir(PATHTOSLN) #necessary
 	nStatus = os.system(os.path.join(PATHTOSLN, 'compile_msvc.bat'))
@@ -59,10 +62,12 @@ def main(filename):
 	
 	#run with the filepath.
 	
-	filename = os.path.abspath(filename)
+	
 	outdir = os.path.join(PATHTOSLN, 'out')
+	#~ exename = os.path.join(outdir, 'fastpixelpic.exe')
 	exename = os.path.join(outdir, 'fastpixelpic.exe')
 	os.chdir(outdir) #necessary
+	#os.system(exename + ' "'+filename+'" -full') #we pass the filename as a parameter, so changes can be written back.
 	os.system(exename + ' "'+filename+'"') #we pass the filename as a parameter, so changes can be written back.
 	
 

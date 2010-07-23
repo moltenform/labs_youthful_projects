@@ -1,7 +1,6 @@
 
 #include "common.h"
 #include "palette.h"
-#include "whichmap.h"
 #include "figure.h"
 #include <math.h>
 

@@ -1,5 +1,4 @@
 
-#include "whichmap.h"
 #include "configfiles.h"
 #include "font.h"
 #include "figure.h"
