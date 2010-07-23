@@ -1,8 +1,23 @@
-void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram );
+void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, int nActive, BOOL *needRedraw, BOOL *needDrawDiagram );
 
-void util_openfile(SDL_Surface* pSurface)
+BOOL gParamBreathing = FALSE; //only access through turnOn, turnOff!
+double savedC1=0, savedC2=0;
+void turnOnBreathing()
 {
-	/*char*ret = Dialog_GetText("Open file named: (also drag/drop onto program)", NULL, pSurface);
+	if (gParamBreathing) return; //do nothing if already breathing
+	savedC1=g_settings->pc1; savedC2=g_settings->pc2;
+	gParamBreathing=TRUE;
+}
+void turnOffBreathing()
+{
+	if (!gParamBreathing) return; //do nothing if not breathing
+	g_settings->pc1=savedC1; g_settings->pc2=savedC2;
+	gParamBreathing=FALSE;
+}
+
+/*void util_openfile(SDL_Surface* pSurface)
+{
+	char*ret = Dialog_GetText("Open file named: (also drag/drop onto program)", NULL, pSurface);
 	if (!ret) return;
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/%s.cfg", SAVESFOLDER, ret);
@@ -11,11 +26,11 @@ void util_openfile(SDL_Surface* pSurface)
 	{ Dialog_Message("No file with that name.", pSurface); return; }
 	BOOL didopen = loadFromFile(buf);
 	if (!didopen)
-	{ Dialog_Message("Could open that file.", pSurface); return; }*/
-}
-void util_savefile(SDL_Surface* pSurface)
+	{ Dialog_Message("Could open that file.", pSurface); return; }
+}*/
+/*void util_savefile(SDL_Surface* pSurface)
 {
-	/*char*ret = Dialog_GetText("Save file as:", NULL, pSurface);
+	char*ret = Dialog_GetText("Save file as:", NULL, pSurface);
 	if (!ret) return;
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/%s.cfg", SAVESFOLDER, ret);
@@ -25,7 +40,34 @@ void util_savefile(SDL_Surface* pSurface)
 	BOOL didsave = saveToFile(buf, MAPEXPRESSIONTEXT);
 	if (!didsave)
 	{ Dialog_Message("Could not save to that file.", pSurface); util_savefile(pSurface); return; } //try again
-	*/
+	
+}*/
+BOOL appendToFilePython(const char * filename)
+{
+	if (!filename || !filename[0]) return FALSE;
+	FILE * f = fopen(filename, "a"); //append mode. do NOT overwrite the file.
+	if (!f) return FALSE;
+	fprintf(f,"HI there\n\n");
+	return TRUE;
+	if (gParamHasSavedAFrame) //save all the frames...
+	{
+		FastMapsSettings currentSettings;
+		memcpy(&currentSettings,g_settings, sizeof(FastMapsSettings));
+		
+		for (int i=1; i<=9; i++)
+		{
+			if (!openFrame(i)) break;
+			fprintf(f,"frame0%d",i);
+			saveObjectPythonDict(f);
+		}
+		memcpy(g_settings, &currentSettings, sizeof(FastMapsSettings));
+	}
+	
+	fprintf(f,"\n\n");
+	fprintf(f,"latest");
+	saveObjectPythonDict(f);
+	fclose(f);
+	return TRUE;
 }
 
 
@@ -65,14 +107,23 @@ void util_shifthue(BOOL bShift)
 	if (g_settings->hueShift>1.0) g_settings->hueShift-=1.0;
 	if (g_settings->hueShift<0.0) g_settings->hueShift+=1.0;
 }
-
-void util_onGetExact(SDL_Surface *pSurface)
+void util_changeWrapping()
 {
-	// find which is 'active'
-	//if (!Dialog_GetDouble("Enter a value for a:",pSurface,&g_settings->a))
-	//	return;
-	//if (!Dialog_GetDouble("Enter a value for b:",pSurface,&g_settings->b))
-	//	return;
+	g_settings->colorWrapping = (g_settings->colorWrapping+1)%3;
+}
+
+void util_onGetExact(SDL_Surface *pSurface, int nActive)
+{
+	if (nActive==3) {
+		if (!Dialog_GetDouble("Enter a value for c5:",pSurface,&g_settings->pc5)) return;
+		if (!Dialog_GetDouble("Enter a value for c6:",pSurface,&g_settings->pc6)) return;
+	} else if (nActive==2) {
+		if (!Dialog_GetDouble("Enter a value for c3:",pSurface,&g_settings->pc3)) return;
+		if (!Dialog_GetDouble("Enter a value for c4:",pSurface,&g_settings->pc4)) return;
+	} else {
+		if (!Dialog_GetDouble("Enter a value for c1:",pSurface,&g_settings->pc1)) return;
+		if (!Dialog_GetDouble("Enter a value for c2:",pSurface,&g_settings->pc2)) return;
+	}
 }
 void util_onGetMoreOptions(SDL_Surface *pSurface)
 {

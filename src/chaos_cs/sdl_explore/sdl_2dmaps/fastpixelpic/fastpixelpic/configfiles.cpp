@@ -92,6 +92,7 @@ BOOL loadObject(FILE * stream)
 	char keyname [1024]={0};
 	double fvalue; //initially reads everything as doubles.
 	BOOL hasSeenUnknown = FALSE;
+	printf("setting hi \n");
 	while (true)
 	{
 		if (feof(stream)) {massert(0, "Invalid file, did not see END key."); return FALSE;}
@@ -113,6 +114,7 @@ BOOL loadObject(FILE * stream)
 				{
 					double * theValue = (double*) GlobalFieldDescriptions[i].reference;
 					*theValue = fvalue;
+					printf("setting %s \n", GlobalFieldDescriptions[i].fieldName);
 				}
 				else  { massert(0, "Unknown data type in definition of Settings object."); }
 
@@ -120,7 +122,7 @@ BOOL loadObject(FILE * stream)
 			}
 			i++;
 		}
-		if (GlobalFieldDescriptions[i].fieldType == NULL) { hasSeenUnknown=TRUE; /*massert(0,"unrecognized key");*/ /*debug*/ }
+		if (GlobalFieldDescriptions[i].fieldType == NULL) { hasSeenUnknown=TRUE; massert(0,"unrecognized key"); /*debug*/ }
 
 	}
 }
@@ -172,31 +174,4 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 	return TRUE;
 }
 
-//bad layering here...
-#include "animate.h"
-BOOL appendToFilePython(const char * filename)
-{
-	FILE * f = fopen(filename, "a"); //append mode. do NOT overwrite the file.
-	if (!f) return FALSE;
-
-	if (gParamHasSavedAFrame) //save all the frames...
-	{
-		FastMapsSettings currentSettings;
-		memcpy(&currentSettings,g_settings, sizeof(FastMapsSettings));
-		
-		for (int i=1; i<=9; i++)
-		{
-			if (!openFrame(i)) break;
-			fprintf(f,"frame0%d",i);
-			saveObjectPythonDict(f);
-		}
-		memcpy(g_settings, &currentSettings, sizeof(FastMapsSettings));
-	}
-	
-	fprintf(f,"\n\n");
-	fprintf(f,"latest");
-	saveObjectPythonDict(f);
-	fclose(f);
-	return TRUE;
-}
 

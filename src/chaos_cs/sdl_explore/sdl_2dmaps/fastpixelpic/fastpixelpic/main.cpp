@@ -32,9 +32,10 @@ CoordsDiagramStruct diagramsLayout[] = {
 double* paramsX[] = {NULL, &g_settings->pc1, &g_settings->pc3, &g_settings->pc5, NULL};
 double* paramsY[] = {NULL, &g_settings->pc2, &g_settings->pc4, &g_settings->pc6, NULL};
 
+char* gParamFileToAppendTo = NULL;
+//it's important to turn off breathing before saving 
 #include "main_util.h"
 
-BOOL gParamBreathing = FALSE; 
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
@@ -52,7 +53,7 @@ int main( int argc, char* argv[] )
 	SDL_Init ( SDL_INIT_VIDEO ) ;
 	//create main window
 	Uint32 flags = SCREENFLAGS;
-	if ((argc > 1 && StringsEqual(argv[1],"full"))||(argc > 2 && StringsEqual(argv[2],"full")))
+	if ((argc > 1 && StringsEqual(argv[1],"-full"))||(argc > 2 && StringsEqual(argv[2],"-full")))
 		flags |= SDL_FULLSCREEN;
 	SDL_Surface* pSurface = SDL_SetVideoMode ( SCREENWIDTH , SCREENHEIGHT , SCREENBPP , flags) ;
 	BOOL bNeedToLock =  SDL_MUSTLOCK(pSurface);
@@ -63,8 +64,8 @@ int main( int argc, char* argv[] )
 	SDL_Surface* pDiagram2Surface = createSurface(pSurface, diagramsLayout[2].screen_width, diagramsLayout[2].screen_height);
 	SDL_Surface* pDiagram3Surface = createSurface(pSurface, diagramsLayout[3].screen_width, diagramsLayout[3].screen_height);
 	SDL_FillRect ( pSurface , NULL , g_white );
-	if (argc > 1 && !StringsEqual(argv[1],"full")) 
-		loadFromFile(argv[1]);
+	if (argc > 1 && !StringsEqual(argv[1],"-full")) 
+		gParamFileToAppendTo = argv[1]; //use this as the file to append to.
 
 	initFont();
 	// holding alt and dragging is termed a "super drag" and will set a custom zoom window.
@@ -105,7 +106,7 @@ while(TRUE)
 	  {
 		  onKeyUp(event.key.keysym.sym, (event.key.keysym.mod & KMOD_CTRL)!=0,
 			  (event.key.keysym.mod & KMOD_ALT)!=0,(event.key.keysym.mod & KMOD_SHIFT)!=0, 
-				pSurface, &needRedraw, &needDrawDiagram);
+			   pSurface, activeDiag, &needRedraw, &needDrawDiagram);
 	  }
 	  else if ( event.type == SDL_MOUSEMOTION )
 	  {
@@ -190,7 +191,7 @@ while(TRUE)
 					int diagram = isClickWithinDiagram(diagramsLayout, mouse_x, mouse_y);
 					if (diagram!=0) activeDiag = diagram;
 				}
-				gParamBreathing = FALSE; //turn off breathing when click.
+				turnOffBreathing(); //turn off breathing when click.
 			}
 			else if (buttons & SDL_BUTTON_MIDDLE) //reset the view, but leave the rest of settings intact.
 			{ 
@@ -258,8 +259,8 @@ while(TRUE)
 			//DrawBasinsBasic(pSurface, whicha, whichb, &diagramsLayout[2]);
 		}
 		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
-		//if (!gParamBreathing) { oscA=*a; oscB = *b; }
-		//else { oscillateBreathing(*a,*b, &oscA, &oscB); }
+
+		if (gParamBreathing) { oscillateBreathing(savedC1,savedC2, &g_settings->pc1, &g_settings->pc2); }
 		DrawFigure(pMainFigure, diagramsLayout[0].screen_width);
 		blitDiagram(pSurface, pMainFigure, diagramsLayout[0].screen_x,diagramsLayout[0].screen_y);
 		if (bShowDiagram) drawPlotGrid(pSurface, &diagramsLayout[1], g_settings->pc1, g_settings->pc2, g_settings->pc1b, g_settings->pc2b);
@@ -282,15 +283,16 @@ while(TRUE)
 
 
 
-void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, BOOL *needRedraw, BOOL *needDrawDiagram )
-{
-	BOOL wasKeyCombo = TRUE;
+//consider when we must turn off breathing: before save, before render, before renderBreathing
+//don't yet call turnOffBreathing(); on each keyup, because can be fun to be zooming while breathing/so on
+void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSurface, int activeDiag, BOOL *needRedraw, BOOL *needDrawDiagram )
+{	
+	BOOL wasKeyCombo = TRUE; //assume it was a shortcut, drop to default if wasn't
 	if (!bControl && !bAlt)
 	switch (key)
 	{
 		//change drawing mode
 		//case SDLK_1: g_settings->coloringMode = bShift? ColorModeBlackBlueSqrt : ColorModeBlackBlue; break;
-		
 		
 
 		//increase/decrease iters
@@ -311,14 +313,18 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	else if (bControl && !bAlt)
 	switch (key)
 	{
-		case SDLK_n:  { initializeObjectToDefaults(); loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //resets.
-		case SDLK_s:  util_savefile(pSurface); break;
-		case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
+		//ctrl-n reverts to saved. ctrl-shift-n resets everything.
+		case SDLK_n:  { turnOffBreathing(); initializeObjectToDefaults(); if (!bShift) loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //revert to saved version
+		case SDLK_s:  {
+			turnOffBreathing();
+			BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
+			Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface); break; }
+		//case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
-		case SDLK_QUOTE: util_onGetExact(pSurface); /* which one is active/////////////////////////// */ break;
+		case SDLK_QUOTE: util_onGetExact(pSurface, activeDiag); break;
 		case SDLK_SEMICOLON: util_onGetMoreOptions(pSurface); break;
-		//case SDLK_b:  renderBreathing(pSurface,diagramsLayout[0].screen_width); break;
+		case SDLK_b: turnOffBreathing(); renderBreathing(pSurface,diagramsLayout[0].screen_width); break;
 		case SDLK_RETURN: Dialog_Message("Rendering animation. This may take some time.", pSurface);
 						 if (!renderAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) 
 							 Dialog_Message("Not enough keyframes to animate.",pSurface); break;
@@ -329,15 +335,16 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	else if (!bControl && bAlt)
 	switch (key)
 	{
-		case SDLK_b: gParamBreathing = !gParamBreathing; break;
-		//bitwise operation. use xor. 1 causes bit to flip, 0 causes it to remain.
-		//case SDLK_4: g_settings->drawingOptions ^= maskOptionsSmearRectangle; break;
+		case SDLK_b: if (gParamBreathing) turnOffBreathing(); else turnOnBreathing(); break;
+
+		case SDLK_w: util_changeWrapping(); break;
 		case SDLK_u: util_shifthue(bShift); break;
 		default: wasKeyCombo =FALSE;
 	}
 
 	if (key>=SDLK_F1 && key<=SDLK_F9)
 	{
+		
 		if (!bControl && !bShift && !bAlt) { BOOL ret=openFrame(key-SDLK_F1 + 1); if (!ret) Dialog_Messagef(pSurface,"Keyframe hasn't been saved yet, press Ctrl-F%d to save it.",key-SDLK_F1+1); }
 		if (bControl && bShift && !bAlt){ if (Dialog_GetBool("Delete frame?",pSurface)) deleteFrame(key-SDLK_F1 + 1); }
 		else if (bControl && !bShift && !bAlt) { saveToFrame(key-SDLK_F1 + 1); Dialog_Message("Saved keyframe.", pSurface);}

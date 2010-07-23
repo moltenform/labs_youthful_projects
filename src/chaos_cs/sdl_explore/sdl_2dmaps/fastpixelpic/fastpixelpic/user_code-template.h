@@ -1,5 +1,8 @@
 
+#define RGB(r,g,b) (SDL_MapRGB(pSurface->format, (r),(g),(b)))
+
 int g_arr_size=0; int * g_arr=NULL;
+
 //$$INSERT_USER_OUTSIDE
 
 __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)

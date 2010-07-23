@@ -20,7 +20,7 @@ def writeTemplates(s, PathToSln):
 	
 	# put the blank OnSetup in if it doesn't exist.
 	if not re.search(r'\bOnSetup\b',codeBefore):
-		codeBefore = 'void OnSetup(int width) { }\r\n\r\n'+codeBefore
+		codeBefore = 'void OnSetup(int width) { }\n\n'+codeBefore
 	
 	#read in template.
 	projpath=  os.path.join(PathToSln, 'fastpixelpic')

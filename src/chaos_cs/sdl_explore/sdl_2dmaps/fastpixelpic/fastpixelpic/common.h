@@ -54,9 +54,9 @@ typedef struct
 	double diagram_c_y0;
 	double diagram_c_y1;
 
-	int coloringMode; //black/white, rainbow, use alt-U to change
-	int colorWrapping; //wrap values or not? use alt-W to change. 'cycle gradient'.
-	double maxValueAddition; //use U, shift-U to adjust
+	int coloringMode; //color with black/white, black/blue, or rainbow, use alt-U to change
+	int colorWrapping; //wrap values or not? use alt-W to change. 'cycle gradients?.
+	double maxValueAddition; //use U, shift-U to adjust. importantn
 	double hueShift; //use space, shift-space to cycle, held down!
 	int settling; //use shift +,-
 	int drawing; //use +, -
@@ -77,7 +77,7 @@ extern FastMapsSettings * g_settings;
 #define g_white 0xffffffff
 
 #define TRANSLUCENT_RED 0x00000001
-#define MAPDEFAULTFILE ("default.cfg" )
+#define MAPDEFAULTFILE ("saves_gen/default.cfg" )
 
 //fmod can be negative, so use this instead.
 #define mmod(a,b) ((a>0)? fmod(a,b) : fmod(a,b)+b)

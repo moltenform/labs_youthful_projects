@@ -1,5 +1,8 @@
 
+#define RGB(r,g,b) (SDL_MapRGB(pSurface->format, (r),(g),(b)))
+
 int g_arr_size=0; int * g_arr=NULL;
+
 void OnSetup(int width) { }
 
 
@@ -18,7 +21,11 @@ __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
 	
 	
 maxValue = 5;
-val = fx*fy + fabs(fx) ;
+val = fx*fy + fabs(fx) + c1;
+//to override color, just add our own return statement.
+//~ return ((*(int*)&val) &0x1) ? RGB(50,0,0) : RGB(255,0,0);
+return ((*(int*)&val) &0x2) ? RGB(50,0,0) : RGB(255,0,0);
+
 	
 	return standardToColor(pSurface, val / (maxValue+g_settings->maxValueAddition));
 }

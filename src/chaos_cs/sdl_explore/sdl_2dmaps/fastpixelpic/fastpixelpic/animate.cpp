@@ -37,7 +37,7 @@ void saveToFrame(int frame)
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/framek0%d.cfg", SAVESFOLDER, frame);
-	saveToFile(buf, "");
+	saveToFile(buf, "NoExpressionText");
 	gParamHasSavedAFrame = TRUE;
 }
 
@@ -185,7 +185,8 @@ outsideloop:
 	return TRUE;
 }
 
-/*BOOL renderBreathing(SDL_Surface* pSurface, int width)
+//caller should turn off actual breathing before calling this.
+BOOL renderBreathing(SDL_Surface* pSurface, int width)
 {
 	char buf[256];
 	double fSeconds = 4;
@@ -193,18 +194,18 @@ outsideloop:
 	if (fSeconds <= 0) return FALSE;
 	int nFrames = (int)(20*fSeconds);
 	SDL_Surface* pFrameSurface = SDL_CreateRGBSurface( SDL_SWSURFACE, width, width, pSurface->format->BitsPerPixel, pSurface->format->Rmask, pSurface->format->Gmask, pSurface->format->Bmask, 0 );
-	double breatheA, breatheB;
+	double localsavedC1=g_settings->pc1; double localsavedC2=g_settings->pc2;
 	for (int i=0; i<nFrames; i++)
 	{
-		oscillateBreathing(g_settings->a,g_settings->b,&breatheA, &breatheB);
+		oscillateBreathing(localsavedC1,localsavedC2,&g_settings->pc1,&g_settings->pc2);
 		SDL_FillRect ( pFrameSurface , NULL , g_white );  //clear surface quickly
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_LockSurface ( pFrameSurface ) ;
-		DrawFigure(pFrameSurface, breatheA, breatheB, width, 0);
+		DrawFigure(pFrameSurface, width);
 		if (SDL_MUSTLOCK(pFrameSurface)) SDL_UnlockSurface ( pFrameSurface ) ;
 		snprintf(buf, sizeof(buf), "%s/frame%03d.bmp", SAVESFOLDER, i);
 		SDL_SaveBMP(pFrameSurface, buf);
 	}
-
+	g_settings->pc1=localsavedC1; g_settings->pc2= localsavedC2;
 	SDL_FreeSurface(pFrameSurface);
 	return TRUE;
 }
@@ -215,7 +216,7 @@ void oscillateBreathing(double curA,double curB,double *outA, double *outB)
 	t+=0.13;
 	if (t>3141.5926) t=0.0;
 
-	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/g_settings->breatheRadius;
-	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(g_settings->breatheRadius*1.315);
+	*outA = curA + sin( t +0.03*cos(t/8.5633) +3.685)/g_settings->breatheRadius_c1c2;
+	*outB = curB + cos( 0.8241*t +0.02*sin(t/9.24123+5.742) )/(g_settings->breatheRadius_c1c2*1.315);
 }
-*/
+
