@@ -470,30 +470,46 @@ __inline int standardToColor(SDL_Surface* pSurface, double val /*normalized 0-1*
 {
 	//hopefully branch prediction will help us here.
 	int newcol;
+
+	//check wrapping mode.
+	if (g_settings->colorWrapping == ColorWrappingTrunc)
+	{
+		if (val>1.0) val=1.0;
+		else if (val<-1.0) val=-1.0;
+	}
+	else if (g_settings->colorWrapping == ColorWrappingCycle)
+	{
+		val = mmod(val, 1.0); //mmod is always positive
+	}
+	else if (g_settings->colorWrapping == ColorWrappingTruncWarning)
+	{
+		if (val>1.0 || val<-1.0)  //do a warning by randomly checkered reds
+			return ((*(int*)&val) &0x1) ? SDL_MapRGB(pSurface->format, 50,0,0) : SDL_MapRGB(pSurface->format, 255,0,0);
+	}
+	
+	//apply color effect
+
 	if (g_settings->coloringMode == ColorModeRainbow) {
-		if (val>1.0) newcol = SDL_MapRGB(pSurface->format, 50,0,0);
-		else {val += g_settings->hueShift; if (val>1) val-=1;
-		newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
-	}}
-	else if (g_settings->coloringMode == ColorModeRainbowRepeated) {
 		val += g_settings->hueShift;
-		val = mmod(val, 1.0);
-		newcol = HSL2RGB(pSurface, val, 0.5, 0.5); //could also change saturation
-	}}
-	else if (g_settings->coloringMode == ColorModeBlackGray) {
-		if (val>1.0) newcol = SDL_MapRGB(pSurface->format, 50,0,0);
-		int v= (int)(255*val);
-		newcol = SDL_MapRGB(pSurface->format, v,v,v);
+		if (val>1) val-=1;
+		newcol = HSL2RGB(pSurface, val, 0.5, .5);
 	}
-	else if (g_settings->coloringMode == ColorModeBlackGrayRepeated) {
-		int v= (int)(255*val);
-		v=v%255;
-		newcol = SDL_MapRGB(pSurface->format, v,v,v);
-	}
-	else if (
-		val = sqrt(val);
-		if (val>=1.0) val=1.0; if (val<0.0) val=0.0;
+	else if (g_settings->coloringMode == ColorModeBlackWhite) {
+		if (val>=0.0)
+		{
+			int v= (int)(255*val);
+			newcol = SDL_MapRGB(pSurface->format, v,v,v);
+		}
+		else
+		{
+            int b = (int)(255.0 * -val);
+            newcol = SDL_MapRGB(pSurface->format, 0,0,b);
+		}
+	}	
+	else //ColorModeBlackBlueWhite
+	{
 		val=val*2-1;
+		int r,g,b;
 		if (val<=0)
 			b=255, r=g= (Uint32) ((1+val)*255.0);
 		else
@@ -507,7 +523,7 @@ __inline int standardToColor(SDL_Surface* pSurface, double val /*normalized 0-1*
 
 #include "user_code.h"
 
-void DrawFigureSingleThread( SDL_Surface* pSurface, int width) 
+/*void DrawFigureSingleThread( SDL_Surface* pSurface, int width) 
 {
 	int height=width; 
 	getSetup(width);
@@ -531,6 +547,7 @@ void DrawFigureSingleThread( SDL_Surface* pSurface, int width)
 		fy -= dy;
 	}
 }
+*/
 
 void renderLargeFigure( SDL_Surface* pSurface, int width, const char*filename ) 
 {
@@ -585,7 +602,9 @@ void DrawMainFigureMultithreaded( SDL_Surface* pMSurface, int width)
 {
 //startTimer();
 	g_tmpsurface=pMSurface; g_tmpwidth=width;
-	getSetup(width); //before any threads
+
+	OnSetup(width); //before any threads
+
 	SDL_Thread *thread2 =  SDL_CreateThread(DrawMainFigureThread4, (void*)1);
 	SDL_Thread *thread3 =  SDL_CreateThread(DrawMainFigureThread4, (void*)2);
 	SDL_Thread *thread4 =  SDL_CreateThread(DrawMainFigureThread4, (void*)3);
@@ -599,6 +618,5 @@ void DrawMainFigureMultithreaded( SDL_Surface* pMSurface, int width)
 
 void DrawFigure( SDL_Surface* pSurface, int width) 
 {
-	//DrawFigureSingleThread(pSurface, width);
 	DrawMainFigureMultithreaded(pSurface,width);
 }

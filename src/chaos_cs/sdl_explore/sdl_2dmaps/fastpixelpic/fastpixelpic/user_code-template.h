@@ -1,8 +1,10 @@
 
 int g_arr_size=0; int * g_arr=NULL;
-void OnSetup(int width){}
 
+void OnSetup(int width){}
 // User code could be here
+// If user code contains OnSetup fn, we call it.
+
 __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
 {
 	double c1= g_settings->pc1,c2= g_settings->pc2,c3= g_settings->pc3;

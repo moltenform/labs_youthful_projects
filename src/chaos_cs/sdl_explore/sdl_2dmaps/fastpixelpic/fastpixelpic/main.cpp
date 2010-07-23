@@ -289,9 +289,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 	switch (key)
 	{
 		//change drawing mode
-		case SDLK_1: g_settings->coloringMode = bShift? ColorModeBlackBlueSqrt : ColorModeBlackBlue; break;
-		case SDLK_2: g_settings->coloringMode = ColorModeBlackGray; break;
-		case SDLK_3: g_settings->coloringMode = ColorModeRainbow; break;
+		//case SDLK_1: g_settings->coloringMode = bShift? ColorModeBlackBlueSqrt : ColorModeBlackBlue; break;
+		
 		
 
 		//increase/decrease iters

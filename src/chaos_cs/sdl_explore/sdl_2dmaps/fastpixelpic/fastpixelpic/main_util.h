@@ -52,7 +52,7 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 	if (!bShift) {
 		g_settings->drawing = MAX(0, g_settings->drawing + direction*1);
 	} else {
-		g_settings->maxValue = MAX(0, g_settings->maxValue + direction*0.5);
+		g_settings->maxValueAddition = MAX(0, g_settings->maxValueAddition + direction*0.5);
 	}
 }
 void util_shifthue(BOOL bShift)
@@ -78,7 +78,7 @@ void util_onGetMoreOptions(SDL_Surface *pSurface)
 {
 	if (!Dialog_GetInt("Enter a value for iters:",pSurface,&g_settings->drawing))
 		return;
-	if (!Dialog_GetDouble("Enter a value for maxvalue:",pSurface,&g_settings->maxValue))
+	if (!Dialog_GetDouble("Enter a value for maxvalue:",pSurface,&g_settings->maxValueAddition))
 		return;
 }
 

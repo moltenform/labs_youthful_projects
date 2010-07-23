@@ -42,7 +42,8 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","diagram_c_y1",(void *)&g_settings->diagram_c_y1, 2},
 
 {"int","coloringMode",(void *)&g_settings->coloringMode, 0},
-{"double","maxValue",(void *)&g_settings->maxValue, 3},
+{"int","colorWrapping",(void *)&g_settings->coloringMode, 0},
+{"double","maxValueAddition",(void *)&g_settings->maxValueAddition, 0},
 {"double","hueShift",(void *)&g_settings->hueShift, 0},
 {"int","settling",(void *)&g_settings->settling, 10},
 {"int","drawing",(void *)&g_settings->settling, 10},

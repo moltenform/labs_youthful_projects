@@ -54,10 +54,10 @@ typedef struct
 	double diagram_c_y0;
 	double diagram_c_y1;
 
-	int coloringMode; //black/white, rainbow, use ctrl-U to change
-	int colorWrapping; //wrap values or not? use alt-W to change
-	double maxValue; //use U, shift-U to adjust
-	double hueShift; //use alt-U, alt-shift u to cycle
+	int coloringMode; //black/white, rainbow, use alt-U to change
+	int colorWrapping; //wrap values or not? use alt-W to change. 'cycle gradient'.
+	double maxValueAddition; //use U, shift-U to adjust
+	double hueShift; //use space, shift-space to cycle, held down!
 	int settling; //use shift +,-
 	int drawing; //use +, -
 	double breatheRadius_c1c2; //ok being non-general, because one could rearrange params for this
