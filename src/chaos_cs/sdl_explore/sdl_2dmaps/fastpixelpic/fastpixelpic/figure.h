@@ -3,10 +3,12 @@
 #include "coordsdiagram.h" //maybe not the best architecturally
 
 
-#define ColorModeBlackGray 10
-#define ColorModeBlackBlue 15
-#define ColorModeBlackBlueSqrt 16
-#define ColorModeRainbow 20
+#define ColorModeBlackGray 0
+#define ColorModeBlackGrayRepeated 10
+#define ColorModeBlackBlue 1
+#define ColorModeBlackBlueSqrt 2
+#define ColorModeRainbow 3
+#define ColorModeRainbowRepeated 13
 
 
 /*enum {

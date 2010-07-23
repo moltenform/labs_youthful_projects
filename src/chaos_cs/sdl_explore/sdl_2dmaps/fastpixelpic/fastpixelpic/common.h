@@ -54,11 +54,13 @@ typedef struct
 	double diagram_c_y0;
 	double diagram_c_y1;
 
-	double maxValue;
-	double hueShift;
-	int iters;
-	int coloringMode;
-	double breatheRadius;
+	int coloringMode; //black/white, rainbow, use ctrl-U to change
+	int colorWrapping; //wrap values or not? use alt-W to change
+	double maxValue; //use U, shift-U to adjust
+	double hueShift; //use alt-U, alt-shift u to cycle
+	int settling; //use shift +,-
+	int drawing; //use +, -
+	double breatheRadius_c1c2; //ok being non-general, because one could rearrange params for this
 } FastMapsSettings;
 
 
@@ -75,6 +77,10 @@ extern FastMapsSettings * g_settings;
 #define g_white 0xffffffff
 
 #define TRANSLUCENT_RED 0x00000001
+#define MAPDEFAULTFILE ("default.cfg" )
+
+//fmod can be negative, so use this instead.
+#define mmod(a,b) ((a>0)? fmod(a,b) : fmod(a,b)+b)
 
 BOOL doesFileExist(const char *fname);
 BOOL LockFramesPerSecond();

@@ -2,7 +2,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 
 void util_openfile(SDL_Surface* pSurface)
 {
-	char*ret = Dialog_GetText("Open file named: (also drag/drop onto program)", NULL, pSurface);
+	/*char*ret = Dialog_GetText("Open file named: (also drag/drop onto program)", NULL, pSurface);
 	if (!ret) return;
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/%s.cfg", SAVESFOLDER, ret);
@@ -11,11 +11,11 @@ void util_openfile(SDL_Surface* pSurface)
 	{ Dialog_Message("No file with that name.", pSurface); return; }
 	BOOL didopen = loadFromFile(buf);
 	if (!didopen)
-	{ Dialog_Message("Could open that file.", pSurface); return; }
+	{ Dialog_Message("Could open that file.", pSurface); return; }*/
 }
 void util_savefile(SDL_Surface* pSurface)
 {
-	char*ret = Dialog_GetText("Save file as:", NULL, pSurface);
+	/*char*ret = Dialog_GetText("Save file as:", NULL, pSurface);
 	if (!ret) return;
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/%s.cfg", SAVESFOLDER, ret);
@@ -25,6 +25,7 @@ void util_savefile(SDL_Surface* pSurface)
 	BOOL didsave = saveToFile(buf, MAPEXPRESSIONTEXT);
 	if (!didsave)
 	{ Dialog_Message("Could not save to that file.", pSurface); util_savefile(pSurface); return; } //try again
+	*/
 }
 
 
@@ -49,7 +50,7 @@ void util_showVals(SDL_Surface* pSurface)
 void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 {
 	if (!bShift) {
-		g_settings->iters = MAX(0, g_settings->iters + direction*1);
+		g_settings->drawing = MAX(0, g_settings->drawing + direction*1);
 	} else {
 		g_settings->maxValue = MAX(0, g_settings->maxValue + direction*0.5);
 	}
@@ -75,7 +76,7 @@ void util_onGetExact(SDL_Surface *pSurface)
 }
 void util_onGetMoreOptions(SDL_Surface *pSurface)
 {
-	if (!Dialog_GetInt("Enter a value for iters:",pSurface,&g_settings->iters))
+	if (!Dialog_GetInt("Enter a value for iters:",pSurface,&g_settings->drawing))
 		return;
 	if (!Dialog_GetDouble("Enter a value for maxvalue:",pSurface,&g_settings->maxValue))
 		return;

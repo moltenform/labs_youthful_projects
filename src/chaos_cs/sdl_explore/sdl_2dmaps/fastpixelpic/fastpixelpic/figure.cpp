@@ -468,23 +468,39 @@ fy -= dy;
 */
 __inline int standardToColor(SDL_Surface* pSurface, double val /*normalized 0-1*/)
 {
+	//hopefully branch prediction will help us here.
 	int newcol;
-	if (TRUE) {
-		//if (val>1.0) newcol = SDL_MapRGB(pSurface->format, 50,0,0);
-		int v= (int)(255*val);
-		v=v%255;
-		newcol = SDL_MapRGB(pSurface->format, v,v,v);
-	}
-	else if (g_settings->coloringMode == ColorModeRainbow) {
+	if (g_settings->coloringMode == ColorModeRainbow) {
 		if (val>1.0) newcol = SDL_MapRGB(pSurface->format, 50,0,0);
 		else {val += g_settings->hueShift; if (val>1) val-=1;
 		newcol = HSL2RGB(pSurface, val, 0.5, 0.5);
+	}}
+	else if (g_settings->coloringMode == ColorModeRainbowRepeated) {
+		val += g_settings->hueShift;
+		val = mmod(val, 1.0);
+		newcol = HSL2RGB(pSurface, val, 0.5, 0.5); //could also change saturation
 	}}
 	else if (g_settings->coloringMode == ColorModeBlackGray) {
 		if (val>1.0) newcol = SDL_MapRGB(pSurface->format, 50,0,0);
 		int v= (int)(255*val);
 		newcol = SDL_MapRGB(pSurface->format, v,v,v);
 	}
+	else if (g_settings->coloringMode == ColorModeBlackGrayRepeated) {
+		int v= (int)(255*val);
+		v=v%255;
+		newcol = SDL_MapRGB(pSurface->format, v,v,v);
+	}
+	else if (
+		val = sqrt(val);
+		if (val>=1.0) val=1.0; if (val<0.0) val=0.0;
+		val=val*2-1;
+		if (val<=0)
+			b=255, r=g= (Uint32) ((1+val)*255.0);
+		else
+			r=g=b= (Uint32) ((1-val)*255.0);
+		newcol = SDL_MapRGB( pSurface->format , r,g,b );
+	}
+	
 	return newcol;
 }
 

@@ -41,11 +41,12 @@ SettingsFieldDescription GlobalFieldDescriptions[] =
 {"double","diagram_c_y0",(void *)&g_settings->diagram_c_y0, -2},
 {"double","diagram_c_y1",(void *)&g_settings->diagram_c_y1, 2},
 
+{"int","coloringMode",(void *)&g_settings->coloringMode, 0},
 {"double","maxValue",(void *)&g_settings->maxValue, 3},
 {"double","hueShift",(void *)&g_settings->hueShift, 0},
-{"int","iters",(void *)&g_settings->iters, 10},
-{"int","coloringMode",(void *)&g_settings->coloringMode, 20},
-{"double","breatheRadius",(void *)&g_settings->breatheRadius, 1},
+{"int","settling",(void *)&g_settings->settling, 10},
+{"int","drawing",(void *)&g_settings->settling, 10},
+{"double","breatheRadius_c1c2",(void *)&g_settings->breatheRadius_c1c2, 1},
 {NULL, NULL, NULL, 0} //must end with null.
 };
 

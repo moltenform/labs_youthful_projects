@@ -301,7 +301,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		//simulate mouseclick in the center of the diagram
 		case SDLK_PAGEUP: onClickTryZoom(diagramsLayout, 1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
 		case SDLK_PAGEDOWN: onClickTryZoom(diagramsLayout, -1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
-		case SDLK_b: g_settings->breatheRadius += bShift? 20 : -20; break;
+		case SDLK_b: g_settings->breatheRadius_c1c2 += bShift? 20 : -20; break;
 
 
 		case SDLK_RETURN: if (!previewAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) Dialog_Message("Not enough keyframes to animate.",pSurface); break;

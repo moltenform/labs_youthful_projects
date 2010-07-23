@@ -8,10 +8,13 @@
 #include <string.h>
 #include <math.h>
 
+#define SAVESFOLDER "savesgen"
+
 //deleted the code for saving/loading animations, because people can copy/paste the files themselves.
 //(see rev 389, bottom of this file.)
 
 int gParamFramesPerKeyframe = 50;
+BOOL gParamHasSavedAFrame=FALSE;
 
 //delete the keyframe by overwriting it with a single char. 
 //a later attempt to open this will return False.
@@ -34,7 +37,8 @@ void saveToFrame(int frame)
 {
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s/framek0%d.cfg", SAVESFOLDER, frame);
-	saveToFile(buf, MAPEXPRESSIONTEXT);
+	saveToFile(buf, "");
+	gParamHasSavedAFrame = TRUE;
 }
 
 //returns False if the frame is blank (fscanf fails, causing loadData to return False.)

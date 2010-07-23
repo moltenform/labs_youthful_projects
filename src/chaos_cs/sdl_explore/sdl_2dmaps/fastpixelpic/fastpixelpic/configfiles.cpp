@@ -49,6 +49,29 @@ void saveObject(FILE * stream)
 	}
 	fprintf(stream, "END=0;");
 }
+void saveObjectPythonDict(FILE * stream)
+{
+	int i=0;
+	fprintf(stream, "=dict(");
+	while(GlobalFieldDescriptions[i].fieldType != NULL)
+	{
+		if (StringsEqual(GlobalFieldDescriptions[i].fieldType, "int"))
+		{
+			int * theValue = (int*) GlobalFieldDescriptions[i].reference;
+			fprintf(stream, "%s=%d, ", GlobalFieldDescriptions[i].fieldName, *theValue);
+		}
+		else if (StringsEqual(GlobalFieldDescriptions[i].fieldType, "double"))
+		{
+			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
+			fprintf(stream, "%s=%f, ", GlobalFieldDescriptions[i].fieldName, *theValue);
+		}
+		else  { massert(0, "Unknown data type in definition of Settings object."); } 
+		i++;
+		if (i%6==0) fprintf(stream, "\n\t");
+	}
+	fprintf(stream, ")\n");
+}
+
 
 BOOL readUntilEquals(char * buffer, int bufsize, FILE* stream)
 {
@@ -149,4 +172,31 @@ BOOL saveToFile(const char * filename, const char * expressiontext)
 	return TRUE;
 }
 
+//bad layering here...
+#include "animate.h"
+BOOL appendToFilePython(const char * filename)
+{
+	FILE * f = fopen(filename, "a"); //append mode. do NOT overwrite the file.
+	if (!f) return FALSE;
+
+	if (gParamHasSavedAFrame) //save all the frames...
+	{
+		FastMapsSettings currentSettings;
+		memcpy(&currentSettings,g_settings, sizeof(FastMapsSettings));
+		
+		for (int i=1; i<=9; i++)
+		{
+			if (!openFrame(i)) break;
+			fprintf(f,"frame0%d",i);
+			saveObjectPythonDict(f);
+		}
+		memcpy(g_settings, &currentSettings, sizeof(FastMapsSettings));
+	}
+	
+	fprintf(f,"\n\n");
+	fprintf(f,"latest");
+	saveObjectPythonDict(f);
+	fclose(f);
+	return TRUE;
+}
 

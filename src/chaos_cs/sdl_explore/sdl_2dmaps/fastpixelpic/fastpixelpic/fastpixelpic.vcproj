@@ -266,10 +266,6 @@
 				RelativePath=".\user_code.h"
 				>
 			</File>
-			<File
-				RelativePath=".\whichmap.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
