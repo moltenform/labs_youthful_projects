@@ -1,9 +1,6 @@
 
 int g_arr_size=0; int * g_arr=NULL;
-
-void OnSetup(int width){}
-// User code could be here
-// If user code contains OnSetup fn, we call it.
+//$$INSERT_USER_OUTSIDE
 
 __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
 {
@@ -13,10 +10,11 @@ __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
 	double c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6b;
 	int paramIters = g_settings->drawing; int paramSettling = g_settings->settling;
 	double maxValue = 1; //intended to be overwritten by user code
+	double val;
 	
 	///// User code could be here
 	
-	double val = fx*fy + fabs(fx);
+	//$$INSERT_USER_INSIDE
 	
 	return standardToColor(pSurface, val / (maxValue+g_settings->maxValueAddition));
 }

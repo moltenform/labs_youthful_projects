@@ -565,11 +565,12 @@ void renderLargeFigure( SDL_Surface* pSurface, int width, const char*filename )
 
 // Each thread creates half of the diagram.
 SDL_Surface* g_tmpsurface=NULL; int g_tmpwidth=0; //used to pass to DrawMainFigureThread
-int DrawMainFigureThread4( void* pStruct) 
+int DrawMainFigureThread4( void* pNumber /*not a ptr*/) 
 {
 	int width = g_tmpwidth; int height= g_tmpwidth;
 	SDL_Surface* pSurface=g_tmpsurface;
-	int whichHalf = ((int)pStruct);
+	int whichHalf = ((int)(Uint64)pNumber); //it's a number not a ptr
+	
 	double fx,fy; Uint32 newcol;
 	double X0=g_settings->x0, X1=g_settings->x1, Y0=g_settings->y0, Y1=g_settings->y1;
 	double dx = (X1 - X0) / width, dy = (Y1 - Y0) / height;
