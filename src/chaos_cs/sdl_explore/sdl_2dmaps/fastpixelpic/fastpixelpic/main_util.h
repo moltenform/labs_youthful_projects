@@ -94,8 +94,12 @@ void util_incr(int direction /* 1 or -1*/, BOOL bShift)
 	if (!bShift) {
 		g_settings->drawing = MAX(0, g_settings->drawing + direction*1);
 	} else {
-		g_settings->maxValueAddition = MAX(0, g_settings->maxValueAddition + direction*0.5);
+		g_settings->settling = MAX(0, g_settings->settling + direction*0.5);
 	}
+}
+void util_changeMaxValue(BOOL bShift)
+{
+	g_settings->maxValueAddition = MAX(0, g_settings->maxValueAddition + 0.5*(bShift?-1:1));
 }
 void util_shifthue(BOOL bShift)
 {

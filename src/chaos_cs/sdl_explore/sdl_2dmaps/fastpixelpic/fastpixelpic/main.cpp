@@ -304,6 +304,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_PAGEDOWN: onClickTryZoom(diagramsLayout, -1,diagramsLayout[0].screen_width/2, diagramsLayout[0].screen_height/2); break;
 		case SDLK_b: g_settings->breatheRadius_c1c2 += bShift? 20 : -20; break;
 
+		case SDLK_u: util_changeMaxValue(bShift); break;
 
 		case SDLK_RETURN: if (!previewAnimation(pSurface, gParamFramesPerKeyframe, diagramsLayout[0].screen_width)) Dialog_Message("Not enough keyframes to animate.",pSurface); break;
 		case SDLK_DELETE: if (Dialog_GetBool("Delete all keyframes?",pSurface)) deleteAllFrames(); break;
@@ -338,7 +339,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_b: if (gParamBreathing) turnOffBreathing(); else turnOnBreathing(); break;
 
 		case SDLK_w: util_changeWrapping(); break;
-		case SDLK_u: util_shifthue(bShift); break;
+		case SDLK_SPACE: util_shifthue(bShift); break;
 		default: wasKeyCombo =FALSE;
 	}
 
