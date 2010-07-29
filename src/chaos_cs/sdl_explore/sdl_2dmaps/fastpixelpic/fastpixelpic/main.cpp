@@ -33,7 +33,8 @@ CoordsDiagramStruct diagramsLayout[] = {
 double* paramsX[] = {NULL, &g_settings->pc1, &g_settings->pc3, &g_settings->pc5, NULL};
 double* paramsY[] = {NULL, &g_settings->pc2, &g_settings->pc4, &g_settings->pc6, NULL};
 
-char* gParamFileToAppendTo = NULL;
+char* gParamFileOriginal = NULL; //points to mem on stack
+char* gParamFileToAppendTo = NULL; //points to mem on heap
 //it's important to turn off breathing before saving 
 #include "main_util.h"
 
@@ -67,7 +68,10 @@ int main( int argc, char* argv[] )
 	SDL_Surface* pDiagram3Surface = createSurface(pSurface, diagramsLayout[3].screen_width, diagramsLayout[3].screen_height);
 	SDL_FillRect ( pSurface , NULL , g_white );
 	if (argc > 1 && !StringsEqual(argv[1],"-full")) 
-		gParamFileToAppendTo = argv[1]; //use this as the file to append to.
+	{	
+		gParamFileOriginal = argv[1]; //this is the original file
+		gParamFileToAppendTo = strdup(argv[1]); //use this as the file to append to.
+	}
 
 	initFont();
 	// holding alt and dragging is termed a "super drag" and will set a custom zoom window.
@@ -321,8 +325,8 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_n:  { turnOffBreathing(); initializeObjectToDefaults(); if (!bShift) loadFromFile(MAPDEFAULTFILE); *needDrawDiagram=TRUE;} break; //revert to saved version
 		case SDLK_s:  {
 			turnOffBreathing();
-			BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
-			Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface); break; }
+			doSave(bShift, pSurface);
+			 break; }
 		//case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;

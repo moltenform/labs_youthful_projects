@@ -23,3 +23,5 @@ void renderLargeFigure( SDL_Surface* pSurface, int width, const char* filename )
 
 #define ISTOOBIG(x) ((x)<-1e2 || (x)>1e2)
 #define ISTOOBIGF(x) ((x)<-1e2f || (x)>1e2f)
+#define ISBIGPOS(x) ((x)>5e2)
+#define ISBIGNEG(x) ((x)<-5e2)

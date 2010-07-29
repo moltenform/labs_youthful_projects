@@ -70,6 +70,20 @@ BOOL appendToFilePython(const char * filename)
 	return TRUE;
 }
 
+void doSave(BOOL bShift, SDL_Surface *pSurface)
+{
+	if (!bShift || !gParamFileOriginal || !gParamFileToAppendTo)
+	{
+	BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
+	Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface);
+	}
+	else //do interesting things. clone the file.
+	{
+		//char*pc = &gParamFileToAppendTo[strlen(gParamFileToAppendTo)-1];
+
+
+	}
+}
 
 void util_getNumberFrames(SDL_Surface *pSurface)
 {
