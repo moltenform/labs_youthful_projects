@@ -33,7 +33,7 @@ CoordsDiagramStruct diagramsLayout[] = {
 double* paramsX[] = {NULL, &g_settings->pc1, &g_settings->pc3, &g_settings->pc5, NULL};
 double* paramsY[] = {NULL, &g_settings->pc2, &g_settings->pc4, &g_settings->pc6, NULL};
 
-char* gParamFileOriginal = NULL; //points to mem on stack
+char* gParamFileOriginal = NULL; //points to mem on heap
 char* gParamFileToAppendTo = NULL; //points to mem on heap
 //it's important to turn off breathing before saving 
 #include "main_util.h"
@@ -41,7 +41,7 @@ char* gParamFileToAppendTo = NULL; //points to mem on heap
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
-	int activeDiag = -1;
+	int activeDiag = 1;
 	
 	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
 
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
 	SDL_FillRect ( pSurface , NULL , g_white );
 	if (argc > 1 && !StringsEqual(argv[1],"-full")) 
 	{	
-		gParamFileOriginal = argv[1]; //this is the original file
+		gParamFileOriginal = strdup(argv[1]); //this is the original file
 		gParamFileToAppendTo = strdup(argv[1]); //use this as the file to append to.
 	}
 

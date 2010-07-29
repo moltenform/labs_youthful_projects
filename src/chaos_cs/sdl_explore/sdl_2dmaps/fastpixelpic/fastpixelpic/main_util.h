@@ -74,14 +74,43 @@ void doSave(BOOL bShift, SDL_Surface *pSurface)
 {
 	if (!bShift || !gParamFileOriginal || !gParamFileToAppendTo)
 	{
-	BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
-	Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface);
+		BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
+		Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface);
 	}
 	else //do interesting things. clone the file.
 	{
-		//char*pc = &gParamFileToAppendTo[strlen(gParamFileToAppendTo)-1];
+		char* newFname = Dialog_GetText("Save derived figure as:", "", pSurface);
+		if (strlen(gParamFileOriginal)<4)
+		{
+			Dialog_Message("Could not find .xyz file extension.",pSurface);
+			free(newFname); 
+			return;
+		}
+		//copy chars 1 to strlen-4 of it onto new one
+		char newfilename[256] = {0};
+		massert( strlen(gParamFileOriginal)<256, "Filename too long");
+		//char * s = (char*) memcpy(newfilename, gParamFileOriginal, strlen(gParamFileOriginal)-4);
+		char tmp[256]; strcpy(tmp, gParamFileOriginal);
+		tmp[strlen(tmp)-4] = '\0';
+		//snprintf(s, 255-(strlen(gParamFileOriginal)-4), "%s", newFname);
+		//snprintf(newfilename, 255, "%s-%s.ccc", tmp, newFname);
+		snprintf(newfilename, 255, "%s-%s.cc", tmp, newFname);
+		Dialog_Message(newfilename,pSurface);
+		free(newFname);
 
-
+		if (doesFileExist(newfilename)) { Dialog_Message("File of that name exists.", pSurface); return; }
+		//clone the original file.
+		FILE * fout = fopen(newfilename, "w");
+		if (!fout) { Dialog_Message("Save failed.", pSurface); return; }
+		
+		FILE * forig = fopen(gParamFileOriginal, "r");
+		int c; while ((c=fgetc(forig))!= EOF) fputc(c, fout);
+		fclose(forig); fclose(fout);
+		BOOL bRes = appendToFilePython(newfilename);
+		massert(bRes, "Save failed.");
+		//save this as the new current file.
+		free(gParamFileToAppendTo);
+		gParamFileToAppendTo = strdup(newfilename);
 	}
 }
 
