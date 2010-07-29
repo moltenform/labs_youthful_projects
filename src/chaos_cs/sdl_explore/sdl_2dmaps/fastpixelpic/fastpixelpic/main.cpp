@@ -4,9 +4,11 @@
 render can be any size
 added other diagram
 "active" diagram.
+various improvements
 
 note that sse2 is enabled in project settings. Streaming SIMD Extensions 2 (/arch:SSE2)
 Fast (/fp:fast)
+//todo: upon loading from file, set diagram rects so that params are shown?
 */
 
 #include <stdio.h>
@@ -47,6 +49,7 @@ int main( int argc, char* argv[] )
 
 	initializeObjectToDefaults();
 	loadFromFile(MAPDEFAULTFILE); //load defaults
+	
 
 	atexit ( SDL_Quit ) ;
 	SDL_Init ( SDL_INIT_VIDEO ) ;
@@ -319,7 +322,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_s:  {
 			turnOffBreathing();
 			BOOL bRes = appendToFilePython(gParamFileToAppendTo); 
-			Dialog_Message(bRes?"Savoed-.": "Save Faoiled.",pSurface); break; }
+			Dialog_Message(bRes?"Saved.": "Save Failed.",pSurface); break; }
 		//case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
 		case SDLK_c:  util_showVals(pSurface); break;
 		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
@@ -339,7 +342,7 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 		case SDLK_b: if (gParamBreathing) turnOffBreathing(); else turnOnBreathing(); break;
 
 		case SDLK_w: util_changeWrapping(); break;
-		case SDLK_SPACE: util_shifthue(bShift); break;
+		//case SDLK_SPACE: util_shifthue(bShift); break; in mousedown
 		default: wasKeyCombo =FALSE;
 	}
 

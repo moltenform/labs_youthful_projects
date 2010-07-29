@@ -63,11 +63,22 @@ void saveObjectPythonDict(FILE * stream)
 		else if (StringsEqual(GlobalFieldDescriptions[i].fieldType, "double"))
 		{
 			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
-			fprintf(stream, "%s=%f, ", GlobalFieldDescriptions[i].fieldName, *theValue);
+			if (*theValue==0.00 && GlobalFieldDescriptions[i].fieldName[0]=='p' &&
+				GlobalFieldDescriptions[i].fieldName[1]=='c' && strlen(GlobalFieldDescriptions[i].fieldName)<=4)
+				; //don't show it. pc6 and so on are assumed to be 0.0 by default.
+			else
+				fprintf(stream, "%s=%f, ", GlobalFieldDescriptions[i].fieldName, *theValue);
 		}
 		else  { massert(0, "Unknown data type in definition of Settings object."); } 
+		if (StringsEqual(GlobalFieldDescriptions[i].fieldName, "pc6") ||
+			StringsEqual(GlobalFieldDescriptions[i].fieldName, "pc6b") ||
+			StringsEqual(GlobalFieldDescriptions[i].fieldName, "diagram_c_y1") ||
+			StringsEqual(GlobalFieldDescriptions[i].fieldName, "hueShift")) {
+			//can peek at stream to see if we've already written a newline?
+				fprintf(stream, "\n\t");
+		}
 		i++;
-		if (i%6==0) fprintf(stream, "\n\t");
+		
 	}
 	fprintf(stream, ")\n");
 }

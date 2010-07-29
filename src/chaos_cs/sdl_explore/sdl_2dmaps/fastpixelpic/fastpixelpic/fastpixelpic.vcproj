@@ -267,6 +267,14 @@
 				RelativePath=".\user_code.h"
 				>
 			</File>
+			<File
+				RelativePath=".\winclipboard.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\winclipboard.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
