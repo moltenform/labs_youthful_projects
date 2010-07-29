@@ -3,7 +3,7 @@ import re
 import os
 
 
-	
+#returns False if compile not needed	
 def writeTemplates(s, PathToSln):
 	#split into 3 parts.
 	assert '\n//$$standardloop' in s
@@ -28,7 +28,17 @@ def writeTemplates(s, PathToSln):
 	strTemplate = strTemplate.replace('//$$INSERT_USER_OUTSIDE',codeBefore)
 	strTemplate = strTemplate.replace('//$$INSERT_USER_INSIDE',codeInside)
 	
-	#write the template
+	#see if the current file is the same
+	currentFile=None
+	fcurrent=open(os.path.join(projpath, 'user_code.h'),'r')
+	if fcurrent:
+		currentFile = fcurrent.read()
+		fcurrent.close()
+	if strTemplate==currentFile:
+		print 'Formulas are identical. Don\'t need to recompile.'
+		return False 
+	
+	#write the template 
 	fout=open(os.path.join(projpath, 'user_code.h'),'w')
 	fout.write(strTemplate)
 	fout.close()

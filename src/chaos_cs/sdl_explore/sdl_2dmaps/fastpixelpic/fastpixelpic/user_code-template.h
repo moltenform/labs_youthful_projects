@@ -7,6 +7,7 @@ int g_arr_size=0; int * g_arr=NULL;
 
 __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
 {
+	int height=width;
 	double c1= g_settings->pc1,c2= g_settings->pc2,c3= g_settings->pc3;
 	double c4= g_settings->pc4,c5= g_settings->pc5,c6= g_settings->pc6;
 	double c1b= g_settings->pc1b,c2b= g_settings->pc2b,c3b= g_settings->pc3b;

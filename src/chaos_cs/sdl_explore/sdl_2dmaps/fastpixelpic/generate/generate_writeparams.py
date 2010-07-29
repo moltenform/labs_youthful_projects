@@ -1,15 +1,20 @@
 import os
 
 def writeParams(sParam, outFolder):
-	if sParam.strip()=='': return True #an empty section means, just all defaults
-	#execute it as Python code!
-	dlocals = {} #could provide things in here, but won't currently
-	code = compile(sParam, '<user-provided code>', 'exec')
-	exec code in dlocals
-	if 'latest' not in dlocals:
-		raise 'Could not find "latest" dictionary.'
-	dictLatest = dlocals['latest']
-	assert checkADict(dictLatest)
+	if sParam.strip()=='': 
+		#~ return True #an empty section means, just all defaults .
+		#don't return here. we must overwrite old default save.
+		dictLatest = {}
+		dlocals = {}
+	else:
+		#execute it as Python code!
+		dlocals = {} #could provide things in here, but won't currently
+		code = compile(sParam, '<user-provided code>', 'exec')
+		exec code in dlocals
+		if 'latest' not in dlocals:
+			raise 'Could not find "latest" dictionary.'
+		dictLatest = dlocals['latest']
+		assert checkADict(dictLatest)
 	
 	writeADict(dictLatest, os.path.join(outFolder, 'default.cfg'))
 	
