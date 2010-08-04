@@ -232,6 +232,7 @@ class PythonPixelsApp():
 			
 			try:
 				im = Image.open(filename)
+				im.load()
 			except:
 				print 'Skipped: Could not open image.'
 				continue
