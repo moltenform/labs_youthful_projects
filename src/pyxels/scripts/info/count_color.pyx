@@ -6,4 +6,4 @@ loop:
 	if abs(r-targetColor[0])<threshold and abs(g-targetColor[1])<threshold and abs(b-targetColor[2])<threshold:
 		c+=1
 	
-print 'Answer:',c
+print('Answer:',c)

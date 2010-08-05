@@ -3,18 +3,38 @@ from pix_parser import *
 from pix_preview import PreviewImage
 from pix_minitimer import Minitimer
 
-import Image, ImageTk
+try:
+	import Image
+except ImportError:
+	from PIL import Image
+
+try:
+	import ImageTk
+except ImportError:
+	from PIL import ImageTk
+
 _image_module = Image
+
+try:
+	from Tkinter import *
+	import tkFileDialog
+	import tkMessageBox
+	import tkSimpleDialog
+	import ScrolledText
+except ImportError:
+	from tkinter import *
+	import tkinter.filedialog as tkFileDialog
+	import tkinter.messagebox as tkMessageBox
+	import tkinter.simpledialog as tkSimpleDialog
+	import tkinter.scrolledtext as ScrolledText
 
 import tkutil
 import tkutil_dialog
-from Tkinter import *
-import ScrolledText
 
 Image = _image_module #we want Image module, not Tkinter.Image.
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
-class PythonPixelsApp():
+class PythonPixelsApp(object):
 	windowInput = None
 	windowOutput = None
 	imgInput = None
@@ -65,7 +85,7 @@ class PythonPixelsApp():
 		
 		frameBtns = pack(Frame(root), fill=BOTH, expand=True)
 		self.fldScript = pack(ScrolledText.ScrolledText(frameBtns, height=6, width=100, wrap=NONE), side=TOP, fill=BOTH, expand=True)
-		self.fldScript.insert(END, '#Flip red and green\nloop:\n\tR=g\n\tG=r-30\nprint "this is Python code!"')
+		self.fldScript.insert(END, '#Flip red and green\nloop:\n\tR=g\n\tG=r-30\nprint("this is Python code!")')
 		tkutil.select_all_binding(self.fldScript)
 		
 		pack(Button(frameBtns, text='Run', command=self.menu_runScript), side=TOP)
@@ -123,12 +143,13 @@ class PythonPixelsApp():
 		
 	def menu_fillColor(self):
 		if self.imgInput == None:
-			print 'No input image loaded.'
+			print('No input image loaded.')
 			return
 		x,y = self.imgInput.size
 		color = tkutil_dialog.ask_color()
 		if not color: return
-		self.imgInput = Image.new('RGB', (int(x),int(y)),color)
+		# cast tuple of floats to tuple of ints
+		self.imgInput = Image.new('RGB', (int(x),int(y)), tuple(map(int, color)))
 		self.updateInput()
 	
 	def updateInput(self):
@@ -150,22 +171,22 @@ class PythonPixelsApp():
 		try:
 			im = Image.open(filename)
 		except:
-			print 'Error: Could not open image.'
+			print('Error: Could not open image.')
 			return
 		if im.mode != 'RGB':
-			print 'Error: For now, only RGB mode images are supported.'
+			print('Error: For now, only RGB mode images are supported.')
 			return
 		self.imgInput = im
 		self.updateInput()
 		
 	def menu_saveImage(self):
 		if self.imgOutput==None:
-			print 'No output image.'
+			print('No output image.')
 			return
 		filename = tkutil_dialog.ask_savefile(title = 'Save Image',types=['.png|Png image','.bmp|Bitmap image','.jpg|Jpeg image','.tif|TIFF image'])
 		if not filename: return
 		self.imgOutput.save(filename)
-		print 'Image saved to ',filename
+		print('Image saved to ',filename)
 	
 	
 	def menu_newScript(self):
@@ -187,7 +208,7 @@ class PythonPixelsApp():
 		f = open(filename, 'w')
 		f.write(tkutil.gettext(self.fldScript))
 		f.close()
-		print 'Script saved to ',filename
+		print('Script saved to ',filename)
 	def menu_genScript(self):
 		strCode = tkutil.gettext(self.fldScript)
 		strParsed = parseInput(strCode)
@@ -195,14 +216,14 @@ class PythonPixelsApp():
 		
 	def menu_runScript(self):
 		if self.imgInput == None:
-			print 'No input image loaded.'
+			print('No input image loaded.')
 			return
 		mt = Minitimer()
 		self.redirectStdErr(True)
 		result = runScript(tkutil.gettext(self.fldScript), self.imgInput)
 		self.redirectStdErr(False)
 		if result != None:
-			print 'Took, ' + str(mt.check())
+			print('Took, ' + str(mt.check()))
 			self.imgOutput = result
 			self.updateOutput()
 			
@@ -211,7 +232,7 @@ class PythonPixelsApp():
 		filename = tkutil_dialog.ask_openfile(title="Choose representative file (same directory, type).")
 		if not filename: return
 		if '.' not in filename:
-			print 'Could not find extension.'
+			print('Could not find extension.')
 			return
 		path, filename = os.path.split(filename)
 		ext = filename.split('.')[-1]
@@ -227,41 +248,46 @@ class PythonPixelsApp():
 			filename = os.path.join(path, file)
 			outputfilename = os.path.join( outputpath, file[0:-len(ext)] + outputext)
 			if os.path.exists(outputfilename):
-				print 'Skipped: File already exists:',  outputfilename
+				print('Skipped: File already exists:',  outputfilename)
 				continue
 			
 			try:
 				im = Image.open(filename)
 				im.load()
 			except:
-				print 'Skipped: Could not open image.'
+				print('Skipped: Could not open image.')
 				continue
 				
 			imgResult = runScript(tkutil.gettext(self.fldScript), im)
 			if imgResult==None:
-				print 'Skipped: Script error.'
+				print('Skipped: Script error.')
 				continue
 			
 			try:
 				imgResult.save(outputfilename)
 			except:
-				print 'Error. Could not save ',outputfilename
-			print 'Saved: '+outputfilename
+				print('Error. Could not save ',outputfilename)
+			print('Saved: '+outputfilename)
 			
-		print 'Job complete.'
+		print('Job complete.')
 		
 	def menu_pasteImage(self):
 		import sys
-		if sys.platform!='win32':
-			print 'Only supported on Windows...'
+		if not (sys.platform.startswith('win') or sys.platform.startswith('mac')):
+			print('Not supported on this platform...')
 			return
-		import ImageGrab
+		
+		try:
+			import ImageGrab
+		except ImportError:
+			from PIL import ImageGrab
+		
 		im = ImageGrab.grabclipboard()
 		if not isinstance(im, Image.Image):
-			print 'Could not paste image.'
+			print('Could not paste image.')
 			return
 		if im.mode != 'RGB':
-			print 'Error: For now, only RGB mode images are supported.'
+			print('Error: For now, only RGB mode images are supported.')
 			return
 		self.imgInput = im
 		self.updateInput()

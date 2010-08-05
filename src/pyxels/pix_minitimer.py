@@ -1,7 +1,7 @@
 
 #Small timer. Yes, I do know about timeit.
 
-class Minitimer():
+class Minitimer(object):
 	def getTime(self):
 		import time, sys
 		if sys.platform=='win32':

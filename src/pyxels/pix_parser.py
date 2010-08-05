@@ -1,7 +1,22 @@
-import Image
+try:
+	import Image
+except ImportError:
+	from PIL import Image
 
-import ImageChops; import ImageEnhance; import ImageFilter; import ImageOps
-import ImageDraw; import ImageStat 
+try:
+	import ImageChops
+	import ImageEnhance
+	import ImageFilter
+	import ImageOps
+	import ImageDraw
+	import ImageStat 
+except ImportError:
+	from PIL import ImageChops
+	from PIL import ImageEnhance
+	from PIL import ImageFilter
+	from PIL import ImageOps
+	from PIL import ImageDraw
+	from PIL import ImageStat 
 
 # Turns input into code that can be run
 def parseInput(s):
@@ -10,13 +25,13 @@ def parseInput(s):
 	constructs = ['loop:','map:','loop_hsl:','loop_hsv:']
 	for line in slines:
 		if line.strip() == constructs and line != line.strip():
-			print 'Syntax error: This construct',line.strip(),' cannot occur inside a block.'
+			print('Syntax error: This construct',line.strip(),' cannot occur inside a block.')
 			return None
 	
 	for construct in constructs:
 		nLoops = slines.count(construct)
 		if nLoops>1:
-			print 'At this time, only one construct of type ',construct,'is supported.'
+			print('At this time, only one construct of type ',construct,'is supported.')
 			return None
 		elif nLoops==1:
 			startLoop, endLoop = pullConstruct(slines, construct)
@@ -59,10 +74,14 @@ def pullConstruct(slines, construct):
 def getTokens(astrInterested, s):
 	occurred = {}
 	
-	# look at all of the characters in here.
-	import StringIO, tokenize
+	import tokenize
+	try:
+		import io
+	except ImportError:
+		import StringIO as io
 	
-	tokens = tokenize.generate_tokens(StringIO.StringIO(s).readline)
+	# look at all of the characters in here.
+	tokens = tokenize.generate_tokens(io.StringIO(s).readline)
 	for toknum, tokval, _, _, _  in tokens:
 		if toknum==1 and tokval in astrInterested:
 			occurred[tokval] = True
@@ -78,16 +97,19 @@ def createLoop(astr):
 	
 	sSuffix = ''
 	sPrefix = '''
-for y in xrange(height):
-    for x in xrange(width):'''
+for y in range(height):
+    for x in range(width):'''
 
 	startLine = '\n'+' '*8
 	if 'r' in occurred: sPrefix += startLine+ 'r = ra[x,y]'
 	if 'g' in occurred: sPrefix += startLine+ 'g = ga[x,y]'
 	if 'b' in occurred: sPrefix += startLine+ 'b = ba[x,y]'
-	if 'R' in occurred: sSuffix += startLine+ 'ra[x,y] = max(min(R,255),0)'
-	if 'G' in occurred: sSuffix += startLine+ 'ga[x,y] = max(min(G,255),0)'
-	if 'B' in occurred: sSuffix += startLine+ 'ba[x,y] = max(min(B,255),0)'
+	
+	# note: in recent PIL, if you do not cast to int, you get
+	# the error: "new style getargs format but argument is not a tuple"
+	if 'R' in occurred: sSuffix += startLine+ 'ra[x,y] = int(max(min(R,255),0))'
+	if 'G' in occurred: sSuffix += startLine+ 'ga[x,y] = int(max(min(G,255),0))'
+	if 'B' in occurred: sSuffix += startLine+ 'ba[x,y] = int(max(min(B,255),0))'
 	
 	return sPrefix, sSuffix
 
@@ -96,18 +118,18 @@ def createLoopHue(space, astr):
 	sSuffix = ''
 	sPrefix = '''
 from colorsys import *
-for y in xrange(height):
-    for x in xrange(width):'''
-    
+for y in range(height):
+    for x in range(width):'''
+
 	occurred = getTokens(['h','s','l','v'], '\n'.join(astr))
 	# If nothing was read, then we don't need to convert reading rgb into hsv
 	startline = '\n'+' '*8
 	if space=='loop_hsv:':
 		if occurred: sPrefix += startline+'h,s,v=H,S,V=rgb_to_hsv(ra[x,y]/256.0,ga[x,y]/256.0,ba[x,y]/256.0)'
-		sSuffix += startline+'r,g,b = hsv_to_rgb(H%1.0,max(min(S,1.0),0.0),max(min(V,1.0),0.0));ra[x,y]=r*256;ba[x,y]=b*256;ga[x,y]=g*256'
+		sSuffix += startline+'r,g,b = hsv_to_rgb(H%1.0,max(min(S,1.0),0.0),max(min(V,1.0),0.0));ra[x,y]=int(r*256);ba[x,y]=int(b*256);ga[x,y]=int(g*256)'
 	elif space=='loop_hsl:':
 		if occurred: sPrefix += startline+'h,l,s=H,L,S=rgb_to_hls(ra[x,y]/256.0,ga[x,y]/256.0,ba[x,y]/256.0)'
-		sSuffix += startline+'r,g,b = hls_to_rgb(H%1.0,max(min(L,1.0),0.0),max(min(S,1.0),0.0));ra[x,y]=r*256;ba[x,y]=b*256;ga[x,y]=g*256'
+		sSuffix += startline+'r,g,b = hls_to_rgb(H%1.0,max(min(L,1.0),0.0),max(min(S,1.0),0.0));ra[x,y]=int(r*256);ba[x,y]=int(b*256);ga[x,y]=int(g*256)'
 	return sPrefix, sSuffix
 
 
@@ -128,10 +150,10 @@ def createMap(astr):
 	
 	sSuffix = ''
 	sPrefix = '''
-rmap=range(256)
-gmap=range(256)
-bmap=range(256)
-for iii in xrange(256): 
+rmap=list(range(256))
+gmap=list(range(256))
+bmap=list(range(256))
+for iii in range(256): 
     r,g,b=iii,iii,iii'''
 
 	startline = '\n'+' '*4
@@ -148,7 +170,7 @@ imgOutput = imgInput.point(table)'''
 
 def runCode(source, imgInput):
 	if not source:
-		print 'No source given.'
+		print('No source given.')
 		return None
 	rim, gim, bim = imgInput.split()
 	ra, ga, ba = rim.load(), gim.load(), bim.load()
@@ -169,7 +191,7 @@ def runCode(source, imgInput):
 	
 	#run script
 	code = compile(source, '<user-provided code>', 'exec')
-	exec code in dlocals
+	exec(code, dlocals)
 	
 	#recreate image
 	if 'imgOutput' in dlocals:
@@ -183,7 +205,6 @@ def runScript(s, imgInput):
 	s = parseInput(s)
 	if s==None: return None
 		
-	#~ import sys; print >>sys.stderr, s
 	return runCode(s, imgInput)
 
 if __name__=='__main__':
@@ -201,7 +222,7 @@ a=6
 #Increase red by 40
 loop:
 	R=r+40
-print "this is Python code!"
+print("this is Python code!")
 '''
 
 	test3='''imgOutput = Image.new('RGB', (int(x),int(y)))'''
@@ -218,5 +239,5 @@ loop_hsv:
 a=6'''
 	
 	
-	print parseInput(test5)
+	print(parseInput(test5))
 	

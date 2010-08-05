@@ -3,5 +3,5 @@
 #Increase red by 40
 map:
 	R=r+40
-print "This is Python code!"
+print("This is Python code!")
 

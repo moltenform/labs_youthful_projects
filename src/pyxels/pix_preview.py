@@ -1,7 +1,15 @@
-import ImageTk
-from Tkinter import *
 
-class PreviewImage():
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
+try:
+	import ImageTk
+except ImportError:
+	from PIL import ImageTk
+
+class PreviewImage(object):
 	def __init__(self, top, strName, imagePIL):
 		self.name = strName		
 		self.imtk = ImageTk.PhotoImage(imagePIL)
