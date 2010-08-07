@@ -2,7 +2,7 @@
 
 bcaudio: main.c
 	gcc -o main \
-	main.c bcaudio.c effects.c \
+	main.c bcaudio.c effects.c fft.c \
 	effects_audacity.c inplace_effects.c synth.c synth_construct.c wav_persist.c \
 	-lm -Wall
 

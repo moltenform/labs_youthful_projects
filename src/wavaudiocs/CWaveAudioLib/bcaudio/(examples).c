@@ -1,21 +1,25 @@
+//move these into main.c, compile, and run to test.
+
 int exfft()
 {
+	//round-trips from .wav to .dat to .wav
 	CAudioData * w1=NULL;  CAudioData  *w2=NULL;
-	char inname[] = "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\srt.wav";
+	char inname[] = "..\\..\\media\\songclips\\rb_short.wav";
 	errormsg msg = caudiodata_loadwave(&w1, inname);
 	if (msg != OK) {puts(msg); return 0;}
 	
-	msg=dumpToFrequencyAngles(w1,  "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput_opt.dat", 2048);
+	msg=dumpToFrequencyAngles(w1,  "testout\\fft_opt.dat", 2048);
 	if (msg != OK) {puts(msg); return 0;}
 	
-	msg=readFrequenciesToSamples(&w2, "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput_opt.dat");
+	msg=readFrequenciesToSamples(&w2, "testout\\fft_opt.dat");
 	if (msg != OK) {puts(msg); return 0;}
 	
-	msg = caudiodata_savewave(w2, "oout_opt.wav", 16);
+	msg = caudiodata_savewave(w2, "testout\\fft_opt_roundtrip.wav", 16);
 	if (msg != OK) {puts(msg); return 0;}
 	
 	caudiodata_dispose( w1);
 	caudiodata_dispose( w2);
+	return 0;
 }
 
 caudiodata_void example1()
@@ -48,14 +52,12 @@ void example_mix()
 	synth_sin(&w1, 300, 4.0, 0.8); //sine wave, 300Hz
 	synth_sin(&w2, 430, 4.0, 0.8); //sine wave, 430Hz
 	
-	CAudioData* mix;
-	msg = effect_mix(&mix, w1, w2, 0.5, 0.5);
+	CAudioData* mix=NULL;
+	char* msg = effect_mix(&mix, w1, w2, 0.5, 0.5);
 	if (msg!=OK) puts(msg);
 	
-	FILE * f = fopen("testout\\out_mix.wav", "wb");
-	msg = caudiodata_savewave(mix, f, 16);
+	msg = caudiodata_savewave(mix, "testout\\out_mix.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
 	
 	caudiodata_dispose(mix);
 	caudiodata_dispose(w1);
@@ -65,12 +67,12 @@ void example_mix()
 void loadtests()
 {
 	char tests[6][255]={
-"C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k16bit1ch.wav",
-"C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k8bit1ch.wav",
-"C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k8bit2ch.wav",
-"C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d44k16bit1ch.wav",
-"C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d44k16bit2ch.wav",
-"C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d44k8bit1ch.wav"
+"..\\..\\media\\bitrates\\d22k16bit1ch.wav",
+"..\\..\\media\\bitrates\\d22k8bit1ch.wav",
+"..\\..\\media\\bitrates\\d22k8bit2ch.wav",
+"..\\..\\media\\bitrates\\d44k16bit1ch.wav",
+"..\\..\\media\\bitrates\\d44k16bit2ch.wav",
+"..\\..\\media\\bitrates\\d44k8bit1ch.wav"
 	};
 	
 	int i; for (i=0; i<6; i++)
@@ -86,10 +88,8 @@ void loadtests()
 		
 		char buf[128];
 		sprintf(buf, "out%d.wav", i);
-		FILE * fout=fopen(buf, "wb");
-		msg = caudiodata_savewave(audio, fout, 16);
+		msg = caudiodata_savewave(audio, buf, 16);
 		if (msg != OK) puts(msg);
-		fclose(fout);
 		
 		caudiodata_dispose(audio);
 	}
@@ -98,7 +98,7 @@ void loadtests()
 void mixwithsine() // or modulate, or append, an easy change
 {
 	CAudioData * w1; CAudioData* w2;CAudioData* out;
-	FILE*fin = fopen("C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k8bit1ch.wav", "rb");
+	FILE*fin = fopen("..\\..\\media\\bitrates\\d22k8bit1ch.wav", "rb");
 	errormsg msg = caudiodata_loadwave(&w1, fin);
 	if (msg != OK) puts(msg);
 	fclose(fin);
@@ -107,10 +107,8 @@ void mixwithsine() // or modulate, or append, an easy change
 	
 	msg =  effect_mix(&out, w1, w2, 0.5, 0.1); //effect_append(&out, w2, w1);
 	if (msg != OK) { puts(msg);  return 0;}
-	FILE * f = fopen("out.wav", "wb");
-	msg = caudiodata_savewave(out, f, 16);
+	msg = caudiodata_savewave(out, "testout\\out.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
 	
 	caudiodata_dispose( w1);
 	caudiodata_dispose( w2);
@@ -127,10 +125,8 @@ void appendandclone()
 	
 	msg =  effect_append(&out, wsine, wsinelouder);
 	if (msg != OK) { puts(msg);  return 0;}
-	FILE * f = fopen("out.wav", "wb");
-	msg = caudiodata_savewave(out, f, 16);
+	msg = caudiodata_savewave(out, "testout\\out.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
 	
 	caudiodata_dispose( wsine);
 	caudiodata_dispose( wsinelouder);
@@ -146,26 +142,22 @@ void testfadein()
 	inplaceeffect_fade(audio, 0, 2.5); //fade out
 	//~ inplaceeffect_fade(audio, 1, 2.5); // fade in
 	
-	FILE * f = fopen("out.wav", "wb");
-	msg = caudiodata_savewave(audio, f, 16);
+	msg = caudiodata_savewave(audio, "testout\\out.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
 	caudiodata_dispose( audio);
 }
 void testReverse()
 {
 	CAudioData * w1; 
-	FILE*fin = fopen("C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k8bit1ch.wav", "rb");
+	FILE*fin = fopen("..\\..\\media\\bitrates\\d22k8bit1ch.wav", "rb");
 	errormsg msg = caudiodata_loadwave(&w1, fin);
 	if (msg != OK) puts(msg);
 	fclose(fin);
 	
 	inplaceeffect_reverse(w1);
 	
-	FILE * f = fopen("outrev.wav", "wb");
-	msg = caudiodata_savewave(w1, f, 16);
+	msg = caudiodata_savewave(w1, "testout\\outrev.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
 	caudiodata_dispose( w1);
 }
 
@@ -175,10 +167,9 @@ void testTremelo()
 	synth_sin(&audio, 300, 4.0, 0.3); //sine wave, 300Hz
 	
 	inplaceeffect_tremelo(audio, 4, 0.2);
-	FILE * f = fopen("out.wav", "wb");
-	msg = caudiodata_savewave(audio, f, 16);
+
+	msg = caudiodata_savewave(audio, "testout\\out.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
 	caudiodata_dispose( audio);
 }
 
@@ -193,10 +184,10 @@ void testPitchScaleOrVibrato()
 	//~ msg =  effect_scale_pitch_duration(&out, w1, 0.7);
 	msg =  effect_vibrato(&out, w1, 0.2, 0.1);
 	if (msg != OK) { puts(msg);  return 0;}
-	FILE * f = fopen("out.wav", "wb");
-	msg = caudiodata_savewave(out, f, 16);
+
+	msg = caudiodata_savewave(out, "testout\\out.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
+
 	
 	caudiodata_dispose( w1);
 	caudiodata_dispose( out);
@@ -207,14 +198,15 @@ void testSynth()
 	CAudioData* audio;
 	synth_sin(&audio, 300, 10.0, 0.8);
 	
-	FILE * f = fopen("out.wav", "wb");
-	errormsg msg = caudiodata_savewave(audio, f, 16);
+
+	errormsg msg = caudiodata_savewave(audio, "testout\\out.wav", 16);
 	if (msg != OK) puts(msg);
-	fclose(f);
+
 	caudiodata_dispose( audio);
 }
 void testRedGlitchNess()
 {
+	/*
 	CAudioData* w1; CAudioData* w2; CAudioData* combo;
 	synth_redglitch(&w1, 100, 20.0, 0.8, 0.09, 0.261); //- cool!
 	synth_redglitch(&w2, 99, 20.0, 0.8, 0.09, 0.33);
@@ -240,6 +232,7 @@ void testRedGlitchNess()
 	caudiodata_dispose( combo);
 	caudiodata_dispose( w1);
 	caudiodata_dispose( w2);
+	*/
 }
 void testWriteToMemory()
 {
@@ -254,17 +247,17 @@ void testWriteToMemory()
 	combo->data = w1->data;
 	combo->data_right = w2->data;
 	
-	//~ errormsg msg = caudiodata_savewave(combo, "outsines.wav", 16);
+	//~ errormsg msg = caudiodata_savewave(combo, "testout\\outsines.wav", 16);
 	char *inmemory; uint inmemorylength;
 	errormsg msg = caudiodata_savewavemem(&inmemory, &inmemorylength, combo, 16);
-	FILE*f=fopen("outsines.wav","wb");
+	FILE*f=fopen("testout\\outsines.wav","wb");
 	fwrite(inmemory, 1, inmemorylength, f);
 	fclose(f);
 	
 	if (msg != OK) puts(msg);
 	caudiodata_dispose( combo);
-	caudiodata_dispose( w1);
-	caudiodata_dispose( w2);
+	//~ caudiodata_dispose( w1);
+	//~ caudiodata_dispose( w2);
 	
 	free(inmemory);
 }
@@ -272,7 +265,7 @@ void testWriteToMemory()
 void testAudacityPhaser()
 {
 	CAudioData * w1;
-	char inname[] = "C:\\pydev\\yalp\\Subversion\\csaudio\\c_audio\\longinput.wav";
+	char inname[] = "..\\..\\media\\songclips\\rb_long.wav";
 	errormsg msg = caudiodata_loadwave(&w1, inname);
 	if (msg != OK) {puts(msg); return 0;}
 	
@@ -286,9 +279,10 @@ void testAudacityPhaser()
 	
 	if (msg != OK) { puts(msg);  return 0;}
 	
-	char outname[] = "C:\\pydev\\yalp\\Subversion\\csaudio\\c_audio\\out2.wav"; 
+	char outname[] = "testout\\out2.wav"; 
 	msg = caudiodata_savewave(w1, outname, 16);
 	if (msg != OK) {puts(msg); return 0;}
 	
 	caudiodata_dispose( w1);
 }
+
