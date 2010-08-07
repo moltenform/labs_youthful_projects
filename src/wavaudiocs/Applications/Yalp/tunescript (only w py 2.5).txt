@@ -1,0 +1,11 @@
+
+
+Syntax of tunescript
+
+
+
+Start with : for a command
+
+:set_instrument(piano)
+
+

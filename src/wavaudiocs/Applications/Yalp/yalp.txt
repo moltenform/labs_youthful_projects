@@ -1,0 +1,37 @@
+
+Yalp
+___________
+Fun with Audio
+
+Features:
+	Record your voice - or anything - and play it at various speeds
+	Reverse it, mix it, warp it. *Without* having any experience editing audio.
+	Play a song - with your sound effect as the instrument
+	Write a list of notes (a b c) and play your own song
+	Combine several of these "songs" into a cacaphonus masterpiece
+
+
+Concepts:
+Encourage Creativity
+	Experimentation!
+	It should be designed so that a user can just start clicking stuff, fun stuff will happen, and 
+	The user should not have to know what they are doing.
+	Stimulate thinking of how to specify notes to make a tune.
+
+
+Simple, organic interface
+	-It's a toy, make it fun
+	-Shouldn't have menus/lists/boring stuff
+	-Visual
+	
+
+
+
+
+
+
+Notes:
+	The XOs have mics, which is cool.
+	I have written much of the audio-processing code. It just needs a good interface.
+	It is currently written in Python. If necessary, the core engine can be written as an extension in C.
+	Collaboration and/or sending sounds to friends? (Think about this later)
