@@ -34,7 +34,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="WaveAudio, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CsIniFile.cs" />
@@ -84,11 +83,10 @@
       <Project>{F0A1DECB-621F-4D25-8CC6-F0E3EDBCF1E6}</Project>
       <Name>csPlottingControl</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="WaveAudio.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="..\..\..\CsWaveAudioLib\WaveAudio\WaveAudio.csproj">
+      <Project>{1C849CE0-48A1-4985-B0D2-2F815ECE2282}</Project>
+      <Name>WaveAudio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
