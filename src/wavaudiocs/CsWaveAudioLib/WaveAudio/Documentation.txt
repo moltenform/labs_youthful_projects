@@ -1,0 +1,42 @@
+WaveAudio
+C# classes for digital audio
+Copyright (C) 2008  Ben Fisher
+Raw FFT calculation code by Don Cross, http://web.archive.org/web/20020124104515/http://www.intersrv.com/~dcross/fft.html
+Pink noise generation algorithm by Larry Trammell, http://home.earthlink.net/~ltrammell/tech/pinkalg.htm
+PadSynth algorithm by Nasca O. Paul, http://en.wikibooks.org/wiki/PADsynth_synthesis_algorithm
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+Usage:
+WaveAudio w = new WaveAudio("file.wav");
+Console.WriteLine(w.LengthInSeconds);
+w.Amplify(1.5); // make it a bit louder.
+w.SaveWaveFile("output.wav");
+
+WaveAudio alteredSound = Effects.Vibrato(w);
+
+Sine sine = new Sine(440.0, 0.5); // 440Hz, at half volume
+WaveAudio note = sine.CreateAudio(1.0); //generate 1 second of audio
+
+Triangle synth = new Triangle(Sine.FreqFromMidiNote(60)); // middle C
+WaveAudio note = synth.CreateAudio(1.0); //generate 1 second of audio
+
+// find the pitch for the 2nd second of audio
+// Note that pitch detection only works well when there is only one note playing at a time.
+WaveAudio w = new WaveAudio("cello.wav");
+WaveAudio slice = w.GetSlice(1.0,2.0);
+double pitch = PitchDetection.DetectPitch(w);
+
+
