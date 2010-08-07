@@ -52,7 +52,7 @@ void example_mix()
 	msg = effect_mix(&mix, w1, w2, 0.5, 0.5);
 	if (msg!=OK) puts(msg);
 	
-	FILE * f = fopen("out_mix.wav", "wb");
+	FILE * f = fopen("testout\\out_mix.wav", "wb");
 	msg = caudiodata_savewave(mix, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
