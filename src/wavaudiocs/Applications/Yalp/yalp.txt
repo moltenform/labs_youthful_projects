@@ -1,3 +1,6 @@
+"yaalp"- yet another audacity-like program.
+also, "play" backwards.
+
 
 Yalp
 ___________
