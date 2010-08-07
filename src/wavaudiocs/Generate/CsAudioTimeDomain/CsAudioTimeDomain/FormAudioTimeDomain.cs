@@ -58,23 +58,34 @@ namespace CsGeneralBitmap
             this.DragEnter += new DragEventHandler(Form1_DragEnter);
             this.DragDrop += new DragEventHandler(Form1_DragDrop);
 
+            this.scintilla1.ConfigurationManager.Language = "cs";
+            this.txtExpression.Visible = false;
+
             aplayer = new AudioPlayer();
             mnuFileNew_Click(null, null);
         }
-
-        
+        public string getSrcText()
+        {
+            //return this.txtExpression.Text;
+            return this.scintilla1.Text;
+        }
+        public void setSrcText(string s)
+        {
+            //this.txtExpression.Text = s;
+            this.scintilla1.Text = s;
+        }
         
 
        
         public void ShowHelpers()
         {
             Regex r = new Regex("\"(.+?\\.wav)\"");
-            string s = this.txtExpression.Text;
+            string s = getSrcText();
             //while (true)
             //{
                Match m = r.Match(s);
                if (m==null) return;//break;
-                MessageBox.Show(m.Groups[1].ToString());
+                //MessageBox.Show(m.Groups[1].ToString());
             string sFilename =     m.Groups[1].ToString();
             sFilename = sFilename.Replace("/", "\\");
             btnHelpPlay1.Tag = sCfgDirectory+"\\..\\wavs\\"+ sFilename;
@@ -89,8 +100,12 @@ namespace CsGeneralBitmap
 
             this.currentWave = null;
             string sSource = "private WaveAudio loadWav(string sName) { return new WaveAudio(@\"" +sCfgDirectory+"\\..\\wavs\\\""+@"+sName.Replace('/','\\')); }";
+            sSource += "\r\n double c1=" + this.paramValues[0].ToString(CultureInfo.InvariantCulture) + ";";
+            sSource += "\r\n double c2=" + this.paramValues[1].ToString(CultureInfo.InvariantCulture) + ";";
+            sSource += "\r\n double c3=" + this.paramValues[2].ToString(CultureInfo.InvariantCulture) + ";";
+            sSource += "\r\n double c4=" + this.paramValues[3].ToString(CultureInfo.InvariantCulture) + ";";
             //MessageBox.Show(sSource);
-            sSource += "\r\n"+txtExpression.Text;
+            sSource += "\r\n"+getSrcText();
             object res = gen.evaluateGeneral(sSource, "CsWaveAudio", "WaveAudio", out sErr);
             if (sErr!="")
             {
@@ -139,9 +154,10 @@ namespace CsGeneralBitmap
                 this.paramRange = loader.getDouble("paramRange");
 
                 // Expression is split into 5 parts to allow roughly 20k of code.
-                txtExpression.Text = loader.getString("paramExpression0") + 
+                string allsrc = loader.getString("paramExpression0") + 
                     loader.getString("paramExpression1") + loader.getString("paramExpression2") +
                     loader.getString("paramExpression3") + loader.getString("paramExpression4");
+                this.setSrcText(allsrc);
             }
             catch (IniFileParsingException err)
             {
@@ -167,7 +183,7 @@ namespace CsGeneralBitmap
                 saver.saveString("programVersion", Version);
 
                 // Expression is split into 5 parts to allow roughly 20k of code.
-                List<string> parts = new List<string>(splitTextBySize(txtExpression.Text, IniFileParsing.MAXLINELENGTH - 2));
+                List<string> parts = new List<string>(splitTextBySize(this.getSrcText(), IniFileParsing.MAXLINELENGTH - 2));
                 saver.saveString("paramExpression0", (parts.Count>0) ? parts[0]:"");
                 saver.saveString("paramExpression1", (parts.Count>1) ? parts[1]:"");
                 saver.saveString("paramExpression2", (parts.Count>2) ? parts[2]:"");
@@ -322,7 +338,7 @@ namespace CsGeneralBitmap
             try
             {
                 string sFilename = (sender as Button).Tag as string;
-                this.aplayer.Play(new WaveAudio(sFilename));
+                this.aplayer.Play(new WaveAudio(sFilename), true);
             }
             catch (Exception ex)
             {

@@ -43,6 +43,7 @@ namespace CsGeneralBitmap
             this.mnuFileNew = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFileOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFileSave = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuFileSaveWav = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.advancedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,33 +58,34 @@ namespace CsGeneralBitmap
             this.lblParam4 = new System.Windows.Forms.Label();
             this.btnHearResults = new System.Windows.Forms.Button();
             this.btnHelpPlay1 = new System.Windows.Forms.Button();
-            this.mnuFileSaveWav = new System.Windows.Forms.ToolStripMenuItem();
             this.btnHelpPlay2 = new System.Windows.Forms.Button();
             this.btnHelpPlay3 = new System.Windows.Forms.Button();
             this.btnHelpPlay4 = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
+            this.scintilla1 = new ScintillaNet.Scintilla();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam2)).BeginInit();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.scintilla1)).BeginInit();
             this.SuspendLayout();
             // 
             // txtExpression
             // 
-            this.txtExpression.Location = new System.Drawing.Point(13, 48);
+            this.txtExpression.Location = new System.Drawing.Point(808, 481);
             this.txtExpression.Multiline = true;
             this.txtExpression.Name = "txtExpression";
             this.txtExpression.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtExpression.Size = new System.Drawing.Size(332, 310);
+            this.txtExpression.Size = new System.Drawing.Size(64, 40);
             this.txtExpression.TabIndex = 0;
             this.txtExpression.Text = "p = r*p*(1-p);";
             // 
             // btnGo
             // 
-            this.btnGo.Location = new System.Drawing.Point(12, 381);
+            this.btnGo.Location = new System.Drawing.Point(761, 70);
             this.btnGo.Name = "btnGo";
-            this.btnGo.Size = new System.Drawing.Size(210, 50);
+            this.btnGo.Size = new System.Drawing.Size(135, 50);
             this.btnGo.TabIndex = 1;
             this.btnGo.Text = "Run";
             this.btnGo.UseVisualStyleBackColor = true;
@@ -205,6 +207,15 @@ namespace CsGeneralBitmap
             this.mnuFileSave.Text = "Save As...";
             this.mnuFileSave.Click += new System.EventHandler(this.mnuFileSave_Click);
             // 
+            // mnuFileSaveWav
+            // 
+            this.mnuFileSaveWav.Name = "mnuFileSaveWav";
+            this.mnuFileSaveWav.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
+            this.mnuFileSaveWav.Size = new System.Drawing.Size(203, 22);
+            this.mnuFileSaveWav.Text = "Save wav...";
+            this.mnuFileSaveWav.Click += new System.EventHandler(this.mnuFileSaveWav_Click);
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -307,9 +318,9 @@ namespace CsGeneralBitmap
             // 
             // btnHearResults
             // 
-            this.btnHearResults.Location = new System.Drawing.Point(12, 451);
+            this.btnHearResults.Location = new System.Drawing.Point(761, 147);
             this.btnHearResults.Name = "btnHearResults";
-            this.btnHearResults.Size = new System.Drawing.Size(210, 50);
+            this.btnHearResults.Size = new System.Drawing.Size(135, 50);
             this.btnHearResults.TabIndex = 1;
             this.btnHearResults.Text = "Hear Results";
             this.btnHearResults.UseVisualStyleBackColor = true;
@@ -317,7 +328,7 @@ namespace CsGeneralBitmap
             // 
             // btnHelpPlay1
             // 
-            this.btnHelpPlay1.Location = new System.Drawing.Point(270, 408);
+            this.btnHelpPlay1.Location = new System.Drawing.Point(808, 254);
             this.btnHelpPlay1.Name = "btnHelpPlay1";
             this.btnHelpPlay1.Size = new System.Drawing.Size(75, 23);
             this.btnHelpPlay1.TabIndex = 15;
@@ -325,18 +336,9 @@ namespace CsGeneralBitmap
             this.btnHelpPlay1.UseVisualStyleBackColor = true;
             this.btnHelpPlay1.Click += new System.EventHandler(this.btnHelpPlay1_Click);
             // 
-            // mnuFileSaveWav
-            // 
-            this.mnuFileSaveWav.Name = "mnuFileSaveWav";
-            this.mnuFileSaveWav.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.S)));
-            this.mnuFileSaveWav.Size = new System.Drawing.Size(203, 22);
-            this.mnuFileSaveWav.Text = "Save wav...";
-            this.mnuFileSaveWav.Click += new System.EventHandler(this.mnuFileSaveWav_Click);
-            // 
             // btnHelpPlay2
             // 
-            this.btnHelpPlay2.Location = new System.Drawing.Point(351, 408);
+            this.btnHelpPlay2.Location = new System.Drawing.Point(808, 283);
             this.btnHelpPlay2.Name = "btnHelpPlay2";
             this.btnHelpPlay2.Size = new System.Drawing.Size(75, 23);
             this.btnHelpPlay2.TabIndex = 15;
@@ -345,7 +347,7 @@ namespace CsGeneralBitmap
             // 
             // btnHelpPlay3
             // 
-            this.btnHelpPlay3.Location = new System.Drawing.Point(432, 408);
+            this.btnHelpPlay3.Location = new System.Drawing.Point(808, 312);
             this.btnHelpPlay3.Name = "btnHelpPlay3";
             this.btnHelpPlay3.Size = new System.Drawing.Size(75, 23);
             this.btnHelpPlay3.TabIndex = 15;
@@ -354,7 +356,7 @@ namespace CsGeneralBitmap
             // 
             // btnHelpPlay4
             // 
-            this.btnHelpPlay4.Location = new System.Drawing.Point(513, 408);
+            this.btnHelpPlay4.Location = new System.Drawing.Point(808, 341);
             this.btnHelpPlay4.Name = "btnHelpPlay4";
             this.btnHelpPlay4.Size = new System.Drawing.Size(75, 23);
             this.btnHelpPlay4.TabIndex = 15;
@@ -363,7 +365,7 @@ namespace CsGeneralBitmap
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(298, 465);
+            this.btnStop.Location = new System.Drawing.Point(808, 216);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(75, 23);
             this.btnStop.TabIndex = 15;
@@ -371,11 +373,27 @@ namespace CsGeneralBitmap
             this.btnStop.UseVisualStyleBackColor = true;
             this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
             // 
+            // scintilla1
+            // 
+            this.scintilla1.Location = new System.Drawing.Point(0, 27);
+            this.scintilla1.Name = "scintilla1";
+            this.scintilla1.Size = new System.Drawing.Size(755, 494);
+            this.scintilla1.Styles.BraceBad.FontName = "Verdana";
+            this.scintilla1.Styles.BraceLight.FontName = "Verdana";
+            this.scintilla1.Styles.ControlChar.FontName = "Verdana";
+            this.scintilla1.Styles.Default.FontName = "Verdana";
+            this.scintilla1.Styles.IndentGuide.FontName = "Verdana";
+            this.scintilla1.Styles.LastPredefined.FontName = "Verdana";
+            this.scintilla1.Styles.LineNumber.FontName = "Verdana";
+            this.scintilla1.Styles.Max.FontName = "Verdana";
+            this.scintilla1.TabIndex = 16;
+            // 
             // FormAudioTimeDomain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(908, 623);
+            this.Controls.Add(this.scintilla1);
             this.Controls.Add(this.btnHelpPlay4);
             this.Controls.Add(this.btnHelpPlay3);
             this.Controls.Add(this.btnHelpPlay2);
@@ -407,6 +425,7 @@ namespace CsGeneralBitmap
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.scintilla1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -447,6 +466,7 @@ namespace CsGeneralBitmap
         private System.Windows.Forms.Button btnHelpPlay3;
         private System.Windows.Forms.Button btnHelpPlay4;
         private System.Windows.Forms.Button btnStop;
+        private ScintillaNet.Scintilla scintilla1;
     }
 }
 
