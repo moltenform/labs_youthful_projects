@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual C# Express 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blinkbeat", "Blinkbeat\Blinkbeat.csproj", "{8EDE31BF-6745-4087-AAF8-59065442D3FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "..\WaveAudio\WaveAudio\WaveAudio.csproj", "{1C849CE0-48A1-4985-B0D2-2F815ECE2282}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "..\..\CsWaveAudioLib\WaveAudio\WaveAudio.csproj", "{1C849CE0-48A1-4985-B0D2-2F815ECE2282}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

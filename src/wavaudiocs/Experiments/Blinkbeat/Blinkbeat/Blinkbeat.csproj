@@ -72,7 +72,7 @@
     <Compile Include="SetKeyState.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\WaveAudio\WaveAudio\WaveAudio.csproj">
+    <ProjectReference Include="..\..\..\CsWaveAudioLib\WaveAudio\WaveAudio.csproj">
       <Project>{1C849CE0-48A1-4985-B0D2-2F815ECE2282}</Project>
       <Name>WaveAudio</Name>
     </ProjectReference>
