@@ -14,10 +14,10 @@ namespace WaveAudioTests
             // Uncomment the tests you wish to run.
 
 
-            CsWaveAudioTests.synthtests(pl);
+            //CsWaveAudioTests.synthtests(pl);
             //CsWaveAudioTests.effectstest(pl);
             //CsWaveAudioTests.effectsaudacitytest(pl);
-            //CsWaveAudioTests.iotests();
+            CsWaveAudioTests.iotests();
             //CsWaveAudioTests.propertytests();
             //CsWaveAudioTests.operations_test(pl);
             //CsWaveAudioTests.pitchdetect_test(pl);
@@ -30,7 +30,8 @@ namespace WaveAudioTests
 
     static partial class CsWaveAudioTests
     {
-        public static string mediadir = "..\\..\\test_media\\";
+        public static string mediadir = @"..\..\..\..\Media\bitrates\";
+        public static string mediadirpitch = @"..\..\..\..\Media\tones\";
         public static void effectstest(AudioPlayer pl)
         {
             WaveAudio w = new WaveAudio(mediadir + "d44k16bit2ch.wav");
@@ -119,9 +120,9 @@ namespace WaveAudioTests
                 asserteq(w01.data[i].Length, w01.LengthInSamples);
 
             // test converting to other rates / quality
-            w01.SaveWaveFile(mediadir + "ttout\\o_" + nRate + "_" + nBits + "_" + nRate + "_" + nChannels + ".wav", nBits);
+            w01.SaveWaveFile("..\\..\\testout\\o_" + nRate + "_" + nBits + "_" + nRate + "_" + nChannels + ".wav", nBits);
             nBits = (nBits == 8) ? 16 : 8;
-            w01.SaveWaveFile(mediadir + "ttout\\ot_" + nRate + "_" + nBits + "_" + nRate + "_" + nChannels + ".wav", nBits);
+            w01.SaveWaveFile("..\\..\\testout\\ot_" + nRate + "_" + nBits + "_" + nRate + "_" + nChannels + ".wav", nBits);
         }
         public static void operations_test(AudioPlayer pl)
         {
@@ -156,7 +157,7 @@ namespace WaveAudioTests
         // This test will play original, then a sine at the frequency it detected. The two should line up.
         private static void pitchdetectwav(AudioPlayer pl, string strFilename, PitchDetection.PitchDetectAlgorithm algorithm)
         {
-            string strInstdir = mediadir + @"pitchdetect\";
+            string strInstdir = mediadirpitch;
             WaveAudio w = new WaveAudio(strInstdir + strFilename);
             if (w.getNumChannels() != 1) w.setNumChannels(1, true);
             double dfreq = PitchDetection.DetectPitch(w, 50,500,algorithm);
