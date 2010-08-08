@@ -13,14 +13,16 @@ namespace FeedEffects
     public partial class Form1 : Form
     {
         private AudioPlayer player = new AudioPlayer();
+        private WaveAudio lastAudio = new WaveAudio();
         private ControlFeed[] controlArray;
         public Form1()
         {
             InitializeComponent();
 
+            controlArray = new ControlFeed[] { this.controlFeed1, this.controlFeed2, this.controlFeed3, this.controlFeed4, this.controlFeed5 };
+
             this.presets.SelectedIndex = 0;
             this.setfields(0);
-            controlArray = new ControlFeed[] { this.controlFeed1, this.controlFeed2, this.controlFeed3, this.controlFeed4, this.controlFeed5 };
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -44,13 +46,22 @@ namespace FeedEffects
 
         private void setfields(int p)
         {
+            foreach (ControlFeed feed in this.controlArray)
+                feed.Config(0.0, 1.0, 0.0, 0.0, 0); //disable it by setting Mult to 0
+
             if (p == 0) // default, no effect
             {
                 this.controlFeed1.Config(0.0, 1.0, 0.0,   1.0,   0);
-                this.controlFeed2.Config(0.0, 1.0, 0.0, 0.0, 0);
-                this.controlFeed3.Config(0.0, 1.0, 0.0, 0.0, 0);
-                this.controlFeed4.Config(0.0, 1.0, 0.0, 0.0, 0);
-                this.controlFeed5.Config(0.0, 1.0, 0.0, 0.0, 0);
+            }
+            else if (p == 1) // simple echo effect
+            {
+                this.controlFeed1.Config(0.0, 1.0, 0.0, 1.0, 0);
+                this.controlFeed2.Config(0.0, 1.0, 0.05, 1.0, 0);
+            }
+            else if (p == 2) // simple chorus effect
+            {
+                this.controlFeed1.Config(0.0, 1.0, 0.0, 1.0, 0);
+                this.controlFeed2.Config(0.01, 0.25, 0.05, 1.0, 1);
             }
         }
         private WaveAudio Go(WaveAudio win)
@@ -58,23 +69,28 @@ namespace FeedEffects
             WaveAudio wout = new WaveAudio(44100, 1);
             wout.LengthInSamples = win.LengthInSamples;
 
-            MessageBox.Show("here");
+            List<ControlFeed> activeFeeds = new List<ControlFeed>();
+            foreach (ControlFeed feed in this.controlArray)
+                if (!feed.IsDisabled()) activeFeeds.Add(feed);
+            ControlFeed[] feeds = activeFeeds.ToArray();
+
             //get delays... actually not too efficient in terms of mem. use to precalc this...
-            int[][] delays = new int[this.controlArray.Length][];
-            for (int i = 0; i < this.controlArray.Length; i++)
+            int[][] delays = new int[feeds.Length][];
+            for (int i = 0; i < feeds.Length; i++)
             {
-                delays[i] = this.controlArray[i].Go(wout.LengthInSamples);
+                 delays[i] = feeds[i].Go(wout.LengthInSamples);
             }
 
             // now do this
             for (int i = 0; i < wout.LengthInSamples; i++)
             {
                 double val=0;
-                for (int j = 0; j < this.controlArray.Length; j++)
+                for (int j = 0; j < feeds.Length; j++)
                 {
-                    int index = i - delays[j][i];
-                    double scaleFactor = this.controlArray[j].GetMultiply();
-                    val += getSample(win, index) * scaleFactor;
+                        int index = i - delays[j][i];
+                        double scaleFactor = feeds[j].GetMultiply();
+                       // val += getSample(win, index) * scaleFactor;
+                        val += getSample(wout, index) * scaleFactor;
                 }
                 wout.data[0][i] = val;
             }
@@ -91,10 +107,16 @@ namespace FeedEffects
 
         private void btnTry_Click(object sender, EventArgs e)
         {
-            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\cissmall.wav");
+            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\delii.wav");
             WaveAudio wout = Go(win);
             player.Play(wout, true);
 
+            lastAudio = wout;
+        }
+
+        private void btnAgain_Click(object sender, EventArgs e)
+        {
+            player.Play(lastAudio, true);
         }
 
     }

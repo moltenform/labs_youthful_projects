@@ -31,6 +31,10 @@ namespace FeedEffects
         {
             return double.Parse(this.txtMultiply.Text);
         }
+        public bool IsDisabled()
+        {
+            return Math.Abs(double.Parse(this.txtMultiply.Text)) < 0.001;
+        }
         public int[] Go(int length)
         {
             //create the wave.

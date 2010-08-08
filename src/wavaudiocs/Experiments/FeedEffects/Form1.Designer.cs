@@ -31,12 +31,13 @@ namespace FeedEffects
             this.button1 = new System.Windows.Forms.Button();
             this.presets = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.btnTry = new System.Windows.Forms.Button();
+            this.btnAgain = new System.Windows.Forms.Button();
             this.controlFeed5 = new FeedEffects.ControlFeed();
             this.controlFeed4 = new FeedEffects.ControlFeed();
             this.controlFeed3 = new FeedEffects.ControlFeed();
             this.controlFeed2 = new FeedEffects.ControlFeed();
             this.controlFeed1 = new FeedEffects.ControlFeed();
-            this.btnTry = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -55,8 +56,10 @@ namespace FeedEffects
             this.presets.FormattingEnabled = true;
             this.presets.Items.AddRange(new object[] {
             "No effect",
-            "Phaser",
-            "Flange"});
+            "Echo",
+            "Chorus",
+            "Flange",
+            "Phaser"});
             this.presets.Location = new System.Drawing.Point(236, 13);
             this.presets.Name = "presets";
             this.presets.Size = new System.Drawing.Size(121, 21);
@@ -71,6 +74,26 @@ namespace FeedEffects
             this.label1.Size = new System.Drawing.Size(45, 13);
             this.label1.TabIndex = 3;
             this.label1.Text = "Presets:";
+            // 
+            // btnTry
+            // 
+            this.btnTry.Location = new System.Drawing.Point(445, 5);
+            this.btnTry.Name = "btnTry";
+            this.btnTry.Size = new System.Drawing.Size(75, 23);
+            this.btnTry.TabIndex = 4;
+            this.btnTry.Text = "Try It";
+            this.btnTry.UseVisualStyleBackColor = true;
+            this.btnTry.Click += new System.EventHandler(this.btnTry_Click);
+            // 
+            // btnAgain
+            // 
+            this.btnAgain.Location = new System.Drawing.Point(536, 5);
+            this.btnAgain.Name = "btnAgain";
+            this.btnAgain.Size = new System.Drawing.Size(75, 23);
+            this.btnAgain.TabIndex = 5;
+            this.btnAgain.Text = "Again";
+            this.btnAgain.UseVisualStyleBackColor = true;
+            this.btnAgain.Click += new System.EventHandler(this.btnAgain_Click);
             // 
             // controlFeed5
             // 
@@ -107,21 +130,12 @@ namespace FeedEffects
             this.controlFeed1.Size = new System.Drawing.Size(199, 176);
             this.controlFeed1.TabIndex = 1;
             // 
-            // btnTry
-            // 
-            this.btnTry.Location = new System.Drawing.Point(445, 5);
-            this.btnTry.Name = "btnTry";
-            this.btnTry.Size = new System.Drawing.Size(75, 23);
-            this.btnTry.TabIndex = 4;
-            this.btnTry.Text = "Try It";
-            this.btnTry.UseVisualStyleBackColor = true;
-            this.btnTry.Click += new System.EventHandler(this.btnTry_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1023, 333);
+            this.Controls.Add(this.btnAgain);
             this.Controls.Add(this.btnTry);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.presets);
@@ -149,6 +163,7 @@ namespace FeedEffects
         private System.Windows.Forms.ComboBox presets;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnTry;
+        private System.Windows.Forms.Button btnAgain;
     }
 }
 
