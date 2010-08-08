@@ -17,33 +17,33 @@ namespace DrawAuto
 
 
 
-
+        const int D=750;
         private void button1_Click(object sender, EventArgs e)
         {
-            Bitmap b = new Bitmap(500, 500);
-            for (int x = 0; x < 500; x++)
+            Bitmap b = new Bitmap(D, D/2);
+            for (int x = 0; x < D; x++)
             {
-                for (int y = 0; y < 500; y++)
+                for (int y = 0; y < D; y++)
                 {
                     // b.SetPixel(x,y,Color.FromArgb(x,y,0));
                 }
             }
 
 
-            int[] current = new int[500]; int[] temp = new int[500]; int[] newf = new int[500];
-            current[500/2] = 1;
-            for (int i = 0; i < 500/*50*/; i++)
+            int[] current = new int[D]; int[] temp = new int[D]; int[] newf = new int[D];
+            current[D/2] = 1;
+            for (int i = 0; i < D/2 /*50*/; i++)
             {
 
 
                 // paint the picture
-                for (int x = 0; x < 500; x++)
+                for (int x = 0; x < D; x++)
                     if (current[x] == 0) b.SetPixel(x, i, Color.White);
                     else b.SetPixel(x, i, Color.Black);
 
                 // get new
-                newf = new int[500];
-                for (int xmid = 1; xmid < (500-1); xmid++)
+                newf = new int[D];
+                for (int xmid = 1; xmid < (D-1); xmid++)
                 {
                     int vva = current[xmid - 1];
                     int vvb = current[xmid];
@@ -90,7 +90,7 @@ namespace DrawAuto
                 }
 
                 //assign to new
-                for (int x=0; x<500; x++)
+                for (int x=0; x<D; x++)
                     current[x] = newf[x];
             }
 
