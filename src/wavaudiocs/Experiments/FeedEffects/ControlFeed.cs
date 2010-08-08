@@ -40,7 +40,7 @@ namespace FeedEffects
             //create the wave.
             int[] res = new int[length];
 
-            double amplitude = double.Parse(this.txtAmplitude.Text) * 44100;
+            double amplitude = double.Parse(this.txtAmplitude.Text) * 44100 / 2.0; //divide by 2 so that you type in "1" for range -1 to 1 
             double freq = double.Parse(this.txtFreq.Text);
             double mean = double.Parse(this.txtMean.Text) * 44100;
             double multiply = double.Parse(this.txtMultiply.Text);
@@ -49,6 +49,7 @@ namespace FeedEffects
             else if (this.comboBox1.SelectedIndex == 2) palt = new PATri();
             else if (this.comboBox1.SelectedIndex == 3) palt = new PASawtooth();
             else if (this.comboBox1.SelectedIndex == 4) palt = new PASquare();
+            else if (this.comboBox1.SelectedIndex == 5) palt = new PAChangeSquare();
             
             for (int i = 0; i < length; i++)
             {

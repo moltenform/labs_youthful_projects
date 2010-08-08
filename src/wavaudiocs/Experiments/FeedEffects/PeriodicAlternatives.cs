@@ -45,4 +45,24 @@ namespace FeedEffects
         }
     }
 
+    public class PAChangeSquare : PeriodicAlternative
+    {
+        private int count = 0;
+        private double freq = 0.25;
+        private PeriodicAlternative palt = new PASin();
+        public PAChangeSquare() { }
+        public PAChangeSquare(double f) { this.freq = f; }
+        public override double GetValue(double x) 
+        {
+            count++; // note that this has state !! !! !!
+            x = x % (Math.PI * 2);
+            double cutoff = palt.GetValue(count * freq * 2.0 * Math.PI / (double)44100.0) * 0.45 + 0.5;//0.5;
+            
+            cutoff = cutoff * 2.0 * Math.PI;
+            if (x > cutoff)
+                return 1;
+            else
+                return -1;
+        }
+    }
 }

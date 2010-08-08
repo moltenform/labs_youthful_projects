@@ -28,15 +28,18 @@ namespace FeedEffects
         private void button1_Click(object sender, EventArgs e)
         {
             WaveAudio test = new WaveAudio(44100, 1);
-            test.LengthInSamples = 44100 * 3;
-            double freq = 300;
-            PeriodicAlternative osc = new PASin();//new PASin();
+            test.LengthInSamples = 44100 * 7;
+            double freq = 100;//300;
+            PeriodicAlternative osc = new PAChangeSquare(4.0);//new PASin();
             for (int i = 0; i < test.LengthInSamples; i++)
             {
                 test.data[0][i] = 0.9 * osc.GetValue(i * freq * 2.0 * Math.PI / (double)44100.0);
             }
-            player.Play(test, true);
+            //player.Play(test, true);
 
+            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\delii.wav");
+            WaveAudio wmixed = WaveAudio.Mix(WaveAudio.Modulate(test, win), 0.7, win, 0.3);
+            player.Play(wmixed, true);
         }
 
         private void presets_SelectedIndexChanged(object sender, EventArgs e)
@@ -58,10 +61,20 @@ namespace FeedEffects
                 this.controlFeed1.Config(0.0, 1.0, 0.0, 1.0, 0);
                 this.controlFeed2.Config(0.0, 1.0, 0.05, 1.0, 0);
             }
-            else if (p == 2) // simple chorus effect
+            else if (p == 2) //  chorus effect
             {
                 this.controlFeed1.Config(0.0, 1.0, 0.0, 1.0, 0);
                 this.controlFeed2.Config(0.01, 0.25, 0.05, 1.0, 1);
+            }
+            else if (p == 3) //  flange effect
+            {
+                this.controlFeed1.Config(0.0, 1.0, 0.0, 1.0, 0);
+                this.controlFeed2.Config(0.005, 0.5, 0.005, 1.0, 1);
+            }
+            else if (p == 4) //  phaser effect
+            {
+                this.controlFeed1.Config(0.0, 1.0, 0.0, 1.0, 0);
+                this.controlFeed2.Config(0.001, 0.25, 0.001, -1, 1);
             }
         }
         private WaveAudio Go(WaveAudio win)
@@ -89,8 +102,11 @@ namespace FeedEffects
                 {
                         int index = i - delays[j][i];
                         double scaleFactor = feeds[j].GetMultiply();
-                       // val += getSample(win, index) * scaleFactor;
-                        val += getSample(wout, index) * scaleFactor;
+                        val += getSample(win, index) * scaleFactor; // !!! !! !!!!
+                        
+                    // weird stuff here!!!
+                    //if (j==0) val += getSample(win, index) * scaleFactor;
+                    //else val += (getSample(win, index) * scaleFactor) + 0.7*getSample(wout, index) * scaleFactor;
                 }
                 wout.data[0][i] = val;
             }
@@ -107,7 +123,8 @@ namespace FeedEffects
 
         private void btnTry_Click(object sender, EventArgs e)
         {
-            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\delii.wav");
+            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\cismed.wav");
+            //WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\delii.wav");
             WaveAudio wout = Go(win);
             player.Play(wout, true);
 
