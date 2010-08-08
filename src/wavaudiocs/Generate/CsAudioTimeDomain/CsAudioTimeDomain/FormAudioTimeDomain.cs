@@ -122,10 +122,67 @@ namespace CsAudioTimeDomain
             this.paramValues[i]=v;
         }
 
+        //new format with newlines. facilitates merging code, and viewing in other editor.
+        private string MARK = "\n_!@@!_\n";
+        //1) 'baud'
+        //2) version 0.1 
+        //3) src code
+        //4) param ranges
+        //5-8) parameters
+        private void saveToBaud(string sFilename)
+        {
+            if (getSrcText().Contains(MARK)) {MessageBox.Show("Cannot save the string "+MARK+" in source."); return;}
+            using (TextWriter tw = new StreamWriter(sFilename))
+            {
+                tw.Write("baud"); tw.Write(MARK);
+                tw.Write("0.1"); tw.Write(MARK);
+                tw.Write(getSrcText()); tw.Write(MARK);
+                tw.Write(paramRange.ToString(CultureInfo.InvariantCulture)); tw.Write(MARK);
+                tw.Write(paramValues[0].ToString(CultureInfo.InvariantCulture)); tw.Write(MARK);
+                tw.Write(paramValues[1].ToString(CultureInfo.InvariantCulture)); tw.Write(MARK);
+                tw.Write(paramValues[2].ToString(CultureInfo.InvariantCulture)); tw.Write(MARK);
+                tw.Write(paramValues[3].ToString(CultureInfo.InvariantCulture)); tw.Write(MARK);
+            }
+        }
+        private void loadFromBaud(string sFilename)
+        {
+            string s;
+            using (TextReader tr = new StreamReader(sFilename))
+                s = tr.ReadToEnd();
+            s=s.Replace("\r\n", "\n");
+            string[] sParts = s.Split(new string[] { MARK }, StringSplitOptions.None);
+            if (sParts[0]!="baud") { MessageBox.Show("Not a audiotimedomain file."); return; }
+            if (sParts[1]!="0.1") { MessageBox.Show("Opening future file, may not work perfectly."); return; }
+            if (sParts.Length<8) {MessageBox.Show("Could not open file. Not enough sections."); return;}
+            try
+            {
+                this.paramRange = double.Parse(sParts[3], CultureInfo.InvariantCulture);
+                this.paramValues[0] = double.Parse(sParts[4], CultureInfo.InvariantCulture);
+                this.paramValues[1] = double.Parse(sParts[5], CultureInfo.InvariantCulture);
+                this.paramValues[2] = double.Parse(sParts[6], CultureInfo.InvariantCulture);
+                this.paramValues[3] = double.Parse(sParts[7], CultureInfo.InvariantCulture);
+                this.setSrcText(sParts[2]);
+            }
+            catch (InvalidCastException err)
+            {
+                MessageBox.Show("Loading Error:"+err.ToString());  return;
+            }
+            this.currentWave = null;
+            setSliderToValue(0); setSliderToValue(1); setSliderToValue(2); setSliderToValue(3); 
+        }
 
-        
+        private void btnconvnewformat_Click(object sender, EventArgs e)
+        {
+            string sPath=@"C:\pydev\mainsvn\audio\Generate\CsAudioTimeDomain";
+            string[] sfiles = Directory.GetFiles(sPath, "*.cfg");
+            foreach (string sfile in sfiles)
+            {
+                loadOldIni(sfile);
+                saveToBaud(sfile.Replace(".cfg", ".baud"));
+            }
+        }
 
-        private void loadIni(string sFilename)
+        private void loadOldIni(string sFilename)
         {
             //note: requires absolute path to file.
             if (!File.Exists(sFilename)) return;
@@ -193,33 +250,33 @@ namespace CsAudioTimeDomain
         {
             OpenFileDialog dlg1 = new OpenFileDialog();
             dlg1.RestoreDirectory = true;
-            dlg1.Filter = "CsGeneralAudio files (*.cfg)|*.cfg";
+            dlg1.Filter = "CsGeneralAudio files (*.baud)|*.baud";
             if (!(dlg1.ShowDialog() == System.Windows.Forms.DialogResult.OK && dlg1.FileName.Length > 0))
                 return;
-            loadIni(dlg1.FileName);
+            loadFromBaud(dlg1.FileName);
             
         }
         private void mnuFileSave_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "CsGeneralAudio files (*.cfg)|*.cfg";
+            saveFileDialog1.Filter = "CsGeneralAudio files (*.baud)|*.baud";
             saveFileDialog1.RestoreDirectory = true;
             if (!(saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK && saveFileDialog1.FileName.Length > 0))
                 return;
-            saveIni(saveFileDialog1.FileName);
+            saveToBaud(saveFileDialog1.FileName);
         }
 
         
         private void mnuFileNew_Click(object sender, EventArgs e)
         {
             string sFilename=null;
-            if (File.Exists("default.cfg"))
-                sFilename = Path.GetFullPath("default.cfg");
-            else if (File.Exists("..\\..\\..\\default.cfg"))
-                sFilename = Path.GetFullPath("..\\..\\..\\default.cfg");
+            if (File.Exists("default.baud"))
+                sFilename = Path.GetFullPath("default.baud");
+            else if (File.Exists("..\\..\\..\\default.baud"))
+                sFilename = Path.GetFullPath("..\\..\\..\\default.baud");
 
             if (sFilename!=null && File.Exists(sFilename))
-                loadIni(sFilename); // requires absolute path.
+                loadFromBaud(sFilename); // requires absolute path.
         }
         
         
@@ -274,7 +331,7 @@ namespace CsAudioTimeDomain
         private void mnuAdvSetParamRange_Click(object sender, EventArgs e)
         {
             double v;
-            double defaultRange=1.0;
+            double defaultRange=this.paramRange;
             if (!InputBoxForm.GetDouble("The trackbars allow to be set to a value between 0 and a. Choose value of a:", defaultRange, out v))
                 return;
 
@@ -291,7 +348,7 @@ namespace CsAudioTimeDomain
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length>0)
-                loadIni(files[0]);
+                loadFromBaud(files[0]);
         }
         void Form1_DragEnter(object sender, DragEventArgs e)
         {
@@ -340,5 +397,7 @@ namespace CsAudioTimeDomain
         private void mnuRunRun_Click(object sender, EventArgs e) { btnGo_Click(null, null); }
 
         private void mnuRunListen_Click(object sender, EventArgs e) {btnHearResults_Click(null,null); }
+
+        
     }
 }
