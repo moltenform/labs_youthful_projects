@@ -30,7 +30,7 @@ namespace CsGeneralBitmap
         private Label[] lblParamLabels;
         private TrackBar[] tbParamTrackBars;
 
-        private string sCfgDirectory;
+        private string strMediaDirectory=@"..\..\..\..\..\Media\";
         private AudioPlayer aplayer; private WaveAudio currentWave=null;
         public FormAudioTimeDomain()
         {
@@ -43,14 +43,7 @@ namespace CsGeneralBitmap
             this.lblParamLabels[3]= lblParam4;
             this.tbParamTrackBars = new TrackBar[] { tbParam1, tbParam2, tbParam3, tbParam4 };
 
-            if (Directory.Exists(@"..\..\cfgs"))
-                sCfgDirectory=(@"..\..\cfgs"); //Test environment
-            else if (Directory.Exists(@"cfgs"))
-                sCfgDirectory=(@"cfgs"); //Release environment
-            else if (Directory.Exists(@"..\..\..\cfgs"))
-                sCfgDirectory=(@"..\..\..\cfgs"); //Test environment
-            // otherwise we can't find the cfgs folder, but we don't need to crash.
-
+            
             lblParam1.Text = lblParam2.Text =lblParam3.Text =lblParam4.Text = "0.0";
             btnHelpPlay1.Text = btnHelpPlay2.Text = btnHelpPlay3.Text = btnHelpPlay4.Text = " ";
 
@@ -88,7 +81,7 @@ namespace CsGeneralBitmap
                 //MessageBox.Show(m.Groups[1].ToString());
             string sFilename =     m.Groups[1].ToString();
             sFilename = sFilename.Replace("/", "\\");
-            btnHelpPlay1.Tag = sCfgDirectory+"\\..\\wavs\\"+ sFilename;
+            btnHelpPlay1.Tag = strMediaDirectory + sFilename;
             btnHelpPlay1.Text = sFilename;//.Replace(".wav","");
             btnHelpPlay1.Text = btnHelpPlay1.Text.Split('\\')[btnHelpPlay1.Text.Split('\\').Length-1];
            // }
@@ -99,12 +92,12 @@ namespace CsGeneralBitmap
             string sErr = "";
 
             this.currentWave = null;
-            string sSource = "private WaveAudio loadWav(string sName) { return new WaveAudio(@\"" +sCfgDirectory+"\\..\\wavs\\\""+@"+sName.Replace('/','\\')); }";
+            string sSource = "private WaveAudio loadWav(string sName) { return new WaveAudio(@\"" +strMediaDirectory+"\""+@"+sName.Replace('/','\\')); }";
             sSource += "\r\n double c1=" + this.paramValues[0].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c2=" + this.paramValues[1].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c3=" + this.paramValues[2].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c4=" + this.paramValues[3].ToString(CultureInfo.InvariantCulture) + ";";
-            //MessageBox.Show(sSource);
+            MessageBox.Show(sSource);
             sSource += "\r\n"+getSrcText();
             object res = gen.evaluateGeneral(sSource, "CsWaveAudio", "WaveAudio", out sErr);
             if (sErr!="")
@@ -226,8 +219,13 @@ namespace CsGeneralBitmap
         
         private void mnuFileNew_Click(object sender, EventArgs e)
         {
-            string sFilename = Path.GetFullPath(Directory.GetCurrentDirectory()+"\\"+sCfgDirectory) + "\\default.cfg";
-            if (File.Exists(sFilename))
+            string sFilename=null;
+            if (File.Exists("default.cfg"))
+                sFilename = Path.GetFullPath("default.cfg");
+            else if (File.Exists("..\\..\\..\\default.cfg"))
+                sFilename = Path.GetFullPath("..\\..\\..\\default.cfg");
+
+            if (sFilename!=null && File.Exists(sFilename))
                 loadIni(sFilename); // requires absolute path.
         }
         
