@@ -1,14 +1,6 @@
-//compare against rev 233
-/*have a standardlooptrace for "traces"
- * note alert() and clipboardset()
- * 
- * todo: clean up manual color. throw errors if both val and rval are used. make this more robust.
- * perhaps manual color should be an explicit option rather than automatically seeing "rval".
- * */
+// F5 to go?
 
 using System;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.IO;
@@ -16,7 +8,7 @@ using System.Globalization;
 using System.Collections.Generic;
 using CsWaveAudio;
 
-namespace CsGeneralBitmap
+namespace CsAudioTimeDomain
 {
     public partial class FormAudioTimeDomain : Form
     {
@@ -97,7 +89,7 @@ namespace CsGeneralBitmap
             sSource += "\r\n double c2=" + this.paramValues[1].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c3=" + this.paramValues[2].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c4=" + this.paramValues[3].ToString(CultureInfo.InvariantCulture) + ";";
-            MessageBox.Show(sSource);
+            //MessageBox.Show(sSource);
             sSource += "\r\n"+getSrcText();
             object res = gen.evaluateGeneral(sSource, "CsWaveAudio", "WaveAudio", out sErr);
             if (sErr!="")
@@ -111,6 +103,7 @@ namespace CsGeneralBitmap
             }
             this.currentWave = w;
             ShowHelpers();
+            this.btnHearResults.Focus();
         }
 
 
@@ -343,5 +336,9 @@ namespace CsGeneralBitmap
                 MessageBox.Show("Couldn't find/play that file.");
             }
         }
+
+        private void mnuRunRun_Click(object sender, EventArgs e) { btnGo_Click(null, null); }
+
+        private void mnuRunListen_Click(object sender, EventArgs e) {btnHearResults_Click(null,null); }
     }
 }

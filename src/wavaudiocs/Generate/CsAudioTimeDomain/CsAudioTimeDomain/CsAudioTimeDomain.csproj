@@ -7,7 +7,7 @@
     <ProjectGuid>{7CA35945-2326-4C6F-B796-3662DD3B3AA3}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CsGeneralBitmap</RootNamespace>
+    <RootNamespace>CsAudioTimeDomain</RootNamespace>
     <AssemblyName>CsGeneralBitmap</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

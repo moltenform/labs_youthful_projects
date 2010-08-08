@@ -1,5 +1,5 @@
 
-namespace CsGeneralBitmap
+namespace CsAudioTimeDomain
 {
     partial class FormAudioTimeDomain
     {
@@ -46,7 +46,7 @@ namespace CsGeneralBitmap
             this.mnuFileSaveWav = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuFileExit = new System.Windows.Forms.ToolStripMenuItem();
-            this.advancedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAdvSetParamRange = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
@@ -63,6 +63,9 @@ namespace CsGeneralBitmap
             this.btnHelpPlay4 = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
             this.scintilla1 = new ScintillaNet.Scintilla();
+            this.mnuRunRun = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuRunListen = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam2)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -162,7 +165,7 @@ namespace CsGeneralBitmap
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.advancedToolStripMenuItem,
+            this.runToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -228,18 +231,21 @@ namespace CsGeneralBitmap
             this.mnuFileExit.Text = "Exit";
             this.mnuFileExit.Click += new System.EventHandler(this.mnuFileExit_Click);
             // 
-            // advancedToolStripMenuItem
+            // runToolStripMenuItem
             // 
-            this.advancedToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.runToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuRunRun,
+            this.mnuRunListen,
+            this.toolStripSeparator2,
             this.mnuAdvSetParamRange});
-            this.advancedToolStripMenuItem.Name = "advancedToolStripMenuItem";
-            this.advancedToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
-            this.advancedToolStripMenuItem.Text = "Advanced";
+            this.runToolStripMenuItem.Name = "runToolStripMenuItem";
+            this.runToolStripMenuItem.Size = new System.Drawing.Size(40, 20);
+            this.runToolStripMenuItem.Text = "Run";
             // 
             // mnuAdvSetParamRange
             // 
             this.mnuAdvSetParamRange.Name = "mnuAdvSetParamRange";
-            this.mnuAdvSetParamRange.Size = new System.Drawing.Size(177, 22);
+            this.mnuAdvSetParamRange.Size = new System.Drawing.Size(229, 22);
             this.mnuAdvSetParamRange.Text = "Set max c1 and c2...";
             this.mnuAdvSetParamRange.Click += new System.EventHandler(this.mnuAdvSetParamRange_Click);
             // 
@@ -388,6 +394,28 @@ namespace CsGeneralBitmap
             this.scintilla1.Styles.Max.FontName = "Verdana";
             this.scintilla1.TabIndex = 16;
             // 
+            // mnuRunRun
+            // 
+            this.mnuRunRun.Name = "mnuRunRun";
+            this.mnuRunRun.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.mnuRunRun.Size = new System.Drawing.Size(229, 22);
+            this.mnuRunRun.Text = "Run";
+            this.mnuRunRun.Click += new System.EventHandler(this.mnuRunRun_Click);
+            // 
+            // mnuRunListen
+            // 
+            this.mnuRunListen.Name = "mnuRunListen";
+            this.mnuRunListen.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.R)));
+            this.mnuRunListen.Size = new System.Drawing.Size(229, 22);
+            this.mnuRunListen.Text = "Listen to results";
+            this.mnuRunListen.Click += new System.EventHandler(this.mnuRunListen_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(226, 6);
+            // 
             // FormAudioTimeDomain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -418,7 +446,7 @@ namespace CsGeneralBitmap
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "FormAudioTimeDomain";
-            this.Text = "CsBifcuration";
+            this.Text = "CsAudioTime";
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam2)).EndInit();
             this.menuStrip1.ResumeLayout(false);
@@ -448,7 +476,7 @@ namespace CsGeneralBitmap
         private System.Windows.Forms.ToolStripMenuItem mnuFileSave;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem mnuFileExit;
-        private System.Windows.Forms.ToolStripMenuItem advancedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem runToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mnuHelpAbout;
         private System.Windows.Forms.ToolStripMenuItem mnuFileNew;
@@ -467,6 +495,9 @@ namespace CsGeneralBitmap
         private System.Windows.Forms.Button btnHelpPlay4;
         private System.Windows.Forms.Button btnStop;
         private ScintillaNet.Scintilla scintilla1;
+        private System.Windows.Forms.ToolStripMenuItem mnuRunRun;
+        private System.Windows.Forms.ToolStripMenuItem mnuRunListen;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
     }
 }
 
