@@ -1,0 +1,26 @@
+
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C# Express 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkbeatExperiments", "BlinkbeatExperiments\BlinkbeatExperiments.csproj", "{B2D40E7F-41CB-4663-AD00-E29D05366C36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "..\..\CsWaveAudioLib\WaveAudio\WaveAudio.csproj", "{1C849CE0-48A1-4985-B0D2-2F815ECE2282}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B2D40E7F-41CB-4663-AD00-E29D05366C36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2D40E7F-41CB-4663-AD00-E29D05366C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2D40E7F-41CB-4663-AD00-E29D05366C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2D40E7F-41CB-4663-AD00-E29D05366C36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C849CE0-48A1-4985-B0D2-2F815ECE2282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C849CE0-48A1-4985-B0D2-2F815ECE2282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C849CE0-48A1-4985-B0D2-2F815ECE2282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C849CE0-48A1-4985-B0D2-2F815ECE2282}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
