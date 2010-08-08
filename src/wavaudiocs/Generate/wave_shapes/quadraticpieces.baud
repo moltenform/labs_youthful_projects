@@ -1,0 +1,70 @@
+baud
+_!@@!_
+0.1
+_!@@!_
+
+static int fillar(double[] ar, int current, int end, double constant)
+{
+	for(int i=current; i<=end; i++) ar[i]=constant;
+	return end;
+}
+static int fillar(double[] ar, int current, int end, FN1 fn, double x1, double x2)
+{
+	double scale = (x2-x1)/((double)1+end-current);
+	for(int i=current; i<=end; i++) ar[i]=fn(scale*(i-current)+x1);
+	return end+1;
+}
+
+class NQuadratic : CsWaveAudio.SynthBases.PeriodicSynthesisBase
+{
+	double[] ar;
+	//example of basic sine
+	public NQuadratic(double freq, double amplitude, double pwidth, double smoothness) : base(freq, amplitude) {
+		int nperiod=(int) period;
+		ar=new double[(nperiod+4)]; 
+		
+		int quartersection = (int)((nperiod - nperiod * Math.Abs(pwidth)) / 4.0);
+		int flatsection = nperiod - (quartersection*4);
+		FN1 quadup=delegate(double x) {return x*x-1;};
+		FN1 quaddn=delegate(double x) {return 1-x*x;};
+		
+		int c=0;
+		if (pwidth>0) {
+		c=fillar(ar,c,c+quartersection,quaddn,-1,0); //bending up
+		c=fillar(ar,c,c+flatsection,1.0); //flat
+		c=fillar(ar,c,c+quartersection,quaddn,0,1); //bending down
+		c=fillar(ar,c,c+quartersection*2,quadup,-1,1); //happy face
+		} else {
+		c=fillar(ar,c,c+quartersection*2,quaddn,-1,1); //sad face
+		c=fillar(ar,c,c+quartersection,quadup,-1,0); //bending down
+		c=fillar(ar,c,c+flatsection,-1.0); //flat
+		c=fillar(ar,c,c+quartersection,quadup,0,1); //bending up
+		}
+		//trunc to -1/1
+		for (int i=0; i<ar.Length;i++) if (ar[i]>1.0) ar[i]=1.0; 
+			else if (ar[i]<-1.0) ar[i]=-1.0;
+	}
+	protected override double WaveformFunction(int i)
+	{
+		if (i>=period) throw new Exception("Beyond range");
+		return ar[i];
+	}
+}
+ 
+//$$Main
+WaveAudio input = new NQuadratic(240,.25,-c1,1.0).CreateWaveAudio(3.0);
+result=input;
+//$$EndMain
+
+
+_!@@!_
+1
+_!@@!_
+0.3396
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
