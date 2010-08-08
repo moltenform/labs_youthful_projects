@@ -23,21 +23,22 @@ class NQuadratic : CsWaveAudio.SynthBases.PeriodicSynthesisBase
 		int nperiod=(int) period;
 		ar=new double[(nperiod+4)]; 
 		
+		double peak=smoothness;
 		int quartersection = (int)((nperiod - nperiod * Math.Abs(pwidth)) / 4.0);
 		int flatsection = nperiod - (quartersection*4);
-		FN1 quadup=delegate(double x) {return x*x-1;};
-		FN1 quaddn=delegate(double x) {return 1-x*x;};
+		FN1 quadup=delegate(double x) {return peak*x*x- peak;};
+		FN1 quaddn=delegate(double x) {return peak - peak*x*x;};
 		
 		int c=0;
 		if (pwidth>0) {
 		c=fillar(ar,c,c+quartersection,quaddn,-1,0); //bending up
-		c=fillar(ar,c,c+flatsection,1.0); //flat
+		c=fillar(ar,c,c+flatsection,peak); //flat
 		c=fillar(ar,c,c+quartersection,quaddn,0,1); //bending down
 		c=fillar(ar,c,c+quartersection*2,quadup,-1,1); //happy face
 		} else {
 		c=fillar(ar,c,c+quartersection*2,quaddn,-1,1); //sad face
 		c=fillar(ar,c,c+quartersection,quadup,-1,0); //bending down
-		c=fillar(ar,c,c+flatsection,-1.0); //flat
+		c=fillar(ar,c,c+flatsection,-peak); //flat
 		c=fillar(ar,c,c+quartersection,quadup,0,1); //bending up
 		}
 		//trunc to -1/1
@@ -52,7 +53,7 @@ class NQuadratic : CsWaveAudio.SynthBases.PeriodicSynthesisBase
 }
  
 //$$Main
-WaveAudio input = new NQuadratic(240,.25,-c1,1.0).CreateWaveAudio(3.0);
+WaveAudio input = new NQuadratic(240,.25,(c1-0.5)*2,c2*6 /*1 to 10*/).CreateWaveAudio(3.0);
 result=input;
 //$$EndMain
 
@@ -60,9 +61,9 @@ result=input;
 _!@@!_
 1
 _!@@!_
-0.3396
+0.6898
 _!@@!_
-0
+0.2246
 _!@@!_
 0
 _!@@!_
