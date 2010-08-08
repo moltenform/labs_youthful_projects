@@ -1,20 +1,24 @@
 import wave
 import math
+import sys
 
-import cStringIO
+try:
+	import io
+except ImportError:
+	import cStringIO as io
 
 import array
 
 # Ben Fisher
 # http://www.borg.com/~jglatt/tech/wave.htm
 
-class WaveFile():
+class WaveFile(object):
 	# Either init from a wave file, or create from scratch.
 	def __init__(self, strFilename=None, nBits=16, nSampleRate = 22050, nChannels=1):
 		
 		if strFilename!=None:
 			f = wave.open(strFilename, 'rb')
-			if f.getcomptype()!='NONE': print 'Compressed wave files not supported.' 
+			if f.getcomptype()!='NONE': print('Compressed wave files not supported.') 
 			nBits = 8 * f.getsampwidth()
 			nSampleRate = f.getframerate()
 			nChannels = f.getnchannels()
@@ -32,24 +36,28 @@ class WaveFile():
 			self.samples = array.array('B') #Unsigned char
 			self.ceil = (0,255)
 		else:
-			print 'Invalid bitrate. Must be 8-bit or 16-bit.'
+			print('Invalid bitrate. Must be 8-bit or 16-bit.')
 			return None
 		
 		if nSampleRate==44100: self.nSampleRate = 44100.
 		elif nSampleRate==22050: self.nSampleRate = 22050.
 		else:
-			print 'Invalid sample rate. Must be 44100 or 22050.'
+			print('Invalid sample rate. Must be 44100 or 22050.')
 			return None
 		
 		if nChannels==1: self.nChannels = 1.
 		else:
-			if nChannels==2: print 'Stereo not supported at this time...'
-			print 'Invalid channels. Must be 1 or 2.'
+			if nChannels==2: print('Stereo not supported at this time...')
+			print('Invalid channels. Must be 1 or 2.')
 			return None
 		
 		# Load data
 		if strFilename!=None:
-			self.samples.fromstring(f.readframes(-1))
+			if sys.version_info[0] > 2:
+				self.samples.frombytes(f.readframes(-1))
+			else:
+				self.samples.fromstring(f.readframes(-1))
+			
 			f.close()
 			
 	def clear_samples(self):
@@ -63,9 +71,9 @@ class WaveFile():
 		
 	def addwave(self, other, weight=0.5):
 		if self.sampleWidth != other.sampleWidth or self.nSampleRate != other.nSampleRate:
-			print 'Different properties, cannot mix.'
+			print('Different properties, cannot mix.')
 			return None
-		#~ # transform wave file in place.
+		# transform wave file in place.
 		# Naive addition:
 		oweight = 1-weight
 		othersamples = other.samples
@@ -73,16 +81,16 @@ class WaveFile():
 		if len(othersamples)>len(mysamples):
 			othersamples, mysamples = mysamples, othersamples
 		if self.midval==0:
-			for i in xrange(len(othersamples)):
+			for i in range(len(othersamples)):
 				mysamples[i] = int( mysamples[i]*oweight + othersamples[i]*weight )
 		else:
-			for i in xrange(len(othersamples)):
+			for i in range(len(othersamples)):
 				mysamples[i] = int( (mysamples[i]-self.midval)*oweight + (othersamples[i]-self.midval)*weight )+self.midval
 		self.samples = mysamples
 	
 	def append(self, other):
 		if self.sampleWidth != other.sampleWidth or self.nSampleRate != other.nSampleRate:
-			print 'Different properties, cannot append.'
+			print('Different properties, cannot append.')
 			return None
 		self.samples.extend(other.samples)
 		
@@ -90,7 +98,7 @@ class WaveFile():
 		self.samples = self.samples[ 0 : nEndFrame]
 	
 	def multiply(self, amount):
-		for i in xrange(len(self.samples)):
+		for i in range(len(self.samples)):
 			
 			val = int((self.samples[i]-self.midval)* amount) + self.midval
 			if val > self.ceil[1]: val = self.ceil[1]
@@ -106,32 +114,36 @@ class WaveFile():
 	
 	
 	def wavedata(self):
-		cstring = cStringIO.StringIO()
-		f = wave.open(cstring, "wb")
-		f.setnchannels(self.nChannels)
+		buffer = io.BytesIO()
+		f = wave.open(buffer, "wb")
+		f.setnchannels(int(self.nChannels))
 		f.setframerate(int(self.nSampleRate))
-		f.setsampwidth(self.sampleWidth)
+		f.setsampwidth(int(self.sampleWidth))
 		
 		# The samples are already in an ideal format - an array of machine values, so a sequence of bytes.
-		f.writeframes(self.samples.tostring())
+		if sys.version_info[0] > 2:
+			f.writeframes(self.samples.tobytes())
+		else:
+			f.writeframes(self.samples.tostring())
 		
-		result = cstring.getvalue()
+		result = buffer.getvalue()
+		assert isinstance(result, bytes)
 		f.close()
 		return result
 		
 	def peekdata(self):
 		for i in range(80):
-			print self.samples[i]
+			print(self.samples[i])
 	
 	def get_level(self, start, stop):
 		total = 0.
-		for i in xrange(start, stop):
+		for i in range(start, stop):
 			total += math.fabs(self.midval - self.samples[i])/4096.
 		return (total * 4096. / float(stop-start))/float(self.ceil[1])
 		
 	def add_silence(self, duration):
 		framedur = int(duration * self.nSampleRate)
-		self.samples.extend([self.midval for i in xrange(framedur)])
+		self.samples.extend([self.midval for i in range(framedur)])
 	
 
 

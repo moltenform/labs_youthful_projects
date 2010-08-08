@@ -1,4 +1,6 @@
 
+from . import wave_synthesis
+
 def fx_get_effects():
 	return [
 		('Reverse',fx_reverse),
@@ -27,11 +29,11 @@ def fx_octave_down(audiodata):
 	# average
 	newlength = len(audiodata.samples)*2
 	newsamples = [0] * newlength
-	for i in xrange(newlength-1):
+	for i in range(newlength-1):
 		if i%2 == 0:
-			newsamples[i] = audiodata.samples[i/2]
+			newsamples[i] = audiodata.samples[i//2]
 		else:
-			newsamples[i] = (audiodata.samples[i/2] + audiodata.samples[(i/2) + 1])*0.5
+			newsamples[i] = int((audiodata.samples[i//2] + audiodata.samples[(i//2) + 1])*0.5)
 			
 	# For the very last sample, we evidently have to repeat.
 	newsamples[newlength-1] = newsamples[newlength-2]
@@ -58,8 +60,8 @@ def fx_change_pitch(audiodata, scaleFreq=0.25):
 	newlength = int((len(audiodata.samples)/scaleFreq))
 	newsamples = [0] * newlength
 	fPosition = 0.0 #floating point
-	for i in xrange(newlength-1):
-		newsamples[i] = _getSampleAnywhere(audiodata, fPosition)
+	for i in range(newlength-1):
+		newsamples[i] = int(_getSampleAnywhere(audiodata, fPosition))
 		fPosition += scaleFreq
 		#~ print round(fPosition), audiodata.samples[int(round(fPosition))], fPosition, newsamples[i]
 	audiodata.clear_samples()
@@ -72,8 +74,8 @@ def fx_vibrato(audiodata, freq=2., amnt=0.1):
 	newlength = len(audiodata.samples)
 	newsamples = [0] * newlength
 	fPosition = 0.0
-	for i in xrange(newlength-1):
-		newsamples[i] = _getSampleAnywhere(audiodata, fPosition)
+	for i in range(newlength-1):
+		newsamples[i] = int(_getSampleAnywhere(audiodata, fPosition))
 		fPosition += 1.0 + amnt*math.sin(w*i)
 	audiodata.clear_samples()
 	audiodata.samples.extend(newsamples)
@@ -117,18 +119,16 @@ def fx_chorus(audiodata):
 	
 	audiodata.addwave(delayed2, 0.7)
 	
-def fx_alien(audiodata, freq = 300):
-	import wave_synthesis
-	
+def fx_alien(audiodata, freq = 300):	
 	sine = audiodata.empty_copy()
-	wave_synthesis.generate_tone(sine, freq, (len(audiodata.samples) - 5)/audiodata.nSampleRate, 'sine', 0.5)
+	wave_synthesis.generate_tone(sine, freq, (len(audiodata.samples) - 5)//audiodata.nSampleRate, 'sine', 0.5)
 	
 	#audiodata.modulatewave(sine)
 	fx_modulatewave(audiodata, sine)
 
 def fx_modulatewave(audiodata, other, weight=0.5):
 	if audiodata.sampleWidth != other.sampleWidth or audiodata.nSampleRate != other.nSampleRate:
-		print 'Different properties, cannot mix.'
+		print('Different properties, cannot mix.')
 		return None
 	oweight = 1-weight
 	mysamples = audiodata.samples
@@ -137,12 +137,12 @@ def fx_modulatewave(audiodata, other, weight=0.5):
 	maxval = float(audiodata.ceil[1])
 	if audiodata.midval==0:
 		c=0
-		for i in xrange(len(othersamples)):
+		for i in range(len(othersamples)):
 			c+=1
 			mysamples[i] = int( mysamples[i] * othersamples[i] / maxval)
 	else:
-		for i in xrange(len(othersamples)):
-			mysamples[i] = int( (mysamples[i]-audiodata.midval) * (othersamples[i]-other.midval) / maxval) + audiodata.midval
+		for i in range(len(othersamples)):
+			mysamples[i] = int(int( (mysamples[i]-audiodata.midval) * (othersamples[i]-other.midval) / maxval) + audiodata.midval)
 	audiodata.samples = mysamples
-	print 'done',c
+	
 	

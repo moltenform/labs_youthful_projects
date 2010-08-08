@@ -1,12 +1,17 @@
-from Tkinter import *
-import tkFileDialog
 
+try:
+	from Tkinter import *
+	import tkFileDialog
+except ImportError:
+	from tkinter import *
+	import tkinter.filedialog as tkFileDialog
+	
 from yalp.wave_file import *
 from yalp.wave_fx import *
 from yalp.wave_synthesis import *
 from yalp import wave_system
 
-class App:
+class App(object):
 	canvasW = 400
 	canvasH = 100
 	audiodata = None
@@ -108,20 +113,20 @@ class App:
 		sumweights = sum(map(float, weights))
 		
 		w1 = [ scaleAll * float(weight)/sumweights for weight in weights if weight!=0]  # weights are relative - 1,1,1,1 should be 0.25,0.25,0.25,0.25
-		harmonicdata1 = [ [freq1*(i+1), w1[i]] for i in xrange(len(weights))]
+		harmonicdata1 = [ [freq1*(i+1), w1[i]] for i in range(len(weights))]
 		
 		if self.fldFreq2.get() == '':
 			manualsynth(self.audiodata, 2.0 * self.audiodata.nSampleRate, harmonicdata1)
 		else:
-			print 'yep'
+			print('yep')
 			freq2 = float(self.fldFreq2.get())
 			weights2 = self.fldWeights2.get().split(',')
 			sumweights2 = sum(map(float, weights2))
 			
-			w2 = [ scaleAll * float(weight)/sumweights2 for weight in weights2 if weight!=0] 
-			harmonicdata2 = [ [freq2*(i+1), w2[i]] for i in xrange(len(weights2))]
+			w2 = [ old_div(scaleAll * float(weight),sumweights2) for weight in weights2 if weight!=0] 
+			harmonicdata2 = [ [freq2*(i+1), w2[i]] for i in range(len(weights2))]
 			harmonicdata1.extend(harmonicdata2)
-			print len(harmonicdata1)
+			print(len(harmonicdata1))
 			manualsynth(self.audiodata, 2.0 * self.audiodata.nSampleRate, harmonicdata1)
 		
 		self.refresh()
@@ -140,7 +145,7 @@ class App:
 		
 	def chop_audio(self):
 		# cut length in half
-		self.audiodata.truncate(len(self.audiodata.samples) / 2) 
+		self.audiodata.truncate(old_div(len(self.audiodata.samples), 2)) 
 		self.refresh_picture()
 	def audio_synth(self, strInstrument):
 		import random
@@ -172,7 +177,7 @@ class App:
 		try:
 			newaudio = WaveFile(strFilename=strFileName)
 		except:
-			print 'Could not open file.'
+			print('Could not open file.')
 			return
 			
 		self.audiodata = newaudio
@@ -184,9 +189,9 @@ class App:
 		try:
 			self.audiodata.save_wave(strFileName)
 		except:
-			print 'Could not save file.'
+			print('Could not save file.')
 			return
-		print 'Saved.'
+		print('Saved.')
 		
 	def append_audio(self):
 		strFileName = tkFileDialog.askopenfilename(defaultextension='.wav', filetypes=[('Wave files','.wav')])
@@ -194,7 +199,7 @@ class App:
 		try:
 			newaudio = WaveFile(strFilename=strFileName)
 		except:
-			print 'Could not open file.'
+			print('Could not open file.')
 			return
 		self.audiodata.append(newaudio)
 		self.refresh()
@@ -205,7 +210,7 @@ class App:
 		try:
 			newaudio = WaveFile(strFilename=strFileName)
 		except:
-			print 'Could not open file.'
+			print('Could not open file.')
 			return
 		self.audiodata.addwave(newaudio,0.5)
 		self.refresh()
@@ -216,10 +221,10 @@ class App:
 		try:
 			newaudio = WaveFile(strFilename=strFileName)
 		except:
-			print 'Could not open file.'
+			print('Could not open file.')
 			return
 		
-		fx_modulatewave(audiodata, newaudio,0.5)
+		fx_modulatewave(self.audiodata, newaudio,0.5)
 		self.refresh()
 	
 	def play_audio(self): 
@@ -252,23 +257,32 @@ class App:
 		sndwidth = len(self.audiodata.samples)
 		if sndwidth==0:
 			return
-		chunksize = int(sndwidth/width)
-		nchunks = sndwidth/chunksize
+		chunksize = int(old_div(sndwidth,width))
+		chunksize = max(1, chunksize)
+		nchunks = old_div(sndwidth, chunksize)
 		z = self.canvasH / 2.
 		
 		for i in range(nchunks):
 			level = (self.audiodata.get_level(i*chunksize, (i+1)*chunksize)) * (self.canvasH / 2.)
 			self.canvas.create_line(i, z +level,i, z-level,  fill='red')
 			
-class Callable:
+class Callable(object):
 	def __init__(self, func, *args, **kwds):
 		self.func = func
 		self.args = args
 		self.kwds = kwds
 	def __call__(self, event=None):
-		return apply(self.func, self.args, self.kwds)
+		return self.func(*self.args, **self.kwds)
 	def __str__(self):
 		return self.func.__name__
+
+def old_div(a, b):
+	"Equivalent to ``a / b`` on Python 2"
+	import numbers
+	if isinstance(a, numbers.Integral) and isinstance(b, numbers.Integral):
+		return a // b
+	else:
+		return a / b
 
 root = Tk()
 app = App(root)

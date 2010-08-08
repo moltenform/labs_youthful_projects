@@ -67,9 +67,9 @@ if sys.platform=='win32':
     try:
         from ctypes import *
     except:
-        print
-        print "Requires ctypes."
-        print "See http://sourceforge.net/projects/ctypes/ for details."
+        print()
+        print("Requires ctypes.")
+        print("See http://sourceforge.net/projects/ctypes/ for details.")
         sys.exit(0)
 
     user32  = windll.user32
@@ -79,7 +79,7 @@ if sys.platform=='win32':
 
     ########################################################################
     WS_OVERLAPPEDWINDOW = 0xCF0000
-    CW_USEDEFAULT       = 0x80000000L
+    CW_USEDEFAULT       = 0x80000000 if (sys.version_info[0] > 2) else eval('0x80000000L')
 
     IDI_APPLICATION     = 32512
     IDC_ARROW           = 32512
@@ -119,7 +119,7 @@ if sys.platform=='win32':
 
     module_handle = kernel32.GetModuleHandleA(0)
 
-    class WindowClass:
+    class WindowClass(object):
         atom = 0
         def __init__(self, class_name, wndproc):
             wc = WNDCLASSEX()
@@ -137,7 +137,7 @@ if sys.platform=='win32':
 
         def register(self):
             global _window_classes
-            if not _window_classes.has_key(self.class_name):
+            if self.class_name not in _window_classes:
                 self.atom = user32.RegisterClassExA(byref(self.wc))
                 if self.atom:
                     _window_classes[self.class_name] = self
@@ -149,7 +149,7 @@ if sys.platform=='win32':
             if self.atom:
                 if user32.UnregisterClassA(self.wc.class_name, module_handle):
                     self.atom = 0
-                    if _window_classes and _window_classes.has_key(self.class_name):
+                    if _window_classes and self.class_name in _window_classes:
                         del _window_classes[self.class_name]
                 return
             raise ValueError("Attempt to unregister a WindowClass() that has not been registered.")
@@ -165,7 +165,7 @@ if sys.platform=='win32':
 
     def class_wndproc(hwnd, message, wparam, lparam):
         try:
-            if _window_map.has_key(hwnd):
+            if hwnd in _window_map:
                 retval = _window_map[hwnd].wndproc(hwnd, message, wparam, lparam)
                 if retval is None:
                     return 0
@@ -194,7 +194,7 @@ if sys.platform=='win32':
         959:['MM_WIM_CLOSE'],
         960:['MM_WIM_DATA'],
     }
-    class Window:
+    class Window(object):
         hwnd        = 0
         style       = WS_OVERLAPPEDWINDOW
         parent      = 0
@@ -227,7 +227,7 @@ if sys.platform=='win32':
             else:
                 _class = c_char_p(self.window_class)
 
-            if isinstance(self.window_name, types.StringType):
+            if isStringOrBytes(self.window_name):
                 _name = c_char_p(self.window_name)
             else:
                 _name = c_char_p(None)
@@ -245,7 +245,7 @@ if sys.platform=='win32':
 
         def wndproc(self, hwnd, message, wparam, lparam):
             handled = 0
-            if _messages.has_key(message):
+            if message in _messages:
                 names = _messages[message]
                 for name in names:
                     if hasattr(self, name):
@@ -326,7 +326,7 @@ if sys.platform=='win32':
             self.FormatTag = WAVE_FORMAT_PCM
             self.Channels = channels
             self.BitsPerSample = samplesize
-            self.BlockAlign = channels*samplesize/8
+            self.BlockAlign = old_div(channels*samplesize,8)
             self.SamplesPerSec = samplerate
             self.AvgBytesPerSec = samplerate*self.BlockAlign
             self.cbSize = 0
@@ -415,7 +415,7 @@ if sys.platform=='win32':
         def MM_WIM_CLOSE(self, wparam, lparam):
             self.cb._cb_close(wparam)
 
-    class Recorder:
+    class Recorder(object):
         """ Uses 4 small buffers. Data loss can occur when the system is heavily loaded.
         
         A 'queue' in _cb_data() and a seperate thread to write the buffer 
@@ -428,7 +428,7 @@ if sys.platform=='win32':
         NUM_BUFFERS = 4
         BUFFER_SIZE = 32   # in Kb
 
-        INITIALIZING, STOPPED, STARTING, RECORDING, STOPPING = range(5)
+        INITIALIZING, STOPPED, STARTING, RECORDING, STOPPING = list(range(5))
 
       #  def __init__(self, samplesize=16, samplerate=44100, channels=2):
         def __init__(self, samplesize=16, samplerate=22050, channels=1):
@@ -468,7 +468,7 @@ if sys.platform=='win32':
                 self.whdr[addressof(buff)] = buff
 
             self.ofp = wave.open(filename, 'wb')
-            self.ofp.setparams((self.wfx.Channels, self.wfx.BitsPerSample/8, self.wfx.SamplesPerSec, 0, 'NONE', ''))
+            self.ofp.setparams((self.wfx.Channels, old_div(self.wfx.BitsPerSample,8), self.wfx.SamplesPerSec, 0, 'NONE', ''))
 
             res = winmm.waveInStart(self.hWaveIn)
             if res != 0:
@@ -531,7 +531,7 @@ if sys.platform=='win32':
                 elif self.status == Recorder.RECORDING:
                     buff.inAdd()
                 else:
-                    print "_cb_data() called unexpectedly!"
+                    print("_cb_data() called unexpectedly!")
             except:
                 pass
 
@@ -547,17 +547,17 @@ if sys.platform=='win32':
     def _main():
         opts, args = getopt.getopt(sys.argv[1:], '')
         if len(args) != 2:
-            print "Usage: python.exe recordwin32.py filename duration"
-            print "     filename - .wav file"
-            print "     duration - seconds"
-            print "e.g. python.exe recordwin32.py c:\\moloko.wav 30.0"
+            print("Usage: python.exe recordwin32.py filename duration")
+            print("     filename - .wav file")
+            print("     duration - seconds")
+            print("e.g. python.exe recordwin32.py c:\\moloko.wav 30.0")
             sys.exit(0)
         filename = args[0]
         duration = float(args[1])
 
         r = Recorder()            # Defaults to 16-bit, 44100hz, Stereo
         r.start(filename)         # Record audio into file
-        print "Press Ctrl-C to stop ..."
+        print("Press Ctrl-C to stop ...")
         r.wait(duration)          # duration (seconds)
 
 
@@ -565,12 +565,25 @@ if sys.platform=='win32':
     
 
 else:
-    print "Platform not supported yet"
+    print("Platform not supported yet")
     
     
     
-    
-    
+def old_div(a, b):
+    "Equivalent to ``a / b`` on Python 2"
+    import numbers
+    if isinstance(a, numbers.Integral) and isinstance(b, numbers.Integral):
+        return a // b
+    else:
+        return a / b
+
+def isStringOrBytes(s):
+    import sys
+    if sys.version_info[0] > 2:
+        return isinstance(s, str) or isinstance(s, bytes)
+    else:
+        return isinstance(s, basestring) or isinstance(s, bytes)
+
     
 if __name__=='__main__':
     # Play some effects

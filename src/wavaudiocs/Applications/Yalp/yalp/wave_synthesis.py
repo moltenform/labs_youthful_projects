@@ -1,8 +1,9 @@
-from wave_file import *
+from .wave_file import *
 
 # This generates a tone
 def generate_tone(audiodata, fFreq, fSeconds, waveType='sine', amplitude=0.5): #amplitude between 0 and 1
 	"""add to the contents of this wave file with a tone, fSeconds long"""
+	fSeconds = float(fSeconds)
 	nSamples = int(fSeconds * audiodata.nSampleRate)
 	amplitude= amplitude * audiodata.maxval * 0.5
 	midval = audiodata.midval
@@ -12,28 +13,29 @@ def generate_tone(audiodata, fFreq, fSeconds, waveType='sine', amplitude=0.5): #
 	# If I want to optimize this, I should set up generators, yield statement!
 	if waveType=='sine':
 		w = fFreq*2*math.pi / audiodata.nSampleRate
-		audiodata.samples.extend(  (amplitude * math.sin(w*x))+midval for x in xrange(nSamples))
+		audiodata.samples.extend(  int((amplitude * math.sin(w*x))+midval) for x in range(nSamples))
 	elif waveType=='square':
-		halfperiod = period/2.
-		audiodata.samples.extend(  (midval-amplitude if (x % period > halfperiod) else midval+amplitude)  for x in xrange(nSamples))
+		halfperiod = period/2.0
+		audiodata.samples.extend(  int(midval-amplitude if (x % period > halfperiod) else midval+amplitude)  for x in range(nSamples))
 	elif waveType=='sawtooth':
 		slope = 2*amplitude/period
 		start = audiodata.midval - amplitude
-		audiodata.samples.extend(( slope*(x%period)+start  for x in xrange(nSamples) ))
+		audiodata.samples.extend( int(slope*(x%period)+start)  for x in range(nSamples) )
 	elif waveType=='triangle':
-		halfperiod = period/2.
+		halfperiod = period/2.0
 		slope = 4*amplitude/period
 		start = audiodata.midval - amplitude
 		stop = audiodata.midval + amplitude + amplitude*2
-		audiodata.samples.extend(((slope*(x%period)+start  if (x % period < halfperiod) else -slope*(x%period)+stop)  for x in xrange(nSamples) ))
+		audiodata.samples.extend( int(slope*(x%period)+start  if (x % period < halfperiod) else -slope*(x%period)+stop)  for x in range(nSamples) )
 	elif waveType=='circle':
 		# circle is sqrt(1-x^2). I invented this. It doesn't sound that great.
 		halfamp = amplitude/2.
 		qtrperiod = period/4.
 		halfperiod =  period/2.
-		audiodata.samples.extend((amplitude*math.sqrt(1-((x%period)/qtrperiod-1)**2.)+midval  if (x % period < halfperiod) else  -amplitude*math.sqrt(1-(((x%period)-halfperiod)/qtrperiod-1)**2.)+midval   for x in xrange(nSamples) ))
+		audiodata.samples.extend( int(amplitude*math.sqrt(1-((x%period)/qtrperiod-1)**2.)+midval  if (x % period < halfperiod) else \
+			-amplitude*math.sqrt(1-(((x%period)-halfperiod)/qtrperiod-1)**2.)+midval)   for x in range(nSamples) )
 	else:
-		print 'Unknown wave type.'
+		print('Unknown wave type.')
 
 
 # These effects append to the previous contents of the wave file.
@@ -51,22 +53,22 @@ def synthesize(audiodata, strInstrument, freq, length, amplitude=0.5):
 	if strInstrument in ['sine','square','sawtooth','triangle','circle']:
 		generate_tone(audiodata, freq, length, strInstrument,amplitude)
 	else:
-		nsamples = audiodata.nSampleRate * length
+		nsamples = int(audiodata.nSampleRate * length)
 		
 		if strInstrument == 'whitenoise':
 			import random
-			audiodata.samples.extend(audiodata.midval + random.random() * amplitude * .5 * audiodata.maxval * .5 for i in xrange(nsamples))
+			audiodata.samples.extend(int(audiodata.midval + random.random() * amplitude * .5 * audiodata.maxval * .5) for i in range(nsamples))
 		elif strInstrument == 'rednoise':
 			import random
 			startpos=audiodata.midval
 			opts = [-1,1]
 			val = 0
 			res = [0] * int(nsamples)
-			for i in xrange(nsamples):
+			for i in range(nsamples):
 				val += random.choice(opts)
 				if val > audiodata.ceil[1]: val = audiodata.ceil[1]
 				if val < audiodata.ceil[0]: val = audiodata.ceil[0]
-				res[i] = (val)
+				res[i] = int(val)
 			audiodata.samples.extend(res)
 		elif strInstrument == 'squarephase':
 			synth_squarephase(audiodata, freq, nsamples, amplitude)
@@ -96,15 +98,14 @@ def manualsynth(audiodata, nSamples, arData):
 	
 	#set frequencies, overwriting old frequency
 	for wave in arData:
-		#~ print wave[0], wave[1]
 		wave[0] =  wave[0]*2*math.pi / audiodata.nSampleRate
 		
 	midval = audiodata.midval
 	amp = audiodata.maxval * .5
 	audiodata.samples.extend(  
 		
-		sum(( wave[1]*amp*math.sin(wave[0]*i)  for wave in arData))+midval
-		for i in xrange(int(nSamples))
+		int(sum(( wave[1]*amp*math.sin(wave[0]*i)  for wave in arData))+midval)
+		for i in range(int(nSamples))
 		)
 	
 	
@@ -112,7 +113,7 @@ def synth_squarephase(audiodata,fFreq, nSamples, amplitude=0.5):
 	amplitude= amplitude * audiodata.maxval * 0.5
 	midval = audiodata.midval
 	period = audiodata.nSampleRate / float(fFreq)
-	audiodata.samples.extend(  [ (midval-amplitude if (x % period > (x/float(nSamples) * period)) else midval+amplitude)  for x in xrange(nSamples)] )
+	audiodata.samples.extend(  int(midval-amplitude if (x % period > (x/float(nSamples) * period)) else midval+amplitude)  for x in range(nSamples) )
 
 def synth_chorusph(audiodata, freq, nSamples, amplitude=0.5):
 	fSeconds = nSamples / float(audiodata.nSampleRate)
