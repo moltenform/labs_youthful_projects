@@ -1,0 +1,44 @@
+baud
+_!@@!_
+0.1
+_!@@!_
+
+// Test between 20Hz and 500Hz. This works very well, although it is hard to eliminate octave errors
+// This test will play original, then a sine at the frequency it detected. The two should line up.
+WaveAudio pitchdetectwavSLICE(WaveAudio output, WaveAudio winput, PitchDetection.PitchDetectAlgorithm algorithm)
+{
+	WaveAudio w;
+	if (winput.LengthInSeconds>0.37)
+		w= winput.GetSlice(0.1, 0.37);
+	else 
+		w= winput;
+	if (w.getNumChannels() != 1) w.setNumChannels(1, true);
+	double dfreq = PitchDetection.DetectPitch(w, 50, 500, algorithm);
+	WaveAudio testPitch = new Triangle(dfreq, 0.7).CreateWaveAudio(1.0);
+	
+	WaveAudio comb1 = WaveAudio.Concatenate(w, testPitch);
+	return WaveAudio.Concatenate(output, comb1);
+}
+
+//$$Main
+PitchDetection.PitchDetectAlgorithm alg = PitchDetection.PitchDetectAlgorithm.Amdf;
+WaveAudio output = new WaveAudio();
+string[] strFiles = new string[] { "b","c#lo","d#lo","o","l","p","k","i","d","a","x" };
+foreach (string s in strFiles)
+	output = pitchdetectwavSLICE(output, loadWav("tones/sung/1l"+s+".wav"), alg);
+
+result=output;
+//$$EndMain
+
+
+_!@@!_
+1
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_

@@ -1,0 +1,49 @@
+baud
+_!@@!_
+0.1
+_!@@!_
+
+//$$Main
+//"ChaosExp101"
+WaveAudio wtest = new WaveAudio(22050, 1);
+wtest.LengthInSeconds = 120.0;
+
+Random rand = new Random();
+int index=0;
+//for (double rr=29.6; rr<54.4; rr+= 0.4)
+double p = 0.35; // rand.NextDouble();//0.35;
+
+for (double rr=29.6*29.6; rr<54.4*54.4; rr+= .8) //30
+{
+	double r = Math.Log(Math.Sqrt(rr));
+	//double r= 3.7299; //3.5541; //3.83469;
+	int rampL = 6; //30 is normal, 10 is ok
+	double pp, nextpp, nextp;
+	//pp=nextpp = p*2-1;
+	for (int i=0; i<100; i++)
+	{
+		nextp = r*p*(1-p);
+		for (int j=0; j<rampL; j++)
+		{
+			wtest.data[0][index] = p + (nextp-p)*(j/((double)rampL));
+			index++;
+		}
+		p=nextp;
+	}
+}
+
+result = wtest;// = Effects.ScalePitchAndDuration(wtest, 1); //
+//$$EndMain
+
+
+_!@@!_
+1
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_

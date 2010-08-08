@@ -1,0 +1,55 @@
+baud
+_!@@!_
+0.1
+_!@@!_
+
+//$$Main
+Random r=new Random(13);
+int nfrags = 9; //how many fragments
+int nsecondsoutput = 10;
+int slicemult = 2;
+WaveAudio w = loadWav("tones/sing03.wav");
+
+int sliceSize = (int) ((double) w.data[0].Length / (double) nfrags);
+
+WaveAudio wout = new WaveAudio(w.getSampleRate(), w.getNumChannels());
+int neededsamples = nsecondsoutput * 44100 + 20;
+wout.LengthInSamples = neededsamples;
+int overlap=8;
+int neededslices = overlap * (int) ((double)neededsamples / (double)sliceSize - 1);
+//want twice as many, because 2 play at once
+for (int i = 0; i < neededslices-1; i++)
+{
+	int which = r.Next(nfrags * slicemult-1);
+
+	double slope = 0.5 / ((double)sliceSize);
+
+	for (int j=0; j<sliceSize; j++)
+	{
+		int src = j + which*(sliceSize/slicemult);
+		int destination = j + i*(sliceSize)/overlap;
+		double v = w.data[0][src] / ((double)overlap);
+		if (j < sliceSize / 2)
+			v *= slope * j;
+		else
+			v *= slope * (sliceSize - j);
+		wout.data[0][destination] += v;
+	}
+
+}
+result=Effects.ScalePitchAndDuration(wout,.2);
+
+//$$EndMain
+
+
+_!@@!_
+1
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
