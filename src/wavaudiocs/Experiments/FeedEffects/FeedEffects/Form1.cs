@@ -12,6 +12,7 @@ namespace FeedEffects
 {
     public partial class Form1 : Form
     {
+        string strMedia = @"..\..\..\..\..\Media\songclips\";
         private AudioPlayer player = new AudioPlayer();
         private WaveAudio lastAudio = new WaveAudio();
         private ControlFeed[] controlArray;
@@ -37,7 +38,7 @@ namespace FeedEffects
             }
             //player.Play(test, true);
 
-            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\delii.wav");
+            WaveAudio win = new WaveAudio(strMedia + "acoust.wav");
             WaveAudio wmixed = WaveAudio.Mix(WaveAudio.Modulate(test, win), 0.7, win, 0.3);
             player.Play(wmixed, true);
         }
@@ -123,8 +124,7 @@ namespace FeedEffects
 
         private void btnTry_Click(object sender, EventArgs e)
         {
-            WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\cismed.wav");
-            //WaveAudio win = new WaveAudio(@"C:\Ben's Goodies\FallComparch\EffectsPedal\Effectsc#\Effects\Effects\delii.wav");
+            WaveAudio win = new WaveAudio(strMedia + "acoust.wav");
             WaveAudio wout = Go(win);
             player.Play(wout, true);
 
