@@ -1,4 +1,5 @@
 // F5 to go?
+//todo: remove unneeded ini parsing code.
 
 using System;
 using System.Windows.Forms;
@@ -78,8 +79,8 @@ namespace CsAudioTimeDomain
             btnHelpPlay1.Text = btnHelpPlay1.Text.Split('\\')[btnHelpPlay1.Text.Split('\\').Length-1];
            // }
         }
-
-        private void btnGo_Click(object sender, EventArgs e) {
+        private bool Go()
+        {
             CodedomEvaluator.CodedomGeneral gen =  new CodedomEvaluator.CodedomGeneral("WaveAudio.dll");
             string sErr = "";
 
@@ -89,21 +90,26 @@ namespace CsAudioTimeDomain
             sSource += "\r\n double c2=" + this.paramValues[1].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c3=" + this.paramValues[2].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c4=" + this.paramValues[3].ToString(CultureInfo.InvariantCulture) + ";";
+            sSource += "\r\n static void alert(string s) {System.Windows.Forms.MessageBox.Show(s);}";
             //MessageBox.Show(sSource);
             sSource += "\r\n"+getSrcText();
             object res = gen.evaluateGeneral(sSource, "CsWaveAudio", "WaveAudio", out sErr);
             if (sErr!="")
             {
-                MessageBox.Show(sErr); return;
+                MessageBox.Show(sErr); return false;
             }
             WaveAudio w = res as WaveAudio;
             if (w==null)
             {
-                MessageBox.Show("could not convert to waveaudio"); return;
+                MessageBox.Show("could not convert to waveaudio"); return false;
             }
             this.currentWave = w;
             ShowHelpers();
             this.btnHearResults.Focus();
+            return true;
+        }
+        private void btnGo_Click(object sender, EventArgs e) {
+            Go();
         }
 
 
@@ -173,7 +179,7 @@ namespace CsAudioTimeDomain
 
         private void btnconvnewformat_Click(object sender, EventArgs e)
         {
-            string sPath=@"C:\pydev\mainsvn\audio\Generate\CsAudioTimeDomain";
+            string sPath=@"C:\pydev\yalp\Subversion\csaudio\chaos\ch1\cfgs";
             string[] sfiles = Directory.GetFiles(sPath, "*.cfg");
             foreach (string sfile in sfiles)
             {
@@ -394,9 +400,18 @@ namespace CsAudioTimeDomain
             }
         }
 
-        private void mnuRunRun_Click(object sender, EventArgs e) { btnGo_Click(null, null); }
-
+        private void mnuRunRun_Click(object sender, EventArgs e) { Go(); }
         private void mnuRunListen_Click(object sender, EventArgs e) {btnHearResults_Click(null,null); }
+        private void mnuRunRunListen_Click(object sender, EventArgs e)
+        {
+            bool bRes = Go();
+            if (bRes)
+                btnHearResults_Click(null, null);
+        }
+        private void mnuRunStop_Click(object sender, EventArgs e)
+        {
+            btnStop_Click(null, null);
+        }
 
         
     }

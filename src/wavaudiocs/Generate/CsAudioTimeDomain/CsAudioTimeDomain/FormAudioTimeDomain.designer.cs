@@ -67,6 +67,8 @@ namespace CsAudioTimeDomain
             this.btnStop = new System.Windows.Forms.Button();
             this.scintilla1 = new ScintillaNet.Scintilla();
             this.btnconvnewformat = new System.Windows.Forms.Button();
+            this.mnuRunRunListen = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuRunStop = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbParam2)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -235,6 +237,8 @@ namespace CsAudioTimeDomain
             // runToolStripMenuItem
             // 
             this.runToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuRunRunListen,
+            this.mnuRunStop,
             this.mnuRunRun,
             this.mnuRunListen,
             this.toolStripSeparator2,
@@ -246,7 +250,7 @@ namespace CsAudioTimeDomain
             // mnuRunRun
             // 
             this.mnuRunRun.Name = "mnuRunRun";
-            this.mnuRunRun.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.mnuRunRun.ShortcutKeys = System.Windows.Forms.Keys.F5;
             this.mnuRunRun.Size = new System.Drawing.Size(229, 22);
             this.mnuRunRun.Text = "Run";
             this.mnuRunRun.Click += new System.EventHandler(this.mnuRunRun_Click);
@@ -427,6 +431,22 @@ namespace CsAudioTimeDomain
             this.btnconvnewformat.UseVisualStyleBackColor = true;
             this.btnconvnewformat.Click += new System.EventHandler(this.btnconvnewformat_Click);
             // 
+            // mnuRunRunListen
+            // 
+            this.mnuRunRunListen.Name = "mnuRunRunListen";
+            this.mnuRunRunListen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.mnuRunRunListen.Size = new System.Drawing.Size(229, 22);
+            this.mnuRunRunListen.Text = "Run+Listen";
+            this.mnuRunRunListen.Click += new System.EventHandler(this.mnuRunRunListen_Click);
+            // 
+            // mnuRunStop
+            // 
+            this.mnuRunStop.Name = "mnuRunStop";
+            this.mnuRunStop.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.T)));
+            this.mnuRunStop.Size = new System.Drawing.Size(229, 22);
+            this.mnuRunStop.Text = "Stop";
+            this.mnuRunStop.Click += new System.EventHandler(this.mnuRunStop_Click);
+            // 
             // FormAudioTimeDomain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -511,6 +531,8 @@ namespace CsAudioTimeDomain
         private System.Windows.Forms.ToolStripMenuItem mnuRunListen;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.Button btnconvnewformat;
+        private System.Windows.Forms.ToolStripMenuItem mnuRunRunListen;
+        private System.Windows.Forms.ToolStripMenuItem mnuRunStop;
     }
 }
 
