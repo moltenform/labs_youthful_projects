@@ -1,6 +1,19 @@
 // F5 to go?
 //todo: remove unneeded ini parsing code.
+/* todo:
+ * fix effects when vibrato gets 0
+pipe from one cmd to other? includes/connect?
+ * could be instances vs classes...
+set currentdirectory to script to open files there.
+regex search all
+ * 
+ if useful enough, put fillar into cswaveeaudio constructionutils
+ "including" something- imports everything but the $main$ blocks.
+ * should be flexible enough to have pipelines.
+ * don't make this too common, though, because inflexible.
 
+
+ * */
 using System;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
@@ -23,11 +36,15 @@ namespace CsAudioTimeDomain
         private Label[] lblParamLabels;
         private TrackBar[] tbParamTrackBars;
 
-        private string strMediaDirectory=@"..\..\..\..\..\Media\";
+        private string strInitialDir="";
+        private string strMediaDirectory="";
         private AudioPlayer aplayer; private WaveAudio currentWave=null;
         public FormAudioTimeDomain()
         {
-
+            strInitialDir=Path.GetFullPath(".");
+            if (!strInitialDir.EndsWith("\\")) strInitialDir += "\\";
+            strMediaDirectory = Path.GetFullPath(@"..\..\..\..\..\Media\");
+            if (!strMediaDirectory.EndsWith("\\")) strMediaDirectory += "\\";
             InitializeComponent();
             this.lblParamLabels = new Label[4];
             this.lblParamLabels[0]= lblParam1;
@@ -91,6 +108,7 @@ namespace CsAudioTimeDomain
             sSource += "\r\n double c3=" + this.paramValues[2].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n double c4=" + this.paramValues[3].ToString(CultureInfo.InvariantCulture) + ";";
             sSource += "\r\n static void alert(string s) {System.Windows.Forms.MessageBox.Show(s);}";
+            sSource += "\r\n static void alert(double d) {System.Windows.Forms.MessageBox.Show(\"\"+d);}";
             //MessageBox.Show(sSource);
             sSource += "\r\n"+getSrcText();
             object res = gen.evaluateGeneral(sSource, "CsWaveAudio", "WaveAudio", out sErr);
@@ -123,7 +141,11 @@ namespace CsAudioTimeDomain
         private void onScroll(int i)
         {
             TrackBar tb=this.tbParamTrackBars[i]; Label lbl=this.lblParamLabels[i];
-            double v = (tb.Value / ((double)tb.Maximum))*this.paramRange; 
+            double v;
+            if (i==0 || i==1)
+                v = (tb.Value / ((double)tb.Maximum))*this.paramRange; 
+            else
+                v = (tb.Value / ((double)tb.Maximum))*2.0 - 1.0; 
             lbl.Text = v.ToString("0.####"); //4 decimals or fewer
             this.paramValues[i]=v;
         }
@@ -177,79 +199,9 @@ namespace CsAudioTimeDomain
             setSliderToValue(0); setSliderToValue(1); setSliderToValue(2); setSliderToValue(3); 
         }
 
-        private void btnconvnewformat_Click(object sender, EventArgs e)
-        {
-            string sPath=@"C:\pydev\yalp\Subversion\csaudio\chaos\ch1\cfgs";
-            string[] sfiles = Directory.GetFiles(sPath, "*.cfg");
-            foreach (string sfile in sfiles)
-            {
-                loadOldIni(sfile);
-                saveToBaud(sfile.Replace(".cfg", ".baud"));
-            }
-        }
+        
 
-        private void loadOldIni(string sFilename)
-        {
-            //note: requires absolute path to file.
-            if (!File.Exists(sFilename)) return;
-            IniFileParsing ifParsing = new IniFileParsing(sFilename, true);
-            try
-            {
-                CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, "main_audiotime");
-                this.paramValues[0] = loader.getDouble("p1");
-                this.paramValues[1] = loader.getDouble("p2");
-                this.paramValues[2] = loader.getDouble("p3");
-                this.paramValues[3] = loader.getDouble("p4");
-                this.paramRange = loader.getDouble("paramRange");
-
-                // Expression is split into 5 parts to allow roughly 20k of code.
-                string allsrc = loader.getString("paramExpression0") + 
-                    loader.getString("paramExpression1") + loader.getString("paramExpression2") +
-                    loader.getString("paramExpression3") + loader.getString("paramExpression4");
-                this.setSrcText(allsrc);
-            }
-            catch (IniFileParsingException err)
-            {
-                MessageBox.Show("Prefs Error:"+err.ToString());
-                return;
-            }
-
-            this.currentWave = null;
-            setSliderToValue(0); setSliderToValue(1); setSliderToValue(2); setSliderToValue(3);            
-        }
-        private void saveIni(string sFilename)
-        {
-            IniFileParsing ifParsing = new IniFileParsing(sFilename, false); //creates ini if doesn't exist
-            try
-            {
-                CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, "main_audiotime"); //one section called "main_portrait"
-
-                saver.saveDouble("p1", this.paramValues[0]);
-                saver.saveDouble("p2", this.paramValues[1]);
-                saver.saveDouble("p3", this.paramValues[2]);
-                saver.saveDouble("p4", this.paramValues[3]);
-                saver.saveDouble("paramRange", this.paramRange);
-                saver.saveString("programVersion", Version);
-
-                // Expression is split into 5 parts to allow roughly 20k of code.
-                List<string> parts = new List<string>(splitTextBySize(this.getSrcText(), IniFileParsing.MAXLINELENGTH - 2));
-                saver.saveString("paramExpression0", (parts.Count>0) ? parts[0]:"");
-                saver.saveString("paramExpression1", (parts.Count>1) ? parts[1]:"");
-                saver.saveString("paramExpression2", (parts.Count>2) ? parts[2]:"");
-                saver.saveString("paramExpression3", (parts.Count>3) ? parts[3]:"");
-                saver.saveString("paramExpression4", (parts.Count>4) ? parts[4]:"");
-            }
-            catch (IniFileParsingException err)
-            {
-                MessageBox.Show("Prefs Error:"+err.ToString());
-                return;
-            }
-        }
-        private IEnumerable<string> splitTextBySize(string str, int chunkSize)
-        {
-            for (int i = 0; i < str.Length; i += chunkSize)
-                yield return str.Substring(i, Math.Min(chunkSize, str.Length-i));
-        }
+        
 
 
         private void mnuFileOpen_Click(object sender, EventArgs e)
@@ -276,17 +228,16 @@ namespace CsAudioTimeDomain
         private void mnuFileNew_Click(object sender, EventArgs e)
         {
             string sFilename=null;
-            if (File.Exists("default.baud"))
-                sFilename = Path.GetFullPath("default.baud");
-            else if (File.Exists("..\\..\\..\\default.baud"))
-                sFilename = Path.GetFullPath("..\\..\\..\\default.baud");
+            if (File.Exists(strInitialDir + "default.baud"))
+                sFilename = Path.GetFullPath(strInitialDir+ "default.baud");
+            else if (File.Exists(strInitialDir+"..\\..\\..\\default.baud"))
+                sFilename = Path.GetFullPath(strInitialDir+"..\\..\\..\\default.baud");
 
             if (sFilename!=null && File.Exists(sFilename))
-                loadFromBaud(sFilename); // requires absolute path.
+                loadFromBaud(sFilename);
         }
         
         
-
         
         private void mnuFileExit_Click(object sender, EventArgs e) { Close(); }
         private void mnuHelpAbout_Click(object sender, EventArgs e)
@@ -301,7 +252,10 @@ namespace CsAudioTimeDomain
             lbl.Text = v.ToString("0.####");
 
             int nVal;
-            nVal = (int)(tb.Maximum*(v/paramRange));
+            if (i==0 || i==1) 
+                nVal = (int)(tb.Maximum*(v/paramRange));
+            else
+                nVal = (int)(tb.Maximum*(0.5*v+0.5));
             nVal = Math.Min(tb.Maximum, Math.Max(tb.Minimum, nVal)); //if beyond bounds, push to edge.
             tb.Value = nVal;
         }
@@ -347,8 +301,6 @@ namespace CsAudioTimeDomain
             setSliderToValue(2);
             setSliderToValue(3);
         }
-
-        
 
         void Form1_DragDrop(object sender, DragEventArgs e)
         {
@@ -413,6 +365,70 @@ namespace CsAudioTimeDomain
             btnStop_Click(null, null);
         }
 
-        
     }
 }
+
+
+
+/*private void loadOldIni(string sFilename)
+        {
+            //note: requires absolute path to file.
+            if (!File.Exists(sFilename)) return;
+            IniFileParsing ifParsing = new IniFileParsing(sFilename, true);
+            try
+            {
+                CsIniLoadHelper loader = new CsIniLoadHelper(ifParsing, "main_audiotime");
+                this.paramValues[0] = loader.getDouble("p1");
+                this.paramValues[1] = loader.getDouble("p2");
+                this.paramValues[2] = loader.getDouble("p3");
+                this.paramValues[3] = loader.getDouble("p4");
+                this.paramRange = loader.getDouble("paramRange");
+
+                // Expression is split into 5 parts to allow roughly 20k of code.
+                string allsrc = loader.getString("paramExpression0") + 
+                    loader.getString("paramExpression1") + loader.getString("paramExpression2") +
+                    loader.getString("paramExpression3") + loader.getString("paramExpression4");
+                this.setSrcText(allsrc);
+            }
+            catch (IniFileParsingException err)
+            {
+                MessageBox.Show("Prefs Error:"+err.ToString());
+                return;
+            }
+
+            this.currentWave = null;
+            setSliderToValue(0); setSliderToValue(1); setSliderToValue(2); setSliderToValue(3);            
+        }
+        private void saveIni(string sFilename)
+        {
+            IniFileParsing ifParsing = new IniFileParsing(sFilename, false); //creates ini if doesn't exist
+            try
+            {
+                CsIniSaveHelper saver = new CsIniSaveHelper(ifParsing, "main_audiotime"); //one section called "main_portrait"
+
+                saver.saveDouble("p1", this.paramValues[0]);
+                saver.saveDouble("p2", this.paramValues[1]);
+                saver.saveDouble("p3", this.paramValues[2]);
+                saver.saveDouble("p4", this.paramValues[3]);
+                saver.saveDouble("paramRange", this.paramRange);
+                saver.saveString("programVersion", Version);
+
+                // Expression is split into 5 parts to allow roughly 20k of code.
+                List<string> parts = new List<string>(splitTextBySize(this.getSrcText(), IniFileParsing.MAXLINELENGTH - 2));
+                saver.saveString("paramExpression0", (parts.Count>0) ? parts[0]:"");
+                saver.saveString("paramExpression1", (parts.Count>1) ? parts[1]:"");
+                saver.saveString("paramExpression2", (parts.Count>2) ? parts[2]:"");
+                saver.saveString("paramExpression3", (parts.Count>3) ? parts[3]:"");
+                saver.saveString("paramExpression4", (parts.Count>4) ? parts[4]:"");
+            }
+            catch (IniFileParsingException err)
+            {
+                MessageBox.Show("Prefs Error:"+err.ToString());
+                return;
+            }
+        }
+        private IEnumerable<string> splitTextBySize(string str, int chunkSize)
+        {
+            for (int i = 0; i < str.Length; i += chunkSize)
+                yield return str.Substring(i, Math.Min(chunkSize, str.Length-i));
+        }*/
