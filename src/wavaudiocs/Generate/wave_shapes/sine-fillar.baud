@@ -29,16 +29,12 @@ static void fillar(double[] ar, ref int i, ref double curpos, double start, doub
 class NSine : CsWaveAudio.SynthBases.HighPeriodicSynthesisBase
 {
 	//example of basic sine
-	public NSine(double freq, double amplitude) : base(freq, amplitude) {
-		
-		
-		
-		//ah, perhaps because nperiod/4 is not an integer? that's probably it...
+	public NSine(double freq, double amplitude) : base(freq, amplitude) 
+	{
 		
 	}
 	protected override void WaveformFunction(double [] ar)
 	{
-//void fillar(double[] ar, ref int i, ref double curpos, double start, double end, double inc, FN1 fn, double x1, double x2)
 		int i=0;
 		double curpos=0.0;
 		double inc = this.timeScaleOne;
