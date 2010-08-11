@@ -43,25 +43,25 @@ class NQuadratic : CsWaveAudio.SynthBases.HighPeriodicSynthesisBase
 		double flatsection = period - (quartersection*4);
 		FN1 quadup=delegate(double x) {return peak*x*x- peak;};
 		FN1 quaddn=delegate(double x) {return peak - peak*x*x;};
-		
-		
+		double q = (1 - Math.Abs(pwidth))/4.0;
+		double fl = 1-4*q;
+				
 		int i=0;
 		double curpos=0.0;
 		double inc = this.timeScaleOne;
 		while (i<ar.Length-400)
 		{
 			if (pwidth>0) {
-				fillar(ar, ref i,ref curpos,0.0,quartersection,inc,quaddn,-1,0);
-				fillar(ar, ref i,ref curpos,quartersection,quartersection+flatsection,inc,peak);
-				fillar(ar, ref i,ref curpos,quartersection+flatsection,2*quartersection+flatsection,inc,quaddn,0,1);
-				fillar(ar, ref i,ref curpos,2*quartersection+flatsection,4*quartersection+flatsection,inc,quadup,-1,1);
+				fillar(ar, ref i,ref curpos,0.0,q,inc,quaddn,-1,0);
+				fillar(ar, ref i,ref curpos,q,q+fl,inc,peak);
+				fillar(ar, ref i,ref curpos,q+fl,2*q+fl,inc,quaddn,0,1);
+				fillar(ar, ref i,ref curpos,2*q+fl,1.0,inc,quadup,-1,1);
 			} else {
-				fillar(ar, ref i,ref curpos,0.0,quartersection*2,inc,quaddn,-1,1);
-				fillar(ar, ref i,ref curpos,quartersection*2,quartersection*3,inc,quadup,-1,0);
-				fillar(ar, ref i,ref curpos,quartersection*3,quartersection*3+flatsection,inc,-peak);
-				fillar(ar, ref i,ref curpos,quartersection*3+flatsection,4*quartersection+flatsection,inc,quadup,0,1);
-				
-			}			
+				fillar(ar, ref i,ref curpos,0.0,q*2,inc,quaddn,-1,1);
+				fillar(ar, ref i,ref curpos,q*2,q*3,inc,quadup,-1,0);
+				fillar(ar, ref i,ref curpos,q*3,q*3+fl,inc,-peak);
+				fillar(ar, ref i,ref curpos,q*3+fl,1.0,inc,quadup,0,1);
+			}
 		}
 		
 		//trunc to -1/1
@@ -71,7 +71,8 @@ class NQuadratic : CsWaveAudio.SynthBases.HighPeriodicSynthesisBase
 }
  
 //$$Main
-WaveAudio input = new NQuadratic(240,.75, 0.4, 1.1).CreateWaveAudio(1.0);
+//WaveAudio input = new NQuadratic(240,.75, -0.4, .4).CreateWaveAudio(8.0);
+WaveAudio input = new NQuadratic(240,.25,(c1-0.5)*2,c2*6 /*1 to 10*/).CreateWaveAudio(3.0);
 result=input;
 //$$EndMain
 
@@ -79,9 +80,9 @@ result=input;
 _!@@!_
 1
 _!@@!_
-0
+0.7139
 _!@@!_
-0
+0.869
 _!@@!_
 0
 _!@@!_

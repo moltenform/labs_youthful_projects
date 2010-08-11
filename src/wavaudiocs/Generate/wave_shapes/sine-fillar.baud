@@ -3,40 +3,52 @@ _!@@!_
 0.1
 _!@@!_
 
-static int fillar(double[] ar, int current, int end, double constant)
+static void fillar(double[] ar, ref int i, ref double curpos, double start, double end, double inc, double constant)
 {
-	for(int i=current; i<end; i++) ar[i]=constant;
-	return end;
+	while(curpos>=start && curpos<end)
+	{
+		ar[i] = constant;
+		i++;
+		curpos += inc; if (curpos>1.0) curpos-=1.0;
+	}
 }
-static int fillar(double[] ar, int current, int end, FN1 fn, double x1, double x2)
+static void fillar(double[] ar, ref int i, ref double curpos, double start, double end, double inc, FN1 fn, double x1, double x2)
 {
 	//0 should map to f(0)
 	//n-1 should map to f(n-1)
-	double scale = (x2-x1)/((double)((end-1)-current ));
-	for(int i=current; i<end; i++) ar[i]=fn(scale*(i-current)+x1);
-	return end;
+	double scale = (x2-x1)/(end-start);
+	
+	while(curpos>=start && curpos<end)
+	{
+		ar[i] = fn(scale*(curpos-start)+x1);
+		i++;
+		curpos += inc; if (curpos>1.0) curpos-=1.0;
+	}
 }
 
-class NSine : CsWaveAudio.SynthBases.PeriodicSynthesisBase
+class NSine : CsWaveAudio.SynthBases.HighPeriodicSynthesisBase
 {
-	double[] ar;
 	//example of basic sine
 	public NSine(double freq, double amplitude) : base(freq, amplitude) {
-		int nperiod=(int) period;
-		ar=new double[(nperiod+1)]; 
-		int c=0;
-		c=fillar(ar,c,c+nperiod/4,Math.Sin,0,Math.PI/2);
-		c=fillar(ar,c,c+nperiod/4,Math.Sin,Math.PI/2,Math.PI);
-		c=fillar(ar,c,c+nperiod/4,Math.Sin,Math.PI,Math.PI*1.5);
-		c=fillar(ar,c,c+nperiod/4,Math.Sin,Math.PI*1.5,Math.PI*2);
+		
+		
+		
 		//ah, perhaps because nperiod/4 is not an integer? that's probably it...
 		
 	}
-	protected override double WaveformFunction(int i)
+	protected override void WaveformFunction(double [] ar)
 	{
-		int nperiod=(int) period;
-		if (i>=nperiod) throw new Exception("Beyond range");
-		return ar[i];
+//void fillar(double[] ar, ref int i, ref double curpos, double start, double end, double inc, FN1 fn, double x1, double x2)
+		int i=0;
+		double curpos=0.0;
+		double inc = this.timeScaleOne;
+		while (i<ar.Length-400)
+		{
+			fillar(ar,ref i,ref curpos, 0.0, 0.25, inc,Math.Sin,0,Math.PI/2);
+			fillar(ar,ref i,ref curpos, 0.25, 0.5, inc,Math.Sin,Math.PI/2,Math.PI);
+			fillar(ar,ref i,ref curpos, 0.5, 0.75, inc,Math.Sin,Math.PI,Math.PI*1.5);
+			fillar(ar,ref i,ref curpos, 0.75, 1.0, inc,Math.Sin,Math.PI*1.5,Math.PI*2);
+		}
 	}
 }
  
