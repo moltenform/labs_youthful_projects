@@ -30,7 +30,7 @@ namespace CsWaveAudio
         /// </summary>
         public static WaveAudio ScalePitchAndDuration(WaveAudio w, double factor)
         {
-            if (factor <= 0) throw new ArgumentException("Factor must > 0");
+            if (factor < 0) throw new ArgumentException("Factor must >= 0");
             WaveAudio res = new WaveAudio(w.getSampleRate(), w.getNumChannels());
 
             // do operation for all channels
@@ -85,9 +85,9 @@ namespace CsWaveAudio
         public static WaveAudio Vibrato(WaveAudio wave) { return Vibrato(wave, 0.1, 2.0); }
         public static WaveAudio Vibrato(WaveAudio wave, double freq, double width)
         {
-            if (width <= 0) throw new ArgumentException("Factor must > 0");
+            if (width < 0) throw new ArgumentException("Factor must >= 0");
             WaveAudio newwave = new WaveAudio(wave.getSampleRate(), wave.getNumChannels());
-
+            
             // do operation for all channels
             for (int i = 0; i < wave.getNumChannels(); i++)
                 newwave.data[i] = vibratoChannel(wave.data[i], wave.getSampleRate(), width, freq);

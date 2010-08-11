@@ -24,6 +24,16 @@ namespace CsWaveAudio
         }
     }
 
+    public class HighSine : HighPeriodicSynthesisBase
+    {
+        public HighSine(double freq, double amplitude) : base(freq, amplitude) { }
+        protected override void WaveformFunction(double[] data)
+        {
+            for (int i=0; i<data.Length; i++)
+                data[i] = Math.Sin(i * timeScale);
+        }
+    }
+
     public class Square : PeriodicSynthesisBase
     {
         private readonly double cutpoint;

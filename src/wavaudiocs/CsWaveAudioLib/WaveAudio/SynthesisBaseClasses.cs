@@ -16,6 +16,9 @@ namespace CsWaveAudio
 {
     namespace SynthBases
     {
+        
+
+
         public abstract class SynthesisBase
         {
             public const int SampleRate = 44100;
@@ -31,6 +34,32 @@ namespace CsWaveAudio
             public static double FrequencyFromMidiNote(int n)
             {
                 return 8.1758 * Math.Pow(2.0, (n / 12.0));
+            }
+        }
+
+        public abstract class HighPeriodicSynthesisBase : SynthesisBase
+        {
+            // There isn't a reason for periodicsynth objects to be mutable
+            protected readonly double timeScale;
+            protected readonly double timeScaleOne; //one of these is a whole period.
+            protected readonly double freq;
+            protected readonly double amplitude;
+            protected readonly double period;
+
+            public HighPeriodicSynthesisBase(double freq, double amplitude)
+            {
+                this.amplitude = amplitude;
+                this.freq = freq;
+                this.timeScale = freq * 2.0 * Math.PI / (double)SampleRate;
+                this.timeScaleOne = freq * 1.0 / (double)SampleRate;
+                this.period = SampleRate / freq;
+            }
+            protected abstract void WaveformFunction(double[]data);
+            protected override double[] generate(int nSamples)
+            {
+                double[] outData = new double[nSamples];
+                WaveformFunction(outData);
+                return outData;
             }
         }
 
