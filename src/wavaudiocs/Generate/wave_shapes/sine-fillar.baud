@@ -5,14 +5,16 @@ _!@@!_
 
 static int fillar(double[] ar, int current, int end, double constant)
 {
-	for(int i=current; i<=end; i++) ar[i]=constant;
+	for(int i=current; i<end; i++) ar[i]=constant;
 	return end;
 }
 static int fillar(double[] ar, int current, int end, FN1 fn, double x1, double x2)
 {
-	double scale = (x2-x1)/((double)1+end-current);
-	for(int i=current; i<=end; i++) ar[i]=fn(scale*(i-current)+x1);
-	return end+1;
+	//0 should map to f(0)
+	//n-1 should map to f(n-1)
+	double scale = (x2-x1)/((double)((end-1)-current ));
+	for(int i=current; i<end; i++) ar[i]=fn(scale*(i-current)+x1);
+	return end;
 }
 
 class NSine : CsWaveAudio.SynthBases.PeriodicSynthesisBase
@@ -27,10 +29,13 @@ class NSine : CsWaveAudio.SynthBases.PeriodicSynthesisBase
 		c=fillar(ar,c,c+nperiod/4,Math.Sin,Math.PI/2,Math.PI);
 		c=fillar(ar,c,c+nperiod/4,Math.Sin,Math.PI,Math.PI*1.5);
 		c=fillar(ar,c,c+nperiod/4,Math.Sin,Math.PI*1.5,Math.PI*2);
+		//ah, perhaps because nperiod/4 is not an integer? that's probably it...
+		
 	}
 	protected override double WaveformFunction(int i)
 	{
-		if (i>=period) throw new Exception("Beyond range");
+		int nperiod=(int) period;
+		if (i>=nperiod) throw new Exception("Beyond range");
 		return ar[i];
 	}
 }

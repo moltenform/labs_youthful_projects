@@ -3,57 +3,75 @@ _!@@!_
 0.1
 _!@@!_
 
-static int fillar(double[] ar, int current, int end, double constant)
+static void fillar(double[] ar, ref int i, ref double curpos, double start, double end, double inc, double constant)
 {
-	for(int i=current; i<=end; i++) ar[i]=constant;
-	return end;
+	while(curpos>=start && curpos<end)
+	{
+		ar[i] = constant;
+		i++;
+		curpos += inc; if (curpos>1.0) curpos-=1.0;
+	}
 }
-static int fillar(double[] ar, int current, int end, FN1 fn, double x1, double x2)
+static void fillar(double[] ar, ref int i, ref double curpos, double start, double end, double inc, FN1 fn, double x1, double x2)
 {
-	double scale = (x2-x1)/((double)1+end-current);
-	for(int i=current; i<=end; i++) ar[i]=fn(scale*(i-current)+x1);
-	return end+1;
+	//0 should map to f(0)
+	//n-1 should map to f(n-1)
+	double scale = (x2-x1)/(end-start);
+	
+	while(curpos>=start && curpos<end)
+	{
+		ar[i] = fn(scale*(curpos-start)+x1);
+		i++;
+		curpos += inc; if (curpos>1.0) curpos-=1.0;
+	}
 }
 
-class NQuadratic : CsWaveAudio.SynthBases.PeriodicSynthesisBase
+class NQuadratic : CsWaveAudio.SynthBases.HighPeriodicSynthesisBase
 {
-	double[] ar;
+	protected double smoothness;
+	protected double pwidth;
 	//example of basic sine
-	public NQuadratic(double freq, double amplitude, double pwidth, double smoothness) : base(freq, amplitude) {
-		int nperiod=(int) period;
-		ar=new double[(nperiod+4)]; 
-		
+	public NQuadratic(double freq, double amplitude, double pwidth, double smoothness) : base(freq, amplitude) 
+	{
+		this.smoothness=smoothness;
+		this.pwidth=pwidth;
+	}
+	protected override void WaveformFunction(double [] ar)
+	{
 		double peak=smoothness;
-		int quartersection = (int)((nperiod - nperiod * Math.Abs(pwidth)) / 4.0);
-		int flatsection = nperiod - (quartersection*4);
+		double quartersection = ((period - period * Math.Abs(pwidth)) / 4.0);
+		double flatsection = period - (quartersection*4);
 		FN1 quadup=delegate(double x) {return peak*x*x- peak;};
 		FN1 quaddn=delegate(double x) {return peak - peak*x*x;};
 		
-		int c=0;
-		if (pwidth>0) {
-		c=fillar(ar,c,c+quartersection,quaddn,-1,0); //bending up
-		c=fillar(ar,c,c+flatsection,peak); //flat
-		c=fillar(ar,c,c+quartersection,quaddn,0,1); //bending down
-		c=fillar(ar,c,c+quartersection*2,quadup,-1,1); //happy face
-		} else {
-		c=fillar(ar,c,c+quartersection*2,quaddn,-1,1); //sad face
-		c=fillar(ar,c,c+quartersection,quadup,-1,0); //bending down
-		c=fillar(ar,c,c+flatsection,-peak); //flat
-		c=fillar(ar,c,c+quartersection,quadup,0,1); //bending up
+		
+		int i=0;
+		double curpos=0.0;
+		double inc = this.timeScaleOne;
+		while (i<ar.Length-400)
+		{
+			if (pwidth>0) {
+				fillar(ar, ref i,ref curpos,0.0,quartersection,inc,quaddn,-1,0);
+				fillar(ar, ref i,ref curpos,quartersection,quartersection+flatsection,inc,peak);
+				fillar(ar, ref i,ref curpos,quartersection+flatsection,2*quartersection+flatsection,inc,quaddn,0,1);
+				fillar(ar, ref i,ref curpos,2*quartersection+flatsection,4*quartersection+flatsection,inc,quadup,-1,1);
+			} else {
+				fillar(ar, ref i,ref curpos,0.0,quartersection*2,inc,quaddn,-1,1);
+				fillar(ar, ref i,ref curpos,quartersection*2,quartersection*3,inc,quadup,-1,0);
+				fillar(ar, ref i,ref curpos,quartersection*3,quartersection*3+flatsection,inc,-peak);
+				fillar(ar, ref i,ref curpos,quartersection*3+flatsection,4*quartersection+flatsection,inc,quadup,0,1);
+				
+			}			
 		}
+		
 		//trunc to -1/1
-		for (int i=0; i<ar.Length;i++) if (ar[i]>1.0) ar[i]=1.0; 
-			else if (ar[i]<-1.0) ar[i]=-1.0;
-	}
-	protected override double WaveformFunction(int i)
-	{
-		if (i>=period) throw new Exception("Beyond range");
-		return ar[i];
+		for (int j=0; j<ar.Length;j++) if (ar[j]>1.0) ar[j]=1.0; 
+			else if (ar[j]<-1.0) ar[j]=-1.0;
 	}
 }
  
 //$$Main
-WaveAudio input = new NQuadratic(240,.25,(c1-0.5)*2,c2*6 /*1 to 10*/).CreateWaveAudio(3.0);
+WaveAudio input = new NQuadratic(240,.75, 0.4, 1.1).CreateWaveAudio(1.0);
 result=input;
 //$$EndMain
 
@@ -61,9 +79,9 @@ result=input;
 _!@@!_
 1
 _!@@!_
-0.6898
+0
 _!@@!_
-0.2246
+0
 _!@@!_
 0
 _!@@!_
