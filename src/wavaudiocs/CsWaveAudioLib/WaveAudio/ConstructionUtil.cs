@@ -76,6 +76,92 @@ namespace CsWaveAudio
             return ret;
         }
 
+        public abstract class FourierModifier
+        {
+            public WaveAudio doModify(WaveAudio w) { return doModify(w, 2048); }
+            public WaveAudio doModify(WaveAudio src, int bufsize) 
+            {
+                WaveAudio wout = new WaveAudio(src.getSampleRate(), 1);
+                wout.LengthInSamples = src.LengthInSamples;
+                
+                //reuse the buffers.
+                double[] ffreqmaghalfout=new double[bufsize/2], ffreqanghalfout=new double[bufsize/2];
+                double[] ffreqmaghalfin=new double[bufsize/2], ffreqanghalfin=new double[bufsize/2];
+                double[] fbuffertime = new double[bufsize];
+                for (int partnum=0; partnum<src.LengthInSamples/bufsize; partnum++)
+                {
+                    //copy into buffer.
+                    Array.Copy(src.data[0], partnum*bufsize, fbuffertime, 0, bufsize);
+                    double[] ffreqreal, ffreqimag;
+                    Fourier.RawSamplesToFrequency(fbuffertime, out ffreqreal, out ffreqimag);
+                    //we only care about the first half of these results.
+                    for (int i=0; i<bufsize/2; i++)
+                    {
+                        ffreqmaghalfin[i] = Math.Sqrt(ffreqreal[i]*ffreqreal[i]+ffreqimag[i]*ffreqimag[i]);
+                        ffreqanghalfin[i] = Math.Atan2(ffreqimag[i], ffreqreal[i]);
+                    }
+                    this.modifyAngular(ffreqmaghalfin, ffreqanghalfin, ffreqmaghalfout, ffreqanghalfout);
+                    for (int i=0; i<bufsize/2; i++)
+                    {
+                        ffreqreal[i] = ffreqmaghalfout[i]*Math.Sin(ffreqanghalfout[i]);
+                        ffreqimag[i] = ffreqmaghalfout[i]*Math.Cos(ffreqanghalfout[i]);
+                    }
+                    double[] fbufout;
+                    Fourier.RawFrequencyToSamples(out fbufout, ffreqreal, ffreqimag);
+                    Array.Copy(fbufout, 0, wout.data[0], partnum*bufsize, bufsize);
+                }
+                return wout;
+            }
+            protected abstract void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut);
+            
+        }
+
+        /*public class FourierModifier
+        {
+            int bufsize; bool bModRectangular = false;
+            public FourierModifier(int bufsize) { this.bufsize=bufsize;
+            }
+            public WaveAudio modify(WaveAudio src)
+            {
+                WaveAudio wout = new WaveAudio(src.getSampleRate(), 1);
+                wout.LengthInSamples = src.LengthInSamples;
+                
+                int BUFSIZE=bufsize;
+                //re-use all of these buffers
+                double[] ffreqrealhalfout=new double[max], ffreqimaghalfout=new double[max];
+                for (int i=0; i<src.LengthInSamples/BUFSIZE; i++)
+                {
+                    double[] fbuffertime = new double[BUFSIZE];
+                    Array.Copy(src.data[0], i*BUFSIZE, fbuffertime, 0, BUFSIZE);
+                    double[] ffreqreal, ffreqimag;
+                    Fourier.RawSamplesToFrequency(fbuffertime, out ffreqreal, out ffreqimag);
+                    int max = ffreqreal.Length/2; //only modify first half.
+                    double[] ffreqrealhalf=new double[max], ffreqimaghalf=new double[max];
+                    Array.Copy(ffreqreal, ffreqrealhalf, max);
+                    Array.Copy(ffreqimag, ffreqimaghalf, max);
+                    
+                    modifyRectangular
+                }
+
+            }
+            protected virtual void modifyRectangular(double[] freqReal, double[] freqImag, double[] freqRealOut, double[] freqImagOut)
+            {
+            }
+            protected virtual void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut)
+            {
+
+            }
+        }
+
+        public static void getFourierFrequencies(WaveAudio w, out double[] freqReal, out double[] freqImag, int bufsize)
+        {
+
+        }
+
+        public static WaveAudio setFourierFrequencies(double[] freqReal, double[] freqImag)
+        {
+
+        }*/
 
     }
 }
