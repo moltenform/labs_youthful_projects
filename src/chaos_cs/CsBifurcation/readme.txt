@@ -50,7 +50,7 @@ Mouse shortcuts
 * Right click		undo zoom
 * Shift key+right click	reset view
 * Middle click		reset view
-
+Drag and drop .cfg files from explorer to open them.
 
 Keyboard shortcuts
 -------------
