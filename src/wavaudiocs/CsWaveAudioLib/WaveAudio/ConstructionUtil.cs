@@ -47,7 +47,7 @@ namespace CsWaveAudio
             }
             return res;
         }
-        //could also get continuous with window.
+        //could also get continuous value, with a window. I have done this.
 
 
         public static WaveAudio lowPassFilter(WaveAudio w, double factor) //0.5
@@ -113,55 +113,60 @@ namespace CsWaveAudio
                 return wout;
             }
             protected abstract void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut);
-            
         }
 
-        /*public class FourierModifier
+        public abstract class FourierModifierRectangular
         {
-            int bufsize; bool bModRectangular = false;
-            public FourierModifier(int bufsize) { this.bufsize=bufsize;
-            }
-            public WaveAudio modify(WaveAudio src)
+            public WaveAudio doModify(WaveAudio w) { return doModify(w, 2048); }
+            public WaveAudio doModify(WaveAudio src, int bufsize)
             {
                 WaveAudio wout = new WaveAudio(src.getSampleRate(), 1);
                 wout.LengthInSamples = src.LengthInSamples;
-                
-                int BUFSIZE=bufsize;
-                //re-use all of these buffers
-                double[] ffreqrealhalfout=new double[max], ffreqimaghalfout=new double[max];
-                for (int i=0; i<src.LengthInSamples/BUFSIZE; i++)
+
+                //reuse the buffers.
+                double[] freqRealIn=new double[bufsize/2], freqRealOut=new double[bufsize/2];
+                double[] freqImagIn=new double[bufsize/2], freqImagOut=new double[bufsize/2];
+                double[] fbuffertime = new double[bufsize];
+                for (int partnum=0; partnum<src.LengthInSamples/bufsize; partnum++)
                 {
-                    double[] fbuffertime = new double[BUFSIZE];
-                    Array.Copy(src.data[0], i*BUFSIZE, fbuffertime, 0, BUFSIZE);
+                    //copy into buffer.
+                    Array.Copy(src.data[0], partnum*bufsize, fbuffertime, 0, bufsize);
                     double[] ffreqreal, ffreqimag;
                     Fourier.RawSamplesToFrequency(fbuffertime, out ffreqreal, out ffreqimag);
-                    int max = ffreqreal.Length/2; //only modify first half.
-                    double[] ffreqrealhalf=new double[max], ffreqimaghalf=new double[max];
-                    Array.Copy(ffreqreal, ffreqrealhalf, max);
-                    Array.Copy(ffreqimag, ffreqimaghalf, max);
-                    
-                    modifyRectangular
+                    //we only care about the first half of these results.
+                    Array.Copy(ffreqreal, freqRealIn, bufsize/2);
+                    Array.Copy(ffreqimag, freqImagIn, bufsize/2);
+                    this.modifyRectangular(freqRealIn, freqImagIn, freqRealOut, freqImagOut);
+                    Array.Copy(freqRealOut, ffreqreal, bufsize/2);
+                    Array.Copy(freqImagOut, ffreqimag, bufsize/2);
+                    double[] fbufout;
+                    Fourier.RawFrequencyToSamples(out fbufout, ffreqreal, ffreqimag);
+                    Array.Copy(fbufout, 0, wout.data[0], partnum*bufsize, bufsize);
                 }
-
+                return wout;
             }
-            protected virtual void modifyRectangular(double[] freqReal, double[] freqImag, double[] freqRealOut, double[] freqImagOut)
-            {
-            }
-            protected virtual void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut)
-            {
-
-            }
+            protected abstract void modifyRectangular(double[] freqRealIn, double[] freqImagIn, double[] freqRealOut, double[] freqImagOut);
         }
 
-        public static void getFourierFrequencies(WaveAudio w, out double[] freqReal, out double[] freqImag, int bufsize)
-        {
 
+        /// <summary>
+        /// Get Interpolated value. Values outside the range will result in defaulting to nearest sample.
+        /// </summary>
+        /// <param name="sampleData">Data</param>
+        /// <param name="sampleIndex">Floating-point index</param>
+        /// <returns></returns>
+        public static double getI(double[] sampleData, double sampleIndex)
+        {
+            if (sampleIndex > sampleData.Length - 1) sampleIndex = sampleData.Length - 1;
+            else if (sampleIndex < 0 + 1) sampleIndex = 0;
+
+            double proportion = sampleIndex - Math.Truncate(sampleIndex);
+            double v1 = sampleData[(int)Math.Truncate(sampleIndex)];
+            double v2 = sampleData[(int)Math.Ceiling(sampleIndex)];
+            return v2 * proportion + v1 * (1 - proportion);
         }
 
-        public static WaveAudio setFourierFrequencies(double[] freqReal, double[] freqImag)
-        {
-
-        }*/
+        
 
     }
 }
