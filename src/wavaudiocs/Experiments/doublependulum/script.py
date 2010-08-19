@@ -39,7 +39,7 @@ offset = 2.*gap # from center of pedestal to center of U-shaped upper assembly
 top = vector(0,0,0) # top of inner bar of U-shaped upper assembly
 scene.center = top-vector(0,(L1+L2)/2.,0)
 
-theta1 = 1.3*pi/2. # initial upper angle (from vertical)
+theta1 = -1.3*pi/2. # initial upper angle (from vertical)
 theta1dot = 0 # initial rate of change of theta1
 theta2 = 0 # initial lower angle (from vertical)
 theta2dot = 0 # initial rate of change of theta2
@@ -75,8 +75,8 @@ eo=0
 #10 seconds of audio. so we can create an array based on that.
 #in fact, let's call this an 'audio file' and we can use the array-interpolation based on that.
 #so let's turn 10 seconds of this simulation into 10 seconds of audio.
-while t<1000: #t<10:
-	rate(1./dt)
+while t<8: #t<10:
+	#~ rate(1./dt)
 	# Calculate accelerations of the Lagrangian coordinates:
 	atheta1 = ((E*C/B)*sin(theta1)-F*sin(theta2))/(D-E*A/B)
 	atheta2 = -(A*atheta1+C*sin(theta1))/B
@@ -95,20 +95,29 @@ while t<1000: #t<10:
 	theta1 = theta1+dtheta1
 	theta2 = theta2+dtheta2
 
-	frame1.rotate(axis=(0,0,1), angle=dtheta1)
-	frame2.pos = top+frame1.axis*L1
-	frame2.rotate(axis=(0,0,1), angle=dtheta2)
+	#~ frame1.rotate(axis=(0,0,1), angle=dtheta1)
+	#~ frame2.pos = top+frame1.axis*L1
+	#~ frame2.rotate(axis=(0,0,1), angle=dtheta2)
 	t = t+dt
 
+	f.write( str(1*(theta1))+',')
+	f.write( str(1*(theta2))+',\n')
+	if t>3 and t-dt<=3:
+		print '3'
+	if t>4 and t-dt<=4:
+		print '4'
 	#print out the x
-	if eo==0:
-		f.write( str(1*cos(theta1))+','+str(1*sin(theta1)) +',')
-		f.write( str(1*cos(theta2))+','+str(1*sin(theta2)) +'\n')
-		eo+=1
-	else:
-		eo+=1
-		if eo>0: #adjust this number to take every 3rd, every 4th, etc
-			eo=0
+	#~ if eo==0:
+		#~ f.write( str(1*(theta1))+','+str(1*sin(theta1)) +',')
+		#~ f.write( str(1*(theta2))+','+str(1*sin(theta2)) +'\n')
+		
+		#~ f.write( str(1*(theta1))+',')
+		#~ f.write( str(1*(theta2))+',\n')
+		#~ eo+=1
+	#~ else:
+		#~ eo+=1
+		#~ if eo>0: #adjust this number to take every 3rd, every 4th, etc
+			#~ eo=0
 print 'done'
 f.close()
 
