@@ -2,6 +2,7 @@
  * Left-click           nothing
  * Middle-click         reset view
  * Right-click          undo zoom
+ * Alt-click            copy coordinates
  * 
  * Shift-click          zoom out
  * Shift-rightclick     reset view
@@ -128,6 +129,12 @@ namespace chaosExplorerControl
                     {
                         if (ixr-ix == 0 &&  iyr-iy==0 && isShiftKey())
                             zoomOut();
+                        if (ixr-ix == 0 &&  iyr-iy==0 && isAltKey())
+                        {
+                            double fx = (e.X / ((double)WIDTH)) * (X1 - X0) + X0;
+                            double fy = ((HEIGHT-e.Y) / ((double)HEIGHT)) * (Y1 - Y0) + Y0;
+                            Clipboard.SetText(fx+","+fy);
+                        }
                         return; //prevent 0x0 zoom
                     }
                    
