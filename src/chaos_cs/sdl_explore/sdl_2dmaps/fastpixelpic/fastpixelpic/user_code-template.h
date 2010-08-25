@@ -14,7 +14,7 @@ __inline int getValAt(SDL_Surface* pSurface, double fx, double fy, int width)
 	double c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6b;
 	int paramDrawing = g_settings->drawing; int paramSettling = g_settings->settling;
 	double maxValue = 1; //intended to be overwritten by user code
-	double x,y,x_,y_;
+	double x,y,x_,y_; (void)x; (void)y; (void)x_; (void)y_; //hack: compiler will think it's used.
 	double val;
 	{
 	///// User code to be placed here. in it's own scope (nice because won't cause an error if they have an x or x_).
@@ -32,7 +32,7 @@ __inline int getValAtDiagramPlot(SDL_Surface* pSurface, double fx, double fy, in
 	double c4b= g_settings->pc4b,c5b= g_settings->pc5b,c6b= g_settings->pc6b;
 	int paramDrawing = g_settings->drawing; int paramSettling = g_settings->settling;
 	double maxValue = 1; //intended to be overwritten by user code
-	double x,y,x_,y_;
+	double x,y,x_,y_; (void)x; (void)y; (void)x_; (void)y_; //hack: compiler will think it's used.
 	double val;
 	{
 	///// User code to be placed here. in it's own scope.
