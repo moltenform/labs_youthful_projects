@@ -30,7 +30,8 @@ def writeTemplates(s, PathToSln):
 	
 	#see if the current file is the same
 	currentFile=None
-	fcurrent=open(os.path.join(projpath, 'user_code.h'),'r')
+	try: fcurrent=open(os.path.join(projpath, 'user_code.h'),'r')
+	except IOError: fcurrent=None
 	if fcurrent:
 		currentFile = fcurrent.read()
 		fcurrent.close()
