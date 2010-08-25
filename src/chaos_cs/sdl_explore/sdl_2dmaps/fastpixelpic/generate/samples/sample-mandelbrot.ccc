@@ -1,0 +1,25 @@
+
+[code]
+
+//$$standardloop
+val =  fx*fy + fabs(fx);
+
+  double x=0, y=0, nx;
+            int iter=0;
+            while (x*x + y*y < 256 && iter <paramDrawing)
+            {
+                nx =x*x - y*y + fx;
+                y = 2*x*y + fy;
+                x = nx;
+                iter++;
+            }
+            val = (iter==paramDrawing)? -0.1: iter / (paramDrawing/2.0);
+	    
+//$$endstandardloop
+
+[params]
+
+latest=dict(pc1=0.0, pc2=0.0, 
+	x0=-2, x1=1.01, y0=-1.5, y1=1.501, diagram_a_x0=-2.000000, diagram_a_x1=2.000000, diagram_a_y0=-2.000000, diagram_a_y1=2.000000, diagram_b_x0=-2.000000, diagram_b_x1=2.000000, diagram_b_y0=-2.000000, diagram_b_y1=2.000000, diagram_c_x0=-2.000000, diagram_c_x1=2.000000, diagram_c_y0=-2.000000, diagram_c_y1=2.000000, 
+	colorMode=0, colorWrapping=0, maxValueAddition=0.000000, hueShift=0.000000, 
+	settling=10, drawing=180, breatheRadius_c1c2=1.000000, )
