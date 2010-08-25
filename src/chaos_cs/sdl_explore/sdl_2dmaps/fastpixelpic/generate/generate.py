@@ -1,3 +1,5 @@
+import sys, os
+import re
 
 import generate_writeparams
 import generate_templates
@@ -6,9 +8,11 @@ import generate_templates
 #~ http://www.c-sharpcorner.com/UploadFile/tharakram/BuildDotNetSolution11162005052301AM/BuildDotNetSolution.aspx
 PATHTOSLN = r'C:\pydev\mainsvn\chaos_cs\sdl_explore\sdl_2dmaps\fastpixelpic'
 CfgFolder = r'C:\pydev\mainsvn\chaos_cs\sdl_explore\sdl_2dmaps\fastpixelpic\out\saves_gen'
+if not os.path.exists(PATHTOSLN):
+	#(running on the other machine)
+	PATHTOSLN = r'C:\pydev\dogeneralbitmap\fastpixelpic'
+	CfgFolder = r'C:\pydev\dogeneralbitmap\fastpixelpic\out\saves_gen'
 
-import sys, os
-import re
 
 if len(sys.argv)==1:
 	sys.argv=['','realsample.cc']
@@ -66,7 +70,7 @@ def main(filename):
 	exename = os.path.join(outdir, 'fastpixelpic.exe')
 	os.chdir(outdir) #necessary
 	#we pass the filename as a parameter, so changes can be written back.
-	if True:
+	if False:
 		#~ os.system(exename + ' "'+filename+'" -full')
 		os.system(exename + ' "'+filename+'" -full')
 	else:
