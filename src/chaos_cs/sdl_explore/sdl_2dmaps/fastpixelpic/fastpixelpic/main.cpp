@@ -247,7 +247,6 @@ while(TRUE)
 	if (!needRedraw && !gParamBreathing && (!needDrawDiagram||!bShowDiagram))
 	{
 		// we don't need to compute anything. we hopefully spend a lot of time here, unless in 'breathing' mode.
-		
 		//SDL_FillRect ( pSurface , NULL , 0 ); //good to debug by indicating when nothing new is computed (should be nearly always).
 	}
 	else
@@ -332,7 +331,10 @@ void onKeyUp(SDLKey key, BOOL bControl, BOOL bAlt, BOOL bShift, SDL_Surface*pSur
 			 break; }
 		//case SDLK_o:  util_openfile(pSurface); *needDrawDiagram=TRUE; break;
 		case SDLK_c:  util_showVals(pSurface); break;
-		case SDLK_r: char* c; if(c=Dialog_GetText("Save 1600x1600 bmp as:","",pSurface)) {renderLargeFigure(pSurface,1600,c); free(c);} break;
+		case SDLK_r: { 
+			if (!bShift) { renderLargeFigure(pSurface,3200,"temp"); break;}
+			char* c; if(c=Dialog_GetText("Save 3200x3200 bmp as:","",pSurface)) {renderLargeFigure(pSurface,3200,c); free(c);}
+		} break;
 		case SDLK_QUOTE: util_onGetExact(pSurface, activeDiag); break;
 		case SDLK_SEMICOLON: util_onGetMoreOptions(pSurface); break;
 		case SDLK_b: turnOffBreathing(); renderBreathing(pSurface,diagramsLayout[0].screen_width); break;
