@@ -10,8 +10,7 @@ CfgFolder = r'C:\pydev\mainsvn\chaos_cs\sdl_explore\sdl_2dmaps\fastpixelpic\out\
 import sys, os
 import re
 
-#DEBUGGING!
-if True:
+if len(sys.argv)==1:
 	sys.argv=['','realsample.cc']
 
 
@@ -37,9 +36,9 @@ def main(filename):
 		partBeforeCode, partCodem = txt.split('\n[code]')
 		partCode, partParams = partCodem.split('\n[params]')
 		partCodeDiagram = ''
-	print 'c',partCode
-	print 'pdg', partCodeDiagram
-	print 'p', partParams
+	#~ print 'c',partCode
+	#~ print 'pdg', partCodeDiagram
+	#~ print 'p', partParams
 	
 	
 	#write parameters to there.
@@ -64,11 +63,14 @@ def main(filename):
 	
 	
 	outdir = os.path.join(PATHTOSLN, 'out')
-	#~ exename = os.path.join(outdir, 'fastpixelpic.exe')
 	exename = os.path.join(outdir, 'fastpixelpic.exe')
 	os.chdir(outdir) #necessary
-	#os.system(exename + ' "'+filename+'" -full') #we pass the filename as a parameter, so changes can be written back.
-	os.system(exename + ' "'+filename+'"') #we pass the filename as a parameter, so changes can be written back.
+	#we pass the filename as a parameter, so changes can be written back.
+	if True:
+		#~ os.system(exename + ' "'+filename+'" -full')
+		os.system(exename + ' "'+filename+'" -full')
+	else:
+		os.system(exename + ' "'+filename+'"') 
 	
 
 if __name__=='__main__':
