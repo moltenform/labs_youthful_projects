@@ -42,7 +42,7 @@ void saveObject(FILE * stream)
 		else if (StringsEqual(GlobalFieldDescriptions[i].fieldType, "double"))
 		{
 			double * theValue = (double*) GlobalFieldDescriptions[i].reference;
-			fprintf(stream, "%s=%f;", GlobalFieldDescriptions[i].fieldName, *theValue);
+			fprintf(stream, "%s=%.15g;", GlobalFieldDescriptions[i].fieldName, *theValue);
 		}
 		else  { massert(0, "Unknown data type in definition of Settings object."); } 
 		i++;
@@ -67,7 +67,9 @@ void saveObjectPythonDict(FILE * stream)
 				GlobalFieldDescriptions[i].fieldName[1]=='c' && strlen(GlobalFieldDescriptions[i].fieldName)<=4)
 				; //don't show it. pc6 and so on are assumed to be 0.0 by default.
 			else
-				fprintf(stream, "%s=%f, ", GlobalFieldDescriptions[i].fieldName, *theValue);
+				fprintf(stream, "%s=%.15g, ", GlobalFieldDescriptions[i].fieldName, *theValue);
+			//%.15g means at most 15 precision, but won't print trailing 0s
+			//this is better than %f which always prints 6 precision and truncates!
 		}
 		else  { massert(0, "Unknown data type in definition of Settings object."); } 
 		if (StringsEqual(GlobalFieldDescriptions[i].fieldName, "pc6") ||
