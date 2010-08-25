@@ -9,6 +9,8 @@ various improvements
 note that sse2 is enabled in project settings. Streaming SIMD Extensions 2 (/arch:SSE2)
 Fast (/fp:fast)
 //todo: upon loading from file, set diagram rects so that params are shown?
+//todo: "nudge" feature.
+//todo: undo stack.
 */
 
 #include <stdio.h>

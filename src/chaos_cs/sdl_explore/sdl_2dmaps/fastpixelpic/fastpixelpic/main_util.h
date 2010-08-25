@@ -80,6 +80,7 @@ void doSave(BOOL bShift, SDL_Surface *pSurface)
 	else //do interesting things. clone the file.
 	{
 		char* newFname = Dialog_GetText("Save derived figure as:", "", pSurface);
+		if (!newFname) return;
 		if (strlen(gParamFileOriginal)<4)
 		{
 			Dialog_Message("Could not find .xyz file extension.",pSurface);
@@ -94,7 +95,7 @@ void doSave(BOOL bShift, SDL_Surface *pSurface)
 		tmp[strlen(tmp)-4] = '\0';
 		//snprintf(s, 255-(strlen(gParamFileOriginal)-4), "%s", newFname);
 		//snprintf(newfilename, 255, "%s-%s.ccc", tmp, newFname);
-		snprintf(newfilename, 255, "%s-%s.cc", tmp, newFname);
+		snprintf(newfilename, 255, "%s-%s.ccc", tmp, newFname);
 		Dialog_Message(newfilename,pSurface);
 		free(newFname);
 
@@ -158,6 +159,10 @@ void util_changeWrapping()
 {
 	g_settings->colorWrapping = (g_settings->colorWrapping+1)%3;
 }
+
+//nudge figure
+//~ void util_nudgeParam
+//~ void util_nudgeBounds
 
 void util_onGetExact(SDL_Surface *pSurface, int nActive)
 {
