@@ -174,6 +174,7 @@ while(TRUE)
 					isSuperDragSqr = !(mod & KMOD_SHIFT);
 					SDL_UpdateRect( pSurface , 0 , 0 , 0 , 0 );
 					isSuperDrag = TRUE;
+					needRedraw=FALSE; //-- don't require image recalc if starting altdrag!
 				}
 			}
 			//control click = zoom in; shift click=zoom out

@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="C:\projects\c++\sdl\lib\SDL.lib C:\projects\c++\sdl\lib\SDLmain.lib"
+				AdditionalDependencies="C:\Qt\sdl\lib\SDL.lib C:\Qt\sdl\lib\SDLmain.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;C:\projects\c++\sdl\lib&quot;"
 				GenerateDebugInformation="true"
