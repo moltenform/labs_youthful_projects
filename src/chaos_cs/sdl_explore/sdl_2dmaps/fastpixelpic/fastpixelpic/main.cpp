@@ -1,5 +1,6 @@
 /*Fastpixelpic, Ben Fisher, 2010, GPL License. compare with fastmapscombined rev 460 and 459
-//
+//add sdl include path to visual studio:
+//Tools->Options,Projects & solutions/VC++Directories,show directories for Include files.
 //Differences from Fastmapscombined:
 render can be any size
 added other diagram
