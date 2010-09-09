@@ -33,7 +33,7 @@ double getLoopedInterpolatedValue(double[] sampleData, double sampleIndex)
 WaveAudio pseudoAudio = new WaveAudio(@"C:\pydev\audio\dpendfinal\pseudoaudio.wav");
 
 //so, now I have this pseudoAudio. let's use it to scrub through a sine wave!
-WaveAudio src = new WaveAudio(@"C:\pydev\audio\dpendfinal\lpdrum.wav");
+WaveAudio src = new WaveAudio(@"C:\pydev\audio\dpendfinal\lpdrum.wav"); //Media/loop/drumloop.wav (728,356 bytes)
 WaveAudio wout = new WaveAudio(1);
 wout.LengthInSamples = pseudoAudio.LengthInSamples*9;
 for (int i=0; i<wout.LengthInSamples; i++)

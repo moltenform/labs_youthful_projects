@@ -30,7 +30,7 @@ double getLoopedInterpolatedValue(double[] sampleData, double sampleIndex)
 //$$Main
 
 //load from doubles
-WaveAudio pseudoAudio = new WaveAudio(@"C:\pydev\audio\dpendfinal\pseudoaudio.wav");
+WaveAudio pseudoAudio = new WaveAudio(@"C:\pydev\audio\dpendfinal\pseudoaudio.wav"); //Media/loop/drumloop.wav (728,356 bytes)
 
 //so, now I have this pseudoAudio. let's use it to scrub through a sine wave!
 WaveAudio src = new WaveAudio(@"C:\pydev\audio\dpendfinal\lpdrum.wav");
