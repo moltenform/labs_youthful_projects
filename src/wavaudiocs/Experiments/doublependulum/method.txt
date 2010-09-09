@@ -30,6 +30,8 @@ interpret_as_samples
 -------------
 basically speeding up pseudoaudio.wav a lot.
 change the script so that it produces a lot more data.
+	I think also a sin in output is important,
+	see f1.write('%f,%f\n'%((theta1), sin(theta2)  )) note sin of theta2
 make a pseudoaudio that will be very long.
 use audacity to speed it up significantly.
 apply a filter to clean up sound, see interpret_as_samples\*
