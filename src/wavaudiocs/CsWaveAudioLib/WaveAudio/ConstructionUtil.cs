@@ -6,6 +6,15 @@ namespace CsWaveAudio
 {
     public static class ConstructionUtil
     {
+        public static void placeAudio(WaveAudio target, WaveAudio source, int index)
+        {
+            for (int j = 0; j < source.data[0].Length; j++)
+                if (j + index < target.data[0].Length)
+                {
+                    target.data[0][j + index] += source.data[0][j];
+                    target.data[1][j + index] += source.data[1][j];
+                }
+        }
         public static void placeAudioRamp(WaveAudio target, WaveAudio source, int index, int rampWidth)
         {
             for (int ch=0; ch<target.data.Length; ch++)
@@ -31,7 +40,7 @@ namespace CsWaveAudio
             return slice;
         }
 
-        public static double[] getAmplitudesOverTime(WaveAudio w, int nPieceSize)
+        public static double[] getAmplitudesOverTimeSegment(WaveAudio w, int nPieceSize)
         {
             int nPieces = w.data[0].Length / nPieceSize;
             double[] res = new double[nPieces];
@@ -47,7 +56,49 @@ namespace CsWaveAudio
             }
             return res;
         }
-        //could also get continuous value, with a window. I have done this.
+        
+        //get continuous value, with a window. the 'instantaneous amplitude'
+        //note: only from 1st channel of audio.
+        public static double[] getAmplitudesOverTimeContinuous(WaveAudio w, int nWindowSize)
+        {
+            double[] res = new double[w.LengthInSamples];
+            double current=0;
+            for (int i=0; i<w.LengthInSamples; i++)
+            {
+                current += w.data[0][i]*w.data[0][i];
+                if (i>nWindowSize)
+                    current-= w.data[0][i-nWindowSize]*w.data[0][i-nWindowSize];
+
+                res[i] = current / nWindowSize;
+            }
+            return res;
+        }
+        public static double getAvgAmplitude(WaveAudio w)
+        {
+            double total=0;
+            for (int i=0; i<w.LengthInSamples; i++)
+                total += w.data[0][i]*w.data[0][i];
+            return total/w.LengthInSamples;
+        }
+        public static double getLargest(double[] d, out int index)
+        {
+            index=0;
+            double largest = double.NegativeInfinity;
+            if (d.Length==0) return 0;
+            for (int i=0; i<d.Length; i++)
+                if (d[i]>largest) { largest=d[i]; index=i; }
+            return largest;
+        }
+        public static double getSmallest(double[] d, out int index)
+        {
+            index=0;
+            double smallest = double.PositiveInfinity;
+            if (d.Length==0) return 0;
+            for (int i=0; i<d.Length; i++)
+                if (d[i]<smallest) { smallest=d[i]; index=i; }
+            return smallest;
+        }
+
 
 
         public static WaveAudio lowPassFilter(WaveAudio w, double factor) //0.5
@@ -78,6 +129,7 @@ namespace CsWaveAudio
 
         public abstract class FourierModifier
         {
+            
             public WaveAudio doModify(WaveAudio w) { return doModify(w, 2048); }
             public WaveAudio doModify(WaveAudio src, int bufsize) 
             {
@@ -101,6 +153,7 @@ namespace CsWaveAudio
                         ffreqanghalfin[i] = Math.Atan2(ffreqimag[i], ffreqreal[i]);
                     }
                     this.modifyAngular(ffreqmaghalfin, ffreqanghalfin, ffreqmaghalfout, ffreqanghalfout);
+                    if (partnum==0) this.drawPlots(ffreqmaghalfin, ffreqanghalfin, ffreqmaghalfout, ffreqanghalfout);
                     for (int i=0; i<bufsize/2; i++)
                     {
                         ffreqreal[i] = ffreqmaghalfout[i]*Math.Sin(ffreqanghalfout[i]);
@@ -113,6 +166,16 @@ namespace CsWaveAudio
                 return wout;
             }
             protected abstract void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut);
+            private string sPlotDir = null; //default to not drawing plots
+            public void drawPlots(string sDir) {this.sPlotDir=sDir; }
+            protected void drawPlots(double[] a1, double[] a2, double[] a3, double[] a4)
+            {
+                if (sPlotDir==null) return;
+                ConstructionUtil.plotArray(a1, sPlotDir+"\\data1.js",true);
+                ConstructionUtil.plotArray(a2, sPlotDir+"\\data3.js", false);
+                ConstructionUtil.plotArray(a3, sPlotDir+"\\data2.js", true);
+                ConstructionUtil.plotArray(a4, sPlotDir+"\\data4.js", false);
+            }
         }
 
         public abstract class FourierModifierRectangular
@@ -166,7 +229,23 @@ namespace CsWaveAudio
             return v2 * proportion + v1 * (1 - proportion);
         }
 
-        
+
+        public static bool plotArray(double[] ar, string sFilename) { return plotArray(ar, sFilename, false); }
+        public static bool plotArray(double[] ar, string sFilename, bool bLogscale)
+        {
+            if (ar==null) return false;
+            using (System.IO.TextWriter tw = new System.IO.StreamWriter(sFilename))
+            {
+               tw.Write("data = [");
+               for (int i=0; i<ar.Length; i++)
+                   if (!bLogscale)
+                       tw.Write("{x:"+i+",y:"+ar[i].ToString(System.Globalization.CultureInfo.InvariantCulture)+"},");
+                   else
+                       tw.Write("{x:"+Math.Log(i+1, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)+",y:"+Math.Log(ar[i]+1,2).ToString(System.Globalization.CultureInfo.InvariantCulture)+"},");
+               tw.Write("];");
+            }
+            return true;
+        }
 
     }
 }
