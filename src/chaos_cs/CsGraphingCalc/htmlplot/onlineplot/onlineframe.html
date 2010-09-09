@@ -2,19 +2,21 @@
   <head>
   <title>plot_my_data</title>
     <script type="text/javascript" src="plotmydata2.js"></script>
-    <script type="text/javascript" src="../protovis-3.2/protovis-3.2/protovis-d3.2.js"></script>
+    <script type="text/javascript" src="../protovis/protovis-r3.2.js"></script>
   </head>
   <body>
 <h1>plot my data</h1>
-Enter your data here:<br/>
-  <textarea id="txtInput">
- 1.0,1.0
- 2.0,4.0
- 3.0,9.0
+<div style="font-family:Garamond,serif">enter data here:</div>
+<textarea id="txtInput" cols="25" rows="4">
+1.0,2.7
+2.0,4.5
+3.0,9.1
+
+
 </textarea> 
 <br/><br/>
 
-  <div id="center"><div id="fig">
+  <div id="center" ><div id="fig" style="padding:20px">
 <script type="text/javascript+protovis">
 
 /* Sizing and scales. */
@@ -38,28 +40,46 @@ var update = function()
      
 
 /* X-axis ticks. */
-if (!xTicks)  xTicks = vis.add(pv.Rule);
-
-    xTicks.data(x.ticks())
-    .visible(function(d) {return true;}) //note: this function is necessary ?
-    .left(x)
-    .strokeStyle("#eee")
-  .add(pv.Rule)
-    .bottom(-5)
-    .height(5)
-    .strokeStyle("#000")
-  .anchor("bottom").add(pv.Label)
-    .text(x.tickFormat);
+if (!xTicks)  { 
+	xTicks = vis.add(pv.Rule).data(x.ticks())
+	.visible(function(d) {return true;}) //note: this function is necessary ?
+	.left(x)
+	.strokeStyle("#eee")
+	.add(pv.Rule)
+	.bottom(-5)
+	.height(5)
+	.strokeStyle("#000")
+	.anchor("bottom").add(pv.Label)
+	.text(x.tickFormat);
+ } else {
+	xTicks.data(x.ticks())
+	.visible(function(d) {return true;}) //note: this function is necessary ?
+	.left(x)
+	.strokeStyle("#eee")
+	.bottom(-5)
+	.height(5)
+	.strokeStyle("#000")
+	.anchor("bottom")
+	.text(x.tickFormat);
+}
 
 /* Y-axis ticks. */
-if (!yTicks) yTicks = vis.add(pv.Rule);
-
-    yTicks.data(y.ticks()) //ticks(5)
-    .bottom(y)
-    .visible(function(d) {return true;}) //note: this function is necessary ?
-    .strokeStyle(function(d) d ? "#eee" : "#000")
-  .anchor("left").add(pv.Label)
-    .text(y.tickFormat);
+if (!yTicks) {
+	yTicks = vis.add(pv.Rule);
+	yTicks.data(y.ticks()) //ticks(5)
+	.bottom(y)
+	.visible(function(d) {return true;}) //note: this function is necessary ?
+	.strokeStyle(function(d) d ? "#eee" : "#000")
+	.anchor("left").add(pv.Label)
+	.text(y.tickFormat);
+} else {
+	yTicks.data(y.ticks()) //ticks(5)
+	.bottom(y)
+	.visible(function(d) {return true;}) //note: this function is necessary ?
+	.strokeStyle(function(d) d ? "#eee" : "#000")
+	.anchor("left")
+	.text(y.tickFormat);
+}
 
 /* The line. */
 if (!objLine) objLine = vis.add(pv.Line);
