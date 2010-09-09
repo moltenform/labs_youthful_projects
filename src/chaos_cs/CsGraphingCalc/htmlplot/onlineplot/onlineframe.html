@@ -1,0 +1,91 @@
+<html>
+  <head>
+  <title>plot_my_data</title>
+    <script type="text/javascript" src="plotmydata2.js"></script>
+    <script type="text/javascript" src="../protovis-3.2/protovis-3.2/protovis-d3.2.js"></script>
+  </head>
+  <body>
+<h1>plot my data</h1>
+Enter your data here:<br/>
+  <textarea id="txtInput">
+ 1.0,1.0
+ 2.0,4.0
+ 3.0,9.0
+</textarea> 
+<br/><br/>
+
+  <div id="center"><div id="fig">
+<script type="text/javascript+protovis">
+
+/* Sizing and scales. */
+var w = 800,
+    h = 400;
+        
+var startdata = [{x:1.0, y:1.0},{x:2.0, y:4.0},{x:3.0, y:9.0} ]; //prelim data
+vis =false;
+xTicks=yTicks=objLine=false;
+x=y=false;
+var update = function() 
+{
+	var sInput = $('txtInput').value;
+	if (!sInput) return;
+	var data = createDataFromString(sInput);
+	
+     x = pv.Scale.linear(data, function(d) d.x).range(0, w);
+     y = pv.Scale.linear(data, function(d) d.y).range(0, h);
+     //var x = pv.Scale.linear(0, 5).range(0, w);
+    //var y = pv.Scale.linear(0, 5).range(0, h); 
+     
+
+/* X-axis ticks. */
+if (!xTicks)  xTicks = vis.add(pv.Rule);
+
+    xTicks.data(x.ticks())
+    .visible(function(d) {return true;}) //note: this function is necessary ?
+    .left(x)
+    .strokeStyle("#eee")
+  .add(pv.Rule)
+    .bottom(-5)
+    .height(5)
+    .strokeStyle("#000")
+  .anchor("bottom").add(pv.Label)
+    .text(x.tickFormat);
+
+/* Y-axis ticks. */
+if (!yTicks) yTicks = vis.add(pv.Rule);
+
+    yTicks.data(y.ticks()) //ticks(5)
+    .bottom(y)
+    .visible(function(d) {return true;}) //note: this function is necessary ?
+    .strokeStyle(function(d) d ? "#eee" : "#000")
+  .anchor("left").add(pv.Label)
+    .text(y.tickFormat);
+
+/* The line. */
+if (!objLine) objLine = vis.add(pv.Line);
+
+objLine.data(data)
+    .interpolate("linear")//.interpolate("step-after")
+    .left(function(d) x(d.x))
+    .bottom(function(d) y(d.y))
+    .lineWidth(2);
+
+    vis.render();
+}
+vis = new pv.Panel()
+    .width(w)
+    .height(h)
+    .bottom(20)
+    .left(20)
+    .right(10)
+    .top(5);
+
+
+lookForChanges(); //which will call Update(), which will call render.
+
+    </script>
+  </div></div>
+  
+  </body>
+</html>
+
