@@ -11,6 +11,10 @@ from visual import *
 scene.title = 'Double Pendulum'
 scene.height = scene.width = 400
 
+#~ the ratio M1/M2 matters
+#~ the ratio L1/L2 matters
+#~ g only speeds/slows, no real effect
+
 mode='show' #can be show, plot, or calc
 g = 4.8
 M1 = 2.0
