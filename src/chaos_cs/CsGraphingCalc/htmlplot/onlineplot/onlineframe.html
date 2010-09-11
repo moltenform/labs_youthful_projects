@@ -27,11 +27,17 @@ var startdata = [{x:1.0, y:1.0},{x:2.0, y:4.0},{x:3.0, y:9.0} ]; //prelim data
 vis =false;
 xTicks=yTicks=objLine=false;
 x=y=false;
+g_isUpdating = false;
 var update = function() 
 {
+	if (g_isUpdating) return;
+	g_isUpdating=true;
+	
 	var sInput = $('txtInput').value;
 	if (!sInput) return;
 	var data = createDataFromString(sInput);
+	
+	//~ alert(JSON.stringify(data));
 	
      x = pv.Scale.linear(data, function(d) d.x).range(0, w);
      y = pv.Scale.linear(data, function(d) d.y).range(0, h);
@@ -91,6 +97,8 @@ objLine.data(data)
     .lineWidth(2);
 
     vis.render();
+    
+    g_isUpdating=false;
 }
 vis = new pv.Panel()
     .width(w)
