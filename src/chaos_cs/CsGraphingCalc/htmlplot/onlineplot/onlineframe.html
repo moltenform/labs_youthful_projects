@@ -16,8 +16,30 @@
 </textarea> 
 <br/><br/>
 
-  <div id="center" ><div id="fig" style="padding:20px">
+<button onclick="nuke()">nuke</button>
+
+<div id="center" ><div id="fig" style="padding:20px">
 <script type="text/javascript+protovis">
+
+//In the past we would keep the vis object, and change the data.
+//However, would run into errors when data changed. For example, typing 3.5 or 7 as the x coord of last point, would 
+//cause an error in protovis. It's simpler to completely redraw the entire figure to workaround that problem.
+
+
+    function nuke()
+    {
+    spans=document.body.getElementsByTagName('span');
+//kill the last one.
+if (spans.length>0)
+	spans[spans.length-1].innerHTML='';
+//~ document.body.removeChild(spans[spans.length-1]);
+
+//protovis apparently first puts the span in the 'fig' div, but then later puts its span outside of the div.
+    //~ document.getElementById('fig').innerHTML=''
+    vis=false;
+    xTicks=yTicks=objLine=false;
+    }
+
 
 /* Sizing and scales. */
 var w = 800,
@@ -36,8 +58,17 @@ var update = function()
 	var sInput = $('txtInput').value;
 	if (!sInput) return;
 	var data = createDataFromString(sInput);
-	
-	//~ alert(JSON.stringify(data));
+
+	if (!vis)
+	{
+	vis = new pv.Panel()
+	.width(w)
+	.height(h)
+	.bottom(20)
+	.left(20)
+	.right(10)
+	.top(5);
+	}
 	
      x = pv.Scale.linear(data, function(d) d.x).range(0, w);
      y = pv.Scale.linear(data, function(d) d.y).range(0, h);
@@ -100,14 +131,6 @@ objLine.data(data)
     
     g_isUpdating=false;
 }
-vis = new pv.Panel()
-    .width(w)
-    .height(h)
-    .bottom(20)
-    .left(20)
-    .right(10)
-    .top(5);
-
 
 lookForChanges(); //which will call Update(), which will call render.
 
