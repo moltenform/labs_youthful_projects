@@ -31,7 +31,11 @@
     spans=document.body.getElementsByTagName('span');
 //kill the last one.
 if (spans.length>0)
-	spans[spans.length-1].innerHTML='';
+{
+	var parent = spans[spans.length-1].parentNode;
+	parent.removeChild(spans[spans.length-1]);
+	//~ spans[spans.length-1].innerHTML='';
+}
 //~ document.body.removeChild(spans[spans.length-1]);
 
 //protovis apparently first puts the span in the 'fig' div, but then later puts its span outside of the div.
@@ -58,6 +62,8 @@ var update = function()
 	var sInput = $('txtInput').value;
 	if (!sInput) return;
 	var data = createDataFromString(sInput);
+
+	nuke(); //clear previous figure entirely ! ! !
 
 	if (!vis)
 	{
