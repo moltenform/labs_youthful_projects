@@ -1,0 +1,62 @@
+baud
+_!@@!_
+0.1
+_!@@!_
+class RedNoiseGlitch : CsWaveAudio.SynthBases.SynthesisBase
+{
+	protected readonly double freq;
+	protected readonly double amplitude;
+	protected readonly int chunksbeforeswitch;
+	protected readonly double rednoisefactor;
+	
+	public RedNoiseGlitch(double freq, double amplitude) : this(freq, amplitude, 10, 0.261) {}
+	public RedNoiseGlitch(double freq, double amplitude, int chunksbeforeswitch, double rednoisefactor)
+	{
+		this.rednoisefactor = rednoisefactor;
+		this.chunksbeforeswitch = chunksbeforeswitch;
+		this.freq = freq;
+		this.amplitude = amplitude;
+	}
+	protected override double[] generate(int nSamples)
+	{
+		double[] outData = new double[nSamples];
+		Random rand = new Random(); //if a new random is created every time by Rednoise, it doesn't update fast enough!
+
+		int freqInSamples = (int)((1 / freq) * SampleRate);
+		int numChunks = nSamples / freqInSamples;
+		WaveAudio chunk = null;
+		for (int i = 0; i < numChunks; i++)
+		{
+			if (i % this.chunksbeforeswitch == 0)
+			{
+				chunk = new RedNoise(amplitude, rednoisefactor, rand).CreateWaveAudio(1 / freq + 0.01);
+			}
+			Array.Copy(chunk.data[0], 0, outData, i * freqInSamples, freqInSamples);
+		}
+		//fill in the rest
+		if (numChunks * freqInSamples < nSamples)
+			Array.Copy(chunk.data[0], 0, outData, numChunks * freqInSamples, nSamples - numChunks * freqInSamples);
+		
+		return outData;
+	}
+}
+	
+
+//$$Main
+WaveAudio j1 = new RedNoiseGlitch(100, 0.01).CreateWaveAudio(19.5);
+result = j1;
+
+//$$EndMain
+
+
+_!@@!_
+1
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
