@@ -1,5 +1,5 @@
 //Ben Fisher, 2008
-//halfhourhacks.blogspot.com
+//
 //GPL
 
 using System;

@@ -1,5 +1,5 @@
 //Ben Fisher, 2008
-//halfhourhacks.blogspot.com
+//
 //GPL
 // Raw FFT calculation code by Don Cross, http://web.archive.org/web/20020124104515/http://www.intersrv.com/~dcross/fft.html
 

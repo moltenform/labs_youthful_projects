@@ -1,5 +1,5 @@
 //Ben Fisher, 2008
-//halfhourhacks.blogspot.com
+//
 //GPL
 
 using System;
@@ -25,7 +25,6 @@ namespace CsWaveAudio
             get { return m_data; }
             set { m_data = value; }
         }
-	
 
         /// <summary>
         /// Construct blank Audio file.
