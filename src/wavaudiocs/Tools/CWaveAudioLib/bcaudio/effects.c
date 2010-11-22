@@ -17,7 +17,7 @@ double effect_interpolate(double* data, int length, double sampleIndex)
 	else if (sampleIndex < 0+1) sampleIndex=0;
 	
 	// Uses linear interpolation to find, say, the 4.15th element of an array of doubles.
-        // In the future maybe consider better interpolation methods, like cubic, polynomial, or sinc
+	// In the future maybe consider better interpolation methods, like cubic, polynomial, or sinc
 	double proportion = sampleIndex - trunc(sampleIndex);
 	double v1 = data[(int)trunc(sampleIndex)];
 	double v2 = data[(int)ceil(sampleIndex)];
@@ -122,7 +122,7 @@ errormsg effect_scale_pitch_duration(CAudioData**out, CAudioData* w1, double fac
 	return OK;
 }
 
- // walk through the file at varying speeds
+// walk through the file at varying speeds
 void effect_vibrato_impl(int length, double* out, double* d1, double vibratoFreqScale, double width)
 {
 	if (d1==NULL || out==NULL) return;

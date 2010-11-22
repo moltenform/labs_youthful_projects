@@ -3,12 +3,12 @@
 // phaser from Audacity by Nasca Octavian Paul
 
 /*
- freq       - Phaser's LFO frequency
- startphase - Phaser's LFO startphase (radians), needed for stereo Phasers
- depth      - Phaser depth (0 - no depth, 255 - max depth)
- stages     - Phaser stages (recomanded from 2 to 16-24, and EVEN NUMBER)
- drywet     - Dry/wet mix, (0 - dry, 128 - dry=wet, 255 - wet)
- fb         - Phaser FeedBack (0 - no feedback, 100 = 100% Feedback, -100 = -100% FeedBack)
+freq	   - Phaser's LFO frequency
+startphase - Phaser's LFO startphase (radians), needed for stereo Phasers
+depth	  - Phaser depth (0 - no depth, 255 - max depth)
+stages	 - Phaser stages (recomanded from 2 to 16-24, and EVEN NUMBER)
+drywet	 - Dry/wet mix, (0 - dry, 128 - dry=wet, 255 - wet)
+fb		 - Phaser FeedBack (0 - no feedback, 100 = 100% Feedback, -100 = -100% FeedBack)
 */
 
 #include "bcaudio.h"
@@ -48,7 +48,7 @@ void effect_phaseraud_impl(int length, double* data, double freq_scaled, double 
 		{
 			gain = (1 + cos(skipcount * lfoskip + phase)) / 2; //compute sine between 0 and 1
 			gain = (exp(gain * fxphaseraudlfoshape) - 1) / (exp(fxphaseraudlfoshape)-1); // change lfo shape
-			gain = 1 - gain / 255 * depth;      // attenuate the lfo
+			gain = 1 - gain / 255 * depth;	  // attenuate the lfo
 		}
 		// phasing routine
 		for (j = 0; j < stages; j++)
@@ -80,17 +80,16 @@ errormsg effect_phaseraud(CAudioData* this, double freq, double fb, int depth, i
 }
 
 
- 
 /* Parameters:
-   freq - LFO frequency 
-   startphase - LFO startphase in RADIANS - usefull for stereo WahWah
-   depth - Wah depth
-   freqofs - Wah frequency offset
-   res - Resonance
+	freq - LFO frequency 
+	startphase - LFO startphase in RADIANS - usefull for stereo WahWah
+	depth - Wah depth
+	freqofs - Wah frequency offset
+	res - Resonance
 
-   !!!!!!!!!!!!! IMPORTANT!!!!!!!!! :
-   depth and freqofs should be from 0(min) to 1(max) !
-   res should be greater than 0 !  */
+	!!!!!!!!!!!!! IMPORTANT!!!!!!!!! :
+	depth and freqofs should be from 0(min) to 1(max) !
+	res should be greater than 0 !  */
 #define fxwahwahaudlfoskipsamples 30
 void effect_wahwahaud_impl(int length, double* data, double startphase, double freq_scaled, double depth, double freqofs, double res)
 {
@@ -142,7 +141,7 @@ void effect_wahwahaud_impl(int length, double* data, double startphase, double f
 		data[i] = out;
 	}
 }
-  
+
 errormsg effect_wahwahaud(CAudioData* this, double freq, double depth, double freqofs, double res)
 {
 	double startphaseleft = 0;
