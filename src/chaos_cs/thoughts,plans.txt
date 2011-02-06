@@ -3,17 +3,23 @@ Things I thought about
 -------------
 
 Saving the results of computations, so that zooming in could be
-25% faster, by using the cached results.
-I don't think the added complexity is worth it at this point.
+	25% faster, by using the cached results.
+	I don't think the added complexity is worth it at this point.
 
 
 Coming up with a good color scheme.
-Black to white is good because there is a clear 'direction' to it,
-however, one can miss details, because of limited range.
-rainbow covers much range, so details apparent, but no clear 'direction'
-	viewer: is green > red? not intuitive
-see the published paper: "rainbow color map considered harmful"
+	Black to white is good because there is a clear 'direction' to it,
+	however, one can miss details, because of limited range.
+	rainbow covers much range, so details apparent, but no clear 'direction'
+		viewer: is green > red? not intuitive
+	see the published paper: "rainbow color map considered harmful"
 
-I used for a time, black, to white, to blue.
-However, between white and blue, the B channel remains constant.
-The most effective transitions have all R,G,B channels changing.
+	I used for a time, black, to white, to blue.
+	However, between white and blue, the B channel remains constant.
+	The most effective transitions have all R,G,B channels changing.
+
+Name the parameters. a script can refer to "lightness" instead of "c3"
+
+Antialias?
+
+The first general bitmap idea was a c# program that interacted with c++ sdl, through messages
