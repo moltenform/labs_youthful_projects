@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib SDLmain.lib"
+				AdditionalDependencies="C:\projects\c++\sdl\lib\SDL.lib C:\projects\c++\sdl\lib\SDLmain.lib"
 				OutputFile="$(OutDir)\..\out\fastpixelpic.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"

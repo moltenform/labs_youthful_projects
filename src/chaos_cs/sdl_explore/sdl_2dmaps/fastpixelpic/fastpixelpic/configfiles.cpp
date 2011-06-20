@@ -49,7 +49,7 @@ void saveObject(FILE * stream)
 	}
 	fprintf(stream, "END=0;");
 }
-void saveObjectPythonDict(FILE * stream)
+void saveObjectPythonDict(FILE * stream, bool bSaveBinary)
 {
 	int i=0;
 	fprintf(stream, "=dict(");
@@ -66,10 +66,12 @@ void saveObjectPythonDict(FILE * stream)
 			if (*theValue==0.00 && GlobalFieldDescriptions[i].fieldName[0]=='p' &&
 				GlobalFieldDescriptions[i].fieldName[1]=='c' && strlen(GlobalFieldDescriptions[i].fieldName)<=4)
 				; //don't show it. pc6 and so on are assumed to be 0.0 by default.
-			else
+			else if (!bSaveBinary)
 				fprintf(stream, "%s=%.15g, ", GlobalFieldDescriptions[i].fieldName, *theValue);
 			//%.15g means at most 15 precision, but won't print trailing 0s
 			//this is better than %f which always prints 6 precision and truncates!
+			else //print the binary
+				fprintf(stream, "%s=0x%llx, ", GlobalFieldDescriptions[i].fieldName, *(__int64*)(theValue));
 		}
 		else  { massert(0, "Unknown data type in definition of Settings object."); } 
 		if (StringsEqual(GlobalFieldDescriptions[i].fieldName, "pc6") ||
@@ -100,7 +102,7 @@ BOOL readUntilEquals(char * buffer, int bufsize, FILE* stream)
 	}
 }
 
-BOOL loadObject(FILE * stream)
+BOOL loadObject(FILE * stream, bool bBinary)
 {
 	char keyname [1024]={0};
 	double fvalue; //initially reads everything as doubles.
@@ -110,7 +112,8 @@ BOOL loadObject(FILE * stream)
 	{
 		if (feof(stream)) {massert(0, "Invalid file, did not see END key."); return FALSE;}
 		readUntilEquals(keyname, sizeof(keyname), stream);
-		int ret = fscanf(stream, "%lf;", &fvalue);
+		int ret;
+		ret = fscanf(stream, "%lf;", &fvalue);
 		if (ret < 1) {massert(0, "Invalid file, expected value."); return FALSE; }
 		if (StringsEqual(keyname, "END")) return TRUE; //hasSeenUnknown;
 		int i=0;
@@ -148,7 +151,7 @@ BOOL loadFromFile(const char * filename)
 	if (ret < 1) return FALSE; //not a valid saved file. Note: loading animations rely on this returning false.
 	if (versionNumber!=1) { massert(0, "File is from incompatible version."); exit(1); }
 	initializeObjectToDefaults(); //sets the defaults, so if this file misses anything, we don't retain.
-	loadObject(f);
+	loadObject(f, false);
 	fclose(f);
 	return TRUE;
 }

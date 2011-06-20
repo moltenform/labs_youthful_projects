@@ -58,14 +58,14 @@ BOOL appendToFilePython(const char * filename)
 		{
 			if (!openFrame(i)) break;
 			fprintf(f,"frame0%d",i);
-			saveObjectPythonDict(f);
+			saveObjectPythonDict(f, false);
 		}
 		memcpy(g_settings, &currentSettings, sizeof(FastMapsSettings));
 	}
 	
 	fprintf(f,"\n\n");
 	fprintf(f,"latest");
-	saveObjectPythonDict(f);
+	saveObjectPythonDict(f,false);
 	fclose(f);
 	return TRUE;
 }

@@ -1,6 +1,7 @@
 import os
 
 def writeParams(sParam, outFolder):
+	bWriteBinary = False
 	if sParam.strip()=='': 
 		#~ return True #an empty section means, just all defaults .
 		#don't return here. we must overwrite old default save.
@@ -9,6 +10,8 @@ def writeParams(sParam, outFolder):
 	else:
 		#execute it as Python code!
 		dlocals = {} #could provide things in here, but won't currently
+		if '0x' in sParam: bWriteBinary = True
+		else: bWriteBinary = True
 		code = compile(sParam, '<user-provided code>', 'exec')
 		exec code in dlocals
 		if 'latest' not in dlocals:
