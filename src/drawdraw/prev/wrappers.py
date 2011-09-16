@@ -45,13 +45,13 @@ class Interpreter(object):
             self.world.quit()
 
 class Callable(object):
-	def __init__(self, func, *args, **kwds):
-		self.func = func
-		self.args = args
-		self.kwds = kwds
-		self.__name__ = func.__name__
-	def __call__(self, event=None):
-		return self.func(*self.args, **self.kwds)
-	def __str__(self):
-		return self.func.__name__
+    def __init__(self, func, *args, **kwds):
+        self.func = func
+        self.args = args
+        self.kwds = kwds
+        self.__name__ = func.__name__
+    def __call__(self, event=None):
+        return self.func(*self.args, **self.kwds)
+    def __str__(self):
+        return self.func.__name__
 

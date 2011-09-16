@@ -1,10 +1,10 @@
 
 PIL adds features:
 
-	-draw image
-	(allows shading, gradients, insert image)
-	-Render picture
-	(draws much bigger and then resizes downwards, to antialias.)
+    -draw image
+    (allows shading, gradients, insert image)
+    -Render picture
+    (draws much bigger and then resizes downwards, to antialias.)
 
 "draw standard"
 

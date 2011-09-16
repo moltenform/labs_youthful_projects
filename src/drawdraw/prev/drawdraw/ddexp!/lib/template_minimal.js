@@ -5,7 +5,7 @@
 
 function onuserload()
 {
-	drawline(0.5, 0.5, 0.75, 0.75)
-	print('yo')
+    drawline(0.5, 0.5, 0.75, 0.75)
+    print('yo')
 }
 

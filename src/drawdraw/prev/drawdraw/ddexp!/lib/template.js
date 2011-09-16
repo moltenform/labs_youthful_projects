@@ -5,29 +5,29 @@
 
 function onuserload()
 {
-	drawline(0.5, 0.5, 0.75, 0.75)
-	print('generating')
+    drawline(0.5, 0.5, 0.75, 0.75)
+    print('generating')
 }
 
 function onuserkeycode(nkeycode)
 {
-	var paramB = 2;
-	if (nkeycode==107) //+
-		paramB += 1.0;
-	else if (nkeycode==109) //-
-		paramB -= 1.0;
-	else
-		return;
-	alert('value of paramb is now '+paramB)
+    var paramB = 2;
+    if (nkeycode==107) //+
+        paramB += 1.0;
+    else if (nkeycode==109) //-
+        paramB -= 1.0;
+    else
+        return;
+    alert('value of paramb is now '+paramB)
 }
 
 function onuserslidermove()
 {
-	print('moved')
+    print('moved')
 }
 function onuserslidermovelarge()
 {
-	print('movedlarge')
+    print('movedlarge')
 }
 
 

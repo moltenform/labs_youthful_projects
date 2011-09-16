@@ -1,16 +1,16 @@
 
 function $(s)
 {
-	return document.getElementById(s)
+    return document.getElementById(s)
 }
 
 errmsg = function(s)
 {
-	alert(s)
+    alert(s)
 }
 alerdbg = function(s)
 {
-	alert(debugprint(s))
+    alert(debugprint(s))
 }
 
 //found online
@@ -42,15 +42,15 @@ return (this.indexOf(s)===0);
 Time = {};
 Time.createTimer = function() 
 {
-	return new _Timer();
+    return new _Timer();
 }
 _Timer = function() //intended to be constructed with new.
 {
-	this.dt = new Date();
+    this.dt = new Date();
 }
 _Timer.prototype.check = function()
 {
-	var n = new Date();
-	var nDiff = n.getTime() - this.dt.getTime();
-	return nDiff;
+    var n = new Date();
+    var nDiff = n.getTime() - this.dt.getTime();
+    return nDiff;
 }
