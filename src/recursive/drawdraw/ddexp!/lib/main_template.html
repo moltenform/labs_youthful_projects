@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<title>Drawdraw %1%</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen">
+<script src="../lib/js/util.js" type="text/javascript" charset="utf-8"></script>
+<script src="../lib/js/raphael.js" type="text/javascript" charset="utf-8"></script>
+<script src="../lib/js/ddexp_util.js" type="text/javascript" charset="utf-8"></script>
+<script src="../lib/js/d2slide.js" type="text/javascript" charset="utf-8"></script>
+<script src="%2%" type="text/javascript" charset="utf-8"></script>
+
+ <script type="text/javascript">
+window.onload = function () { setup(); 
+document.body.onkeydown = o_onKeyDown;
+
+}
+ </script>
+ <style type="text/css" media="screen">
+            #holder {
+                -moz-border-radius: 2px;
+                -webkit-border-radius: 2px;
+                border: solid 1px #bbb;
+		position:absolute;
+		left: 300px;
+height: 550px;		
+width: 550px;
+            }
+        
+        </style>
+</head>
+<body>
+
+<div id="holder" style=""></div>
+
+<div style="width:20em; display:inline">
+<button onclick="reload()" alt="Go" >Again</button><br/>
+<button onclick="shapes_clear()" alt="Clear" >Clear</button><br/>
+<button onclick="onzoomin()" alt="Clear" >In</button> 
+<button onclick="onzoomout()" alt="Clear" >Out</button><br/>
+<button onclick="setCoordsSelected()" alt="Clear" >Set</button><br/>
+<textarea rows="4" cols="30" id="user_output"   onkeydown="o_onKeyDown(event)">
+()
+</textarea>
+<!-- readonly="true" -->
+</div>
+
+</body>
+</html>
