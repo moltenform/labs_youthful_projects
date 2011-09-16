@@ -1,0 +1,26 @@
+
+function go() 
+{
+	print(argv[0])
+	print(argv[1])
+if (argv.length < 2 || !argv[1])
+{
+	print('none given')
+	return
+}
+var dir = @'C:\pydev\mainsvn\recursive\drawdraw\ddexp!\lib';
+
+var namein = dir+'\\main_template.html'
+var nameout = dir+'\\tmpgen.html'
+var alltxt = File.readFile(namein)
+
+var sfilename = argv[1]
+var sname = sfilename.split('\\').pop();
+sfilename = 'file:///'+sfilename.replace(/\\/g,'/')
+alltxt = alltxt.replace('%1%', sname).replace('%2%', sfilename)
+File.writeFile(nameout, alltxt)
+Process.openFile(nameout)
+
+}
+
+go()
