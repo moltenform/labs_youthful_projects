@@ -1,7 +1,8 @@
 #pragma once
 
 #ifdef _MSC_VER
-#include "SDL.h"
+//#include "SDL.h"
+#include "C:\projects\c++\sdl\include\SDL.h"
 #else
 #include "SDL/SDL.h"
 #endif

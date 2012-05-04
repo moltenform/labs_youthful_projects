@@ -1,5 +1,6 @@
 //Fastmapmap, Ben Fisher, 2010, GPL License.
 // gParamBreathing and gParamFramesPerKeyframe are currently just held in memory, not persisted.
+//Project options: libs, add path and common.h C:\projects\c++\sdl\include
 
 //todo: warning when opening wrong formula.
 //todo: make compatible w csphaseportrait.
@@ -35,7 +36,7 @@ BOOL gParamBreathing = FALSE;
 int main( int argc, char* argv[] )
 {
 	int mouse_x,mouse_y; SDL_Event event;
-	double *a = &g_settings->a; double *b = &g_settings->b; double oscA, oscB;
+	double *a = &g_settings->a; double *b = &g_settings->b; double oscA=0, oscB=0;
 	BOOL needRedraw = TRUE, needDrawDiagram=TRUE;
 	int PlotX = diagramsLayout[1].screen_x, PlotY = diagramsLayout[1].screen_y;
 	int PlotWidth = diagramsLayout[1].screen_width, PlotHeight = diagramsLayout[1].screen_height;
@@ -64,6 +65,18 @@ int main( int argc, char* argv[] )
 	initFont();
 	// holding alt and dragging is termed a "super drag" and will set a custom zoom window.
 	// currently translucent red lines persist until mouse is released, this is a known issue.
+	
+	if (argc > 3 && StringsEqual(argv[2],"render")) 
+	{
+		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
+		if (!gParamBreathing) { oscA=*a; oscB = *b; }
+		else { oscillateBreathing(*a,*b, &oscA, &oscB); }
+		DrawFigure(pSurface, oscA, oscB, diagramsLayout[0].screen_width);
+		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
+		SDL_SaveBMP(pSurface, argv[3]);
+		return 0;
+	}
+	
 while(TRUE)
 {
     if ( SDL_PollEvent ( &event ) )

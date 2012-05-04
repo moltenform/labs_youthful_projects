@@ -1,5 +1,6 @@
 #include "common.h"
 #include "font.h"
+#include "winclipboard.h"
 
 
 BOOL Dialog_GetBool(const char* prompt, SDL_Surface* pSurface)
@@ -110,6 +111,23 @@ char * Dialog_GetText(const char* prompt, const char*previous, SDL_Surface* pSur
 						buffer[currentLength]='_';
 						}
 					dirty=TRUE;
+				  }
+				  else if (event.key.keysym.sym == SDLK_v && 
+					(event.key.keysym.mod & KMOD_CTRL))
+				  {
+					  char smallbuf[32]={0};
+					  int ch;
+//note: not thoroughly tested.
+						if (ch = getFromclipboard(smallbuf, sizeof(smallbuf)))
+						{
+							strncpy(&buffer[currentLength],smallbuf,MAX(0,(BLENGTH-currentLength)-6));
+							currentLength += strlen(smallbuf);
+							buffer[currentLength]='_';
+							buffer[currentLength+1]='\0'; //just to be sure.*/
+							//currentLength ++;
+							//printf("oh so it is %s \n",smallbuf);
+							dirty=TRUE;
+						}
 				  }
 				  else if (event.key.keysym.sym >= 32 && event.key.keysym.sym <= 126)
 				  {

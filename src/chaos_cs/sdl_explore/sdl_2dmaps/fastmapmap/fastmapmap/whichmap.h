@@ -18,6 +18,8 @@
 #define JULIASUF "_julia"
 #define BURGERRAND if ((rand()&0x1<<1)) {x_ = c1*x - y*y; y_ = c2*y + x*y;} else {x_ = 0.313477*x - y*y; y_ = 1.158945*y + x*y;}
 #define BURGERRANDSUF "_brand"
+#define HALFBURGER if ((rand()&0x1<<1)) {{double t=0.4-(6/(1+x*x+y*y)); x_ = 1+c1*(x*cos(t)-y*sin(t)); y_ = c2*(x*sin(t)+y*cos(t));}} else {x_ = 0.313477*x - y*y; y_ = 1.158945*y + x*y;}
+#define HALFBURGERSUF "_halfbrand"
 
 #define CHSTD x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ x_),6.2831853);
 #define CHSTDSUF "_chstandard"
@@ -26,7 +28,7 @@
 #define BEN2 x_ = MMod((x+c1*sin(y)),6.2831853); y_ =  MMod((y+ c2*x),6.2831853);
 #define BEN2SUF "_ben2"
 
-#define MAPEXPRESSION BURGER
+#define MAPEXPRESSION BURGER 
 #define MAPSUFFIX BURGERSUF
 #define DRAWPERIODIC 0
 

@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib SDLmain.lib"
+				AdditionalDependencies="C:\projects\c++\sdl\lib\SDL.lib C:\projects\c++\sdl\lib\SDLmain.lib"
 				OutputFile="$(OutDir)\..\out\sdl_fastmapmap.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
@@ -266,6 +266,14 @@
 			</File>
 			<File
 				RelativePath=".\whichmap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\winclipboard.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\winclipboard.h"
 				>
 			</File>
 		</Filter>
