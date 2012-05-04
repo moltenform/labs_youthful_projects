@@ -55,6 +55,18 @@ int main( int argc, char* argv[] )
 	initFont();
 	// holding alt and dragging is termed a "super drag" and will set a custom zoom window.
 	// currently translucent red lines persist until mouse is released, this is a known issue.
+
+	if (argc > 3 && StringsEqual(argv[2],"render")) 
+	{
+		if (bNeedToLock) SDL_LockSurface ( pSurface ) ;
+		if (!gParamBreathing) { oscA=*a; oscB = *b; }
+		else { oscillateBreathing(*a,*b, &oscA, &oscB); }
+		DrawFigure(pSurface, oscA, oscB, diagramsLayout[0].screen_width, diagramsLayout[0].screen_x);
+		if (bNeedToLock) SDL_UnlockSurface ( pSurface ) ;
+		SDL_SaveBMP(pSurface, argv[3]);
+		return 0;
+	}
+
 while(TRUE)
 {
     if ( SDL_PollEvent ( &event ) )

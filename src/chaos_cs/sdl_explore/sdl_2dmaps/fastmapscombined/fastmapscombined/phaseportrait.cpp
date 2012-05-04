@@ -480,7 +480,7 @@ void DrawFigure( SDL_Surface* pSurface, double c1, double c2, int width, int px 
 			
 		case DrawModeStandardBasins:  DrawBasinsStandard(pSurface, c1, c2, width, px); break;
 		case DrawModeSmearLine:  DrawSmear(pSurface, c1, c2, width, px); break;
-		case DrawModeSmearRectangle:  DrawLongTime(pSurface, c1, c2, width, px); break;
+		case DrawModeSmearRectangle: // DrawLongTime(pSurface, c1, c2, width, px); break; this was deleted; do not know why.
 case DrawModePhasefircate:  DrawPhasefircate(pSurface, c1, c2, width, px); break;
 case DrawModePhasefircateHoriz:  DrawPhasefircateHoriz(pSurface, c1, c2, width, px); break;
 		default: {massert(0, "Unknown drawing mode."); }
