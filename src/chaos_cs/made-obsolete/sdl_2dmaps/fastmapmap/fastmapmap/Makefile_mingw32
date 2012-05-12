@@ -1,0 +1,14 @@
+
+#use mingw32-make to build.
+#see also, sdl-config file and http://www.netadelica.com/coding/sdl/install.html
+
+sdlexplorer: main.cpp
+	gcc -o fastmapmapout main.cpp animate.cpp \
+	common.cpp configfiles.cpp coordsdiagram.cpp font.cpp \
+	menagerie.cpp palette.cpp phaseportrait.cpp \
+	-lmingw32 -lSDLmain -lSDL  -mwindows  -lm -luser32 -lgdi32  \
+	-Wall 
+
+#used to require -fno-exceptions -fno-rtti but apparently not anymore.
+#it was looking for c++ symbols (gxx_personality_v0) having to do with debugging.
+
