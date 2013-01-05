@@ -26,7 +26,7 @@ def inputDialog(window, text, default=''):
 		
 
 def saveFileDialog(window, text, defaultDirectory=None, defaultFilename=None):
-	dialog = wx.FileDialog(window, style = wx.SAVE, message =text  )
+	dialog = wx.FileDialog(window, style = wx.SAVE, message=text)
 	
 	if defaultDirectory!=None: dialog.SetDirectory(defaultDirectory)
 	if defaultFilename!=None: dialog.SetFilename(defaultFilename)
@@ -51,6 +51,17 @@ def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, default
 		return None
 
 # Other wrappers:
+def getClipboardText():
+	sRet = None
+	if wx.TheClipboard.Open():
+		try:
+			otext = wx.TextDataObject()
+			if wx.TheClipboard.GetData(otext):
+				sRet = otext.GetText()
+		finally:
+			wx.TheClipboard.Close()
+	return sRet
+
 class PseudoFile(object):
 	def __init__(self, writefn, name='', encoding=None):
 		self.writefn = writefn

@@ -5,34 +5,30 @@ import sheet_sheetclipboard
 COL_FILENAME = 0
 COL_NEWNAME = 1
 COL_SIZE = 2
-COL_CREATED = 3
-COL_MODIFIED = 4
-COLFIELDS = {0: 'filename', 1: 'newname', 2: 'size', 3: 'creationTime', 4: 'modifiedTime'}
+COLFIELDS = {0: 'filename', 1: 'newname', 2: 'size'}
 
 
 class CellRenameGrid(gridlib.Grid):
 	lastsortcol = -1
 	lastsortdirection = False
 	def __init__(self, parent, nRows, fnSortEvent):
-		gridlib.Grid.__init__(self, parent, -1)
+		gridlib.Grid.__init__(self, parent, -1, size=wx.Size(550,200))
 		self.fnSortEvent = fnSortEvent
-		self.CreateGrid(nRows, 5) #i.e. (40 rows, 5 cols)
+		self.CreateGrid(nRows, len(COLFIELDS)) #i.e. (40 rows, 5 cols)
 		
 		self.SetRowLabelSize(23)
 		self.SetColLabelValue(COL_FILENAME, "Filename")
 		self.SetColLabelValue(COL_NEWNAME, "New name")
 		self.SetColLabelValue(COL_SIZE, "Size")
-		self.SetColLabelValue(COL_CREATED, "Created")
-		self.SetColLabelValue(COL_MODIFIED, "Modified")
 		
 		#Set size
-		self.SetColSize(0, 150)
-		self.SetColSize(1, 150)
+		self.SetColSize(0, 175)
+		self.SetColSize(1, 175)
 		
 		# Make cols read-only
 		attrReadonly = gridlib.GridCellAttr()
 		attrReadonly.SetReadOnly()
-		for c in (COL_FILENAME,COL_SIZE,COL_CREATED,COL_MODIFIED):
+		for c in (COL_FILENAME,COL_SIZE):
 			self.SetColAttr(c, attrReadonly)
 			
 		self.EnableDragRowSize(False)
@@ -48,7 +44,8 @@ class CellRenameGrid(gridlib.Grid):
 			return
 		else:
 			# delete the rows and recreate them. Not the most elegant. We'll refill them very soon at least.
-			self.DeleteRows(0,self.GetNumberRows())
+			if (self.GetNumberRows() > 0):
+				self.DeleteRows(0,self.GetNumberRows())
 			self.InsertRows(0, n)
 		
 	def OnLabelLeftClick(self, evt):

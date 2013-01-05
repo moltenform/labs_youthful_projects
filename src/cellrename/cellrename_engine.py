@@ -57,7 +57,7 @@ def checkFilesCanBeRenamed(strDirectory, afrom):
 		entry = afrom[i]
 		try:
 			os.rename( os.path.join(strDirectory,entry), os.path.join(strDirectory,marker+'temp'))
-		except:
+		except IOError:
 			return entry
 		os.rename( os.path.join(strDirectory,marker+'temp'), os.path.join(strDirectory,entry))
 	return False
