@@ -1,11 +1,9 @@
 import wx
-import wx.grid as gridlib
 
 #This can be generalized by removing references to onlyEditableColumn
 #This only handles rectangular selections, but understands it.
 
 def handle_keyboard_events(sheet, evt, onlyEditableColumn):
-	return True
 	key = evt.GetKeyCode()
 	if key == ord('C') and evt.ControlDown():
 		if sheet.GetSelectedCells():
