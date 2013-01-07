@@ -1,12 +1,15 @@
+
 import wx
 import wx.grid as gridlib
-import sheet_sheetclipboard
+import cellrename_gridclipboard
+import sys
+import unittests
+import wxutil
 
 COL_FILENAME = 0
 COL_NEWNAME = 1
 COL_SIZE = 2
-COLFIELDS = {0: 'filename', 1: 'newname', 2: 'size'}
-
+COLFIELDS = {COL_FILENAME: 'filename', COL_NEWNAME: 'newname', COL_SIZE: 'size'}
 
 class CellRenameGrid(gridlib.Grid):
 	lastsortcol = -1
@@ -16,7 +19,7 @@ class CellRenameGrid(gridlib.Grid):
 		self.fnSortEvent = fnSortEvent
 		self.CreateGrid(nRows, len(COLFIELDS)) #i.e. (40 rows, 5 cols)
 		
-		self.SetRowLabelSize(23)
+		self.SetRowLabelSize(22)
 		self.SetColLabelValue(COL_FILENAME, "Filename")
 		self.SetColLabelValue(COL_NEWNAME, "New name")
 		self.SetColLabelValue(COL_SIZE, "Size")
@@ -35,18 +38,7 @@ class CellRenameGrid(gridlib.Grid):
 			
 		#Events
 		self.Bind(gridlib.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClick)
-		
 		self.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-		
-	def ensureRows(self, n):
-		if n==self.GetNumberRows():
-			# This will be the majority of cases
-			return
-		else:
-			# delete the rows and recreate them. Not the most elegant. We'll refill them very soon at least.
-			if (self.GetNumberRows() > 0):
-				self.DeleteRows(0,self.GetNumberRows())
-			self.InsertRows(0, n)
 		
 	def OnLabelLeftClick(self, evt):
 		col = evt.GetCol()
@@ -59,8 +51,37 @@ class CellRenameGrid(gridlib.Grid):
 		self.lastsortdirection = bDirection
 		
 	def OnKeyDown(self,evt):
-		# Ctrl+C for Copy, Ctrl+V for paste, should all be Excel-compatible
-		sheet_sheetclipboard.handle_keyboard_events(self, evt, COL_NEWNAME)
-		evt.Skip()
+		if evt.GetKeyCode()==ord('U') and evt.ControlDown() and evt.ShiftDown():
+			wxutil.alertDialog(self, 'running unit tests')
+			try: unittests.runall()
+			except: wxutil.alertDialog(self, 'e:'+str(sys.exc_info()[0]))
+			else: wxutil.alertDialog(self, 'all tests pass')
+			
+		# Ctrl+C for Copy, Ctrl+V for paste
+		dictEditableColumns = {COL_NEWNAME: 1}
+		ret = cellrename_gridclipboard.handle_keyboard_events(self, evt, dictEditableColumns)
+		if not ret:
+			evt.Skip() #if we didn't handle the event, pass it upwards
+		
+		
+	def writeToModel(self, obj):
+		for i in range(len(obj.data)):
+			elem = obj.data[i]
+			elem.newname = self.GetCellValue(i, COL_NEWNAME)
+	
+	def loadFromModel(self, obj):
+		if len(obj.data)!=self.GetNumberRows():
+			# delete the rows and recreate them.
+			if (self.GetNumberRows() > 0):
+				self.DeleteRows(0,self.GetNumberRows())
+			if (len(obj.data)>0):
+				self.InsertRows(0, len(obj.data))
+			
+		for i in range(len(obj.data)):
+			elem = obj.data[i]
+			self.SetCellValue(i, COL_FILENAME, elem.filename)
+			self.SetCellValue(i, COL_NEWNAME, elem.newname)
+			self.SetCellValue(i, COL_SIZE, elem.sizeRendered)
+		
 		
 

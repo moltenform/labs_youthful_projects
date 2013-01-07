@@ -1,12 +1,10 @@
 
-COLS = {'filename':0, 'newname':1, 'size':2}
-
 import os
 import fnmatch
 
-
-class SheetData():
-	data = None #List of SheetDataEntry objects.
+# the grid ui will load a cellrenamedata object and render it.
+class CellRenameData():
+	data = None # list of cellrenameitem
 	directory = None
 	filter = None
 	includeDirs = False
@@ -17,7 +15,7 @@ class SheetData():
 		self.refresh()
 	
 	def refresh(self):
-		# Load all of the filenames!
+		# load all of the filenames!
 		self.data = []
 		afrom = os.listdir(self.directory)
 		if self.filter: afrom = fnmatch.filter(afrom, self.filter)
@@ -28,29 +26,22 @@ class SheetData():
 			if isDirectory and not self.includeDirs: 
 				continue
 			
-			elem = SheetDataEntry()
+			elem = CellRenameItem()
 			elem.filename = elem.newname = fname
 			elem.size = st.st_size if not isDirectory else -1 #for sorting purposes, sort dirs above
 			elem.sizeRendered = renderSize(st.st_size) if not isDirectory else ' ' #if a directory, show space as " "
 			elem.modifiedTime = st.st_mtime
 			elem.creationTime = st.st_ctime
+			if os.name=='nt':
+				#on Windows, this is a float, let's make it an int
+				elem.modifiedTime = int(10000*elem.modifiedTime)
+				elem.creationTime = int(10000*elem.creationTime)
 			
 			self.data.append(elem)
 	
-	def getLength(self): return len(self.data)
+	def getLength(self): 
+		return len(self.data)
 	
-	def reloadFromGrid(self, gridobj): #should be called often
-		for i in range(len(self.data)):
-			elem = self.data[i]
-			elem.newname = gridobj.GetCellValue(i, COLS['newname'])
-		
-	def renderToGrid(self, gridobj):
-		for i in range(len(self.data)):
-			elem = self.data[i]
-			gridobj.SetCellValue(i, COLS['filename'], elem.filename)
-			gridobj.SetCellValue(i, COLS['newname'], elem.newname)
-			gridobj.SetCellValue(i, COLS['size'], elem.sizeRendered)
-		
 	def sort(self, strField, bReverse = False):
 		map = { 'filename':lambda elem: elem.filename,
 			'newname':lambda elem: elem.newname,
@@ -60,12 +51,10 @@ class SheetData():
 			}
 		
 		if strField not in map: raise 'Invalid field name.'
-		
 		self.data.sort(key=map[strField], reverse=bReverse)
 			
 	#Transformations act on the new name, so that transformations can be chained
-	
-	# add a suffix or prefix
+	# add a suffix or prefix. returns True on success.
 	def transform_suffixorprefix(self, bPrefix, strAdded):
 		for i in range(len(self.data)):
 			if bPrefix:
@@ -74,8 +63,9 @@ class SheetData():
 				# probably want to add this before the file extension.
 				name, ext = os.path.splitext(self.data[i].newname)
 				self.data[i].newname = name+strAdded+ext
+		return True
 				
-	# add a number
+	# add a number. returns True on success or errstring on failure.
 	def transform_addnumber(self, strNumber):
 		if not all((c in '0123456789' for c in strNumber)):
 			return 'Must consist of numerical digits.'
@@ -92,22 +82,28 @@ class SheetData():
 	def transform_pattern(self, strPattern):
 		padlength = len(str(len(self.data))) #number of digits, e.g. 200 files = 3 digits
 		# %n=padded number (i.e. 001, 002)   %N=number   %f=file name   %U=uppercase name   %u=lowercase name
-		def subpattern(strPattern, elem, i):
+		def subpattern(s, elem, i):
 			namepart, extpart = os.path.splitext(self.data[i].newname)
-			strPattern = strPattern.replace('%N', str(i))
-			strPattern = strPattern.replace('%n', padn(i,padlength))
-			strPattern = strPattern.replace('%f', name)
-			strPattern = strPattern.replace('%u', namepart.lower())
-			strPattern = strPattern.replace('%U', namepart.upper())
-			return strPattern + extpart
+			s = s.replace('%N', str(i+1))
+			s = s.replace('%n', padn(i+1,padlength))
+			s = s.replace('%0', padn(i,padlength))
+			s = s.replace('%CT', str(self.data[i].creationTime))
+			s = s.replace('%MT', str(self.data[i].modifiedTime))
+			s = s.replace('%f', namepart)
+			s = s.replace('%F', self.data[i].newname)
+			s = s.replace('%u', namepart.lower())
+			s = s.replace('%U', namepart.upper())
+			return s + extpart
 		
 		for i in range(len(self.data)):
 			self.data[i].newname = subpattern(strPattern, self.data[i], i)
+		return True
 	
 	# replace in filename (case-sensitive!)
 	def transform_replace(self, strSearch, strReplace):
 		for elem in self.data:
 			elem.newname = elem.newname.replace(strSearch, strReplace)
+		return True
 	
 	# replace with regular expression
 	def transform_regexreplace(self, strRe, strReplace, bUseRegexSymbols, bCaseSensitive):
@@ -116,9 +112,10 @@ class SheetData():
 		try:
 			objre = re.compile(strRe) if bCaseSensitive else re.compile(strRe, re.IGNORECASE)
 		except:
-			print 'Could not create regular expression.'; return
+			return 'Could not create regular expression.'
 		for elem in self.data:
 			elem.newname = objre.sub( strReplace, elem.newname)
+		return True
 	
 			
 	def prepareLists(self):
@@ -127,15 +124,17 @@ class SheetData():
 		return afrom, ato
 		
 	def __str__(self):
-		return '\n'.join( [str(elem) for elem in self.data])
+		return '\n'.join((str(elem) for elem in self.data))
 
-class SheetDataEntry():
+class CellRenameItem():
 	filename = None
 	newname = None
 	size = None
 	sizeRendered = None
+	modifiedTime = None
+	creationTime = None
 	def __str__(self):
-		return ' '.join((self.filename, self.newname, self.sizeRendered))
+		return '\t'.join([self.filename, self.newname, self.sizeRendered])
 
 def renderSize(n):
 	if n==0:
@@ -154,48 +153,7 @@ def padn(n,digits):
 	return s
 
 
-#unit tests
-import exceptions
-def expectThrow(fn, sExpectedError, TypeException=exceptions.RuntimeError):
-	try:
-		fn()
-	except TypeException,e:
-		sError = str(e).split('\n')[-1]
-		if sExpectedError.lower() in sError.lower():
-			print 'Pass:',sExpectedError, ' == ', sError
-		elif TypeException==True:
-			print 'Pass:',' ', sError
-		else:
-			print 'Fail: expected msg',sExpectedError,'got',sError
-	else:
-		print 'Fail: expected to throw! '+sExpectedError
-
-def expectEqual(v, vExpected):
-	if v != vExpected:
-		print 'Fail: Expected '+str(vExpected) + ' but got '+str(v)
-		raise exceptions.RuntimeError, 'stop'
-	else:
-		print 'Pass: '+str(vExpected) + ' == '+str(v)
-
-def expectNotEqual(v, vExpected):
-	if v == vExpected:
-		print 'Fail: Expected '+str(vExpected) + ' not to equal '+str(v)
-		raise exceptions.RuntimeError, 'stop'
-	else:
-		print 'Pass: '+str(vExpected) + ' != '+str(v)
-
-def test1():
-	# testing things. let's use real files!
-	names = '''.gitconfig,1,2.gif,3__3_,_4__4.gif,a picture.JPG,first,second.gif,noext another with no ext,noext1,picture 2.jpg,picture and picture.jpG,test.doc,the PiCture with caps.jpg,'''
-	
-	
-
-
 if __name__=='__main__':
-	print 'abcdef'[2:]
-	#~ print os.path.splitext('a/b/ctxt')
-	#~ a = SheetData('.','*.*')
-	#~ a.transform_regexp('([^_]+)_([^_]+)','\\2!!\\1')
-	#~ print a
-	
-	
+	import unittests
+	unittests.dataunittest_transforms()
+	unittests.dataunittest_files()

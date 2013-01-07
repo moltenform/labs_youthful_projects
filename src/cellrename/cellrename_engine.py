@@ -1,94 +1,92 @@
+
 import os
 marker = '_!_rcells_!_'
+join = os.path.join
+exists = os.path.exists
 
+# returns True on success, err string on failure
 def renameFiles(strDirectory, afrom, ato):
+	if len(afrom)==0 and len(ato)==0:
+		return True
 	if len(afrom)!=len(ato):
 		return 'Lengths do not match.'
-	if '' in ato:
-		return 'Filename cannot be empty.'
-	if checkDuplicates(afrom, ato):
-		return 'Duplicate names in output file names.'
-	if checkMarker(afrom, ato):
-		return 'The string "'+marker+'" cannot be in a filename. Try to repair.'
-	ret = checkFilesMissing(strDirectory, afrom, ato)
-	if ret: return 'Not all input files '+ret+' can be found.'
 	
-	ret = checkOutputConflicts(strDirectory, afrom, ato) #If the file already exists and it's not an input
-	if ret: return  'The file '+ret+' already exists.'
+	if isMarkerInFilename(afrom) or isMarkerInFilename(ato):
+		return "Cellrename can't rename a file with the string '%s' in its name."%marker
 	
-	ret = checkFilesCanBeRenamed(strDirectory, afrom)
-	if ret: return  'The file '+ret+' cannot be renamed.'
-		
+	ret = verifyThatFilenamesValid(ato)
+	if ret != True: return ret
+	
+	ret = verifyNoDuplicateFilenames(ato)
+	if ret != True: return ret
+	
+	#Don't overwrite a file if it already exists
+	ret = verifyNoConflictsWithExistingFiles(strDirectory, afrom, ato)
+	if ret != True: return ret
+	
+	ret = verifyFilesCanBeRenamed(strDirectory, afrom)
+	if ret != True: return ret
+	
 	#Rename files to 0,1,2,3
 	for i in range(len(afrom)):
-		entry = afrom[i]
-		os.rename( os.path.join(strDirectory,entry), os.path.join(strDirectory,marker+str(i)))
-	
-	import time
-	time.sleep(0.5)
+		os.rename( join(strDirectory,afrom[i]), join(strDirectory,marker+str(i)))
 	
 	#Rename files 0,1,2,3 to the output names
 	for i in range(len(ato)):
-		entry = ato[i]
-		os.rename( os.path.join(strDirectory,marker+str(i)), os.path.join(strDirectory,entry))
+		outputfilename = join(strDirectory,ato[i])
+		if exists(outputfilename):
+			return 'Error: did not expect to see a file "%s".'
+		os.rename( join(strDirectory,marker+str(i)), outputfilename)
 	return True
 
-def repair(strDirectory, anames):
-	n=0
-	for i in range(len(anames)):
-		tempname = os.path.join(strDirectory, marker+str(i))
-		if os.path.exists(tempname):
-			os.rename(tempname, os.path.join(strDirectory, anames[i]))
-			n+=1
-	return n
 
-def checkOutputConflicts(strDirectory, afrom, ato):
-	import sys
-	if sys.platform.startswith('win'): afromlower = [entry.lower() for entry in afrom] #Windows is case insensitive when checking if a file exists...
-	else: afromlower = afrom
-	for entry in ato:
-		if os.path.exists(os.path.join(strDirectory, entry)) and entry.lower() not in afromlower:
-			return entry
-	return False
+# returns True on success, err string on failure
+def verifyThatFilenamesValid(ato):
+	dictBadChars = {'\\':1, '/':1, ':':1, '*':1, '?':1, '"':1, '<':1, '>':1, '|':1, '\0':1 }
+	for filename in ato:
+		if not filename or any( (char in dictBadChars for char in filename)):
+			return 'Invalid filename: "%s"'%filename
+	return True
 
-def checkFilesCanBeRenamed(strDirectory, afrom):
+# returns True on success, err string on failure
+def verifyNoDuplicateFilenames(ato):
+	if os.name=='nt': setobjto = set(filename.lower() for filename in ato)
+	else: setobjto = set(ato)
+	if len(setobjto)!=len(ato):
+		return 'Duplicate filename seen'
+	else:
+		return True
+
+# returns True on success, err string on failure
+def verifyNoConflictsWithExistingFiles(strDirectory, afrom, ato):
+	if os.name=='nt': setobjfrom = set(filename.lower() for filename in afrom)
+	else: setobjfrom = set(afrom)
+	for outputfilename in ato:
+		if exists(join(strDirectory, outputfilename)) and outputfilename.lower() not in setobjfrom:
+			return "File '%s' already exists."%outputfilename
+	return True
+
+# returns True on success, err string on failure
+# also catches the case where the input file no longer exists.
+def verifyFilesCanBeRenamed(strDirectory, afrom):
 	# rename files to "temp" and back to safely see if they can be renamed.
 	for i in range(len(afrom)):
-		entry = afrom[i]
+		inputfilename = afrom[i]
 		try:
-			os.rename( os.path.join(strDirectory,entry), os.path.join(strDirectory,marker+'temp'))
-		except IOError:
-			return entry
-		os.rename( os.path.join(strDirectory,marker+'temp'), os.path.join(strDirectory,entry))
-	return False
+			os.rename(join(strDirectory,inputfilename), join(strDirectory,marker+'temp'+str(i)))
+		except:
+			if not exists(join(strDirectory,inputfilename)):
+				return "File '%s' no longer exists."%inputfilename
+			else:
+				return "File '%s' could not be renamed."%inputfilename
+		os.rename(join(strDirectory,marker+'temp'+str(i)), join(strDirectory,inputfilename))
+	return True
 
-def checkDuplicates(afrom, ato):
-	dseen = {}
-	for entry in ato:
-		if entry in dseen:
-			return True
-		else:
-			dseen[entry] = 1
-	return False
+def isMarkerInFilename(ar):
+	return any(marker in filename for filename in ar)
 	
-def checkMarker(afrom, ato):
-	for entry in afrom:
-		if marker in entry: return True
-	for entry in ato:
-		if marker in entry: return True
-	return False
-	
-def checkFilesMissing(dir, afrom, ato):
-	for entry in afrom:
-		if not os.path.exists(os.path.join(dir, entry)): return entry
-		#~ if not os.access(os.path.join(dir, entry), os.W_OK): return True
-		# Evidently write permissions aren't needed to rename something.
-	return False
 
 if __name__=='__main__':
-	print checkDuplicates([],['a','b','c','d'])
-	print checkDuplicates([],['a','b','a','c','d'])
-	#~ print renameFiles('.',['jklkjl'],['kjkkjkj'])
-	print renameFiles('test',['l.txt'],['l2.txt'])
-	#~ print renameFiles('test',['test1.txt','test2.txt'],['t1.txt','t2.txt'])
-	#~ print os.path.exists('test1.txt')
+	import unittests
+	unittests.engineunittest()
+	

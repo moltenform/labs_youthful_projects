@@ -101,12 +101,11 @@ def engineunittest():
 	expectStringContains( renameFiles(dir,['notexist1','notexist2'], ['a','b']), 'longer exists')
 	expectStringContains( renameFiles(dir,[names[0],'notexist1','notexist2'], [names[0],'a','b']), 'longer exists')
 	if os.name=='nt':
-		expectStringContains( renameFiles('c:\\windows',['DirectX.log'], ['DirectX2.log']), 'could not be')
+		# expectStringContains( renameFiles('c:\\windows',['DirectX.log'], ['DirectX2.log']), 'could not be')
 		expectStringContains( renameFiles('c:\\',['Windows'], ['Windows2']), 'could not be')
 
 def dataunittest_files():
 	from cellrename_data import CellRenameData
-	import time
 	names = unittestsetup()
 	
 	def containsName(data, name):
@@ -171,15 +170,13 @@ def dataunittest_files():
 	expectEqual( testSort1.data[1].filename in ('directory1', 'directory.jpg'), True) #directories always at top
 	expectEqual( testSort1.data[2].filename , 'a picture.JPG')
 	
-	bTestTimeSort = False
-	if bTestTimeSort:
-		time.sleep(7) # in case the OS is imprecise in stamping file times
-		fout=open(join(dir, 'newfile'),'w'); fout.write('new'); fout.close()
-		testSort2 = CellRenameData(dir, '*', True)
-		testSort2.sort('creationTime', True)
-		expectEqual( testSort2.data[0].filename in ('directory1', 'directory.jpg','newfile'), True)
-		expectEqual( testSort2.data[1].filename in ('directory1', 'directory.jpg','newfile'), True)
-		expectEqual( testSort2.data[2].filename in ('directory1', 'directory.jpg','newfile'), True)
+	# time.sleep(7) # in case the OS is imprecise in stamping file times
+	# fout=open(join(dir, 'newfile'),'w'); fout.write('new'); fout.close()
+	# testSort2 = CellRenameData(dir, '*', True)
+	# testSort2.sort('creationTime', True)
+	# expectEqual( testSort2.data[0].filename in ('directory1', 'directory.jpg','newfile'), True)
+	# expectEqual( testSort2.data[1].filename in ('directory1', 'directory.jpg','newfile'), True)
+	# expectEqual( testSort2.data[2].filename in ('directory1', 'directory.jpg','newfile'), True)
 	
 
 def dataunittest_transforms():
@@ -249,8 +246,11 @@ def dataunittest_transforms():
 	test2.transform_regexreplace(r'(\w+),(\w+)', r'\2-\1', True, False) #is regex, case sensitive
 	expectEqual( tostring(test2), 'a(a|test(Athat|second-first|yy-xx,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
 
-if __name__=='__main__':
+def runall():
 	engineunittest()
 	dataunittest_transforms()
 	dataunittest_files()
+	
+if __name__=='__main__':
+	runall()
 	
