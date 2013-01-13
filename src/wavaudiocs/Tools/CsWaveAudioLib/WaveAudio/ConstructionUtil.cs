@@ -8,12 +8,12 @@ namespace CsWaveAudio
     {
         public static void placeAudio(WaveAudio target, WaveAudio source, int index)
         {
-            for (int j = 0; j < source.data[0].Length; j++)
-                if (j + index < target.data[0].Length)
-                {
-                    target.data[0][j + index] += source.data[0][j];
-                    target.data[1][j + index] += source.data[1][j];
-                }
+            for (int ch=0; ch<target.data.Length; ch++)
+                for (int j = 0; j < source.data[0].Length; j++)
+                    if (j + index < target.data[0].Length)
+                    {
+                        target.data[ch][j + index] += source.data[ch][j];
+                    }
         }
         public static void placeAudioRamp(WaveAudio target, WaveAudio source, int index, int rampWidth)
         {
@@ -127,15 +127,101 @@ namespace CsWaveAudio
             return ret;
         }
 
-        public abstract class FourierModifier
+        public class FModCutFrequencies : FourierModifier
         {
-            
+            double cutOffLow, cutOffHi;
+            public FModCutFrequencies(double cutOffLowin, double cutOffHiin) { this.cutOffHi = cutOffHiin; this.cutOffLow = cutOffLowin; }
+            protected override void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut)
+            {
+                
+                //well, bufsize/2 is 22,050 hz.
+                int cLow = (int)((cutOffLow/22050.0) * (freqAng.Length));
+                int cHigh = (int)((cutOffHi/22050.0) * (freqAng.Length));
+                for (int i=0; i<freqMagOut.Length; i++)
+                {
+                    if (i>cLow && i<cHigh)
+                    {
+                        freqAngOut[i] = freqAng[i];
+                        freqMagOut[i] = freqMag[i];
+                    }
+                    else
+                    {
+                        freqAngOut[i] = 0;
+                        freqMagOut[i] = 0;
+                    }
+                }
+            }
+        }
+
+        public abstract class FourierModifierSmooth
+        {
+            public int overlap = 4, overlapRamp = 4;
+            public FourierModifierSmooth() { }
+            public FourierModifierSmooth(int noverlap) { overlap=overlapRamp =noverlap; }
+            public FourierModifierSmooth(int noverlap, int noverlapRamp) { overlap=noverlap; overlapRamp= noverlapRamp; }
             public WaveAudio doModify(WaveAudio w) { return doModify(w, 2048); }
             public WaveAudio doModify(WaveAudio src, int bufsize) 
             {
                 WaveAudio wout = new WaveAudio(src.getSampleRate(), 1);
                 wout.LengthInSamples = src.LengthInSamples;
                 
+                //reuse the buffers.
+                double[] ffreqmaghalfout=new double[bufsize/2], ffreqanghalfout=new double[bufsize/2];
+                double[] ffreqmaghalfin=new double[bufsize/2], ffreqanghalfin=new double[bufsize/2];
+                double[] fbuffertime = new double[bufsize];
+                
+                for (int index=0; index<src.LengthInSamples-bufsize; index+=bufsize/overlap)
+                {
+                    //copy into buffer.
+                    Array.Copy(src.data[0], index, fbuffertime, 0, bufsize);
+                    double[] ffreqreal, ffreqimag;
+                    Fourier.RawSamplesToFrequency(fbuffertime, out ffreqreal, out ffreqimag);
+                    //we only care about the first half of these results.
+                    for (int i=0; i<bufsize/2; i++)
+                    {
+                        ffreqmaghalfin[i] = Math.Sqrt(ffreqreal[i]*ffreqreal[i]+ffreqimag[i]*ffreqimag[i]);
+                        ffreqanghalfin[i] = Math.Atan2(ffreqimag[i], ffreqreal[i]);
+                    }
+                    this.modifyAngular(ffreqmaghalfin, ffreqanghalfin, ffreqmaghalfout, ffreqanghalfout);
+                    for (int i=0; i<ffreqreal.Length/2; i++)
+                    {
+                        ffreqreal[i] = ffreqmaghalfout[i]*Math.Sin(ffreqanghalfout[i]);
+                        ffreqimag[i] = ffreqmaghalfout[i]*Math.Cos(ffreqanghalfout[i]);
+                    }
+                    for (int i=ffreqreal.Length/2; i<ffreqreal.Length; i++)
+                    {
+                        ffreqreal[i]=ffreqimag[i]=0;
+                    }
+                    double[] fbufout;
+                    Fourier.RawFrequencyToSamples(out fbufout, ffreqreal, ffreqimag);
+                    WaveAudio ww = new WaveAudio(44100, 1);
+                    ww.data[0] = fbufout;
+                    //Array.Copy(fbufout, 0, wout.data[0], partnum*bufsize, bufsize);
+                    ConstructionUtil.placeAudioRamp(wout, ww, index, (bufsize/overlapRamp));
+                }
+                return wout;
+            }
+            protected abstract void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut);
+            private string sPlotDir = null; //default to not drawing plots
+            public void drawPlots(string sDir) {this.sPlotDir=sDir; }
+            protected void drawPlots(double[] a1, double[] a2, double[] a3, double[] a4)
+            {
+                if (sPlotDir==null) return;
+                ConstructionUtil.plotArray(a1,sPlotDir+"\\data1.js",-1,true);
+                ConstructionUtil.plotArray(a2,sPlotDir+"\\data3.js",-1,false);
+                ConstructionUtil.plotArray(a3,sPlotDir+"\\data2.js",-1,true);
+                ConstructionUtil.plotArray(a4,sPlotDir+"\\data4.js",-1,false);
+            }
+        }
+
+        public abstract class FourierModifier
+        {
+            public WaveAudio doModify(WaveAudio w) { return doModify(w, 2048); }
+            public WaveAudio doModify(WaveAudio src, int bufsize)
+            {
+                WaveAudio wout = new WaveAudio(src.getSampleRate(), 1);
+                wout.LengthInSamples = src.LengthInSamples;
+
                 //reuse the buffers.
                 double[] ffreqmaghalfout=new double[bufsize/2], ffreqanghalfout=new double[bufsize/2];
                 double[] ffreqmaghalfin=new double[bufsize/2], ffreqanghalfin=new double[bufsize/2];
@@ -154,10 +240,14 @@ namespace CsWaveAudio
                     }
                     this.modifyAngular(ffreqmaghalfin, ffreqanghalfin, ffreqmaghalfout, ffreqanghalfout);
                     if (partnum==0) this.drawPlots(ffreqmaghalfin, ffreqanghalfin, ffreqmaghalfout, ffreqanghalfout);
-                    for (int i=0; i<bufsize/2; i++)
+                    for (int i=0; i<ffreqreal.Length/2; i++)
                     {
                         ffreqreal[i] = ffreqmaghalfout[i]*Math.Sin(ffreqanghalfout[i]);
                         ffreqimag[i] = ffreqmaghalfout[i]*Math.Cos(ffreqanghalfout[i]);
+                    }
+                    for (int i=ffreqreal.Length/2; i<ffreqreal.Length; i++)
+                    {
+                        ffreqreal[i]=ffreqimag[i]=0;
                     }
                     double[] fbufout;
                     Fourier.RawFrequencyToSamples(out fbufout, ffreqreal, ffreqimag);
@@ -167,14 +257,14 @@ namespace CsWaveAudio
             }
             protected abstract void modifyAngular(double[] freqMag, double[] freqAng, double[] freqMagOut, double[] freqAngOut);
             private string sPlotDir = null; //default to not drawing plots
-            public void drawPlots(string sDir) {this.sPlotDir=sDir; }
+            public void drawPlots(string sDir) { this.sPlotDir=sDir; }
             protected void drawPlots(double[] a1, double[] a2, double[] a3, double[] a4)
             {
                 if (sPlotDir==null) return;
-                ConstructionUtil.plotArray(a1, sPlotDir+"\\data1.js",true);
-                ConstructionUtil.plotArray(a2, sPlotDir+"\\data3.js", false);
-                ConstructionUtil.plotArray(a3, sPlotDir+"\\data2.js", true);
-                ConstructionUtil.plotArray(a4, sPlotDir+"\\data4.js", false);
+                ConstructionUtil.plotArray(a1, sPlotDir+"\\data1.js", -1,true);
+                ConstructionUtil.plotArray(a2,sPlotDir+"\\data3.js",-1,false);
+                ConstructionUtil.plotArray(a3,sPlotDir+"\\data2.js",-1,true);
+                ConstructionUtil.plotArray(a4,sPlotDir+"\\data4.js",-1,false);
             }
         }
 
@@ -229,15 +319,26 @@ namespace CsWaveAudio
             return v2 * proportion + v1 * (1 - proportion);
         }
 
-
-        public static bool plotArray(double[] ar, string sFilename) { return plotArray(ar, sFilename, false); }
-        public static bool plotArray(double[] ar, string sFilename, bool bLogscale)
+        public static double[] cutArray(double[] arin, int everyother)
         {
+            double[] arout = new double[arin.Length/everyother + 1];
+            for (int i=0; i<arin.Length; i+= everyother)
+                arout[i/everyother] = arin[i];
+            return arout;
+        }
+        
+        public static bool plotArray(double[] ar, string sFilename) { return plotArray(ar, sFilename, -1, false); }
+        public static bool plotArray(double[] ar,string sFilename,int nApproxSize) { return plotArray(ar,sFilename,nApproxSize, false); }
+        public static bool plotArray(double[] ar, string sFilename, int nApproxSize, bool bLogscale)
+        {
+            int skip = 1;
+            if (nApproxSize > 0) skip = (int)((double)ar.Length / nApproxSize);
+            skip = Math.Max(skip,1);
             if (ar==null) return false;
             using (System.IO.TextWriter tw = new System.IO.StreamWriter(sFilename))
             {
                tw.Write("data = [");
-               for (int i=0; i<ar.Length; i++)
+               for (int i=0; i<ar.Length; i+= skip)
                    if (!bLogscale)
                        tw.Write("{x:"+i+",y:"+ar[i].ToString(System.Globalization.CultureInfo.InvariantCulture)+"},");
                    else
@@ -246,6 +347,21 @@ namespace CsWaveAudio
             }
             return true;
         }
+        public delegate double FN_1(double x);
+        public static bool plotFunction(FN_1 fn, string sFilename, double x1, double x2, int nPoints)
+        {
+            double[] ar = new double[nPoints];
+            for (int i = 0; i < nPoints; i++)
+            {
+                ar[i] = fn( (((double)i)/nPoints)* (x2-x1) + x1 );
+            }
+            return plotArray(ar, sFilename);
+        }
 
+        public static void expectLength(WaveAudio w, double seconds)
+        {
+            if (Math.Abs(w.LengthInSeconds - seconds)>0.1)
+                throw new Exception("Length is "+w.LengthInSeconds+", "+seconds+" expected");
+        }
     }
 }

@@ -68,10 +68,10 @@ namespace WaveAudioTests
 
             //note-appears to get quieter, but energy spectrum actually the same- that's just our ears hearing frequencies at different volumen
 
-            WaveAudio j1 = (new CsWaveAudio.RedNoiseSmoothed(100, 0.5 ).CreateWaveAudio(2.5));
-            WaveAudio j2 = (new CsWaveAudio.RedNoiseSmoothed(150, 0.5 ).CreateWaveAudio(2.5));
-            WaveAudio j3 = (new CsWaveAudio.RedNoiseSmoothed(250, 0.5).CreateWaveAudio(2.5));
-            pl.Play(WaveAudio.Mix(WaveAudio.Mix(j1, j3),j2));
+            //WaveAudio j1 = (new CsWaveAudio.RedNoiseSmoothed(100, 0.5 ).CreateWaveAudio(2.5));
+            //WaveAudio j2 = (new CsWaveAudio.RedNoiseSmoothed(150, 0.5 ).CreateWaveAudio(2.5));
+            //WaveAudio j3 = (new CsWaveAudio.RedNoiseSmoothed(250, 0.5).CreateWaveAudio(2.5));
+            //pl.Play(WaveAudio.Mix(WaveAudio.Mix(j1, j3),j2));
 
         }
 

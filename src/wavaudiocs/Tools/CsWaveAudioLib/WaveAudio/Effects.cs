@@ -137,5 +137,13 @@ namespace CsWaveAudio
             return WaveAudio.Mix(w1, w2);
         }
 
+
+        /*public static WaveAudio ProlongLengthWithSilences(double incrAmount)
+        {
+            //insert silences to make something longer.
+            //use a buffer to move this around? or can be done in place.
+
+        }*/
+
     }
 }
