@@ -164,10 +164,10 @@ class CellRenameMain(wx.Frame):
         self.Close()
 
     def onMenuEditUndo(self, evt):
-        #Attempt to undo last rename
+        # attempt to undo last rename
         if not self.undo_history:
             return
-        sPrevdir, ato, afrom = self.undo_history #note reverse order, because rename to from
+        sPrevdir, ato, afrom = self.undo_history # note reverse order, because rename to from
         if sPrevdir!=self.data.directory:
             wxutil.alertDialog(self, 'Cannot undo, first return to the directory.')
             return
@@ -200,7 +200,7 @@ class CellRenameMain(wx.Frame):
             
     def onMenuEditPattern(self, evt):
         sPattern = wxutil.inputDialog(self, 'Enter a naming pattern. The following can be used:/n/n/t%n=padded number (i.e. 001, 002)/n/t%N=number/n/t%f=file name/n/t%U=uppercase name/n/t%u=lowercase name'.
-            replace('/n',os.linesep).replace('/t','     ')	,'%f')
+            replace('/n',os.linesep).replace('/t','     '),'%f')
         if not sPattern: return
         self.grid.writeToModel(self.data)
         self.data.transformWithPattern(sPattern)

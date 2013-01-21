@@ -17,7 +17,7 @@ class CellRenameGrid(gridlib.Grid):
     def __init__(self, parent, nRows, fnSortEvent):
         gridlib.Grid.__init__(self, parent, -1, size=wx.Size(550,200))
         self.fnSortEvent = fnSortEvent
-        self.CreateGrid(nRows, len(COLFIELDS)) #i.e. (40 rows, 5 cols)
+        self.CreateGrid(nRows, len(COLFIELDS)) # e.g. (40 rows, 5 cols)
         
         self.SetRowLabelSize(22)
         self.SetColLabelValue(COL_FILENAME, "Filename")
@@ -58,12 +58,12 @@ class CellRenameGrid(gridlib.Grid):
             try: unittests.runall()
             except: wxutil.alertDialog(self, 'e:'+str(sys.exc_info()[0]))
             else: wxutil.alertDialog(self, 'all tests pass')
-            
-        # Ctrl+C for Copy, Ctrl+V for paste
+        
+        # respond to key event
         dictEditableColumns = {COL_NEWNAME: 1}
         ret = cellrename_gridclipboard.handle_keyboard_events(self, evt, dictEditableColumns)
         if not ret:
-            evt.Skip() #if we didn't handle the event, pass it upwards
+            evt.Skip() # if we didn't handle the event, pass it upwards
         
         
     def writeToModel(self, obj):

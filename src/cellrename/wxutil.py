@@ -1,12 +1,12 @@
 
-# Simple wrappers for wxPython dialogs
-# Ben Fisher
+'''Simple wrappers for wxPython dialogs
+Ben Fisher'''
 
 import os
 import wx
 
 def alertDialog(window, text,title='Message', style = wx.OK):
-    #Possible styles: wx.OK, wx.CANCEL, wx.YES_NO
+    # possible styles: wx.OK, wx.CANCEL, wx.YES_NO
     dlg = wx.MessageDialog(window, text, caption=title, style=style)
     res = dlg.ShowModal()
     dlg.Destroy()
@@ -49,7 +49,7 @@ def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, default
     else:
         return None
 
-# Other wrappers:
+# other wrappers:
 def getClipboardText():
     sRet = None
     if wx.TheClipboard.Open():
@@ -77,4 +77,3 @@ def setClipboardText(s):
 if __name__=='__main__':
     app = wx.PySimpleApp()
     openFileDialog(None, 'Test', True)
-    

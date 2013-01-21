@@ -115,7 +115,7 @@ def dataunittest_files():
     os.mkdir(os.path.join(dir, 'directory.jpg'))
     os.mkdir(os.path.join(dir, '.hiddendirectory'))
     test1 = CellRenameData(dir, '*', True)
-    expectEqual( len(test1.data), len(names)+3-2) #2 begin with . and shouldn't be included
+    expectEqual( len(test1.data), len(names)+3-2) # 2 begin with . and shouldn't be included
     expectEqual( containsName(test1, 'directory1'), True)
     expectEqual( containsName(test1, 'directory.jpg'), True)
     expectEqual( containsName(test1, '1'), True)
@@ -151,13 +151,13 @@ def dataunittest_files():
         expectEqual( containsName(filter, 'picture and picture.jpG'), True)
         expectEqual( containsName(filter, 'directory.jpg'), False)
     
-    #test sorting
+    # test sorting
     testSort1 = CellRenameData(dir, '*', True)
     testSort1.sort('filename')
     expectEqual( testSort1.data[0].filename , '1')
     expectEqual( testSort1.data[1].filename , '2.gif')
     expectEqual( testSort1.data[-1].filename , 'the PiCture with caps.jpg')
-    testSort1.sort('filename',True) #reverse order
+    testSort1.sort('filename',True) # reverse order
     expectEqual( testSort1.data[-1].filename , '1')
     expectEqual( testSort1.data[-2].filename , '2.gif')
     expectEqual( testSort1.data[0].filename , 'the PiCture with caps.jpg')
@@ -165,8 +165,8 @@ def dataunittest_files():
     fout=open(join(dir, 'a picture.JPG'),'w'); fout.write('a'); fout.close()
     testSort1.refresh()
     testSort1.sort('size')
-    expectEqual( testSort1.data[0].filename in ('directory1', 'directory.jpg'), True) #directories always at top
-    expectEqual( testSort1.data[1].filename in ('directory1', 'directory.jpg'), True) #directories always at top
+    expectEqual( testSort1.data[0].filename in ('directory1', 'directory.jpg'), True) # directories always at top
+    expectEqual( testSort1.data[1].filename in ('directory1', 'directory.jpg'), True) # directories always at top
     expectEqual( testSort1.data[2].filename , 'a picture.JPG')
     
     # time.sleep(7) # in case the OS is imprecise in stamping file times
@@ -225,25 +225,25 @@ def dataunittest_transforms():
     
     useFakeData(test1, testNames1)
     test1.transformReplace('A','C')
-    test1.transformReplace('.jpg','.png') #unlike the rest, this *should* be able to rename extensions
+    test1.transformReplace('.jpg','.png') # unlike the rest, this *should* be able to rename extensions
     expectEqual( tostring(test1),'aa|bb.png|cc.Ok.png|dd.a')
     
     test2 = CellRenameData('.', '*', False)
     testNames2 = 'a(a|test(Athat|first,second|xx,yy,zz|cc.Ok.jpg|ccnOk.jpg|dd.a'.split('|')
     useFakeData(test2, testNames2)
-    test2.transformRegexReplace('(a', '_a', False, False) #not regex, case insensitive
+    test2.transformRegexReplace('(a', '_a', False, False) # not regex, case insensitive
     expectEqual( tostring(test2), 'a_a|test_athat|first,second|xx,yy,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transformRegexReplace('(a', '_a', False, True) #not regex, case sensitive
+    test2.transformRegexReplace('(a', '_a', False, True) # not regex, case sensitive
     expectEqual( tostring(test2), 'a_a|test(Athat|first,second|xx,yy,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transformRegexReplace('cc.Ok', 'match', False, False) #not regex, case sensitive
+    test2.transformRegexReplace('cc.Ok', 'match', False, False) # not regex, case sensitive
     expectEqual( tostring(test2), 'a(a|test(Athat|first,second|xx,yy,zz|match.jpg|ccnOk.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transformRegexReplace('cc.Ok', 'match', True, False) #is regex, case sensitive
+    test2.transformRegexReplace('cc.Ok', 'match', True, False) # is regex, case sensitive
     expectEqual( tostring(test2), 'a(a|test(Athat|first,second|xx,yy,zz|match.jpg|match.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transformRegexReplace(r'(\w+),(\w+)', r'\2-\1', True, False) #is regex, case sensitive
+    test2.transformRegexReplace(r'(\w+),(\w+)', r'\2-\1', True, False) # is regex, case sensitive
     expectEqual( tostring(test2), 'a(a|test(Athat|second-first|yy-xx,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
 
 def runall():
@@ -253,4 +253,4 @@ def runall():
     
 if __name__=='__main__':
     runall()
-    
+

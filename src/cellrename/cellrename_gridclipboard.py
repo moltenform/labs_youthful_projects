@@ -33,7 +33,7 @@ def handle_keyboard_events(sheet, evt, dictEditableColumns):
                     colData.append(sheet.GetCellValue(row,col))
                 allData.append('\t'.join(colData))
             
-            #now set the clipboard to result
+            # now set the clipboard to result
             wxutil.setClipboardText(os.linesep.join(allData))
         else:
             # simply copy contents of current cell

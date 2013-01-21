@@ -20,7 +20,7 @@ class CellRenameData():
         aFrom = os.listdir(self.directory)
         if self.filter: aFrom = fnmatch.filter(aFrom, self.filter)
         for sFilename in aFrom:
-            if sFilename.startswith('.'): continue #don't use hidden files
+            if sFilename.startswith('.'): continue # don't use hidden files
             st =  os.stat(os.path.join(self.directory, sFilename))
             isDirectory = os.path.isdir(os.path.join(self.directory, sFilename))
             if isDirectory and not self.include_dirs: 
@@ -28,12 +28,12 @@ class CellRenameData():
             
             elem = CellRenameItem()
             elem.filename = elem.newname = sFilename
-            elem.size = st.st_size if not isDirectory else -1 #for sorting purposes, sort dirs above
-            elem.sizeRendered = renderSize(st.st_size) if not isDirectory else ' ' #if a directory, show space as " "
+            elem.size = st.st_size if not isDirectory else -1 # for sorting purposes, sort dirs above
+            elem.sizeRendered = renderSize(st.st_size) if not isDirectory else ' ' # if a directory, show space as " "
             elem.modifiedTime = st.st_mtime
             elem.creationTime = st.st_ctime
             if os.name=='nt':
-                #on Windows, this is a float, let's make it an int
+                # on Windows, this is a float, let's make it an int
                 elem.modifiedTime = int(10000*elem.modifiedTime)
                 elem.creationTime = int(10000*elem.creationTime)
             
@@ -54,7 +54,7 @@ class CellRenameData():
             raise 'Invalid field name.'
         self.data.sort(key=map[sField], reverse=bReverse)
             
-    #Transformations act on the new name, so that transformations can be chained
+    # transformations act on the new name, so that transformations can be chained
     # add a suffix or prefix. returns True on success.
     def transformSuffixOrPrefix(self, bPrefix, sAdded):
         for i in range(len(self.data)):
