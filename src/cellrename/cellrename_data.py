@@ -7,27 +7,27 @@ class CellRenameData():
     data = None # list of cellrenameitem
     directory = None
     filter = None
-    includeDirs = False
-    def __init__(self, strDirectory, strFilter, bIncludeDirs=False):
-        self.directory = strDirectory
-        self.filter = strFilter
-        self.includeDirs = bIncludeDirs
+    include_dirs = False
+    def __init__(self, sDirectory, sFilter, bIncludeDirs=False):
+        self.directory = sDirectory
+        self.filter = sFilter
+        self.include_dirs = bIncludeDirs
         self.refresh()
     
     def refresh(self):
         # load all of the filenames!
         self.data = []
-        afrom = os.listdir(self.directory)
-        if self.filter: afrom = fnmatch.filter(afrom, self.filter)
-        for fname in afrom:
-            if fname.startswith('.'): continue #don't use hidden files
-            st =  os.stat(os.path.join(self.directory, fname))
-            isDirectory = os.path.isdir(os.path.join(self.directory, fname))
-            if isDirectory and not self.includeDirs: 
+        aFrom = os.listdir(self.directory)
+        if self.filter: aFrom = fnmatch.filter(aFrom, self.filter)
+        for sFilename in aFrom:
+            if sFilename.startswith('.'): continue #don't use hidden files
+            st =  os.stat(os.path.join(self.directory, sFilename))
+            isDirectory = os.path.isdir(os.path.join(self.directory, sFilename))
+            if isDirectory and not self.include_dirs: 
                 continue
             
             elem = CellRenameItem()
-            elem.filename = elem.newname = fname
+            elem.filename = elem.newname = sFilename
             elem.size = st.st_size if not isDirectory else -1 #for sorting purposes, sort dirs above
             elem.sizeRendered = renderSize(st.st_size) if not isDirectory else ' ' #if a directory, show space as " "
             elem.modifiedTime = st.st_mtime
@@ -42,86 +42,85 @@ class CellRenameData():
     def getLength(self): 
         return len(self.data)
     
-    def sort(self, strField, bReverse = False):
-        map = { 'filename':lambda elem: elem.filename,
-            'newname':lambda elem: elem.newname,
-            'size':lambda elem: elem.size,
-            'modifiedTime':lambda elem: elem.modifiedTime,
-            'creationTime':lambda elem: elem.creationTime,
-            }
-        
-        if strField not in map: raise 'Invalid field name.'
-        self.data.sort(key=map[strField], reverse=bReverse)
+    def sort(self, sField, bReverse=False):
+        map = { 'filename': lambda elem: elem.filename,
+          'newname': lambda elem: elem.newname,
+          'size': lambda elem: elem.size,
+          'modifiedTime': lambda elem: elem.modifiedTime,
+          'creationTime': lambda elem: elem.creationTime,
+          }
+    
+        if sField not in map:
+            raise 'Invalid field name.'
+        self.data.sort(key=map[sField], reverse=bReverse)
             
     #Transformations act on the new name, so that transformations can be chained
     # add a suffix or prefix. returns True on success.
-    def transform_suffixorprefix(self, bPrefix, strAdded):
+    def transformSuffixOrPrefix(self, bPrefix, sAdded):
         for i in range(len(self.data)):
             if bPrefix:
-                self.data[i].newname = strAdded+self.data[i].newname
+                self.data[i].newname = sAdded+self.data[i].newname
             else:
                 # probably want to add this before the file extension.
                 name, ext = os.path.splitext(self.data[i].newname)
-                self.data[i].newname = name+strAdded+ext
+                self.data[i].newname = name+sAdded+ext
         return True
                 
-    # add a number. returns True on success or errstring on failure.
-    def transform_addnumber(self, strNumber):
-        if not all((c in '0123456789' for c in strNumber)):
+    # append a number. returns True on success or errstring on failure.
+    def transformAppendNumber(self, sNumberExample):
+        if not all((c in '0123456789' for c in sNumberExample)):
             return 'Must consist of numerical digits.'
-        nNumber = int(strNumber, 10)
+        nNumber = int(sNumberExample, 10)
         for i in range(len(self.data)):
             # if numbers grow to large, we handle it gracefully.
-            strAdded = padn(i+nNumber, len(strNumber))
+            sAdded = padn(i+nNumber, len(sNumberExample))
             # probably want to add this before the file extension.
             name, ext = os.path.splitext(self.data[i].newname)
-            self.data[i].newname = name+' '+strAdded+ext
+            self.data[i].newname = name+' '+sAdded+ext
         return True
         
     # set based on a pattern
-    def transform_pattern(self, strPattern):
-        padlength = len(str(len(self.data))) #number of digits, e.g. 200 files = 3 digits
-        # %n=padded number (i.e. 001, 002)   %N=number   %f=file name   %U=uppercase name   %u=lowercase name
+    def transformWithPattern(self, sPattern):
+        padlength = len(str(len(self.data))) # e.g. if there are >100 files we should use 3 digits
         def subpattern(s, elem, i):
-            namepart, extpart = os.path.splitext(self.data[i].newname)
-            s = s.replace('%N', str(i+1))
-            s = s.replace('%n', padn(i+1,padlength))
-            s = s.replace('%0', padn(i,padlength))
-            s = s.replace('%CT', str(self.data[i].creationTime))
-            s = s.replace('%MT', str(self.data[i].modifiedTime))
-            s = s.replace('%f', namepart)
-            s = s.replace('%F', self.data[i].newname)
-            s = s.replace('%u', namepart.lower())
-            s = s.replace('%U', namepart.upper())
-            return s + extpart
+            name, ext = os.path.splitext(self.data[i].newname)
+            s = s.replace('%N', str(i+1))                       # raw number
+            s = s.replace('%n', padn(i+1,padlength))       # padded number    
+            s = s.replace('%0', padn(i,padlength))           # start with 0.
+            s = s.replace('%CT', str(self.data[i].creationTime)) # creation time
+            s = s.replace('%MT', str(self.data[i].modifiedTime)) # modified time
+            s = s.replace('%f', name)                       # name part
+            s = s.replace('%F', self.data[i].newname)        # full name
+            s = s.replace('%u', name.lower())            # to uppercase
+            s = s.replace('%U', name.upper())            # to lowercase
+            return s + ext
         
         for i in range(len(self.data)):
-            self.data[i].newname = subpattern(strPattern, self.data[i], i)
+            self.data[i].newname = subpattern(sPattern, self.data[i], i)
         return True
     
     # replace in filename (case-sensitive!)
-    def transform_replace(self, strSearch, strReplace):
+    def transformReplace(self, sSearch, sReplace):
         for elem in self.data:
-            elem.newname = elem.newname.replace(strSearch, strReplace)
+            elem.newname = elem.newname.replace(sSearch, sReplace)
         return True
     
     # replace with regular expression
-    def transform_regexreplace(self, strRe, strReplace, bUseRegexSymbols, bCaseSensitive):
+    def transformRegexReplace(self, sRe, sReplace, bUseRegexSymbols, bCaseSensitive):
         import re
-        if not bUseRegexSymbols: strRe = re.escape(strRe)
+        if not bUseRegexSymbols: sRe = re.escape(sRe)
         try:
-            objre = re.compile(strRe) if bCaseSensitive else re.compile(strRe, re.IGNORECASE)
+            objre = re.compile(sRe) if bCaseSensitive else re.compile(sRe, re.IGNORECASE)
         except:
             return 'Could not create regular expression.'
         for elem in self.data:
-            elem.newname = objre.sub( strReplace, elem.newname)
+            elem.newname = objre.sub(sReplace, elem.newname)
         return True
-    
             
     def prepareLists(self):
-        afrom = [elem.filename for elem in self.data]
-        ato = [elem.newname for elem in self.data]
-        return afrom, ato
+        aFrom = [elem.filename for elem in self.data]
+        aTo = [elem.newname for elem in self.data]
+        return aFrom, aTo
         
     def __str__(self):
         return '\n'.join((str(elem) for elem in self.data))
@@ -151,7 +150,6 @@ def padn(n,digits):
     while len(s)<digits:
         s = '0'+s
     return s
-
 
 if __name__=='__main__':
     import unittests

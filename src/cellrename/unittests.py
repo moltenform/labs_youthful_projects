@@ -9,18 +9,18 @@ exists = os.path.exists
 
 def expectEqual(v, vExpected):
     if v != vExpected:
-        print 'Fail: Expected '+str(vExpected) + ' but got '+str(v)
+        print 'Fail: Expected '+str(vExpected)+' but got '+str(v)
         raise exceptions.RuntimeError, 'stop'
     else:
-        print 'Pass: '+str(vExpected) + ' == '+str(v)
+        print 'Pass: '+str(vExpected)+' == '+str(v)
         
 def expectStringContains(s, sExpected):
     if not isinstance(s, basestring): raise exceptions.RuntimeError, 'not even a string.'
     if sExpected.lower() not in s.lower():
-        print 'Fail: Expected '+str(sExpected) + ' within string '+str(s)
+        print 'Fail: Expected '+str(sExpected)+' within string '+str(s)
         raise exceptions.RuntimeError, 'stop'
     else:
-        print 'Pass: the string "'+str(s) + '" contains "'+str(sExpected)+'"'
+        print 'Pass: the string "'+str(s)+'" contains "'+str(sExpected)+'"'
 
 def expectThrow(fn, sExpectedError, exceptionClass=exceptions.RuntimeError):
     try:
@@ -28,9 +28,9 @@ def expectThrow(fn, sExpectedError, exceptionClass=exceptions.RuntimeError):
     except exceptionClass,e:
         sError = str(e).split('\n')[-1]
         if sExpectedError.lower() in sError.lower():
-            print 'Pass:',sExpectedError, ' within ', sError
+            print 'Pass:', sExpectedError, ' within ', sError
         else:
-            print 'Fail: expected msg',sExpectedError,'got',sError
+            print 'Fail: expected msg', sExpectedError, 'got', sError
     else:
         print 'Fail: expected to throw! '+sExpectedError
 
@@ -111,7 +111,6 @@ def dataunittest_files():
     def containsName(data, name):
         return any((item.filename==name for item in data.data))
     
-    #~ names = '''.testhidden,1,2.gif,3__3_,_4__4.gif,a picture.JPG,first,second.gif,noext another with no ext,noext1,picture 2.jpg,picture and picture.jpG,test.doc,the PiCture with caps.jpg'''.split(',')
     os.mkdir(os.path.join(dir, 'directory1'))
     os.mkdir(os.path.join(dir, 'directory.jpg'))
     os.mkdir(os.path.join(dir, '.hiddendirectory'))
@@ -182,68 +181,69 @@ def dataunittest_files():
 def dataunittest_transforms():
     from cellrename_data import CellRenameData, CellRenameItem
     
-    def useFakeData( data, ar):
-        newdata = [CellRenameItem() for s in ar]
-        for i in range(len(ar)): 
-            newdata[i].filename=newdata[i].newname=ar[i]
+    def useFakeData(data, a):
+        newdata = [CellRenameItem() for s in a]
+        for i in range(len(a)): 
+            newdata[i].filename=newdata[i].newname=a[i]
         data.data = newdata
     def tostring(data):
         return '|'.join((item.newname for item in data.data))
     
     testNames1 = 'aa|bb.jpg|cc.Ok.jpg|dd.a'.split('|')
     test1 = CellRenameData('.', '*', False)
+    expectEqual( len(test1.data)>0, True)
     
     useFakeData(test1, testNames1)
     expectEqual(any((item.filename.endswith('.py') for item in test1.data)), False)
-    test1.transform_suffixorprefix(False, 'suf')
+    test1.transformSuffixOrPrefix(False, 'suf')
     expectEqual( tostring(test1), 'aasuf|bbsuf.jpg|cc.Oksuf.jpg|ddsuf.a')
     useFakeData(test1, testNames1)
-    test1.transform_suffixorprefix(True, 'pref')
+    test1.transformSuffixOrPrefix(True, 'pref')
     expectEqual( tostring(test1), 'prefaa|prefbb.jpg|prefcc.Ok.jpg|prefdd.a')
     
     useFakeData(test1, testNames1)
-    test1.transform_addnumber('1')
+    test1.transformAppendNumber('1')
     expectEqual( tostring(test1), 'aa 1|bb 2.jpg|cc.Ok 3.jpg|dd 4.a')
-    test1.transform_addnumber('5')
+    test1.transformAppendNumber('5')
     expectEqual( tostring(test1), 'aa 1 5|bb 2 6.jpg|cc.Ok 3 7.jpg|dd 4 8.a')
     useFakeData(test1, testNames1)
-    test1.transform_addnumber('000')
+    test1.transformAppendNumber('000')
     expectEqual( tostring(test1), 'aa 000|bb 001.jpg|cc.Ok 002.jpg|dd 003.a')
     useFakeData(test1, testNames1)
-    test1.transform_addnumber('0098')
+    test1.transformAppendNumber('0098')
     expectEqual( tostring(test1), 'aa 0098|bb 0099.jpg|cc.Ok 0100.jpg|dd 0101.a')
     
     useFakeData(test1, testNames1)
-    test1.transform_pattern('s')
+    test1.transformWithPattern('s')
     expectEqual( tostring(test1), 's|s.jpg|s.jpg|s.a')
     useFakeData(test1, testNames1)
-    test1.transform_pattern('a%na%n %u%u%f')
+    test1.transformWithPattern('a%na%n %u%u%f')
     expectEqual( tostring(test1), 'a1a1 aaaaaa|a2a2 bbbbbb.jpg|a3a3 cc.okcc.okcc.Ok.jpg|a4a4 dddddd.a')
     useFakeData(test1, testNames1)
-    test1.transform_pattern('%N(%U)%N')
+    test1.transformWithPattern('%N(%U)%N')
     expectEqual( tostring(test1), '1(AA)1|2(BB)2.jpg|3(CC.OK)3.jpg|4(DD)4.a')
     
     useFakeData(test1, testNames1)
-    test1.transform_replace('A','C')
-    test1.transform_replace('.jpg','.png') #unlike the rest, this *should* be able to rename extensions
+    test1.transformReplace('A','C')
+    test1.transformReplace('.jpg','.png') #unlike the rest, this *should* be able to rename extensions
     expectEqual( tostring(test1),'aa|bb.png|cc.Ok.png|dd.a')
     
     test2 = CellRenameData('.', '*', False)
     testNames2 = 'a(a|test(Athat|first,second|xx,yy,zz|cc.Ok.jpg|ccnOk.jpg|dd.a'.split('|')
     useFakeData(test2, testNames2)
-    test2.transform_regexreplace('(a', '_a', False, False) #not regex, case insensitive
+    test2.transformRegexReplace('(a', '_a', False, False) #not regex, case insensitive
     expectEqual( tostring(test2), 'a_a|test_athat|first,second|xx,yy,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transform_regexreplace('(a', '_a', False, True) #not regex, case sensitive
+    test2.transformRegexReplace('(a', '_a', False, True) #not regex, case sensitive
     expectEqual( tostring(test2), 'a_a|test(Athat|first,second|xx,yy,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transform_regexreplace('cc.Ok', 'match', False, False) #not regex, case sensitive
+    test2.transformRegexReplace('cc.Ok', 'match', False, False) #not regex, case sensitive
     expectEqual( tostring(test2), 'a(a|test(Athat|first,second|xx,yy,zz|match.jpg|ccnOk.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transform_regexreplace('cc.Ok', 'match', True, False) #is regex, case sensitive
+    test2.transformRegexReplace('cc.Ok', 'match', True, False) #is regex, case sensitive
     expectEqual( tostring(test2), 'a(a|test(Athat|first,second|xx,yy,zz|match.jpg|match.jpg|dd.a')
     useFakeData(test2, testNames2)
-    test2.transform_regexreplace(r'(\w+),(\w+)', r'\2-\1', True, False) #is regex, case sensitive
+    test2.transformRegexReplace(r'(\w+),(\w+)', r'\2-\1', True, False) #is regex, case sensitive
     expectEqual( tostring(test2), 'a(a|test(Athat|second-first|yy-xx,zz|cc.Ok.jpg|ccnOk.jpg|dd.a')
 
 def runall():

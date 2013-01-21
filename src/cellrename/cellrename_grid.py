@@ -12,8 +12,8 @@ COL_SIZE = 2
 COLFIELDS = {COL_FILENAME: 'filename', COL_NEWNAME: 'newname', COL_SIZE: 'size'}
 
 class CellRenameGrid(gridlib.Grid):
-    lastsortcol = -1
-    lastsortdirection = False
+    last_sort_col = -1
+    sort_reverse_order = False
     def __init__(self, parent, nRows, fnSortEvent):
         gridlib.Grid.__init__(self, parent, -1, size=wx.Size(550,200))
         self.fnSortEvent = fnSortEvent
@@ -24,11 +24,11 @@ class CellRenameGrid(gridlib.Grid):
         self.SetColLabelValue(COL_NEWNAME, "New name")
         self.SetColLabelValue(COL_SIZE, "Size")
         
-        #Set size
+        # set size
         self.SetColSize(0, 175)
         self.SetColSize(1, 175)
         
-        # Make cols read-only
+        # make cols read-only
         attrReadonly = gridlib.GridCellAttr()
         attrReadonly.SetReadOnly()
         for c in (COL_FILENAME,COL_SIZE):
@@ -36,21 +36,23 @@ class CellRenameGrid(gridlib.Grid):
             
         self.EnableDragRowSize(False)
             
-        #Events
+        # events
         self.Bind(gridlib.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClick)
         self.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         
     def OnLabelLeftClick(self, evt):
+        # clicking the col label will sort by a column
         col = evt.GetCol()
-        if col==self.lastsortcol:
-            bDirection = not self.lastsortdirection
+        if col==self.last_sort_col:
+            bDirection = not self.sort_reverse_order
         else:
             bDirection = False
         self.fnSortEvent(COLFIELDS[col], bDirection)
-        self.lastsortcol = col
-        self.lastsortdirection = bDirection
+        self.last_sort_col = col
+        self.sort_reverse_order = bDirection
         
-    def OnKeyDown(self,evt):
+    def OnKeyDown(self, evt):
+        # implement multi-cell copy and paste.
         if evt.GetKeyCode()==ord('U') and evt.ControlDown() and evt.ShiftDown():
             wxutil.alertDialog(self, 'running unit tests')
             try: unittests.runall()
@@ -82,6 +84,4 @@ class CellRenameGrid(gridlib.Grid):
             self.SetCellValue(i, COL_FILENAME, elem.filename)
             self.SetCellValue(i, COL_NEWNAME, elem.newname)
             self.SetCellValue(i, COL_SIZE, elem.sizeRendered)
-        
-        
 

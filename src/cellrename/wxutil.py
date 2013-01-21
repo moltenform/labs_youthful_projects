@@ -25,27 +25,27 @@ def inputDialog(window, text, default=''):
         
 
 def saveFileDialog(window, text, defaultDirectory=None, defaultFilename=None):
-    dialog = wx.FileDialog(window, style = wx.SAVE, message=text)
+    dlg = wx.FileDialog(window, style = wx.SAVE, message=text)
     
-    if defaultDirectory!=None: dialog.SetDirectory(defaultDirectory)
-    if defaultFilename!=None: dialog.SetFilename(defaultFilename)
-    if dialog.ShowModal() == wx.ID_OK:
-        return dialog.GetPath()
+    if defaultDirectory!=None: dlg.SetDirectory(defaultDirectory)
+    if defaultFilename!=None: dlg.SetFilename(defaultFilename)
+    if dlg.ShowModal() == wx.ID_OK:
+        return dlg.GetPath()
     else:
         return None
 
 def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, defaultFilename=None):
     if bMultiple: style = wx.MULTIPLE
     else: style = wx.OPEN
-    dialog = wx.FileDialog(window, style=style, message=text)
+    dlg = wx.FileDialog(window, style=style, message=text)
     
-    if defaultDirectory!=None: dialog.SetDirectory(defaultDirectory)
-    if defaultFilename!=None: dialog.SetFilename(defaultFilename)
-    if dialog.ShowModal() == wx.ID_OK:
+    if defaultDirectory!=None: dlg.SetDirectory(defaultDirectory)
+    if defaultFilename!=None: dlg.SetFilename(defaultFilename)
+    if dlg.ShowModal() == wx.ID_OK:
         if bMultiple:
-            return dialog.GetPaths()
+            return dlg.GetPaths()
         else:
-            return dialog.GetPath()
+            return dlg.GetPath()
     else:
         return None
 
