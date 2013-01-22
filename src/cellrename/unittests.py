@@ -36,7 +36,7 @@ def expectThrow(fn, sExpectedError, exceptionClass=exceptions.RuntimeError):
 
 
 def unittestsetup():
-    if not os.path.exists('unittests.py'):
+    if not os.path.exists('unittests.py') and not os.path.exists('cellrename.exe'):
         print 'Please open with the current directory set to where this file is.'
         assert False
     
