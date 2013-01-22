@@ -18,7 +18,7 @@ class CellRenameData():
         # load all of the filenames!
         self.data = []
         aFrom = os.listdir(self.directory)
-        if self.filter: aFrom = fnmatch.filter(aFrom, self.filter)
+        if self.filter: aFrom = self.fnmatch_case_insensitive(aFrom, self.filter)
         for sFilename in aFrom:
             if sFilename.startswith('.'): continue # don't use hidden files
             st =  os.stat(os.path.join(self.directory, sFilename))
@@ -41,6 +41,11 @@ class CellRenameData():
     
     def getLength(self): 
         return len(self.data)
+    
+    def fnmatch_case_insensitive(self, filenames, pattern):
+        # by default, fnmatch treats Windows and posix differently, which I'd rather not have.
+        pattern = pattern.lower()
+        return [name for name in filenames if fnmatch.fnmatch(name.lower(), pattern)]
     
     def sort(self, sField, bReverse=False):
         map = { 'filename': lambda elem: elem.filename,
@@ -111,10 +116,14 @@ class CellRenameData():
         if not bUseRegexSymbols: sRe = re.escape(sRe)
         try:
             objre = re.compile(sRe) if bCaseSensitive else re.compile(sRe, re.IGNORECASE)
-        except:
+        except re.error:
             return 'Could not create regular expression.'
+
         for elem in self.data:
-            elem.newname = objre.sub(sReplace, elem.newname)
+            try:
+                elem.newname = objre.sub(sReplace, elem.newname)
+            except re.error:
+                return 'Could not apply regular expression.'
         return True
             
     def prepareLists(self):

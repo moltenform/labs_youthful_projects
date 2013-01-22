@@ -36,6 +36,10 @@ def expectThrow(fn, sExpectedError, exceptionClass=exceptions.RuntimeError):
 
 
 def unittestsetup():
+    if not os.path.exists('unittests.py'):
+        print 'Please open with the current directory set to where this file is.'
+        assert False
+    
     # nuke the unittest directory
     if not os.path.exists(dir): os.mkdir(dir)
     for file in os.listdir(dir):
@@ -141,6 +145,7 @@ def dataunittest_files():
     expectEqual( containsName(testFilter2, 'a picture.JPG'), False)
     expectEqual( len(testFilter2.data), 0)
     
+    # even on posix systems we want case-insensitive pattern matching.
     testFilter3 = CellRenameData(dir, '*.jpg', False)
     testFilter4 = CellRenameData(dir, '*.JpG', False)
     testFilter5 = CellRenameData(dir, '*.jp*', False)
@@ -149,6 +154,7 @@ def dataunittest_files():
         expectEqual( containsName(filter, 'a picture.JPG'), True)
         expectEqual( containsName(filter, 'picture 2.jpg'), True)
         expectEqual( containsName(filter, 'picture and picture.jpG'), True)
+        expectEqual( containsName(filter, 'the PiCture with caps.jpg'), True)
         expectEqual( containsName(filter, 'directory.jpg'), False)
     
     # test sorting

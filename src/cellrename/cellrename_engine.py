@@ -62,7 +62,8 @@ def verifyNoConflictsWithExistingFiles(sDirectory, aFrom, aTo):
     if os.name=='nt': setOfPrevNames = set(filename.lower() for filename in aFrom)
     else: setOfPrevNames = set(aFrom)
     for sOutputName in aTo:
-        if exists(join(sDirectory, sOutputName)) and sOutputName.lower() not in setOfPrevNames:
+        if os.name=='nt': sOutputName = sOutputName.lower()
+        if exists(join(sDirectory, sOutputName)) and sOutputName not in setOfPrevNames:
             return "File '%s' already exists."%sOutputName
     return True
 
@@ -74,7 +75,7 @@ def verifyFilesCanBeRenamed(sDirectory, aFrom):
         sInputName = aFrom[i]
         try:
             os.rename(join(sDirectory,sInputName), join(sDirectory,marker+'temp'+str(i)))
-        except:
+        except Exception:
             if not exists(join(sDirectory,sInputName)):
                 return "File '%s' no longer exists."%sInputName
             else:

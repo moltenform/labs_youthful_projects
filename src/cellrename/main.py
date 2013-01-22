@@ -2,7 +2,6 @@
 
 import os
 import sys
-import exceptions
 import wx
 import wxutil
 import cellrename_data
@@ -147,7 +146,7 @@ class CellRenameMain(wx.Frame):
             bRet = True
         except IOError as e:
             self.writeStatus("Download failed: " + str(e))
-        except:
+        except Exception:
             self.writeStatus("Download failed: " + str(sys.exc_info()[0]))
         
         if bRet: self.writeStatus('Download complete.')
@@ -181,8 +180,9 @@ class CellRenameMain(wx.Frame):
         if not sAdded: return
         
         self.grid.writeToModel(self.data)
-        self.data.transformSuffixOrPrefix(bPrefix, sAdded)
+        ret = self.data.transformSuffixOrPrefix(bPrefix, sAdded)
         self.grid.loadFromModel(self.data)
+        if ret!=True and ret: wxutil.alertDialog(self, str(ret))
         
     def onMenuEditPrefix(self, evt):
         self.onSuffixOrPrefix(True)
@@ -203,8 +203,9 @@ class CellRenameMain(wx.Frame):
             replace('/n',os.linesep).replace('/t','     '),'%f')
         if not sPattern: return
         self.grid.writeToModel(self.data)
-        self.data.transformWithPattern(sPattern)
+        ret = self.data.transformWithPattern(sPattern)
         self.grid.loadFromModel(self.data)
+        if ret!=True and ret: wxutil.alertDialog(self, str(ret))
 
     def onMenuEditReplace(self, evt):
         sSearch = wxutil.inputDialog(self, 'Search for string: ')
@@ -215,22 +216,22 @@ class CellRenameMain(wx.Frame):
         self.grid.writeToModel(self.data)
         # regex replace, or regex case-insensitive replace (as documented in 'tips')
         if sSearch.startswith('r:'):
-            self.data.transformRegexReplace(sSearch[len('r:'):], sReplace,True,True)
+            ret = self.data.transformRegexReplace(sSearch[len('r:'):], sReplace,True,True)
         elif sSearch.startswith('ri:'):
-            self.data.transformRegexReplace(sSearch[len('ri:'):], sReplace,True,False)
+            ret = self.data.transformRegexReplace(sSearch[len('ri:'):], sReplace,True,False)
         elif sSearch.startswith('i:'):
-            self.data.transformRegexReplace(sSearch[len('i:'):], sReplace,False,False)
+            ret = self.data.transformRegexReplace(sSearch[len('i:'):], sReplace,False,False)
         else:
-            self.data.transformReplace(sSearch, sReplace)
+            ret = self.data.transformReplace(sSearch, sReplace)
         self.grid.loadFromModel(self.data)
-    
-    
-    def onMenuHelpAbout(self, evt):
-        wxutil.alertDialog(self,'''CellRename 0.2, by Ben Fisher, 2008.
-http://halfhourhacks.blogspot.com
-https://github.com/downpoured/cellrename
+        if ret!=True and ret: wxutil.alertDialog(self, str(ret))
 
-Released under the GPLv3 license.''','About')
+    def onMenuHelpAbout(self, evt):
+        wxutil.alertDialog(self,'''cellrename: renaming files with a spreadsheet-like UI.
+        
+Ben Fisher, 2008, GPL
+http://github.com/downpoured/cellrename
+http://halfhourhacks.blogspot.com''','About')
 
     def onMenuHelpTips(self, evt):
         sTips = r'''Copy a directory path and open CellRename to start in that directory.
@@ -252,7 +253,7 @@ In Replace, to use regex, type "r:" before your query. Groups work, so "r:(\w+),
         result = False
         try:
             result = cellrename_engine.renameFiles(self.data.directory, afrom, ato)
-        except:
+        except Exception:
             wxutil.alertDialog(self, 'Exception occurred: '+str(sys.exc_info()[0]))
             return
         

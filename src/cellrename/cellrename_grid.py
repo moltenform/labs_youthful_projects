@@ -56,7 +56,7 @@ class CellRenameGrid(gridlib.Grid):
         if evt.GetKeyCode()==ord('U') and evt.ControlDown() and evt.ShiftDown():
             wxutil.alertDialog(self, 'running unit tests')
             try: unittests.runall()
-            except: wxutil.alertDialog(self, 'e:'+str(sys.exc_info()[0]))
+            except Exception: wxutil.alertDialog(self, 'e:'+str(sys.exc_info()[0]))
             else: wxutil.alertDialog(self, 'all tests pass')
         
         # respond to key event
