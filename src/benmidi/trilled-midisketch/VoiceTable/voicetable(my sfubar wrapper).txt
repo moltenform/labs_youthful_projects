@@ -1,0 +1,5 @@
+This was a project freshmen year, I think first semester. I presented it along with other things, for Expo. 
+
+It is a GUI for sfubar, a command-line tool that creates soundfonts from Wav files. Pretty cool. The soundfonts can then be played with Timidity.
+
+I had a demo, where you could record a sound, and right then create an instrument voice of that sound, and play a midi scale.
