@@ -1,0 +1,35 @@
+baud
+_!@@!_
+0.1
+_!@@!_
+using System;
+using CsWaveAudio;
+
+public class CNotespad
+{
+    public static WaveAudio Run()
+    {
+        WaveAudio wsrc = Program.loadSample("loop\\drumloopwav");
+        WaveAudio wout = Run1(wsrc);
+        return wout;
+    }
+
+    public static WaveAudio Run1(WaveAudio win)
+    {
+       SineWaveSum ww = new SineWaveSum(new double[] { 440.0 }, new double[] { 0.5 });
+       WaveAudio wout = ww.CreateWaveAudio(2.5);
+       return wout;
+    }
+    
+}
+_!@@!_
+1
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
+0
+_!@@!_
