@@ -6,7 +6,6 @@ import midirender_runtimidity
 
 import os
 
-sys.path.append('..')
 from bmidilib import bmidilib, bmiditools
 
 soundfontsdir = 'soundfonts'

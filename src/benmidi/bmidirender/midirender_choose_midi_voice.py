@@ -2,7 +2,6 @@ from Tkinter import *
 import tkSimpleDialog
 
 import midirender_util
-sys.path.append('..')
 from bmidilib import bmidilib
 
 class ChooseMidiInstrumentDialog(tkSimpleDialog.Dialog):

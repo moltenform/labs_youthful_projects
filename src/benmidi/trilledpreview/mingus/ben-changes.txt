@@ -1,0 +1,19 @@
+
+MusicXML.py
+
+-fixed bug, where only one <chord/> was added per measure.
+
+-default to use .toxml() instead of toprettyxml(), because of issue with toprettyxml inserting too many line breaks.
+	see http://ronrothman.com/public/leftbraned/xml-dom-minidom-toprettyxml-and-silly-whitespace/
+
+-ids should be more than just numbers. must start with letter.
+
+-added doctype
+
+-added tied notes ability 
+
+
+Fixed things for Finale's dumb import
+-made <chord/> the first element of <note>
+-option to strip whitespace, 
+

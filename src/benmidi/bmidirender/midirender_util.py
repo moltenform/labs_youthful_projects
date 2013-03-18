@@ -1,5 +1,9 @@
-		
-		
+
+bTesting = False
+if bTesting:
+    import sys
+    sys.path.append('..')
+
 class Callable():
 	def __init__(self, func, *args, **kwds):
 		self.func = func

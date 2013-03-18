@@ -1,7 +1,6 @@
 from Tkinter import *
 import midirender_util
 
-sys.path.append('..')
 from bmidilib import bmidilib
 
 class MixerTrackInfo():

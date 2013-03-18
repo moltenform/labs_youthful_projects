@@ -21,12 +21,12 @@ import midirender_runtimidity
 import midirender_soundfont
 import midirender_soundfont_info
 
-sys.path.append('..') #delete this line for release
 from bmidilib import bmidilib, bmiditools
 
 
-clefspath = '..\\scoreview\\clefs' #delete this line for release and use line below
-#~ clefspath = 'scoreview' + os.sep + 'clefs'
+clefspath = 'scoreview' + os.sep + 'clefs'
+if not os.path.exists(clefspath):
+	clefspath = '..'+os.sep+clefspath
 from scoreview import scoreview, listview
 
 

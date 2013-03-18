@@ -3,7 +3,6 @@ import os
 import midirender_util
 
 import sys
-sys.path.append('..')
 from bmidilib import bmidiplay
 
 import tempfile
