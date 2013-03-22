@@ -98,14 +98,14 @@ function requestSoundData(soundData)
 		var mapc = g_currentAudioMap[g_requestSoundDataIndex]
 		if (mapc !== undefined)
 		{
-			g_requestSoundChannelState[mapc].pos = 904 //begin playing that
+			g_requestSoundChannelState[mapc].pos = 904 // get sharper attack by cutting off beginning
 		}
 		 
 		// play sounds that have been triggered
 		soundData[i] = 0.0
 		for (var key=0; key<g_requestSoundChannelState.length; key++)
 		{
-			if (g_requestSoundChannelState[key].pos > g_requestSoundChannelState[key].audio.length)
+			if (g_requestSoundChannelState[key].pos >= g_requestSoundChannelState[key].audio.length-1)
 			{
 				g_requestSoundChannelState[key].pos = 0
 			}
@@ -132,11 +132,12 @@ function requestSoundData(soundData)
 	}
 }
 
-ondoplay =function() {
+function play_start()
+{
 	// it seems ok not to reset g_requestSoundDataIndex = 0. depends on what user expects
 	g_fPlaying = true;
 }
-function ondopause() { g_fPlaying = false; }
+function play_stop() { g_fPlaying = false; }
 function changeDivisionNumber(cbeattop, newdivs)
 {
 	// strip info after the division
@@ -162,14 +163,14 @@ function getmedia()
 {
 	var g_mediaNames = [
 	"kick",get909bass ,
-"snr1",get909snare , 
-"snr2",get606snare , 
-"snr3",get808snare , 
-"clap",get909clap , 
-"hihat",get909closed, 
-"hihat2",get909pedal , 
-"beep",getbip , 
-"jungle",getjunglesnare]
+	"snr1",get909snare , 
+	"snr2",get606snare , 
+	"snr3",get808snare , 
+	"clap",get909clap , 
+	"hihat",get909closed, 
+	"hihat2",get909pedal , 
+	"beep",getbip , 
+	"jungle",getjunglesnare]
 	
 	//unpack.
 	function unpack(compressed)

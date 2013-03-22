@@ -7,7 +7,8 @@
 	<script src="../lib/util.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../lib/raphael.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../lib/d2slide.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../lib/rtaudio.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../lib/audiolet.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../lib/audiolet_wrap.js" type="text/javascript" charset="utf-8"></script>
 	<script src="beatcircle.js" type="text/javascript" charset="utf-8"></script>
 	<script src="media.js" type="text/javascript" charset="utf-8"></script>
 	<script src="top.js" type="text/javascript" charset="utf-8"></script>
@@ -33,15 +34,15 @@
   
 <div id="holder" style=" "></div>
 <div style="width:20em; display:inline">
-	<button onclick="ondoplay()" alt="Play" title="Play"><img src="../img/control_play.png"></button><br/>
-	<button onclick="ondopause()" alt="Pause" title="Pause"><img src="../img/control_pause.png"></button><br/>
+	<button onclick="on_btnplay()" alt="Play" title="Play"><img src="../img/control_play.png"></button><br/>
+	<button onclick="on_btnpause()" alt="Pause" title="Pause"><img src="../img/control_pause.png"></button><br/>
 	<button onclick="onsetdivisions()" alt="Set Divisions" title="Set Divisions"><img src="../img/chart_line_add.png"></button><br/>
 	<button onclick="onnew()" alt="New" title="New"><img src="../img/file_new.png"></button><br/>
 	<button onclick="onsave()" alt="Save" title="Save"><img src="../img/save.png"></button><br/>
 	<button onclick="toggledrawmulti()" alt="Shortcut-fill many at once when in upper right quadrant" title="Shortcut - fill many at once when in upper right quadrant"><img src="../img/layers.png"></button><br/>
 	<button onclick="onLoadExample()" alt="Original Examples" title="Original Examples"><img src="../img/eye.png"></button><br/>
 </div>
-<!--   <textarea id="dbgta"></textarea>  -->
+
 <br><br>
 <div id="copy">Ben Fisher, 2011. <a href="http://www.famfamfam.com/lab/icons/silk/">famfamfam</a>. Firefox <a href="https://wiki.mozilla.org/Audio_Data_API">audiodata</a>.</div>
 </body>

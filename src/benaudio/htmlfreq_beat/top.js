@@ -50,14 +50,14 @@ var g_ui_buttonconnect = []
 function setup()
 {
 	var g_mediaNames = ["kick",get909bass ,
-"snr1",get909snare , 
-"snr2",get606snare , 
-"snr3",get808snare , 
-"clap",get909clap , 
-"hihat",get909closed, 
-"hihat2",get909pedal , 
-"beep",getbip , 
-"jungle",getjunglesnare]
+	"snr1",get909snare , 
+	"snr2",get606snare , 
+	"snr3",get808snare , 
+	"clap",get909clap , 
+	"hihat",get909closed, 
+	"hihat2",get909pedal , 
+	"beep",getbip , 
+	"jungle",getjunglesnare]
 	var arPatches =  ['off']
 	
 	// the idea is to not hit the cpu as heavily/draw ui before doing heavy lifting
@@ -212,9 +212,6 @@ function setup()
 	} 
 	
 	cd2_setselect(null) //no current selection
-	
-	// start audio !
-	var audioDestination = new AudioDataDestination(g_sampleRate, requestSoundData);
 }
 
 function toggleVis(bVisible) { }
@@ -275,3 +272,25 @@ function onsetdivisions()
 	g_currentAudioMap=createAudioMap(g_beatObject)
 }
 
+var bHaveSetup = false;
+function on_btnplay()
+{
+	if (!bHaveSetup)
+	{
+		try {
+			var audiolet = new Audiolet();
+			var wrapper = new WrapperNode(audiolet, requestSoundData);
+			wrapper.connect(audiolet.output);
+		} catch (e1) {
+			alert('Failed to play audio. I\'d try a recent version of Firefox or Chrome and see if that works.');
+			// continue and attempt to play audio anyways, just in case it does happen to work
+		}
+		bHaveSetup = true;
+	}
+	
+	play_start();
+}
+
+function on_btnpause() {
+	play_stop();
+}
