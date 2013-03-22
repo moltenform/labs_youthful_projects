@@ -3,11 +3,13 @@ var currentFreqApp = 400;
 var counter = 0 
 var g_fPlaying = false;
 
-function requestSoundData(soundData)
+function requestSoundDataLaser(soundData)
 {
-	if (!g_fPlaying)
+	if (!g_fPlaying) {
+		soundData[0] = 0;
 		return;
-
+	}
+	
 	var scale = 2* Math.PI / g_sampleRate;
 	var factor = g_audioBackendState.sparkliness
 	var hm = Math.floor(g_audioBackendState.harmonic)
@@ -72,12 +74,13 @@ function requestSoundData(soundData)
 	if (counter > 1e7) counter = 0;
 }
 
-function onplay() {
-currentSoundSample = 0;
-g_fPlaying= true;
+function play_start()
+{
+	g_fPlaying = true;
 }
 
-function onpause() {
-g_fPlaying = false;
+function play_stop()
+{
+	g_fPlaying = false;
 }
 

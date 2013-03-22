@@ -7,14 +7,15 @@
 	<script src="../lib/util.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../lib/raphael.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../lib/d2slide.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../lib/rtaudio.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../lib/audiolet.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../lib/audiolet_wrap.js" type="text/javascript" charset="utf-8"></script>
 	<script src="laser.js" type="text/javascript" charset="utf-8"></script>
 	<script src="top.js" type="text/javascript" charset="utf-8"></script>
 	<style type="text/css" media="screen">
 		#holder {
 		-moz-border-radius: 2px;
 		-webkit-border-radius: 2px;
-		
+		border-radius: 2px;
 
 		height: 300px;
 		left: 64px;
@@ -24,15 +25,15 @@
 		}		
 	</style>
 	<script type="text/javascript">
-	// window.onload = function () { setup(); }
+	// window.onload = function () { }
 	</script>
 </head>
 <body>
   
 <div id="holder" style=" "></div>
 <div style="width:20em; display:inline">
-	<button onclick="onbtnplay()" alt="Play" title="Play"><img src="../img/control_play.png"></button><br/>
-	<button onclick="onpause()" alt="Pause" title="Pause"><img src="../img/control_pause.png"></button><br/>
+	<button onclick="on_btnplay()" alt="Play" title="Play"><img src="../img/control_play.png"></button><br/>
+	<button onclick="on_btnpause()" alt="Pause" title="Pause"><img src="../img/control_pause.png"></button><br/>
 </div>
   
 <br><br>

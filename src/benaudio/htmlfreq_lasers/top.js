@@ -1,7 +1,7 @@
 // htmlfreq lasers, Ben Fisher, 2011
 // http://halfhourhacks.blogspot.com
 // GPL v3 license, see http://www.gnu.org/licenses/gpl.txt for the terms of using this code
-// This is a written-on-the-bus spare-time project, production code it ain't!
+// This is a written-on-the-bus spare-time project
 
 var Ra = null; //main raphael instance
 
@@ -13,10 +13,6 @@ var g_audioBackendState = {'frequency' : 210.0, 'sparkliness': 0.0006, 'waveshap
 	'shape_enum' : 'sine', // or saw, or square, or tri.
 	'harmonic': 4 }
 
-
-
-var g_tip = null;
-var currentSoundSample=0;
 
 function setup()
 {
@@ -30,21 +26,25 @@ function setup()
 	var arTypes = ['sine','square', 'saw','tri']
 	var cdzone = makesliderzone('zonesetshape', g_audioBackendState, 'waveshape', 100, 300-25, 160, 0.0, 1.0)
 	addEnumeratedType(cdzone, arTypes, 'shape_enum', 180)
-	
-	
-	// start audio !
-	var audioDestination = new AudioDataDestination(g_sampleRate, requestSoundData);
-	// var serv = new XAudioServer(1, 44100, 9000, 16000, requestSoundData, -1);
 }
 
 
 var bHaveSetup = false;
-function onbtnplay()
+function on_btnplay()
 {
 	if (!bHaveSetup)
 	{
-		setup()
+		setup();
+		var audiolet = new Audiolet();
+		var wrapper = new WrapperNode(audiolet, requestSoundDataLaser);
+		wrapper.connect(audiolet.output);
 		bHaveSetup = true;
 	}
-	onplay()
+	
+	play_start();
 }
+
+function on_btnpause() {
+	play_stop();
+}
+
