@@ -3,7 +3,7 @@
 var g_trembackbufChannels=[]; 
 function generateTremeloAudio(mainBuffer, audioState)
 {
-	var bSave = false; var bAllOff = true
+	var bAllOff = true
 	for (var i=0; i<audioState.channels.length; i++)
 	{
 		//must be a separate loop. subtle bug that caused vibrato into its own buffer, leading to weirdness
@@ -35,18 +35,28 @@ function generateTremeloAudio(mainBuffer, audioState)
 			{
 				// swap the parts. 
 				var outbuffer = g_trembackbufChannels[(i+1)%audioState.channels.length]
-				if (outbuffer == g_trembackbufChannels[i]) errmsg("cannot be same buffer"+i )
+				if (outbuffer == g_trembackbufChannels[i]) errmsg("cannot be same buffer"+i+','+audioState.channels.length )
 				operationVibrato(g_trembackbufChannels[i], outbuffer, chn.modifiers[j].freq,chn.modifiers[j].width,phaseShift)
+				var tmp = g_trembackbufChannels[i]
 				g_trembackbufChannels[i] = outbuffer
+				g_trembackbufChannels[(i+1)%audioState.channels.length] = tmp
 			}
 			else
 			{ errmsg('Unknown modtype'); throw(false); }
 		}
-		if (!bSave && i==0)
+		if (i==0)
 		{
 			//replace existing audio
-			for (var j=0; j<mainBuffer.length; j++)
-				mainBuffer[j] = /*instead of +=*/ g_trembackbufChannels[i][j]
+			if (!g_fLayerAudio)
+			{
+				for (var j=0; j<mainBuffer.length; j++)
+					mainBuffer[j] = /*instead of +=*/ g_trembackbufChannels[i][j]
+			}
+			else
+			{
+				for (var j=0; j<mainBuffer.length; j++)
+					mainBuffer[j] = 0.2*mainBuffer[j] + g_trembackbufChannels[i][j]
+			}
 		}
 		else
 		{
@@ -55,7 +65,7 @@ function generateTremeloAudio(mainBuffer, audioState)
 		}
 	}
 	// if everything turned off, clear buffer
-	if (bAllOff && !bSave)
+	if (bAllOff && !g_fLayerAudio)
 		for (var j=0; j<mainBuffer.length; j++)
 			mainBuffer[j] = 0.0
 }
