@@ -1,16 +1,11 @@
 
 
 var g_trembackbufChannels=[]; 
-function generateTremeloAudio(mainBuffer, audioState)
+function generateTremoloAudio(mainBuffer, audioState)
 {
 	var bAllOff = true
-	for (var i=0; i<audioState.channels.length; i++)
-	{
-		//must be a separate loop. subtle bug that caused vibrato into its own buffer, leading to weirdness
-		if (!g_trembackbufChannels[i])
-			g_trembackbufChannels[i] = makeArray(mainBuffer.length) 
-		//make the buffer for this channel anyways (we might use it as a temporary for vibrato)
-	}
+	if (!g_trembackbufChannels[0]) g_trembackbufChannels[0] = makeArray(mainBuffer.length) 
+	if (!g_trembackbufChannels[1]) g_trembackbufChannels[1] = makeArray(mainBuffer.length) 
 	
 	for (var i=0; i<audioState.channels.length; i++)
 	{
@@ -21,25 +16,31 @@ function generateTremeloAudio(mainBuffer, audioState)
 		var table = {'sine': makeSin, 'square':makeSquare, 'saw':makeSaw, 'tri':makeTri, 'noise':makeNoise}
 		var fn = table[chn.wavetype]
 		if (!fn) { errmsg('Unknown wavetype' + chn.wavetype); fn = null}
-		var frequencyHz = getFreqTrans(chn.freq)
-		fn(g_trembackbufChannels[i], frequencyHz, chn.vol)
+		var frequencyHz = chn.freq_a
+		fn(g_trembackbufChannels[0], frequencyHz, chn.vol)
 		
 		// do mods
 		for (var j=0; j<chn.modifiers.length; j++)
 		{
 			var phaseShift = chn.modifiers[j].phase*2*Math.PI
+			var modfreq = chn.modifiers[j].freq_a
+			
 			if (chn.modifiers[j].modtype=='off') continue;
-			else if (chn.modifiers[j].modtype=='trem' || chn.modifiers[j].modtype=='tremwide' )
-				operationTremelo(g_trembackbufChannels[i], chn.modifiers[j].freq,chn.modifiers[j].width, phaseShift)
-			else if (chn.modifiers[j].modtype=='vib' || chn.modifiers[j].modtype=='vibwide' )
+			else if (chn.modifiers[j].modtype=='trem' || chn.modifiers[j].modtype=='trem10' )
 			{
-				// swap the parts. 
-				var outbuffer = g_trembackbufChannels[(i+1)%audioState.channels.length]
-				if (outbuffer == g_trembackbufChannels[i]) errmsg("cannot be same buffer"+i+','+audioState.channels.length )
-				operationVibrato(g_trembackbufChannels[i], outbuffer, chn.modifiers[j].freq,chn.modifiers[j].width,phaseShift)
-				var tmp = g_trembackbufChannels[i]
-				g_trembackbufChannels[i] = outbuffer
-				g_trembackbufChannels[(i+1)%audioState.channels.length] = tmp
+				if (chn.modifiers[j].modtype=='trem10') modfreq *= 10;
+				operationTremolo(g_trembackbufChannels[0], modfreq,chn.modifiers[j].width, phaseShift)
+			}
+			else if (chn.modifiers[j].modtype=='vib' || chn.modifiers[j].modtype=='vib10' || chn.modifiers[j].modtype=='vibc' )
+			{
+				if (chn.modifiers[j].modtype=='vib10') modfreq *= 10;
+				if (chn.modifiers[j].modtype=='vibc')
+					operationVibratoCoo(g_trembackbufChannels[0], g_trembackbufChannels[1], modfreq,chn.modifiers[j].width,phaseShift)
+				else
+					operationVibrato(g_trembackbufChannels[0], g_trembackbufChannels[1], modfreq,chn.modifiers[j].width,phaseShift)
+				// now swap the temp buffers. 
+				var tmp = g_trembackbufChannels[1]; g_trembackbufChannels[1]=g_trembackbufChannels[0]; g_trembackbufChannels[0]=tmp
+				
 			}
 			else
 			{ errmsg('Unknown modtype'); throw(false); }
@@ -50,18 +51,18 @@ function generateTremeloAudio(mainBuffer, audioState)
 			if (!g_fLayerAudio)
 			{
 				for (var j=0; j<mainBuffer.length; j++)
-					mainBuffer[j] = /*instead of +=*/ g_trembackbufChannels[i][j]
+					mainBuffer[j] = /*instead of +=*/ g_trembackbufChannels[0][j]
 			}
 			else
 			{
 				for (var j=0; j<mainBuffer.length; j++)
-					mainBuffer[j] = 0.2*mainBuffer[j] + g_trembackbufChannels[i][j]
+					mainBuffer[j] = 0.7*mainBuffer[j] + g_trembackbufChannels[0][j]
 			}
 		}
 		else
 		{
 			for (var j=0; j<mainBuffer.length; j++)
-				mainBuffer[j] += g_trembackbufChannels[i][j]
+				mainBuffer[j] += g_trembackbufChannels[0][j]
 		}
 	}
 	// if everything turned off, clear buffer
@@ -70,30 +71,30 @@ function generateTremeloAudio(mainBuffer, audioState)
 			mainBuffer[j] = 0.0
 }
 
-function operationTremelo(chdata, tremfreq, amp,phase)
+function operationTremolo(chdata, tremfreq, amp,phase)
 {
-	var tremeloFreqScale = 2.0 * Math.PI * tremfreq / 44100.0;
+	var tremoloFreqScale = 2.0 * Math.PI * tremfreq / 44100.0;
 	amp /= 2.0;
 	for (var i = 0; i < chdata.length; i++)
 	{
-	    var val = chdata[i] * amp*(1 + Math.sin(tremeloFreqScale * i + phase));
+	    var val = chdata[i] * amp*(1 + Math.sin(tremoloFreqScale * i + phase));
 	    if (val > 1.0) val = 1.0;
 	    else if (val < -1.0) val = -1.0;
 	    chdata[i] = val;
 	}
 }
 
-function operationTremeloRand(chdata, tremfreq, amp,phase)
+function operationTremoloRand(chdata, tremfreq, amp,phase)
 {
-	var tremeloFreqScale = 2.0 * Math.PI * tremfreq / 44100.0;
-	amp /= 2.0;
-	for (var i = 0; i < chdata.length; i++)
-	{
-	    var val = chdata[i] * amp*(1 + Math.sin(tremeloFreqScale * i + phase));
-	    if (val > 1.0) val = 1.0;
-	    else if (val < -1.0) val = -1.0;
-	    chdata[i] = val;
-	}
+	//~ var tremoloFreqScale = 2.0 * Math.PI * tremfreq / 44100.0;
+	//~ amp /= 2.0;
+	//~ for (var i = 0; i < chdata.length; i++)
+	//~ {
+	    //~ var val = chdata[i] * amp*(1 + Math.sin(tremoloFreqScale * i + phase));
+	    //~ if (val > 1.0) val = 1.0;
+	    //~ else if (val < -1.0) val = -1.0;
+	    //~ chdata[i] = val;
+	//~ }
 }
 
 
@@ -101,7 +102,7 @@ function operationVibrato(chdata, outbuffer, vibratofreq, width,phase)
 {
     // walk through the file at varying speeds
     var currentPosition = 0.0;
-	if (chdata.length != outbuffer.length) alert('expect lengths same')
+	if (chdata.length != outbuffer.length) errmsg('expect lengths same')
  var vibratoFreqScale = 2.0 * Math.PI * vibratofreq / 44100.0;
     for (var i = 0; i < outbuffer.length; i++)
     {
@@ -109,11 +110,32 @@ function operationVibrato(chdata, outbuffer, vibratofreq, width,phase)
 	currentPosition += 1.0 + width * Math.sin(i * vibratoFreqScale + phase);
     }
 }
+
+
+function operationVibratoCoo(chdata, outbuffer, vibratofreq, width,phase)
+{
+	// walk through the file at varying speeds
+	var currentPosition = 0.0;
+	if (chdata.length != outbuffer.length) errmsg('expect lengths same')
+	var vibratoFreqScale = 2.0 * Math.PI * vibratofreq / 44100.0;
+	var prevv = 0
+	for (var i = 0; i < outbuffer.length; i++)
+	{
+		var somesin = Math.sin(i * vibratoFreqScale) //take part of the period when slope positive and > 0
+		if (somesin > 0.0 && somesin > prevv )
+			outbuffer[i] = getInterpolatedValue(chdata, currentPosition);
+		else 
+			outbuffer[i] = 0.0
+		prevv = somesin
+		currentPosition += 1.0 + width * Math.sin(i * vibratoFreqScale + phase);
+	}
+}
+
 function operationVibratoTri(chdata, outbuffer, vibratofreq, width,phase)
 {
     // walk through the file at varying speeds
     var currentPosition = 0.0;
-	if (chdata.length != outbuffer.length) alert('expect lengths same')
+	if (chdata.length != outbuffer.length) errmsg('expect lengths same')
  var k = vibratofreq / 44100.0;
 	width *=2
 	phase /= Math.PI*2;
@@ -125,7 +147,6 @@ function operationVibratoTri(chdata, outbuffer, vibratofreq, width,phase)
 	currentPosition += 1.0 + width * (inp-0.25);
     }
 }
-
 
 
 function getInterpolatedValue(sampleData, sampleIndex)
