@@ -35,9 +35,15 @@ function on_btnplay()
 	if (!bHaveSetup)
 	{
 		setup();
-		var audiolet = new Audiolet();
-		var wrapper = new WrapperNode(audiolet, requestSoundDataLaser);
-		wrapper.connect(audiolet.output);
+		
+		try {
+			var audiolet = new Audiolet();
+			var wrapper = new WrapperNode(audiolet, requestSoundDataLaser);
+			wrapper.connect(audiolet.output);
+		} catch (e1) {
+			alert('Failed to play audio. I\'d try a recent version of Firefox or Chrome and see if that works.');
+			// continue and attempt to play audio anyways, just in case it does happen to work
+		}
 		bHaveSetup = true;
 	}
 	
