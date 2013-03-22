@@ -1,0 +1,60 @@
+
+Laser Sounds
+
+
+It's another real-time audio experiment, this one even less serious. Click the 'play' button and drag the dot across the screen
+to make "laser sounds".
+
+Try it! (in a recent version of Firefox).
+
+An example - but there are other sounds to be made that I haven't discovered yet.
+
+Moving left to right will increase frequency, moving downwards will increase harmonic content. Moving slowly to the left
+with a square wave can make 90s arcade-game like noises. Increase the 'sparkle' to create even older-sounding arcade game
+noises.
+
+What's going on? I am playing one tone and quickly changing the frequency. When the frequency is changed slowly, one hears
+a typical siren like one would expect. If the frequency is changed more quickly, the result is a "tshu" pulse sound. Finally, if the frequency is
+changed very quickly, the entire quality of the sound can change. This is called FM synthesis, where FM stands for frequency modulation. Radio transmitters
+use Frequency Modulation, changing the pitch of a single note very quickly, to 'move' a signal in frequency to a very high frequency.
+Video games in the 90s also used FM synthesis; when putting this program in square wave mode and moving to the left, the sound resembles
+that of a DOS game or GameBoy handheld. Maybe I'll follow the work of some musicians (Bibio, Crystal Castles) in incorporating arcade-like noises into music.
+
+
+=========================
+
+Beat Circles
+
+
+Make beats. Tweak them by shifting each channel. Save and send to friends.
+
+My novel layout shows the repeating loop as an actual circular loop.
+
+If you have Firefox, try it.
+
+If you don't have Firefox, it looks a bit like this:
+
+Some demo beats I put together (but you really should come up with your own):
+
+Hit the eye icon for another demo.
+Because the sound is generated in real time, you can edit the rhythm, and even tempo, during playback.
+If the volume of a channel is very high, I 'distort' the sample by intentionally causing clipping. Use the buttons on the left
+for more adjustments. The button with dots can change the number of divisions, so that you can make the 7/4 beat you always wanted.
+The moving-rectangle button is a useful shortcut: after it is clicked, when you create a drum-hit in the upper-right quadrant, the corresponding 
+drum-hit is also turned on in the other three quadrants.
+I made this for fun. My actual software is more complicated.
+
+
+=========================
+
+Making laser sounds:
+
+Here is another real-time audio experiment. Some recent electronic music has incorporated 
+
+
+ben's goodies: 3.92Gb
+ben's org 2.46gb
+ben's pictures: 4.33 (or less)
+pydev 2.23
+=12.94. so cool, a 16gb disk should work nicely
+

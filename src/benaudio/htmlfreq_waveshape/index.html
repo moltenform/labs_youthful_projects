@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>halfhourhacks - waveform ui</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen">
+	<script src="js/util.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/raphael.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/d2slide_render.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/d2slide.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/freqpitch_shape.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/d2slide_top.js" type="text/javascript" charset="utf-8"></script>
+	<style type="text/css" media="screen">
+		#holder {
+		-moz-border-radius: 2px;
+		-webkit-border-radius: 2px;
+		border: solid 2px #fff;
+
+		height: 400px;
+		left: 59px;
+		position: absolute;
+		top: 16px;
+		width: 800px;
+		}
+	</style>
+	<script type="text/javascript">
+	window.onload = function () { setup(); }
+	</script>
+</head>
+<body>
+<div id="holder" style="border: solid 2px #fff; "></div>
+<div style="width:20em; display:inline; ">
+	<div style="margin-top:15px"></div>
+	<button onclick="onplay()" alt="Play" title="Play"><img src="../img/control_play.png"></button><br/>
+	<button onclick="onpause()" alt="Pause" title="Pause"><img src="../img/control_pause.png"></button><br/>
+	<!-- <button onclick="setCoordsSelected()" alt="Coords" title="Coords"><img src="../img/theta.png"></button><br/> -->
+	<button onclick="add_shape()" alt="Draw More" title="Draw More"><img src="../img/pencil_add.png"></button><br/>
+	<button onclick="deleteSelected_shape()" alt="Delete" title="Delete"><img src="../img/pencil_delete.png"></button><br/>
+</div>
+  
+<br><br>
+<div id="copy">Ben Fisher, 2011. <a href="http://www.famfamfam.com/lab/icons/silk/">famfamfam</a> icons. Uses Firefox 4 <a href="https://wiki.mozilla.org/Audio_Data_API">Audiodata</a></div>
+<!-- <textarea id="dbgout">a</textarea> -->
+</body>
+</html>

@@ -1,0 +1,38 @@
+
+Tremolo Machine
+==============
+
+This is a machine that makes sounds. It's not a very serious project, but I find it entertaining. 
+Click and drag the dots in order to move the levers, and click the play button to hear the result.
+(Further changes are not picked up in real time; you have to click play again.)
+Try this:
+
+<a href="http://neednom.com/bfisher/blog/h5audio/htmlfreq_tremolo/index.html?{v:1,d:{channels:[{FF:0.175,FF_a:240.3585939225755,waveTT:square,waveTT_f:2.8499999999999996,vol:0.07750000000000001,modifiers:[{modTT:vibc,modTT_f:5.699999999999999,FF:0.9283333333333333,FF_a:6.904422222222222,width:0.9750000000000001,phase:1},{modTT:vibc,modTT_f:5.3,FF:0.40166666666666667,FF_a:1.300688888888889,width:0.8999999999999999,phase:0.3},{modTT:off,modTT_f:0,FF:0.035000000000000024,FF_a:0.019800000000000012,width:0.1,phase:0.74},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]},{FF:0.125,FF_a:176.45477367468987,waveTT:square,waveTT_f:2.4000000000000004,vol:0.05,modifiers:[{modTT:vibc,modTT_f:5.8999999999999995,FF:0.8516666666666666,FF_a:5.8126888888888875,width:1.5,phase:1},{modTT:vibc,modTT_f:5.2,FF:0.4683333333333332,FF_a:1.764688888888888,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]},{FF:0.3,FF_a:414.8222889673691,waveTT:off,waveTT_f:0,vol:0.05,modifiers:[{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]}]}}">
+Weird outbursts</a>
+
+<a href="http://neednom.com/bfisher/blog/h5audio/htmlfreq_tremolo/index.html?{v:1,d:{channels:[{FF:0.125,FF_a:176.45477367468987,waveTT:saw,waveTT_f:3.6499999999999995,vol:0.08583333333333333,modifiers:[{modTT:vib,modTT_f:0.2,FF:0.32833333333333337,FF_a:0.8724222222222224,width:0.35,phase:0.54},{modTT:vib,modTT_f:1.9,FF:0.16833333333333336,FF_a:0.23668888888888898,width:0.8999999999999999,phase:1},{modTT:vib,modTT_f:1.6,FF:0.23500000000000001,FF_a:0.4518000000000001,width:0.4,phase:1},{modTT:vib,modTT_f:1.7,FF:0.13500000000000004,FF_a:0.15580000000000008,width:0.8250000000000001,phase:1},{modTT:RTEN,modTT_f:4.3999999999999995,FF:0.6933333333333334,FF_a:3.855688888888889,width:0.1,phase:1}]},{FF:0.3,FF_a:414.8222889673691,waveTT:off,waveTT_f:0,vol:0.05,modifiers:[{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]},{FF:0.3,FF_a:414.8222889673691,waveTT:off,waveTT_f:0,vol:0.05,modifiers:[{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]}]}}">
+Curious drill
+
+
+<a href="http://neednom.com/bfisher/blog/h5audio/htmlfreq_tremolo/index.html?{v:1,d:{channels:[{FF:0.275,FF_a:378.16347678908375,waveTT:sine,waveTT_f:0.2,vol:0.014166666666666668,modifiers:[{modTT:trem,modTT_f:2.6,FF:0.32,FF_a:0.8292,width:1.7249999999999999,phase:0.6},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]},{FF:0.15,FF_a:208.00730572280813,waveTT:saw,waveTT_f:3.5999999999999996,vol:0.017499999999999998,modifiers:[{modTT:vib,modTT_f:1.7,FF:0.01,FF_a:0.0108,width:0.15000000000000002,phase:1},{modTT:RTEN,modTT_f:4,FF:0.2849999999999999,FF_a:0.6597999999999996,width:1.5,phase:1},{modTT:vib,modTT_f:1.0999999999999999,FF:0.07666666666666658,FF_a:0.05702222222222211,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]},{FF:0.3,FF_a:414.8222889673691,waveTT:noise,waveTT_f:5.2,vol:0.03416666666666667,modifiers:[{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1},{modTT:off,modTT_f:0,FF:0.01,FF_a:0.0108,width:1.5,phase:1}]}]}}">
+Things</a>
+
+
+Click the eye icon for more examples (be prepared to turn down the volume).
+
+'vib' is vibrato, causing the pitch to change pitch over time.
+'trem' is tremolo, causing the sound to become quieter and louder over time.
+'vib10' and 'trem10' are more potent versions of 'vib' and 'trem' (the frequency is 10 times faster). 
+trem10 with a high frequency can be an interesting effect. vib10 with a high frequency can in effect use frequency modulation to create another pitch
+vibc is the cooing of a bird; it plays one quarter of the vibrato and silences the rest.
+
+The smaller control to the right of the modification type can adjust phase.
+
+The button on the left, above the eye, will enable 'layer audio'. Now whenever you click play, you hear the previous results too, and can layer sounds upon sounds.
+
+To make fine adjustments, click the textfield button to manually enter a value. Alternatively, click save and make adjustments to the data in the url.
+
+Try it!
+
+
+
