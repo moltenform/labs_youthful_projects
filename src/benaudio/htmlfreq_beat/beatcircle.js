@@ -4,7 +4,7 @@
 function CBeatTop()
 {
 	this.divisions = 64
-	this.tempo = 160/16
+	this.tempo = 160/24
 	this.channels = [];
 	for (var i=0; i<4; i++) this.channels.push(new CBeatChannel())
 	changeDivisionNumber(this, this.divisions) //will make sure either 0 or 1 for each
@@ -16,9 +16,8 @@ function CBeatChannel()
 	this.vol = 0.5; //volume
 	
 	this.rotation = 0.0 // from 0.0 to 1.0
-	this.autoRotation = 0.0
+	// this.autoRotation = 0.0
 	this.arrHits = []; //use changeDivisionNumber to set this //array of hits from 
-	
 }
 
 function setuprequestSoundChannelState(cbeattop)
@@ -89,7 +88,6 @@ function requestSoundData(soundData)
 		g_visIsOn = true;
 		toggleVis(true);
 	}
-	var sdbg = '' //'\nH '+g_requestSoundDataIndex
 	for (var i=0, size=soundData.length; i<size; i++) {
 		
 		g_requestSoundDataIndex++;
@@ -100,8 +98,7 @@ function requestSoundData(soundData)
 		var mapc = g_currentAudioMap[g_requestSoundDataIndex]
 		if (mapc !== undefined)
 		{
-			g_requestSoundChannelState[mapc].pos = 1 //begin playing that
-			//~ sdbg+='\nhit '+mapc
+			g_requestSoundChannelState[mapc].pos = 904 //begin playing that
 		}
 		 
 		// play sounds that have been triggered
@@ -115,18 +112,29 @@ function requestSoundData(soundData)
 			else if (g_requestSoundChannelState[key].pos > 0)
 			{
 				var cpos = g_requestSoundChannelState[key].pos
-				soundData[i] += g_requestSoundChannelState[key].audio[cpos]*g_beatObject.channels[key].vol
+				if (g_beatObject.channels[key].vol < 1.5)
+				{
+				var sm = g_requestSoundChannelState[key].audio[cpos]*g_beatObject.channels[key].vol
+					*g_beatObject.channels[key].vol; //make vol quadratic
+				}
+				else
+				{
+					var sm = g_requestSoundChannelState[key].audio[cpos]*16; //overdrive
+					if (sm>1.0) sm=1.0
+					if (sm<-1.0) sm=-1.0
+					sm*=(g_beatObject.channels[key].vol-1.5)/4 //but make it quieter
+				}
+				soundData[i] += sm
 				++g_requestSoundChannelState[key].pos
 			}
 		}
 		
 	}
-	//~ $('dbgta').value += sdbg
 }
 
 function onplay() {
-	// start from last paused point? g_requestSoundDataIndex = 0
-	g_fPlaying = true; 
+	// it seems ok not to reset g_requestSoundDataIndex = 0. depends on what user expects
+	g_fPlaying = true;
 }
 function onpause() { g_fPlaying = false; }
 function changeDivisionNumber(cbeattop, newdivs)
@@ -148,6 +156,7 @@ function changeDivisionNumber(cbeattop, newdivs)
 }
 
 g_mediaTable = {}
+getNone=[0.0,0.0]
 
 function getmedia()
 {
@@ -168,12 +177,12 @@ function getmedia()
 		var ret = new Float32Array(compressed.length*2)
 		for (var i=0; i<compressed.length; i++)
 		{
-			var s1 = (compressed[i]&0xffff0000)>>16;
+			var s1 = (compressed[i]&0xffff0000) >>>16;
 			var s2 = (compressed[i]&0x0000ffff);
 			var sf1 = ((s1/65536.0)*2)-1
 			var sf2 = ((s2/65536.0)*2)-1
-			ret[i*2] = sf1/64
-			ret[i*2+1] = sf2/64
+			ret[i*2] = sf1
+			ret[i*2+1] = sf2
 		}
 		return ret
 	}
@@ -184,5 +193,4 @@ function getmedia()
 		var sdata = g_mediaNames[j+1]
 		g_mediaTable[sname] = unpack(sdata)
 	}
-	//~ alert('made')
 }

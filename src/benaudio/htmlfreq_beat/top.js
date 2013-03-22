@@ -10,29 +10,36 @@ var WIDTH=800
 var HEIGHT=600
 var g_beatObject = null;
 
+var g_drawmulti = false
+function toggledrawmulti() {g_drawmulti = !g_drawmulti}
 
-
-function connect()
-{
-	
-}
 
 var fndrawbuttons = null;
 
 function onbtnmousedown()
 {
-	//~ alert(this.ben_chn + ','+this.ben_i)
 	var chn=this.ben_chn
 	var division=this.ben_i
 	if (g_beatObject.channels[chn].arrHits[division])
 	{
 		g_beatObject.channels[chn].arrHits[division] = 0
-		this.attr({'fill':'#ddd'})
+		this.attr({'fill':'#fff'})
 	}
 	else
 	{
 		g_beatObject.channels[chn].arrHits[division] = 1
 		this.attr({'fill':'#000'})
+	}
+	
+	if (g_drawmulti && division<16)
+	{
+		for (var j=0; j<10; j++)
+			if (division+j*16 < g_beatObject.divisions)
+			{
+				
+				g_ui_buttons[chn][division+j*16].attr({'fill':this.attr('fill')})
+				g_beatObject.channels[chn].arrHits[division+j*16] = g_beatObject.channels[chn].arrHits[division]
+			}
 	}
 	
 	g_currentAudioMap=createAudioMap(g_beatObject) //refresh the map!
@@ -53,48 +60,41 @@ function setup()
 "jungle",getjunglesnare]
 	var arPatches =  ['off']
 	
-	
-	getmedia()
-	//~ setTimeout(getmedia, 20)
+	// the idea is to not hit the cpu as heavily/draw ui before doing heavy lifting
+	setTimeout(function() { getmedia(); g_currentAudioMap=createAudioMap(g_beatObject); } , 20)
 	
 	for (var j=0; j<g_mediaNames.length; j+=2)
 		arPatches.push(g_mediaNames[j])
 	
-	g_beatObject = new CBeatTop()
-	
-	g_beatObject.channels[0].rotation=0.2
-	g_beatObject.channels[1].rotation=0.2
-	g_beatObject.channels[2].rotation=0.2
-	g_beatObject.channels[3].rotation=0.2
-	
+	g_beatObject = new CBeatTop()	
 	g_beatObject.channels[0].samplename='kick'; g_beatObject.channels[0].samplename_f=1
 	g_beatObject.channels[1].samplename='clap'; g_beatObject.channels[1].samplename_f=2
 	g_beatObject.channels[2].samplename='snr1'; g_beatObject.channels[2].samplename_f=4
 	g_beatObject.channels[3].samplename='hihat'; g_beatObject.channels[3].samplename_f=3
 	
-	for (var i=0; i<64; i+=4)
-		g_beatObject.channels[0].arrHits[i] = 1
+	if (!(document.location.href.split('?')[1] && document.location.href.split('?')[1].indexOf('blank')!=-1))
+	{
+		for (var i=0; i<64; i+=4)
+			g_beatObject.channels[0].arrHits[i] = 1
+		
+		for (var i=0; i<63; i+=8)
+			g_beatObject.channels[1].arrHits[i+4] = 1
+	}
 	
-	for (var i=0; i<63; i+=8)
-		g_beatObject.channels[1].arrHits[i+4] = 1
+	if (document.location.href.indexOf('?')!=-1 && document.location.href.split('?')[1]!='blank')
+	{
+		var retState = onloadfromjson(document.location.href.substring(document.location.href.indexOf('?')+1))
+		if (retState)  g_beatObject = retState
+	}
 	
 	// set up g_requestSoundChannelState
 	for (var i=0; i<g_beatObject.channels.length;i++)
 		g_requestSoundChannelState[i] = {pos:0, audio:getNone}
 	
-	
-	g_currentAudioMap=createAudioMap(g_beatObject)
-	
-	//~ if (document.location.href.indexOf('?')!=-1)
-	//~ {
-		//~ var retState = onLoadFromJson(document.location.href.substring(document.location.href.indexOf('?')+1))
-		//~ if (retState)  g_beatObject = retState
-	//~ }
-	
 	Ra = Raphael("holder", WIDTH, HEIGHT);
 	
 	var cx=430, cy=230, wx=140, wy=140;
-	var colors = ['#999', '#00f','#0f0','#f00', '#ff0']
+	var colors = ['#ddd', '#00f','#0f0','#f00', '#ff0']
 	for (var i=colors.length-1; i>=0; i--)
 	{
 		Ra.ellipse(cx,cy,wx+16*i,wy+16*i).attr({"stroke-width": 1, 'fill':colors[i]});
@@ -128,19 +128,6 @@ function setup()
 		}
 	}
 	
-	
-	
-	//~ $('ui_label_znchanwavetype'+sx).raphael.remove()
-	
-	//~ for (var x=0; x<g_beatObject.channels.length; x++)
-	//~ {
-		//~ var cdzone = makesliderzone('znmodtype'+sx+','+sy, g_audioState.channels[x].modifiers[y], 'modtype_f', 40+300*x, 155+60*y, 120/2, 0.0, 1.0 /*unused*/)
-		//~ $('ui_label_znmodtype'+sx+','+sy).raphael.remove()
-		//~ addEnumeratedType(cdzone, arModTypes, 'modtype', -20)
-	//~ }
-	
-	
-	
 	fndrawbuttons = function()
 	{
 		if (g_beatObject.divisions > maxbuttons) {errmsg('too many divisions'); return;}
@@ -149,11 +136,12 @@ function setup()
 			for (var j=0; j<g_beatObject.divisions; j++)
 			{
 				var angl= Math.PI*2*(j/(g_beatObject.divisions+0.0))
+				angl += 0.2+Math.PI*1.5; //makes it look more interesting
 				angl += g_beatObject.channels[chn].rotation
 				var m = wx +16*(1+chn) - 4
 				var ccx=Math.cos(angl)*m+cx
 				var ccy=Math.sin(angl)*m+cy
-				var thefill = g_beatObject.channels[chn].arrHits[j] ? '#000' : '#ddd'
+				var thefill = g_beatObject.channels[chn].arrHits[j] ? '#000' : '#fff'
 				g_ui_buttons[chn][j].attr({cx:ccx, cy:ccy, fill:thefill})
 				g_ui_buttons[chn][j].show()
 				
@@ -177,22 +165,22 @@ function setup()
 	
 	fndrawbuttons()
 	
-	
-
-	for (var chn =0; chn<g_beatObject.channels.length; chn++)
+	for (var chn=0; chn<g_beatObject.channels.length; chn++)
 	{
 		var xbase = 70+chn * 200
 		var ybase = 500
 		var cdzone = null
 		
-		var px1=xbase,px2=xbase+80,py1=ybase,py2=ybase;
+		var slwid = 101;
+		var px1=xbase,px2=xbase+slwid,py1=ybase,py2=ybase;
+		
 		Ra.path('M'+px1+','+py1+',L,'+px2+','+py2).attr({"stroke-width": 4, 'stroke':colors[chn+1]});
 		
 		ybase += 20
-		cdzone = makesliderzone('znvol'+chn, g_beatObject.channels[chn], 'vol', xbase, ybase, 80, 0.0, 1.0)
+		cdzone = makesliderzone('znvol'+chn, g_beatObject.channels[chn], 'vol', xbase, ybase, slwid, 0.0, 2.0)
 		
 		ybase += 20
-		cdzone = makesliderzone('znsmpl'+chn, g_beatObject.channels[chn], 'samplename_f', xbase, ybase, 80, 0.0, 1.0 /*unused*/)
+		cdzone = makesliderzone('znsmpl'+chn, g_beatObject.channels[chn], 'samplename_f', xbase, ybase, slwid, 0.0, 1.0 /*unused*/)
 		$('ui_label_znsmpl'+chn).raphael.remove()
 		addEnumeratedType(cdzone, arPatches, 'samplename', -50)
 		cdzone.tmp_prevfn=cdzone.onValueChanged;
@@ -203,7 +191,7 @@ function setup()
 		}
 		
 		ybase += 20
-		cdzone = makesliderzone('znrotate'+chn, g_beatObject.channels[chn], 'rotation', xbase, ybase, 80, 0.0, 2*Math.PI / 4)
+		cdzone = makesliderzone('znrotate'+chn, g_beatObject.channels[chn], 'rotation', xbase, ybase, slwid, 0.0, 2*Math.PI / (4*8))
 		cdzone.tmp_whichchn=chn
 		cdzone.onValueChanged = function(fx,fy)
 		{
@@ -211,12 +199,11 @@ function setup()
 			fndrawbuttons()
 			//might be more efficient to have one map per channel, so only have to recalc one map, but whatever
 		}
-		
-		
+				
 		if (chn==0)
 		{
 			ybase +=20
-			cdzone = makesliderzone('zntempo', g_beatObject, 'tempo', xbase,ybase, 80, 0, 30)
+			cdzone = makesliderzone('zntempo', g_beatObject, 'tempo', xbase,ybase, slwid, 0, 30)
 			cdzone.onValueChanged = function(fx,fy)
 			{
 				g_currentAudioMap=createAudioMap(g_beatObject)
@@ -226,16 +213,65 @@ function setup()
 	
 	cd2_setselect(null) //no current selection
 	
-	
 	// start audio !
 	var audioDestination = new AudioDataDestination(g_sampleRate, requestSoundData);
-	
-	
 }
 
+function toggleVis(bVisible) { }
 
-function toggleVis(bVisible)
+function onsave()
 {
+	if (!JSON) {errmsg('Could not find JSON object. Try using latest Firefox or Chrome.'); return; }
+	var objtop = {v:1, d:g_beatObject}
+	var s = JSON.stringify(objtop)
 	
+	// simple way of compressing this a bit. poor man's rle :)
+	s = s.replace(/0,0,0,0,0,0,0,0,/g, '~8')
+	s = s.replace(/0,0,0,0,/g, '~4')
+	s = s.replace(/0,/g, '~') //note, no suffix
+	s = s.replace(/1,/g, '^') //it's not as likely to have long strings of 1
+	s = s.replace(/samplename/g, '$')
+	
+	var fsturl = document.location.href.split('?')[0];
+	prompt('share this link!', fsturl+'?'+s)
+}
+
+function onloadfromjson(s)
+{
+	s = s.replace(/~8/g, '0,0,0,0,0,0,0,0,')
+	s = s.replace(/~4/g, '0,0,0,0,')
+	s = s.replace(/~/g, '0,') //note, no suffix
+	s = s.replace(/\^/g, '1,') //it's not as likely to have long strings of 1
+	s = s.replace(/\$/g, 'samplename')
+	// undo url-encoding
+	s = s.replace(/%27/g, '"')
+	s = s.replace(/%22/g, '"')
+	
+	var topobj;
+	try {
+		topobj = JSON.parse(s)
+	}
+	catch(err) {
+		errmsg('could not parse')
+		return null;
+	}
+	if (!topobj || !topobj.v|| !topobj.d) { errmsg('invalid saved file.'); return null;}
+	return topobj.d
+}
+function onnew()
+{
+	if (confirm('Start over?'))
+		document.location.href = document.location.href.split('?')[0]+'?blank'
+}
+function onsetdivisions()
+{
+	var sdiv = prompt('set number of divisions', g_beatObject.divisions)
+	if (!sdiv || !parseInt(sdiv)) return;
+	var ndiv = parseInt(sdiv);
+	if (!ndiv || ndiv<=1 || ndiv>128) { errmsg('invalid #'); return;}
+
+	changeDivisionNumber(g_beatObject, ndiv)
+	fndrawbuttons()
+	g_currentAudioMap=createAudioMap(g_beatObject)
 }
 

@@ -11,13 +11,13 @@
 	<script src="beatcircle.js" type="text/javascript" charset="utf-8"></script>
 	<script src="media.js" type="text/javascript" charset="utf-8"></script>
 	<script src="top.js" type="text/javascript" charset="utf-8"></script>
+	<script src="beat_examples.js" type="text/javascript" charset="utf-8"></script>
 	
 	<style type="text/css" media="screen">
 		#holder {
 		-moz-border-radius: 2px;
 		-webkit-border-radius: 2px;
 		
-
 		height: 600px;
 		left: 64px;
 		position: absolute;
@@ -35,10 +35,11 @@
 <div style="width:20em; display:inline">
 	<button onclick="onplay()" alt="Play" title="Play"><img src="../img/control_play.png"></button><br/>
 	<button onclick="onpause()" alt="Pause" title="Pause"><img src="../img/control_pause.png"></button><br/>
-	<button onclick="setCoordsSelected()" alt="Coords" title="Coords"><img src="../img/textfield_rename.png"></button><br/>
+	<button onclick="onsetdivisions()" alt="Set Divisions" title="Set Divisions"><img src="../img/chart_line_add.png"></button><br/>
 	<button onclick="onnew()" alt="New" title="New"><img src="../img/file_new.png"></button><br/>
 	<button onclick="onsave()" alt="Save" title="Save"><img src="../img/save.png"></button><br/>
-	<button onclick="ontogglelayers()" alt="Layer Audio" title="Layer Audio"><img src="../img/layers.png"></button><br/>
+	<button onclick="toggledrawmulti()" alt="Shortcut-fill many at once when in upper right quadrant" title="Shortcut - fill many at once when in upper right quadrant"><img src="../img/layers.png"></button><br/>
+	<button onclick="onLoadExample()" alt="Original Examples" title="Original Examples"><img src="../img/eye.png"></button><br/>
 </div>
 <!--   <textarea id="dbgta"></textarea>  -->
 <br><br>
