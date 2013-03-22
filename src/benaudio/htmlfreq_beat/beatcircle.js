@@ -132,11 +132,11 @@ function requestSoundData(soundData)
 	}
 }
 
-function onplay() {
+ondoplay =function() {
 	// it seems ok not to reset g_requestSoundDataIndex = 0. depends on what user expects
 	g_fPlaying = true;
 }
-function onpause() { g_fPlaying = false; }
+function ondopause() { g_fPlaying = false; }
 function changeDivisionNumber(cbeattop, newdivs)
 {
 	// strip info after the division
