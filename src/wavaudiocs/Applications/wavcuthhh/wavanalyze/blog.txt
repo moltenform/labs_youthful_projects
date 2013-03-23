@@ -1,0 +1,33 @@
+
+I just wrote a little something to cut .wav files into smaller audio files. It doesn't load the whole file 
+into memory, and so will support large files. Many other programs do this, even ffmpeg, but
+I wanted to write this myself, in part because I wanted to be able to specify the cutpoints very precisely
+(by sample number, in fact). I also wanted to be sure no audio data was lost or altered.
+<br/><br/>
+To confirm correct results, I wrote a simple .wav analyzer that prints information about a wav file.
+It confirms that information in the header is correct and outputs the riff chunks. Use the -check option to see this.
+<br/><br/>
+This is called WavcutHHH so that it's clearly better than any existing program called Wavcut.
+<br/><br/>
+<tt>
+WavcutHHH will split a large .wav file into several files based on a text file
+that specifies cut points.
+
+wavcut.exe input.wav input.txt
+
+First line of the .txt file is 'wavcut'.
+Remaining lines of the .txt file should be numbers, specifying where to cut.
+Refer to wavcut.exe trombone.wav trombone.txt as an example.
+
+To check wav contents, use
+
+wavcut.exe -check input.wav
+</tt>
+<br/><br/>
+Here's what it looks like (these are ~800kb because of an example .wav):<br/>
+<a href="wavcuthhh_src.zip">C# source code</a><br/>
+<a href="wavcuthhh_win32.zip">source with win32 binary</a>
+<br/><br/>
+On an unrelated note, I'm still in the midst of reorganizing my music library and moving to mp4.
+There are more hacks in the pipeline.
+

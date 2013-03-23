@@ -1,6 +1,6 @@
 /*
  * WavCutHHH
- * by Ben Fisher, 2011 http://halfhourhacks.blogspot.com
+ * by Ben Fisher, 2011 
  * Released under GPL v3
  * 
  * Run wavcut.exe to see usage.
