@@ -1,7 +1,7 @@
 // htmlfreq tremolo, Ben Fisher, 2011
 // http://halfhourhacks.blogspot.com
 // GPL v3 license, see http://www.gnu.org/licenses/gpl.txt for the terms of using this code
-// This is a written-on-the-bus spare-time project, production code it ain't!
+// This is a written-on-the-bus spare-time project
 
 
 /*
@@ -119,9 +119,6 @@ function setup()
 	setenabledChannel(2)
 	cd2_setselect(null) //no current selection
 	
-	
-	// start audio !
-	var audioDestination = new AudioDataDestination(g_sampleRate, requestSoundData);
 }
 
 
@@ -139,7 +136,8 @@ function requestSoundData(soundData)
 }
 
 var g_prevSerializedState;
-function onplay() {
+var g_startedAudiolet=false;
+function on_btnplay() {
 	// hack: use Json to see if we need to recalc.
 	var sState = JSON.stringify(g_audioState)
 	if (sState!=g_prevSerializedState)
@@ -150,9 +148,22 @@ function onplay() {
 	}
 	else // if (g_CompleteWaveformIndex >= g_arrayCompleteWaveform.length)
 		g_CompleteWaveformIndex = 0;
+	
+	if (!g_startedAudiolet) {
+		try {
+			var audiolet = new Audiolet();
+			var wrapper = new WrapperNode(audiolet, requestSoundData);
+			wrapper.connect(audiolet.output);
+		} catch (e1) {
+			alert('Failed to play audio. I\'d try a recent version of Firefox or Chrome and see if that works.');
+			// continue and attempt to play audio anyways, just in case it does happen to work
+		}
+		g_startedAudiolet = true;
+	}
+	
 	g_fPlaying = true; 
 }
-function onpause() { g_fPlaying = false; }
+function on_btnpause() { g_fPlaying = false; }
 function ontogglelayers() { g_fLayerAudio = !g_fLayerAudio; }
 
 function setenabledZoneid(zoneid, bEnable)
@@ -186,12 +197,12 @@ function setenabledChannel(nchannel)
 	}
 }
 
-function onnew()
+function on_btnnew()
 {
 	if (confirm('Start over?'))
 		document.location.href = document.location.href.split('?')[0]
 }
-function onsave()
+function on_btnsave()
 {
 	if (!JSON) {errmsg('Could not find JSON object. Try using latest Firefox or Chrome.'); return; }
 	var objtop = {v:1, d:g_audioState}

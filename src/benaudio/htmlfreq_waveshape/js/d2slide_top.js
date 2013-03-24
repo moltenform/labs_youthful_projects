@@ -58,9 +58,6 @@ function setup()
 	CD2Slide_add(g_cglobal, g_zoneslshape, 0.3, -0.5/v) // add default shape
 	CD2Slide_add(g_cglobal, g_zoneslshape, 0.7, 0.5/v) // add default shape
 	drawWaveformSketch()
-	
-	// start audio !
-	audioDestination = new AudioDataDestination(sampleRate, requestSoundData);      
 }
 
 
@@ -110,6 +107,5 @@ function drawWaveformSketch()
 			newa.push( em)
 		}
 	ui_draw_long_line(g_zoneslshape, g_waveformln, newa)
-	//~ getInterpolatedValue(a, 0.4)
 }
 
