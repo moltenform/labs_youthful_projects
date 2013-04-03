@@ -1,5 +1,5 @@
 //Ben Fisher, 2008
-//halfhourhacks.blogspot.com
+//
 //GPLv3 Licence
 
 using System;

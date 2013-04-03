@@ -1,5 +1,5 @@
 //Ben Fisher, 2008
-//halfhourhacks.blogspot.com
+//
 //GPL
 //Simple input dialog I made very quickly. Why wasn't this built in?
 

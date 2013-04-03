@@ -1,5 +1,5 @@
 //Ben Fisher, 2008
-//halfhourhacks.blogspot.com
+//
 //GPLv3 Licence
 
 //This class basically assumes you will be working with 16Bit, 44100Hz, 1 channel sounds
