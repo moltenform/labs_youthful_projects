@@ -1,0 +1,28 @@
+http://www.alglib.net/copyrules.php
+
+Terms of use
+Introduction
+
+1. The following notions are used in this Document:
+
+    * "ALGLIB Project" - stands for an Internet-project, which includes alglib.sources.ru and www.alglib.net websites.
+    * "Source Codes" - stand for programs, provided in various programming languages, which are available for downloading from the websites of ALGLIB Project as the codes in the respective programming languages.
+    * "Articles" - stand for texts, which may not be referred to software programs, located at the websites of ALGLIB Project.
+
+2. The goal of this Document is to provide all necessary information for the visitors of the websites of ALGLIB Project about the terms under which access to ALGLIB Project is provided.
+
+3. The access to ALGLIB Project is provided on condition that the visitor voluntarily agrees to follow all the requirements set out in this Document.
+
+4. The access to ALGLIB Project shall be provided, based on the principle "AS IS", without providing any guarantees as regards the quality and reliability of the data provided. Under no circumstances shall ALGLIB Project and its author be liable to the effects, related to the use of the information, obtained within the framework of the Project. The visitor shall bear all the risks, related to the use of the materials of the Project.
+Use Conditions for Articles
+
+5. Unless otherwise stated, the Articles shall be distributed on the basis of the terms and conditions, set out in this Document.
+
+6. The visitor may read the Articles and make an unlimited number of copies of the Articles for his or her personal use, without the right of distributing the data.
+
+7. Any other kinds of using the Articles are strongly prohibited. Specifically, sales or any other commercial use of the Articles, distribution of the Articles on any material media, through computer networks or any other ways, are strongly prohibited.
+Use Conditions for Source Codes
+
+8. The Source Codes are distributed under GPL (as published by the Free Software Foundation, www.fsf.org) either version 2 of the License, or (at your option) any later version. 
+
+

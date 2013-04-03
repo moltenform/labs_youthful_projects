@@ -1,0 +1,47 @@
+<br/><a href="ex1.wav">ex1.wav</a><br/>
+<br/><a href="ex2.wav">ex2.wav</a><br/>
+<br/><a href="ex3.wav">ex3.wav</a><br/>
+<br/><a href="ex4.wav">ex4.wav</a><br/>
+
+
+Doppler Effect Simulation
+--------------------------
+Here's a hacked-together-in-one-night project just like the ones from the old days.<br/><br/>
+
+
+"ex1.picture"
+"ex1.wav"
+
+This is a Doppler effect simulation, in order to create the sound of particles whizzing past you, in stereo. You, the "observer", are represented by the L and R rectangles. The green numbers represent points along the path of that the particle travels. One specifies the path by moving the position of the numbers, using the mouse. If your points are spread apart, the particle travels faster, and if the points are close, the particle moves slower. <br/><br/>
+
+
+It's fun to play with. I recommend downloading and trying it. By clicking the checkbox, a second particle can be added.<br/><br/>
+
+
+The physics are only approximate, because this is an audio project and not a physics project. 
+Each pixel corresponds to 2 meters.
+The distance between L and R "observers" is deliberately exaggerated to get a better stereo effect.
+The volume is scaled by 1/r instead of 1/(r^2), in order to hear the particle more easily when it is far away. This is something to explore further.<br/><br/>
+
+I was able to write the code quickly. The expression (V/(V+vS)) gives a frequency shift, so if this value is 1.5, the perceieved pitch is 1.5 times higher. It turns out that this frequency shift is very well suited to code. First, I generate many seconds of source audio, say a sine wave at a fixed frequency. Then, I walk through this source audio at the "frequency shift" rate, interpolating between values when needed. So if the "frequency shift" came to 1.3, I would take the 0th,1.3th,2.6th,3.9th, samples from the source audio as the output audio, which results in output audio with a 1.3 times higher pitch. The whole project simplified to this:<br/><br/>
+<pre style="font-family: Andale Mono, Lucida Console, Monaco, fixed, monospace; color: #000000; background-color: #eee;font-size: 12px;border: 1px dashed #999999;line-height: 14px;padding: 5px; overflow: auto; width: 100%"><code>fPositionInSourceAudio=0.0;
+V = 340.0; //speed of sound
+//for each timestep:
+//move x and y
+//find distance between particle and observer
+distance = Math.Sqrt((x-xMe)*(x-xMe) + (y-yMe)*(y-yMe));
+vS = (distance - prevdistance) / dt;
+freqShift = (V / (V + vS));
+
+intensity = scale * (1 / distance);
+for (int i = 0; i &lt; dt*sampleRate; i++)
+{
+outputAudio[index+i] = intensity * interpolatedValue(sourceAudio, fPositionInSourceAudio); 
+fPositionInSourceAudio += freqShift;
+}
+</code></pre>
+<br/><br/>
+
+<a href="doppler_fx.zip">Download</a> (Windows), unzip and run Doppler.exe. No setup needed.<br/><br/>
+<a href="doppler_fx_src.zip">Source</a>, released under GPLv3.
+
