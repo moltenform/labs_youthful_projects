@@ -1,0 +1,132 @@
+
+Simpletobmp
+Basically a .ppm concept for Windows
+convert bytes to bmp. uses the LGPL bmp_io library by John Burkardt.
+Ben Fisher, LGPL
+halfhourhacks.blogspot.com
+
+
+Usage:
+simpletobmp o image.simple image.bmp
+where a .simple file is as described below.
+
+Currently only 24bit images (one byte per R,G,B) are supported.
+In the future, input (from .bmp to .ppm) is planned.
+
+
+Description:
+
+Sometimes, it can be nice to have a dead-simple format for bitmap images. If I'm writing some low level code (say, in C) dealing with graphics, at times I will want a quick way to 
+quickly output an image file. Let's say that I'm too lazy to bring in a graphics library that can write actual .pngs .  Unfortunately, the .bmp format, while simple, is a bit more complicated than a list of rgb values, because of alignment. 
+
+I wrote a little program that converts ".simple" images (which are a list of R,G,B bytes) into 24 bit .bmp files.
+So, your program simply writes a tiny header and three bytes per pixel, and simpletobmp.exe turns this into a .bmp.
+This works well from Python, too, when the PIL isn't around.
+Here is an example of how to draw a ".simple" image:
+
+<pre style="font-family: Andale Mono, Lucida Console, Monaco, fixed, monospace; color: #000000; background-color: #eee;font-size: 12px;border: 1px dashed #999999;line-height: 14px;padding: 5px; overflow: auto; width: 100%"><code>FILE * fout;
+fout = fopen(&quot;test.simple&quot;,&quot;wb&quot;);
+fputc('S', fout);
+fputc('2', fout);
+fputc('4', fout);
+int x,y,width,height;
+width = 512; height = 256;
+fwrite(&amp;width,sizeof(int), 1, fout); 
+fwrite(&amp;height,sizeof(int), 1, fout); 
+
+for (y=0; y&lt;height; y++)
+{
+  for (x=0; x&lt;width; x++)
+  {
+    fputc( y%256 , fout); //Red
+    fputc( x%256 , fout); //Green
+    fputc( 0 , fout);          //Blue
+  }
+}
+fclose(fout);
+</code></pre>
+
+Or, in Python,
+<pre style="font-family: Andale Mono, Lucida Console, Monaco, fixed, monospace; color: #000000; background-color: #eee;font-size: 12px;border: 1px dashed #999999;line-height: 14px;padding: 5px; overflow: auto; width: 100%"><code>
+import array
+fout = open('pyout.simple', 'wb')
+
+chars = array.array('c') #char
+chars.append('S')
+chars.append('2')
+chars.append('4')
+chars.tofile(fout)
+
+WIDTH=512; HEIGHT=256
+ints = array.array('l') #signed long
+ints.append(WIDTH)
+ints.append(HEIGHT)
+ints.tofile(fout)
+
+bytes = array.array('B') #unsigned char
+for y in range(HEIGHT):
+	for x in range(WIDTH):
+		bytes.append(y%256)
+		bytes.append(x%256)
+		bytes.append(0)
+
+bytes.tofile(fout)
+fout.close()
+</code></pre>
+(This one draws a gradient in red and green. Change the fputc lines in the inner loop to draw the image you want. A common usage is to set up a 2d array of pixels, draw the picture into that array, and then output everything to a file).
+Now, one can run
+<pre>
+simpletobmp.exe o test.simple test.bmp
+</pre>
+to get the image.
+
+This is very similar to how in Linux, one can write a <a href="http://en.wikipedia.org/wiki/Portable_pixmap">.ppm</a> file, which is, literally, a brief header and list of rgb values. 
+The .ppm format even accepts pixel information in readable ascii numbers!
+
+Download: 
+<a href="http://students.olin.edu/2010/bfisher/blog/mayimg/simpletobmp.zip">Windows binary</a><br/>
+<a href="http://students.olin.edu/2010/bfisher/blog/mayimg/simpletobmp_src.zip">Source</a><br/><br/>
+
+Simpletobmp uses the LGPL bmp_io library by John Burkardt.
+
+
+/////Python program to write .simple///////
+import array
+fout = open('pyout.simple', 'wb')
+
+chars = array.array('c') #char
+chars.append('S')
+chars.append('2')
+chars.append('4')
+chars.tofile(fout)
+
+WIDTH=512; HEIGHT=256
+ints = array.array('l') #signed long
+ints.append(WIDTH)
+ints.append(HEIGHT)
+ints.tofile(fout)
+
+bytes = array.array('B') #unsigned char
+for y in range(HEIGHT):
+	for x in range(WIDTH):
+		bytes.append(y%256)
+		bytes.append(x%256)
+		bytes.append(0)
+
+bytes.tofile(fout)
+fout.close()
+
+/////////////////////////Format/////////////////////////////
+As seen in the C example above:
+char 'S'
+char '2'
+char '4'
+signed 32 bit integer, width
+signed 32 bit integer, height
+exactly (width*height*3) bytes. 
+	red, green, blue value for each pixel.
+	left to right, then top to bottom
+	
+
+
+

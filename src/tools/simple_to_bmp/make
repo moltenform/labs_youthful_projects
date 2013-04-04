@@ -1,0 +1,8 @@
+
+g++ -Wall simpletobmp.cpp bmp_io.cpp -o simpletobmp
+
+
+
+
+
+
