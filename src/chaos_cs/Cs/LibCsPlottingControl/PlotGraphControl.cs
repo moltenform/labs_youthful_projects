@@ -13,6 +13,7 @@ namespace chaosExplorerControl
 
         public bool bAxes = true;
         public bool bDrawSecond=false;
+        public bool bDrawConnected=true;
         Bitmap bitmap = null;
         Pen pen1,pen2;
         public PointPlotGraphUserControl()
@@ -53,30 +54,42 @@ namespace chaosExplorerControl
         }
         private void drawPlotSeries(int width, int height, double[] data, Graphics g, Pen pen)
         {
-            for (int i=0; i<width-1; i++)
+            if (bDrawConnected)
             {
-                double fy1 = data[i];
-                double fy2 = data[i+1];
-                int iy1 = (int)(height - height * ((fy1 - Y0) / (Y1 - Y0)));
-                int iy2 = (int)(height - height * ((fy2 - Y0) / (Y1 - Y0)));
-                if (iy1 >=0 && iy1<height && iy2 >=0 && iy2<height)
+                for (int i=0; i<width-1; i++)
                 {
-                    g.DrawLine(pen, i, iy1, i+1, iy2);
-                }
-                else if (iy1 >=0 && iy1<height)
-                {
-                    //g.DrawLine(pen1, i, iy1, i+1, iy1+1);
-                    iy2 = Math.Min(iy2, height-1);
-                    iy2 = Math.Max(iy2, 0);
-                    g.DrawLine(pen, i, iy1, i+1, iy2);
+                    double fy1 = data[i];
+                    double fy2 = data[i+1];
+                    int iy1 = (int)(height - height * ((fy1 - Y0) / (Y1 - Y0)));
+                    int iy2 = (int)(height - height * ((fy2 - Y0) / (Y1 - Y0)));
+                    if (iy1 >=0 && iy1<height && iy2 >=0 && iy2<height)
+                    {
+                        g.DrawLine(pen, i, iy1, i+1, iy2);
+                    }
+                    else if (iy1 >=0 && iy1<height)
+                    {
+                        //g.DrawLine(pen1, i, iy1, i+1, iy1+1);
+                        iy2 = Math.Min(iy2, height-1);
+                        iy2 = Math.Max(iy2, 0);
+                        g.DrawLine(pen, i, iy1, i+1, iy2);
 
+                    }
+                    else if (iy2 >=0 && iy2<height)
+                    {
+                        iy1 = Math.Min(iy1, height-1);
+                        iy1 = Math.Max(iy1, 0);
+                        g.DrawLine(pen, i, iy1, i+1, iy2);
+                        //g.DrawLine(pen1, i, iy2, i+1, iy2+1);
+                    }
                 }
-                else if (iy2 >=0 && iy2<height)
+            }
+            else
+            {
+                for (int i=0; i<width; i++)
                 {
-                    iy1 = Math.Min(iy1, height-1);
-                    iy1 = Math.Max(iy1, 0);
-                    g.DrawLine(pen, i, iy1, i+1, iy2);
-                    //g.DrawLine(pen1, i, iy2, i+1, iy2+1);
+                    double fy1 = data[i];
+                    int iy = (int)(height - height * ((fy1 - Y0) / (Y1 - Y0)));
+                    g.DrawLine(pen, i, iy, i+1, iy+1);
                 }
             }
 
