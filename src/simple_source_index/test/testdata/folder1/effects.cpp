@@ -16,7 +16,7 @@ double effect_interpolate(double* data, int length, double sampleIndex)
 	else if (sampleIndex < 0+1) sampleIndex=0;
 	
 	// Uses linear interpolation to find, say, the 4.15th element of an array of doubles.
-        // In the future maybe consider better interpolation methods, like cubic, polynomial, or sinc
+	// In the future maybe consider better interpolation methods, like cubic, polynomial, or sinc
 	double proportion = sampleIndex - trunc(sampleIndex);
 	double v1 = data[(int)trunc(sampleIndex)];
 	double v2 = data[(int)ceil(sampleIndex)];

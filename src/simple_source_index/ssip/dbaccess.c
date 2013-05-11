@@ -66,7 +66,7 @@ SSIdbAccess* SSIdbAccess_Create(const char* szDbName)
 		printerrfmt("Can't open database: %s", sqlite3_errmsg(db));
 		sqlite3_close(db);
 		return null;
-    }
+	}
 	SSIdbAccess* obj = (SSIdbAccess*) malloc(sizeof(SSIdbAccess));
 	obj->m_db = db;
 	obj->m_stmts = (sqlite3_stmt**) calloc(SqlOps_MAX, sizeof(sqlite3_stmt*));
@@ -89,11 +89,11 @@ SsiE SSIdbAccess_RunSql(SSIdbAccess* pSSIdbAccess, const char* szSql, int nLine)
 {
 	char *szErrMsg = 0;
 	int rc = sqlite3_exec(pSSIdbAccess->m_db, szSql, null, 0, &szErrMsg);
-    if (rc!=SQLITE_OK) {
-      printerrfmt("SQL error: %s", szErrMsg);
-      free_fn(szErrMsg, sqlite3_free);
-	  return ssierrp("sql error on dbaccess.cpp line", nLine);
-    }
+	if (rc!=SQLITE_OK) {
+		printerrfmt("SQL error: %s", szErrMsg);
+		free_fn(szErrMsg, sqlite3_free);
+		return ssierrp("sql error on dbaccess.cpp line", nLine);
+	}
 	return SsiEOk;
 }
 #define SSIdbAccess_RunSqlM(pSSIdbAccess, szSql) SSIdbAccess_RunSql((pSSIdbAccess), (szSql), __LINE__)

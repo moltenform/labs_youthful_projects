@@ -17,27 +17,27 @@ bool WalkThroughFiles_Impl(const char* szPath, void* obj, PfnWalkfilesCallback c
 	}
 
 	HANDLE hFind = FindFirstFile(szBuffer, &findFileData);
-    if (hFind == INVALID_HANDLE_VALUE)
-        return true;
-    do
-    {
-        if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            if (!StringAreEqual(".", findFileData.cFileName) && !StringAreEqual("..", findFileData.cFileName))
-            {
+	if (hFind == INVALID_HANDLE_VALUE)
+		return true;
+	do
+	{
+		if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			if (!StringAreEqual(".", findFileData.cFileName) && !StringAreEqual("..", findFileData.cFileName))
+			{
 				sprintf_s(szBuffer, _countof(szBuffer), "%s\\%s", szPath, findFileData.cFileName);
 				bool b = WalkThroughFiles_Impl(szBuffer, obj, callback, nCurrentdepth+1, nMaxdepth);
 				if (!b) { FindClose(hFind); return b; }
-            }
-        }
-        else
-        {
+			}
+		}
+		else
+		{
 			sprintf_s(szBuffer, _countof(szBuffer), "%s\\%s", szPath, findFileData.cFileName);
 			bool b = callback(obj, szBuffer);
 			if (!b) { FindClose(hFind); return b; }
-        }
-    } while (FindNextFile(hFind, &findFileData) != 0);
-    FindClose(hFind);
+		}
+	} while (FindNextFile(hFind, &findFileData) != 0);
+	FindClose(hFind);
 	return true;
 }
 
