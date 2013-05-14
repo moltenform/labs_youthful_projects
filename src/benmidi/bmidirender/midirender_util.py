@@ -1,8 +1,8 @@
 
-bTesting = False
-if bTesting:
-    import sys
-    sys.path.append('..')
+import sys
+sys.path.append('..')
+from bmidilib import bmidilib, bmiditools
+sys.path.pop()
 
 class Callable():
 	def __init__(self, func, *args, **kwds):

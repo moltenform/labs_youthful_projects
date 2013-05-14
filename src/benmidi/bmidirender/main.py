@@ -21,7 +21,7 @@ import midirender_runtimidity
 import midirender_soundfont
 import midirender_soundfont_info
 
-from bmidilib import bmidilib, bmiditools
+from midirender_util import bmidilib, bmiditools
 
 
 clefspath = 'scoreview' + os.sep + 'clefs'

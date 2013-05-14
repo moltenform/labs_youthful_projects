@@ -1,7 +1,7 @@
 """
 ScoreView
 Ben Fisher, 2009, GPL
-halfhourhacks.blogspot.com
+
 
 """
 from Tkinter import *
@@ -72,7 +72,7 @@ class App:
 		
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', command=(lambda: scoreview_util.alert('ScoreView, by Ben Fisher 2009\n\nhalfhourhacks.blogspot.com','benmidi ScoreView')))
+		menuHelp.add_command(label='About', command=(lambda: scoreview_util.alert('ScoreView, by Ben Fisher 2009\n\n','benmidi ScoreView')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)

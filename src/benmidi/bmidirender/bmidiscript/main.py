@@ -1,7 +1,7 @@
 """
 tunescript, a music toy
 Ben Fisher, 2009, GPL
-halfhourhacks.blogspot.com
+
 
 """
 from Tkinter import *
@@ -117,7 +117,7 @@ class App():
 		
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', command=(lambda: midiscript_util.alert('tunescript, by Ben Fisher 2009\n\nhalfhourhacks.blogspot.com','benmidi tunescript')))
+		menuHelp.add_command(label='About', command=(lambda: midiscript_util.alert('tunescript, by Ben Fisher 2009\n\n','benmidi tunescript')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)

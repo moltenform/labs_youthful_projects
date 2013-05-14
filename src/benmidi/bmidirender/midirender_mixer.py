@@ -1,7 +1,7 @@
 from Tkinter import *
 import midirender_util
 
-from bmidilib import bmidilib
+from midirender_util import bmidilib
 
 class MixerTrackInfo():
 	def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar):
