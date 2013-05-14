@@ -1,0 +1,22 @@
+
+Get latest source from http://timidity.sourceforge.net/, in .tar.bz2 format
+Set up both mingw and msys (I used mingw-4.4.0-2, msys from 11/2011 MSYS-20111123.zip)
+Run msys.bat to open msys command prompt.
+Add c:/path/to/mingw-4.4.0-2/bin to bash's path.
+cd c:/path/to/timidity/TiMidity++-2.14.0
+./configure --without-x --enable-audio=w32
+make
+
+Getting documentation:
+in msys prompt,
+cd doc
+make
+man ./timidity.cfg.5 > doc_configuration.txt
+in doc_configuration.txt replace regular expression '_' with ''
+in doc_configuration.txt replace regular expression '.' with ''
+man ./timidity.1 > doc_timidity.txt
+in doc_timidity.txt replace regular expression '_' with ''
+in doc_timidity.txt replace regular expression '.' with ''
+
+
+See also http://timidity.sourceforge.net/install.html

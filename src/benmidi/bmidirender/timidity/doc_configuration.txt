@@ -1,0 +1,484 @@
+timidity.cfg(5)                                                timidity.cfg(5)
+
+
+
+NAME
+       timidity.cfg - configure file of TiMidity++
+
+DESCRIPTION
+       The  file  timidity.cfg  describes  the  runtime environments of timid-
+       ity(1): that are the path of sound  font,  instruments  configurations,
+       etc.
+       TiMidity++  looks  for  the configuration file timidity.cfg at startup,
+       before processing any options.   If  it  can't  be  accessed,  and  the
+       library  path is changed with a -L option on the command line, then the
+       default file will be sought again along the new library path after pro-
+       cessing  all  options,  unless another configuration file was specified
+       with the -c option.
+       Configuration files define the mapping of MIDI programs  to  instrument
+       files.   Multiple  files may be specified, and statements in later ones
+       will override earlier ones.
+
+VARIABLE
+       When alphanumeric and/or underscore `_' characters continue after  dol-
+       lar  sign  `$',  it is considered that the string is a variable and the
+       configuration file is processed, it is transposed  to  another  string.
+       The  variable  name  can also be written with an inside parenthesis, in
+       order to separate from a following character.
+
+       For example:
+       $variable
+       ${variable} # same as $variable
+
+       For the moment, the command which newly defines variables is  not  pre-
+       pared.  The undefined variable is transposed to null string.
+       The variable defined as a regular variable is the next only one.
+
+       $basedir
+              Expresses the directory where the configuration file exists.  By
+              the command which mainly specifies a path, it uses in  order  to
+              specify the relative path from a setting file.
+              When  a  blank  may  be included in $basedir, it is necessary to
+              bundle with "".
+
+              For example:
+              In /usr/local/share/timidity/timidity.cfg
+              dir $basedir/inst # source /usr/local/share/timidity/inst
+
+SYNTAX
+       The following statements can be used in a configuration file:
+
+       dir directory [...]
+              Adds directory to the search path in the same manner as  the  -L
+              command line option.
+              Archive file are also allowed.
+
+              For example:
+              dir /usr/local/share/timidity/inst/foo.zip#
+              bank 0
+              0 bar.pat
+              1 baz.pat
+              2 zoo.pat
+
+              At  first,  dir specifies the archive name (followed by `#') for
+              the path of patch files same as directory name  (in  this  case,
+              /usr/local/share/timidity/inst/foo.zip).   TiMidity++  recognize
+              the path is an archive file if the expression has the last char-
+              acter  `#',  and  also  read the files contained in this archive
+              file.  In previous example the patch files bar.pat, baz.pat  and
+              zoo.pat contained in the foo.zip are also installed.
+
+       source file [...]
+              Reads  another configuration file, then continues processing the
+              current one.
+
+       progbase number
+              Sets and displays the tone number from number to number+128.  If
+              progbase  1  are specified, tone numbers that follow are set and
+              displayed as the numbers from 1 to 128.
+
+       bank [MapID1] number
+              Selects the tone bank to modify.   Patch  mappings  that  follow
+              will  affect this tone bank.  You can indicate specific map as a
+              target, by specifying any of the following to MapID1: gm2, sc55,
+              sc88, sc88pro, sc8850, xg and xgsfx64.
+
+       drumset [MapID2] number
+              Selects the drum set to modify.  Patch mappings that follow will
+              affect this drum set.  You can indicate specific map as  a  tar-
+              get,  by  specifying  any  of  the following to MapID2: gm2drum,
+              sc55drum,  sc88drum,   sc88prodrum,   sc8850drum,   xgdrum   and
+              xgsfx126.
+
+       number file [options]
+       number %font file bank prog [key] [options]
+       number %sample file [options]
+              Specifies  that the MIDI program number in the current tone bank
+              or drum set should be played using the patch file.  If  file  is
+              SoundFont,  the  specific instrument with bank, prog, and key is
+              taken out by the format of number %font.  If file is linear AIFF
+              or  WAV sample data, the MIDI program number is specified by the
+              format of number %sample.  Options may be any of the following:
+
+              amp=amplification
+                     Amplifies the instrument's volume by  amplification  per-
+                     cent.   If  no  value is specified, one will be automati-
+                     cally determined whenever the instrument is loaded.
+
+              note=note
+                     Specifies a fixed MIDI  note  to  use  when  playing  the
+                     instrument.   If note is 0, the instrument will be played
+                     at whatever note the Note On  event  triggering  it  has.
+                     For  percussion  instruments, if no value is specified in
+                     the configuration file, the default  in  the  patch  file
+                     will be used.
+
+              pan=panning
+                     Sets  the  instrument's  default panning.  panning may be
+                     left, right, center, or an integer between -100 and  100,
+                     designating full left and full right respectively.  If no
+                     value is specified, the default in the patch file will be
+                     used.   Note  that  panning  controls  in MIDI files will
+                     override this value.
+
+              tune=tuning[,...]
+                     Adjust the instrument's root frequency.  tune=1 causes  1
+                     half tone higher.  Since a fraction is available for tun-
+                     ing, it is possible to do fine tuning such as  tune=-0.2.
+                     When  two or more sample data is contained, the arguments
+                     after the second  can  specify  different  value  respec-
+                     tively.
+
+              rate=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets  the  instrument's  ADSR rate.  Each value may be an
+                     integer between 0 and 255.  When  you  set  only  sustain
+                     rate,
+
+                     6 GUS/hrpschrd.pat rate=::60
+
+                     is available.  When you set only attack time fasten,
+
+                     6 GUS/hrpschrd.pat rate=255
+
+                     is available.  When two or more sample data is contained,
+                     the arguments after  the  second  can  specify  different
+                     value respectively.
+
+              offset=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets  the instrument's ADSR offset.  Each value may be an
+                     integer between 0 and 255.  The format is same as rate=.
+
+              keep={loop|env}
+                     By default, percussion instruments have  their  loop  and
+                     envelope    information   stripped.    Strangely   shaped
+                     envelopes are removed automatically from melodic  instru-
+                     ments  as  well.   keep= can be used to prevent stripping
+                     loop or envelope data.  For example, the Short  and  Long
+                     Whistle  percussion  instruments (General Midi numbers 71
+                     and 72) need to have `keep=loop  keep=env'  specified  in
+                     the configuration file.
+
+              strip={loop|env|tail}
+                     Force  removal  of  loop or envelope information from all
+                     patches in the instrument, or strip the  tail,  i.e.  all
+                     data  after  the loop.  Some third-party instruments have
+                     garbage after the loop, as evidenced by a clicking  noise
+                     whenever   the   instrument  is  played,  so  adding  the
+                     strip=tail option will markedly improve sound quality.
+
+              tremolo=sweep_increment:control_ratio:depth[,...]
+                     Sets the instrument's tremolo.   Each  value  may  be  an
+                     integer  between  0  and  255.   The format is similar to
+                     rate=.  sweep_increment is  the  time  until  tremolo  is
+                     started.   control_ratio  is the rate changing amplifica-
+                     tion.  depth is the depth changing amplification.
+
+              vibrato=sweep_increment:phase_increment:depth[,...]
+                     Sets the instrument's vibrato.   Each  value  may  be  an
+                     integer  between  0  and  255.   The format is similar to
+                     rate=.  sweep_increment is  the  time  until  vibrato  is
+                     started.  phase_increment is the rate changing frequency.
+                     depth is the depth changing frequency.
+
+              sclnote=note[,...]
+                     Sets the instrument's standard  note  for  scale  tuning.
+                     For  example,  sclnote=60  causes the center note C to be
+                     standard note for scale tuning.  When two or more  sample
+                     data  is  contained,  the  arguments after the second can
+                     specify different value respectively.
+
+              scltune=tune[,...]
+                     Sets the instrument's scale tuning factor in cents.   For
+                     example,  scltune=50  causes  the  half  tone steps as 50
+                     cents.  When two or more sample data  is  contained,  the
+                     arguments  after  the  second can specify different value
+                     respectively.
+
+              comm=comment
+                     Specifies the comment comment.
+
+              modrate=attack:decay:sustain:release1:release2:release3[,...]
+              modoffset=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets the instrument's behavior of  change  of  modulation
+                     envelope.   The  format and values are fundamentally same
+                     as volume envelope.  Except for some SoundFonts, even  if
+                     it specifies only the option, nothing happens.
+
+              envkeyf=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets  the instrument's volume envelope key follow.  Based
+                     on note=60, it changes envelope time according  to  note.
+                     The  unit  is +-cent/key.  For example, envkeyf=100 means
+                     that the attack time will double when it  goes  up  by  1
+                     octave.   The  format is similar to rate=.  The parameter
+                     of decay and sustain may be preset in some SoundFont.
+
+              envvelf=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets the instrument's volume  envelope  velocity  follow.
+                     Based  on velocity=64, it changes envelope time according
+                     to velocity.  The unit is +-cent/velocity.  For  example,
+                     envvelf=100  means  that the attack time will 38 times at
+                     velocity=127.  The format is similar to  rate=.   In  the
+                     future, the specification of this option may be changed.
+
+              modkeyf=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets  the  instrument's  modulation  envelope key follow.
+                     Based on note=60, it changes envelope time  according  to
+                     note.   The unit is +-cent/key.  For example, modkeyf=100
+                     means that the attack time will double when it goes up by
+                     1 octave.  The format is similar to rate=.  The parameter
+                     of decay and sustain may be preset in some SoundFont.
+
+              modvelf=attack:decay:sustain:release1:release2:release3[,...]
+                     Sets the instrument's modulation envelope  velocity  fol-
+                     low.   Based  on  velocity=64,  it  changes envelope time
+                     according to velocity.  The unit is +-cent/velocity.  For
+                     example,  modvelf=100  means that the attack time will 38
+                     times at velocity=127.  The format is similar  to  rate=.
+                     In  the  future,  the specification of this option may be
+                     changed.
+
+              trempitch=num[,...]
+                     Sets the instrument's depth of changing  pitch  according
+                     to  tremolo.   The  effect  itself is same as vibrato, it
+                     uses to operate in another system.  The unit  is  +-cent.
+                     The format is similar to rate=.
+
+              tremfc=num[,...]
+                     Sets  the instrument's depth of changing cutoff frequency
+                     according to tremolo.  It can express the so-called glowl
+                     effect.  The unit, etc.  are same as trempitch=.
+
+              modpitch=num[,...]
+                     Sets  the  instrument's depth of changing pitch according
+                     to modulation envelope.  It can temporarily express rais-
+                     ing  pitch only for the attack stage.  The unit, etc. are
+                     same as trempitch=.
+
+              modfc=num[,...]
+                     Sets the instrument's depth of changing cutoff  frequency
+                     according  to  modulation  envelope.   The unit, etc. are
+                     same as trempitch=.
+
+              fc=num[,...]
+                     Sets the instrument's standard of cutoff frequency.   The
+                     unit is Hz.  The format is similar to rate=.
+
+              q=num[,...]
+                     Sets  the  instrument's  Q  (resonance).  The unit is cB.
+                     The format is similar to rate=.
+
+              fckeyf=num
+                     Sets  the  instrument's  filter  key  follow.   Based  on
+                     note=60,  it  change  cutoff frequency according to note.
+                     The unit is +-cent/key.  For  example,  fckeyf=100  means
+                     that it changes same as pitch.
+
+              fcvelf=num
+                     Sets  the  instrument's filter velocity follow.  Based on
+                     velocity=127, it changes cutoff  frequency  according  to
+                     velocity.   The  unit  is +-cent.  In SoundFont, -2400 is
+                     set up as a characteristic value.
+
+              qvelf=num
+                     Sets the instrument's resonance velocity  follow.   Based
+                     on  velocity=0,  it changes resonance according to veloc-
+                     ity.  The unit is +-cB.
+
+       default file
+              When MIDI program appears, which is  not  mapped  to  instrument
+              file, this file is pronounced as a substitute.
+
+       map MapID1 from-bank from-prog to-bank to-prog
+              The existing tone is assigned as a tone of GS/XG each map.  gm2,
+              sc55, sc88, sc88pro, sc8850, xg and xgsfx64 can be specified  to
+              be MapID1.
+
+       map MapID2 from-drumset from-keynote to-drumset to-keynote
+              The  existing  drum  is  assigned  as  a drum of GS/XG each map.
+              gm2drum, sc55drum, sc88drum, sc88prodrum, sc8850drum, xgdrum and
+              xgsfx126 can be specified to be MapID2.
+
+       soundfont file [options]
+              Read the whole SoundFont.  options may be any of the following:
+
+              order=number
+                     Sets   the  order  of  searching  for  instrument.   When
+                     order=0, first read SoundFont, and then search for insuf-
+                     ficient  samples in GUS/patch.  When order=1, after read-
+                     ing GUS/patch, search for SoundFont.
+
+              amp=amplification
+                     Sets the amplification of the whole SoundFont as amplifi-
+                     cation%.   If  the  value  is not specified, it is set by
+                     100%.
+
+              cutoff=number
+                     Specifies whether LPF in SoundFont is enable (1) or  dis-
+                     able  (0).   If the value is not specified, it is consid-
+                     ered to be enable.
+
+              reso=number
+                     Specifies whether resonance in SoundFont is enable (1) or
+                     disable  (0).   If the value is not specified, it is con-
+                     sidered to be enable.
+
+              remove Cancels the target SoundFont from the memory.
+
+       font exclude bank [prog [key]]
+              Suppresses searching for SoundFont of bank, prog.  If the sample
+              is drumset, bank is 128, drumset is prog, keynum is key.
+
+       font order number bank [prog [key]]
+              Sets  the  order  of searching for instrument individually.  The
+              format is same as font exclude.
+
+       The following statements are available only latest TiMidity++.
+
+       #extension altassign program1 program2 ...
+              Sets the alternate assign for drum set.   For  example,  if  you
+              want  to pronounce Hi-Hat cymbals (note number 42, 44 and 46) in
+              the drumset 0 exclusively to each others, specify:
+
+              drumset 0
+              altassign 42 44 46
+
+              Note that alternate assign of drumset 0 is used by default.
+
+       #extension comm program comment
+              Specifies the comment  comment  for  the  tone  number  program.
+              These  comments  are displayed in the indicator line when TiMid-
+              ity++ is booted with option -int, -iTt.
+
+       #extension timeout program second
+              Specifies the time-out value  of  the  program.   If  any  notes
+              played  with the tone number program are suspended for more than
+              second seconds, TiMidity++ kills the notes.
+
+       #extension copydrumset drumset
+              Copies all settings of the drumset to the current drumset.
+
+       #extension copybank bank
+              Copies all settings of the bank to the current bank.
+
+       #extension copymap to-MapID from-MapID
+              Copies all settings of the banks defined for the map  from-MapID
+              to the map to-MapID.
+
+       #extension HTTPproxy hostname:port
+              Specifies the proxy of the HTTP protocol.  hostname and port are
+              of the proxy host's.
+
+       #extension FTPproxy hostname:port
+              Specifies the proxy of the FTP protocol.  Same as HTTP.
+
+       #extension mailaddr your-mail-address
+              Specifies user's mail address.  This address is sent to the  FTP
+              server if TiMidity++ access any file via FTP.
+
+       #extension opt option
+              Sets the value of boot-time options.
+
+       #extension undef progno
+              Undefines the tone progno of current tone bank.
+
+       #extension legato progno {0|1}
+              Specifies whether legato is enable (1) or disable (0) on progno.
+
+       #extension level progno tva_level
+              Sets  the standard value of changing amplification when process-
+              ing Drum Instrument TVA Level of NRPN.  Unless  Drum  Instrument
+              TVA  Level  is  specified  at  playing, the amplification is not
+              influenced.  progno can carry out package specification  by  `,'
+              and/or  [start]-[end].   If  start and end are omitted, they are
+              assumed to be 0 and 127 respectively.
+
+       #extension damper progno {0|1}
+              Specifies whether redamper and half-damper  are  enable  (1)  or
+              disable (0) on progno.
+
+       #extension playnote progno note
+              Sets  the  frequency  of pronounce to note.  If the frequency of
+              pronounce is specified by GS  SysEx  Play  Note,  the  pitch  is
+              changed  appropriately according to the value.  progno can carry
+              out package specification by `,' and/or [start]-[end].  If start
+              and  end  are  omitted, they are assumed to be 0 and 127 respec-
+              tively.
+
+              For example:
+              drumset 0
+              #extension playnote -37,39,44-46,55-60
+
+       #extension delaysend progno level
+       #extension chorussend progno level
+       #extension reverbsend progno level
+              Sets the send level when drum part effect is enable.   All  ini-
+              tial  value  are  127.  If one of delay, chorus and reverb is at
+              least set up, the effect which is  not  set  as  the  tone  will
+              become the initial value 0.  progno can carry out package speci-
+              fication by `,' and/or [start]-[end].   If  start  and  end  are
+              omitted, they are assumed to be 0 and 127 respectively.
+
+       #extension rnddelay progno msec
+              For every pronunciation, it is random and less than a maximum of
+              msec delay.  The distribution of random value is pink noise (1/f
+              fluctuation) rather than a white noise.
+
+       These  #extension  statements  are beginning with character `#' that is
+       the comment flag of old TiMidity (version 0.2i or earlier).   So  these
+       statements are treated as comment line.
+       The  latest  TiMidity++  treats  #extension as white-space.  So you can
+       omit it.
+
+       If any file-name expression ended with character `|' (Ascii 0x7c),  the
+       file-name  is  treated  as  command and outputs of the command are also
+       examined as arguments of statements.
+       source command| causes the output of command becomes  the  argument  of
+       source.  It is convenient to choose settings of TiMidity++ according to
+       environment.  In addition, if a space enters on the way like command |,
+       it  will  be  divided  at the time of setting file reading, and will no
+       longer be regarded as a command.  This function is  applicable  to  all
+       the places that can specify a file name.
+
+              timidity 'cat fild.mid|'
+
+       will read from the output of cat fild.mid.
+
+FILES
+       /etc/timidity.cfg
+
+       /usr/local/share/timidity/timidity.cfg
+
+SEE ALSO
+       timidity(1),   lsmidiprog(1),   mididump(1),   patinfo(1),  sf2text(1),
+       wav2pat(1)
+
+COPYRIGHT
+       Copyright (C) 1999-2004 Masanao Izumo <iz@onicos.co.jp>
+       Copyright (C) 1995 Tuukka Toivonen <tt@cgs.fi>
+
+       The original version was developed by Tuukka Toivonen <tt@cgs.fi> until
+       the release of TiMidity-0.2i.  His development was discontinued because
+       of his being busy with work.
+
+       This program is free software; you can redistribute it and/or modify it
+       under  the  terms of the GNU General Public License as published by the
+       Free Software Foundation; either version 2 of the License, or (at  your
+       option) any later version.
+
+       This  program  is  distributed  in the hope that it will be useful, but
+       WITHOUT ANY  WARRANTY;  without  even  the  implied  warranty  of  MER-
+       CHANTABILITY  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+       Public License for more details.
+
+       You should have received a copy of the GNU General Public License along
+       with this program; if not, write to the Free Software Foundation, Inc.,
+       59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+AVAILABILITY
+       The latest release is available on the TiMidity++ Page,
+
+       URL http://www.timidity.jp/
+
+
+
+2.13.0                           April 25 2004                 timidity.cfg(5)
