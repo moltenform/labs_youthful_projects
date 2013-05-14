@@ -1,0 +1,16 @@
+
+The pysf utility is a way to create and edit SoundFont 2 files at the command line. It does this using XML configuration files and basic audio files (strict sub-set of .wav and .aif).
+
+Each SoundFont2 file has one or more presets, each preset containing one or more preset zones, each preset zone mapping to an instrument, each instrument containing one or more instrument zones, each instrument zone mapping to a wavetable.
+
+The pysf utility is released into the public domain.
+
+My email address is bencollver at gmail.com
+
+(note: the latest pysf, from 
+http://code.terrorpin.net/pysf/index
+did not seem to work here as it does not seem to write presetId, only id and instrumentId
+for preset in Presets:
+	print preset
+	is missing presetId key.
+)
