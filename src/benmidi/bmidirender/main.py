@@ -292,6 +292,7 @@ class App():
 			resp = midirender_util.ask_yesno('This midi file has notes from different channels in the same track (format 0). Click "yes" (recommended) to import it as a format 1 file, or "no" to leave it. ')
 			if resp:
 				newmidi = bmiditools.restructureMidi(self.objMidi)
+				newmidi.format = 1
 				self.loadMidiObj(newmidi)
 				return
 	
