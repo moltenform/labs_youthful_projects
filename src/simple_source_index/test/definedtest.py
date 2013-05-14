@@ -1,6 +1,5 @@
 
 import os,sys,shutil,subprocess
-import exceptions
 join = os.path.join
 os.chdir(join('..', 'release'))
 g_sExe = 'simple_source_indexing.exe'
@@ -9,17 +8,17 @@ sfile2  = join('..','test','testdata','folder1','contrived.cpp')
 sbinary = join('..','test','testdata','folder1','tempbinary.cpp')
 
 
-class Bucket():
+class Bucket(object):
     pass
     
 def assertEqual(v, vExpected):
     if v != vExpected:
-        print 'Fail: Expected '+str(vExpected) + ' but got '+str(v)
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: Expected '+str(vExpected) + ' but got '+str(v))
+        raise RuntimeError('stop')
 def assertContains(s, subs):
     if subs not in s:
-        print 'Fail: "'+str(subs) + '" not found in "'+str(s)+'"'
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: "'+str(subs) + '" not found in "'+str(s)+'"')
+        raise RuntimeError('stop')
 
 def main():
     assert os.path.exists(g_sExe)
@@ -48,7 +47,7 @@ def main():
 def tests():
     # simple test
     bk = runandprocessresults(['-start'])
-    print bk.err
+    print(bk.err)
     bk = runandprocessresults(['-s', 'extern'])
     assertEqual(bk.countResults, 1)
     assertContains(bk.txt, 'src2.h:23:extern "C" {')
@@ -90,7 +89,7 @@ def tests():
     assertEqual(bk.err, errdeny)
     
     f=open(sbinary, 'wb')
-    f.write('44444444444444 4444444 4444\0\0444444 4444 444')
+    f.write(b'44444444444444 4444444 4444\0\0444444 4444 444')
     f.close()
     bk = runandprocessresults(['-s', 'include'])
     assert bk.err.startswith('error::null char in file')
@@ -171,7 +170,7 @@ def runandprocessresults(listArgs):
             bucket.countResults+=1
             bucket.txt = txt
         else:
-            print 'not sure if result or error', txt
+            print('not sure if result or error', txt)
             assert False
         
     return bucket

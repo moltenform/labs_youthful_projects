@@ -1,21 +1,20 @@
 
 import os,sys,shutil,subprocess
-import exceptions
 join = os.path.join
 os.chdir(join('..', 'release'))
 g_sExe = 'simple_source_indexing.exe'
 
-class Bucket():
+class Bucket(object):
     pass
     
 def assertEqual(v, vExpected):
     if v != vExpected:
-        print 'Fail: Expected '+str(vExpected) + ' but got '+str(v)
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: Expected '+str(vExpected) + ' but got '+str(v))
+        raise RuntimeError('stop')
 def assertContains(s, subs):
     if subs not in s:
-        print 'Fail: "'+str(subs) + '" not found in "'+str(s)+'"'
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: "'+str(subs) + '" not found in "'+str(s)+'"')
+        raise RuntimeError('stop')
 
 def main():
     assert os.path.exists(g_sExe)
@@ -36,12 +35,12 @@ def main():
 def tests():
     # simple test
     bk = runandprocessresults(['-start'])
-    print bk.txt
+    print(bk.txt)
     
 
 def runandprocessresults(listArgs):
     txt, ret = _runReturnStdout(listArgs)
-    print txt
+    print(txt)
     assertEqual(ret, 0)
     bucket = Bucket()
     assert not txt.startswith('Error:')

@@ -1,6 +1,5 @@
 
 import os,sys,shutil,subprocess
-import exceptions
 join = os.path.join
 os.chdir(join('..', 'release'))
 g_sExe = 'simple_source_indexing.exe'
@@ -8,17 +7,17 @@ sfile1  = join('..','test','testdata','folder1','temp.foobar')
 sfile2  = join('..','test','testdata','folder1','contrived.cpp')
 
 
-class Bucket():
+class Bucket(object):
     pass
     
 def assertEqual(v, vExpected):
     if v != vExpected:
-        print 'Fail: Expected '+str(vExpected) + ' but got '+str(v)
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: Expected '+str(vExpected) + ' but got '+str(v))
+        raise RuntimeError('stop')
 def assertContains(s, subs):
     if subs not in s:
-        print 'Fail: "'+str(subs) + '" not found in "'+str(s)+'"'
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: "'+str(subs) + '" not found in "'+str(s)+'"')
+        raise RuntimeError('stop')
 
 def main():
     assert os.path.exists(g_sExe)
