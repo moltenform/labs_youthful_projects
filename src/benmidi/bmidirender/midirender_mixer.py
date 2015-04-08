@@ -4,8 +4,9 @@ import midirender_util
 from midirender_util import bmidilib
 
 class MixerTrackInfo():
-	def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar):
+	def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar,scalevolVar):
 		self.trackNumber = trackNumber; self.enableVar = enableVar; self.volWidget = volWidget; self.panWidget = panWidget; self.transposeVar = transposeVar
+		self.scalevolVar = scalevolVar
 
 class BMixerWindow():
 	def __init__(self, top, midiObject, opts, callbackOnClose=None):
@@ -20,12 +21,14 @@ class BMixerWindow():
 		ROW_CHECK = 1
 		ROW_VOL = 2
 		ROW_PAN = 3
-		ROW_TRANSPOSE = 4
+		ROW_SCALEVOL = 4
+		ROW_TRANSPOSE = 5
 		
 		Label(frameTop, text='Pan:').grid(row=ROW_PAN, column=0)
 		Label(frameTop, text='Volume:').grid(row=ROW_VOL, column=0)
 		Label(frameTop, text=' ').grid(row=ROW_NAME, column=0)
 		Label(frameTop, text='Enabled:').grid(row=ROW_CHECK, column=0)
+		Label(frameTop, text='Multiply vols:').grid(row=ROW_SCALEVOL, column=0)
 		Label(frameTop, text='Transpose:').grid(row=ROW_TRANSPOSE, column=0)
 		
 		warnMultiple=[]
@@ -42,6 +45,8 @@ class BMixerWindow():
 			Label(frameTop, text='    Track %d    '%trackNumber).grid(row=ROW_NAME, column=col)
 			checkvar = IntVar(); 
 			Checkbutton(frameTop, text='', var=checkvar).grid(row=ROW_CHECK, column=col)
+			scalevolvar = StringVar(); scalevolvar.set('1.0')
+			Entry(frameTop, width=4, textvariable=scalevolvar).grid(row=ROW_SCALEVOL, column=col)
 			transposevar = StringVar(); transposevar.set('0')
 			Entry(frameTop, width=4, textvariable=transposevar).grid(row=ROW_TRANSPOSE, column=col)
 			
@@ -52,7 +57,7 @@ class BMixerWindow():
 			scpan.set(0 if (firstpan==None) else (firstpan.velocity-64))
 			checkvar.set(1)
 			
-			self.state.append(MixerTrackInfo(trackNumber, checkvar, scvol, scpan,transposevar))
+			self.state.append(MixerTrackInfo(trackNumber, checkvar, scvol, scpan,transposevar,scalevolvar))
 			col += 1
 		
 		
@@ -74,6 +79,9 @@ class BMixerWindow():
 		self.top.destroy()
 		
 	def createMixedMidi(self, midiObject):
+		if midiObject.format!=1:
+			midirender_util.alert('Warning: mixer will not work well for a format-0 midi.')
+			
 		#NOTE: modifies the midi object itself, not a copy
 		
 		#remove the tracks that are both in the mixer, AND not enabled
@@ -88,9 +96,11 @@ class BMixerWindow():
 				trackObject = midiObject.tracks[trackNumber]
 				volValue = trackInfo.volWidget.get()
 				panValue = trackInfo.panWidget.get() + 64 #is from 0 to 127, instead of -63 to 63
-				transposeValue = trackInfo.transposeVar.get()
-				try: transposeValue=int(transposeValue)
-				except: trackInfo.transposeVar.set(0); transposeValue = 0
+				
+				try: transposeValue=int(trackInfo.transposeVar.get())
+				except: trackInfo.transposeVar.set('0'); transposeValue = 0
+				try: scaleVolValue=float(trackInfo.scalevolVar.get())
+				except: trackInfo.scalevolVar.set('1.0'); scaleVolValue = 1.0
 				
 				#modify the event directly, if it exists. Otherwise, create and add a new event.
 				(firstpan, firstvol, bMultiplePans, bMultipleVols) = getFirstVolumeAndPanEvents(midiObject.tracks[trackNumber])
@@ -107,6 +117,13 @@ class BMixerWindow():
 					evt = bmidilib.BMidiEvent(); evt.type='CONTROLLER_CHANGE'; evt.time = 0; evt.pitch = 0x07; evt.velocity = volValue
 					evt.channel = trackObject.notelist[-1].startEvt.channel
 					trackObject.events.insert(0, evt)
+				
+				#scaling volume. nice when there are many volume events.
+				if trackInfo.scalevolVar.get() != '1.0':
+					for evt in trackObject.events:
+						if evt.type=='CONTROLLER_CHANGE' and evt.pitch ==0x07:
+							newVol = int(evt.velocity * 1.0 * scaleVolValue)
+							evt.velocity = min(max(newVol, 0), 127) #make sure between 0 and 127
 				
 				#transpose tracks, using the notelist
 				if transposeValue!=0:
