@@ -109,6 +109,7 @@ class App():
 		root.bind('<Control-f>', self.openSoundfontWindow)
 		root.bind('<Alt-F4>', lambda x:root.quit)
 		root.bind('<Control-o>', self.menu_openMidi)
+		root.bind('<Control-S>', self.saveModifiedMidi)
 		root.bind('<Control-m>', self.openMixerView)
 		menubar = Menu(root)
 		
@@ -116,7 +117,7 @@ class App():
 		menubar.add_cascade(label="File", menu=menuFile, underline=0)
 		menuFile.add_command(label="Open Midi", command=self.menu_openMidi, underline=0, accelerator='Ctrl+O')
 		menuFile.add_separator()
-		menuFile.add_command(label="Save modified midi...", command=self.saveModifiedMidi, underline=0)
+		menuFile.add_command(label="Save modified midi...", command=self.saveModifiedMidi, underline=0, accelerator='Ctrl+Shift+S')
 		menuFile.add_separator()
 		menuFile.add_command(label="Exit", command=root.quit, underline=1)
 		
@@ -450,6 +451,8 @@ class App():
 			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
 			if params==None: params = [] #evidently an error occurred over there
 		params = 'timidity song.mid '+' '.join(params)
+		params += os.linesep+os.linesep + 'timidity.cfg:'+os.linesep
+		params += self.buildCfg()
 		
 		self.top.clipboard_clear()
 		self.top.clipboard_append(params)
