@@ -3,6 +3,9 @@ import sys
 sys.path.append('..')
 from bmidilib import bmidilib, bmiditools
 sys.path.pop()
+import os
+rememberLastDirectoryOpen = {}
+rememberLastDirectorySave = {}
 
 class Callable():
 	def __init__(self, func, *args, **kwds):
@@ -24,27 +27,39 @@ def ask_openfile(initialfolder='.',title='Open',types=None):
 	"""Open a native file dialog that asks the user to choose a file. The path is returned as a string.
 	Specify types in the format ['.bmp|Windows Bitmap','.gif|Gif image'] and so on.
 	"""
+	stypes = repr(types)
+	actualinitialfolder = rememberLastDirectoryOpen.get(stypes, initialfolder)
+		
 	import tkFileDialog
 	# for the underlying tkinter, Specify types in the format type='.bmp' types=[('Windows bitmap','.bmp')]
 	if types!=None:
 		aTypes = [(type.split('|')[1],type.split('|')[0]) for type in types]
 		defaultExtension = aTypes[0][1]
-		strFiles = tkFileDialog.askopenfilename(initialdir=initialfolder,title=title,defaultextension=defaultExtension,filetypes=aTypes)
+		strFiles = tkFileDialog.askopenfilename(initialdir=actualinitialfolder,title=title,defaultextension=defaultExtension,filetypes=aTypes)
 	else:
-		strFiles = tkFileDialog.askopenfilename(initialdir=initialfolder,title=title)
+		strFiles = tkFileDialog.askopenfilename(initialdir=actualinitialfolder,title=title)
+		
+	if strFiles:
+		rememberLastDirectoryOpen[stypes] = os.path.split(strFiles)[0]
 	return strFiles
 
 def ask_savefile(initialfolder='.',title='Save As',types=None):
 	"""Open a native file "save as" dialog that asks the user to choose a filename. The path is returned as a string.
 	Specify types in the format ['.bmp|Windows Bitmap','.gif|Gif image'] and so on.
 	"""
+	stypes = repr(types)
+	actualinitialfolder = rememberLastDirectorySave.get(stypes, initialfolder)
+	
 	import tkFileDialog
 	if types!=None:
 		aTypes = [(type.split('|')[1],type.split('|')[0]) for type in types]
 		defaultExtension = aTypes[0][1]
-		strFiles = tkFileDialog.asksaveasfilename(initialdir=initialfolder,title=title,defaultextension=defaultExtension,filetypes=aTypes)
+		strFiles = tkFileDialog.asksaveasfilename(initialdir=actualinitialfolder,title=title,defaultextension=defaultExtension,filetypes=aTypes)
 	else:
-		strFiles = tkFileDialog.asksaveasfilename(initialdir=initialfolder,title=title)
+		strFiles = tkFileDialog.asksaveasfilename(initialdir=actualinitialfolder,title=title)
+		
+	if strFiles:
+		rememberLastDirectorySave[stypes] = os.path.split(strFiles)[0]
 	return strFiles
 
 def alert(message, title=None, icon='info'):
