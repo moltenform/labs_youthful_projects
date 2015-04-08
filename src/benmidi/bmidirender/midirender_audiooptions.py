@@ -97,33 +97,36 @@ class BTimidityOptions():
 		if not valid: midirender_util.alert('psuedo reverb must be an integer 0 to 1000'); return None
 		
 		stereo =self.varStereo.get()
-		decay =self.varFastDecay.get()
+		decay = self.varFastDecay.get()
 		
-		res = ''
+		arParams = []
 		if includeRenderOptions:
-			res+= ' -Ow'
-			if stereo: res+='S' #stereo or mono
-			else: res+='M'
+			renderOutputOption = ''
+			renderOutputOption+= ' -Ow'
+			if stereo: renderOutputOption+='S' #stereo or mono
+			else: renderOutputOption+='M'
 			
-			# if bitrate==8: res+='u' #8-bit wavs are typically unsigned
-			# else: res+= 's'
-			res+= 's'
+			renderOutputOption+= 's'
 				
-			if bitrate==8: res+='8' #8-bit audio
-			elif bitrate==24: res+='2' #24 bit
-			else: res+='1' #16 bit
+			if bitrate==8: renderOutputOption+='8' #8-bit audio
+			elif bitrate==24: renderOutputOption+='2' #24 bit
+			else: renderOutputOption+='1' #16 bit
 				
-			res+='l' #l for linear encoding
-			
-			res+=' -s %d'%sample #sampling rate, 44100 or 22050
+			renderOutputOption+='l' #l for PCM encoding
+			arParams.append(renderOutputOption)
+			arParams.append('-s')
+			arParams.append('%d'%sample) #sampling rate, 44100 or 22050
 
-		if decay: res+=' -f'
-		res += ' -R %d'%psreverb
-		res += ' --voice-lpf %s'%lpf
-		res += ' --delay %s'%delay
-		res += ' --reverb %s'%reverb
+		if decay: arParams.append('-f')
+		arParams.append('-R')
+		arParams.append('%d'%psreverb)
+		arParams.append('--voice-lpf')
+		arParams.append('%s'%lpf)
+		arParams.append('--delay')
+		arParams.append('%s'%delay)
+		arParams.append('--reverb')
+		arParams.append('%s'%reverb)
 		
-		arParams = res.split(' ')
 		return arParams
 		
 
