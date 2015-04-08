@@ -41,12 +41,7 @@ class BTimidityOptions():
 		
 		self.makeOpts('sample', frameAudioOpts, 'Sampling rate:',
 				['22,050Hz','44,100Hz'], [22050,44100], 1)
-		
-		#self.makeOpts('bitrate', frameAudioOpts, 'Quality:',
-		#		['8-bit', '16-bit','24-bit'], [8,16,24], 1)
-		#8 bit audio seems to make a hissing sound. Perhaps a signed/unsigned issue...
-		#The 24bit audio seems to be correct, although it is not read by Windows Media player, only Audacity
-		
+				
 		self.makeOpts('bitrate', frameAudioOpts, 'Quality:',
 				['16-bit','24-bit'], [16,24], 0)
 		
@@ -54,11 +49,28 @@ class BTimidityOptions():
 		self.varFastDecay=IntVar(); self.varFastDecay.set(0)
 		Checkbutton(frameTimOpts, variable=self.varFastDecay, text='Fast decay mode').pack()
 		
+		self.varNoPolyReduction=IntVar(); self.varNoPolyReduction.set(1)
+		Checkbutton(frameTimOpts, variable=self.varNoPolyReduction, text='Max polyphony').pack()
+		
 		framePsReverb = pack(Frame(frameTimOpts))
-		Label(framePsReverb, text='Pseudo reverb:').pack(side=LEFT)
+		Label(framePsReverb, text='Pseudo reverb (0-800ms):').pack(side=LEFT)
 		self.varPsReverb = StringVar()
-		self.varPsReverb.set('0')
+		self.varPsReverb.set('')
 		en = Entry(framePsReverb, textvariable=self.varPsReverb, width=15)
+		en.pack(side=LEFT)
+		
+		frameAmpTotal = pack(Frame(frameTimOpts))
+		Label(frameAmpTotal, text='Amplify:').pack(side=LEFT)
+		self.varAmpTotal = StringVar()
+		self.varAmpTotal.set('100')
+		en = Entry(frameAmpTotal, textvariable=self.varAmpTotal, width=15)
+		en.pack(side=LEFT)
+		
+		frameAmpDrums = pack(Frame(frameTimOpts))
+		Label(frameAmpDrums, text='Amplify Percussion:').pack(side=LEFT)
+		self.varAmpDrums = StringVar()
+		self.varAmpDrums.set('100')
+		en = Entry(frameAmpDrums, textvariable=self.varAmpDrums, width=15)
 		en.pack(side=LEFT)
 		
 		
@@ -71,6 +83,8 @@ class BTimidityOptions():
 		self.makeOpts('reverb', frameTimOpts, 'Reverb:',
 				['Off', 'Enable Normal','Global Normal','Enable New','Global New'], ['d','n','g','f','G'], 3)
 		
+		self.makeOpts('interpolationpoints', frameTimOpts, 'Interpolation points:',
+				['1', '4', '7', '10', '13', '16', '19', '22', '25', '28', '31', '34'], ['1', '4', '7', '10', '13', '16', '19', '22', '25', '28', '31', '34'], 8)
 		
 		Label(frameTop, text='Settings remain in effect while this dialog is open.'+' '*15).pack(pady=5)
 		#8bit is unsigned, rest should be signed
@@ -85,6 +99,17 @@ class BTimidityOptions():
 	def destroy(self):
 		self.top.destroy()
 	
+	def getVariableValueAsIntOrNoneIfDefault(self, variable, varname, min, max, defaultValueMapToNone):
+		val = variable.get()
+		if val == '' or val==defaultValueMapToNone:
+			return None
+		try: val = int(val); valid = val >= min and val<=max
+		except: valid=False
+		if not valid:
+			midirender_util.alert('%s must be an integer %d to %d' % (varname, min, max))
+			return None
+		else:
+			return val
 	
 	def createTimidityOptionsList(self, includeRenderOptions=False):
 		sample = self.getOptValue('sample')
@@ -92,17 +117,26 @@ class BTimidityOptions():
 		lpf = self.getOptValue('lpf')
 		delay = self.getOptValue('delay')
 		reverb = self.getOptValue('reverb')
-		try: psreverb = int(self.varPsReverb.get()); valid = psreverb >= 0 and psreverb<=1000
-		except: valid=False
-		if not valid: midirender_util.alert('psuedo reverb must be an integer 0 to 1000'); return None
+		interpolationpoints = self.getOptValue('interpolationpoints')
 		
-		stereo =self.varStereo.get()
+		psreverb = self.getVariableValueAsIntOrNoneIfDefault(self.varPsReverb, 'psuedo reverb', 0, 1000, '')
+		ampTotal = self.getVariableValueAsIntOrNoneIfDefault(self.varAmpTotal, 'Amplify', 0, 1000, '100')
+		ampDrums = self.getVariableValueAsIntOrNoneIfDefault(self.varAmpDrums, 'Amplify percussion', 0, 1000, '100')
+		
+		if ampTotal != None:
+			ampTotal = int(70.0*(ampTotal/100.0))
+			ampTotal = min(max(ampTotal, 0), 800) 
+			
+		if ampDrums != None:
+			ampDrums = int(100.0*(ampDrums/100.0))
+			ampDrums = min(max(ampDrums, 0), 800) 
+		
+		stereo = self.varStereo.get()
 		decay = self.varFastDecay.get()
 		
 		arParams = []
 		if includeRenderOptions:
-			renderOutputOption = ''
-			renderOutputOption+= ' -Ow'
+			renderOutputOption = '-Ow'
 			if stereo: renderOutputOption+='S' #stereo or mono
 			else: renderOutputOption+='M'
 			
@@ -117,9 +151,26 @@ class BTimidityOptions():
 			arParams.append('-s')
 			arParams.append('%d'%sample) #sampling rate, 44100 or 22050
 
-		if decay: arParams.append('-f')
-		arParams.append('-R')
-		arParams.append('%d'%psreverb)
+		if decay:
+			arParams.append('-f')
+		if psreverb != None:
+			arParams.append('-R')
+			arParams.append('%d'%psreverb)
+		
+		if self.varNoPolyReduction.get(): 
+			arParams.append('--no-polyphony-reduction')
+			
+		if ampTotal != None or ampDrums!=None:
+			ampOption = '-A'
+			if ampTotal != None:
+				ampOption+=str(ampTotal)
+			if ampDrums!=None:
+				ampOption+=','+str(ampDrums)
+			arParams.append(ampOption)
+			
+		if interpolationpoints and interpolationpoints!='25':
+			arParams.append('--interpolation=%s'%interpolationpoints)
+		
 		arParams.append('--voice-lpf')
 		arParams.append('%s'%lpf)
 		arParams.append('--delay')

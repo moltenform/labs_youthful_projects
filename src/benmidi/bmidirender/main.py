@@ -128,6 +128,7 @@ class App():
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Change Tempo...", command=self.menu_changeTempo, underline=0)
 		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=6)
+		menuAudio.add_command(label="Copy Options String", command=self.menuCopyAudioOptsString, underline=1)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=5, accelerator='Ctrl+R')
 		menuAudio.add_separator()
@@ -319,7 +320,7 @@ class App():
 		midicopy = self.buildModifiedMidi()
 		
 		if self.audioOptsWindow != None:
-			arParams = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=True) 
+			arParams = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=True)
 			if arParams==None: return #evidently an error occurred over there
 		else:
 			arParams =['-Ow']
@@ -443,6 +444,16 @@ class App():
 		self.consoleOutWindow.clear()
 		self.consoleOutWindow.writeToWindow(self.player.getLastStdout())
 	
+	def menuCopyAudioOptsString(self, evt=None):
+		params = []
+		if self.audioOptsWindow != None:
+			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
+			if params==None: params = [] #evidently an error occurred over there
+		params = 'timidity song.mid '+' '.join(params)
+		
+		self.top.clipboard_clear()
+		self.top.clipboard_append(params)
+	
 	def openAudioOptsWindow(self):
 		#i guess we'll let people open this before opening a midi...
 		if self.audioOptsWindow: return #only allow one instance open at a time
@@ -536,6 +547,10 @@ app = App(root)
 root.mainloop()
 
 #todo: preview solo is a few seconds late
+#todo: adjust reverb parameters like room size
+#todo: see if control_ratio param can be used to increase quality
+#todo: tremolo=sweep_increment,trempitch,modpitch, and so on
+
 
 '''
 midis are modified by:
