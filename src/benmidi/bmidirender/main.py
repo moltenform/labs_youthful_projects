@@ -117,6 +117,8 @@ class App():
 		menubar.add_cascade(label="File", menu=menuFile, underline=0)
 		menuFile.add_command(label="Open Midi", command=self.menu_openMidi, underline=0, accelerator='Ctrl+O')
 		menuFile.add_separator()
+		menuFile.add_command(label="Modify raw midi...", command=self.menuModifyRawMidi, underline=0, accelerator='Ctrl+Shift+S')
+		menuFile.add_separator()
 		menuFile.add_command(label="Save modified midi...", command=self.saveModifiedMidi, underline=0, accelerator='Ctrl+Shift+S')
 		menuFile.add_separator()
 		menuFile.add_command(label="Exit", command=root.quit, underline=1)
@@ -385,6 +387,64 @@ class App():
 			midirender_tempo.doChangeTempo(midiCopy, self.tempoScaleFactor)
 		return midiCopy
 		
+	def menuModifyRawMidi(self, evt=None):
+		if sys.platform != 'win32':
+			midirender_util.alert('Only supported on windows')
+			return
+		
+		import tempfile, os, subprocess
+		
+		m2t = '.\\timidity\\m2t.exe'
+		t2m = '.\\timidity\\t2m.exe'
+		notepadexe = 'C:\\Windows\\System32\\notepad.exe'
+		if not os.path.exists(m2t) or not os.path.exists(t2m) or not os.path.exists(notepadexe):
+			midirender_util.alert('Could not find %s or %s or %s.'%(m2t, t2m, notepadexe))
+			return
+		
+		filenameMidInput = midirender_util.ask_openfile(title="Choose Midi File to modify", types=['.mid|Mid file'])
+		if not filenameMidInput: return
+		
+		
+		filenameText = tempfile.gettempdir() + os.sep + 'tmpout.txt'
+		try:
+			if os.path.exists(filenameText):
+				os.unlink(filenameText)
+		except:
+			pass
+		if os.path.exists(filenameText):
+			midirender_util.alert('Could not clear temporary file')
+			return
+		
+		args = [m2t, filenameMidInput, filenameText]
+		retcode = subprocess.call(args)
+		if retcode:
+			midirender_util.alert('Midi to text returned failure')
+			return
+		if not os.path.exists(filenameText):
+			midirender_util.alert('Midi to text did not write text file')
+			return
+		
+		midirender_util.alert("You'll see the text file in notepad. Save and close when done editing.")
+		modtimebefore = os.path.getmtime(filenameText)
+		args = [notepadexe, filenameText]
+		retcode = subprocess.call(args)
+		if modtimebefore == os.path.getmtime(filenameText):
+			# looks like the user cancelled before making any edits
+			return
+			
+		filenameMidOutput = midirender_util.ask_savefile(title="Choose destination for Midi File", types=['.mid|Mid file'])
+		if not filenameMidOutput: return
+		
+		args = [t2m, filenameText, filenameMidOutput]
+		retcode = subprocess.call(args)
+		if retcode:
+			midirender_util.alert('text to midi returned failure')
+			return
+		if not os.path.exists(filenameMidOutput):
+			midirender_util.alert('text to midi did not write midi file')
+			return
+		midirender_util.alert('Complete.')
+			
 	def saveModifiedMidi(self, evt=None):
 		if not self.isMidiLoaded: return
 		filename = midirender_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])

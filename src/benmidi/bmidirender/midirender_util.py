@@ -3,6 +3,7 @@ import sys
 sys.path.append('..')
 from bmidilib import bmidilib, bmiditools
 sys.path.pop()
+
 import os
 rememberLastDirectoryOpen = {}
 rememberLastDirectorySave = {}
