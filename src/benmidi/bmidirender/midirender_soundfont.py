@@ -102,6 +102,19 @@ class BSoundfontWindow():
 		Button(frBtns, text='Choose voice within soundfont...',command=self.onBtnChooseWithinSoundfont).pack(side=LEFT, anchor='s')
 		frBtns.pack(side=TOP)
 		
+		frAdvanced = Frame(frameRight)
+		Label(frAdvanced, text='Amplify:').pack(side=LEFT, anchor='s')
+		self.varParamAmp = StringVar()
+		self.varParamAmp.set('100')
+		en = Entry(frAdvanced, textvariable=self.varParamAmp, width=5)
+		en.pack(side=LEFT, padx=3)
+		Label(frAdvanced, text='Random delays (ms):').pack(side=LEFT, anchor='s')
+		self.varParamRndDelays = StringVar()
+		self.varParamRndDelays.set('0')
+		en = Entry(frAdvanced, textvariable=self.varParamRndDelays, width=5)
+		en.pack(side=LEFT)
+		frAdvanced.pack(side=TOP, pady=5)
+		
 		frPrev = Frame(frameRight)
 		Label(frPrev, text='Preview solo:').pack(side=LEFT, anchor='s')
 		Button(frPrev, text='Start',command=self.onBtnPlayStart).pack(side=LEFT, anchor='s')
@@ -127,14 +140,37 @@ class BSoundfontWindow():
 			state['sf_program'] = instnum
 			state['sf_bank'] = 0
 			state['originating_track'] = tracknum
+			state['param_amp'] = '100'
+			state['param_rnddelay'] = '0'
 			self.arCustomizationState.append(state)
 		
 		self.current=None
 		self.pollLbProgChanges() #begin polling the listbox. will call first change.
 	
+	def stringParamFromUI(self, index = None):
+		if index==None: index = self.getListboxIndex()
+		if index < 0 or index >= len(self.arCustomizationState): return
+		state = self.arCustomizationState[index]
+		state['param_amp'] = self.varParamAmp.get()
+		state['param_rnddelay'] = self.varParamRndDelays.get()
+		
+	def stringParamToUI(self):
+		index = self.getListboxIndex()
+		if index < 0 or index >= len(self.arCustomizationState): return
+		state = self.arCustomizationState[index]
+		self.varParamAmp.set(state['param_amp'])
+		self.varParamRndDelays.set(state['param_rnddelay'])
+		
 	def getCfgResults(self):
 		if not self.showCustomize: 
 			return ''
+		
+		def intOrNothing(s):
+			import math
+			try: return math.max(0, int(s))
+			except: return 0
+				
+		self.stringParamFromUI() # get the most recent changes
 			
 		#elsewhere, the global "soundfont" will be set. That's necessary to cover percussion, which we don't handle here.
 		#here we only set the custom overrides.
@@ -150,7 +186,12 @@ class BSoundfontWindow():
 			else:
 				strCfg += '\n%d '%state['instrument'] + ' %font' #note a literal% symbol. The string %font, not intended for substitution
 				strCfg += ' "%s" %d %d'%(state['soundfont'],state['sf_bank'],state['sf_program']) 
-			
+				if state['param_amp']!='100':
+					strCfg+=' amp=%d'%intOrNothing(state['param_amp'])
+					
+				if state['param_rnddelay'] != '0':
+					strCfg+='\nrnddelay %d %d'%(state['instrument'], intOrNothing(state['param_rnddelay']))
+		
 		return strCfg
 		
 	def setGlobalSoundfont(self):
@@ -241,10 +282,12 @@ class BSoundfontWindow():
 	def destroy(self):
 		self.top.destroy()
 	def pollLbProgChanges(self):
-		now = self.lbProgChanges.curselection()
+		now = self.getListboxIndex()
 		if now != self.current:
-		    self.onChangeLbProgChanges()
-		    self.current = now
+			self.stringParamFromUI(self.current)
+			self.onChangeLbProgChanges()
+			self.current = now
+			self.stringParamToUI()
 		self.frameTop.after(250, self.pollLbProgChanges)
 	def getListboxIndex(self):
 		currentSelection = self.lbProgChanges.curselection()

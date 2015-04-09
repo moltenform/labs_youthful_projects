@@ -613,6 +613,7 @@ root.mainloop()
 #todo: adjust reverb parameters like room size
 #todo: see if control_ratio param can be used to increase quality
 #todo: tremolo=sweep_increment,trempitch,modpitch, and so on
+#todo: is legato mode interesting?
 
 
 '''

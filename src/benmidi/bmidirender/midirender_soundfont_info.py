@@ -64,7 +64,7 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 			self.lblMidi = pack(Label(frameMidi, text=sampleMidiScale), side=LEFT,fill=BOTH)
 			Button(frameMidi,text='..',command=self.loadMid).pack(side=LEFT,padx=45)
 			frameMidi.pack(side=TOP, anchor='w',pady=35)
-			self.varPrevVoiceOnly = IntVar(); self.varPrevVoiceOnly.set(0)
+			self.varPrevVoiceOnly = IntVar(); self.varPrevVoiceOnly.set(1)
 			Checkbutton(framePreview, var=self.varPrevVoiceOnly, text='Preview the selected voice.').pack(side=TOP, anchor='w',pady=1)
 			self.currentMidi = sampleMidiScale
 		else:
