@@ -123,12 +123,15 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 				self.lblInfoFields[name]['text'] = name+': '+ att
 			
 			# fill listbox
+			
 			for preset in objSf.presets:
 				self.lbVoices.insert(END, str(preset))
 		
 			self.objSf = objSf
 			self.objSf.filename = filename
 			self.objSf.type='soundfont'
+		
+		
 		
 		if self.bSelectMode: self.lbVoices.selection_set(0)
 		
@@ -241,6 +244,7 @@ def getpresets(file):
 	except pysf.PysfException, e:
 		raise SFInfoException('Could not parse soundfont: '+str(e))
 		
+	currentFont.presets.sort(key=lambda x: x.bank*1000 + x.presetNumber)
 	return currentFont
 	
 class SFInfoException(exceptions.Exception): pass
