@@ -363,15 +363,23 @@ class App():
 	def buildCfg(self):
 		#begin by adding the global soundfont or cfg file.
 		filename =self.currentSoundfont[0]
+		strCfg = ''
 		if filename.endswith('.cfg'):
 			path, justname = os.path.split(filename)
-			strCfg = '\ndir "%s"\nsource "%s"\n' % (path, filename)
+			strCfg += '\ndir "%s"\nsource "%s"' % (path, filename)
 		else:
-			strCfg = '\nsoundfont "%s"\n' % (filename)
+			strCfg += '\nsoundfont "%s"' % (filename)
+			if self.audioOptsWindow != None and self.audioOptsWindow.getPatchesTakePrecedence():
+				strCfg +=' order=1'
 		
 		#now add customization to override specific voices, if set
 		if self.soundfontWindow != None:
 			strCfg += '\n' + self.soundfontWindow.getCfgResults()
+			
+		if self.audioOptsWindow != None:
+			addedLines = self.audioOptsWindow.getAdditionalCfg()
+			if addedLines:
+				strCfg += '\n'+'\n'.join(addedLines)
 			
 		return strCfg
 		
@@ -614,6 +622,7 @@ root.mainloop()
 #todo: see if control_ratio param can be used to increase quality
 #todo: tremolo=sweep_increment,trempitch,modpitch, and so on
 #todo: is legato mode interesting?
+#todo: preview soundfont information could take a cfg and show all patches.
 
 
 '''

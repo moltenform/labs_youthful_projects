@@ -20,15 +20,28 @@ class BTimidityOptions():
 		frame = pack(Frame(parent))
 		Label(frame, text=label).pack(side=LEFT)
 		OptionMenu(frame, var, *tuple(arOptions)).pack(side=LEFT)
+		
+	def makeStringEntry(self, name, parent, caption, width, defaultval):
+		self.optEntryValVariables[name] = StringVar()
+		self.optEntryValVariables[name].set(defaultval)
+		
+		frameTmp = pack(Frame(parent))
+		Label(frameTmp, text=caption).pack(side=LEFT)
+		en = Entry(frameTmp, textvariable=self.optEntryValVariables[name], width=width)
+		en.pack(side=LEFT)
 	
 	def getOptValue(self, name):
 		s = self.optVariables[name][0].get() #rendered name
 		return self.optVariables[name][1].get(s, None)
 	
+	def getStringEntryVal(self, name):
+		return self.optEntryValVariables[name].get()
+	
 	def __init__(self, top, callbackOnClose=None):
 		#should only display tracks with note events. that way, solves some problems
 		top.title('Audio Options')
 		self.optVariables = {}
+		self.optEntryValVariables = {}
 		
 		frameTop = Frame(top, height=600)
 		frameTop.pack(expand=YES, fill=BOTH)
@@ -52,27 +65,9 @@ class BTimidityOptions():
 		self.varNoPolyReduction=IntVar(); self.varNoPolyReduction.set(1)
 		Checkbutton(frameTimOpts, variable=self.varNoPolyReduction, text='Max polyphony').pack()
 		
-		framePsReverb = pack(Frame(frameTimOpts))
-		Label(framePsReverb, text='Pseudo reverb (0-800ms):').pack(side=LEFT)
-		self.varPsReverb = StringVar()
-		self.varPsReverb.set('')
-		en = Entry(framePsReverb, textvariable=self.varPsReverb, width=15)
-		en.pack(side=LEFT)
-		
-		frameAmpTotal = pack(Frame(frameTimOpts))
-		Label(frameAmpTotal, text='Amplify:').pack(side=LEFT)
-		self.varAmpTotal = StringVar()
-		self.varAmpTotal.set('100')
-		en = Entry(frameAmpTotal, textvariable=self.varAmpTotal, width=15)
-		en.pack(side=LEFT)
-		
-		frameAmpDrums = pack(Frame(frameTimOpts))
-		Label(frameAmpDrums, text='Amplify Percussion:').pack(side=LEFT)
-		self.varAmpDrums = StringVar()
-		self.varAmpDrums.set('100')
-		en = Entry(frameAmpDrums, textvariable=self.varAmpDrums, width=15)
-		en.pack(side=LEFT)
-		
+		self.makeStringEntry('PsReverb', frameTimOpts, 'Pseudo reverb (0-800ms):', 15, '')
+		self.makeStringEntry('AmpTotal', frameTimOpts, 'Amplify:', 15, '100')
+		self.makeStringEntry('AmpDrums', frameTimOpts, 'Amplify Percussion:', 15, '100')
 		
 		self.makeOpts('lpf', frameTimOpts, 'Low pass filter:',
 				['Off', '12dB / oct','24dB / oct'], ['d','c','m'], 1)
@@ -86,8 +81,13 @@ class BTimidityOptions():
 		self.makeOpts('interpolationpoints', frameTimOpts, 'Interpolation points:',
 				['1', '4', '7', '10', '13', '16', '19', '22', '25', '28', '31', '34'], ['1', '4', '7', '10', '13', '16', '19', '22', '25', '28', '31', '34'], 8)
 		
+		self.varPatchesTakePrecedence=IntVar(); self.varPatchesTakePrecedence.set(0)
+		Checkbutton(frameTimOpts, variable=self.varPatchesTakePrecedence, text='Patches priority over sondfont').pack()
+		
+		self.makeStringEntry('AdditionalCmd', frameTimOpts, 'Added cmdline, delimit by |', 35, '')
+		self.makeStringEntry('AdditionalCfg', frameTimOpts, 'Added cfg, delimit by |', 35, '')
+		
 		Label(frameTop, text='Settings remain in effect while this dialog is open.'+' '*15).pack(pady=5)
-		#8bit is unsigned, rest should be signed
 		
 
 		if callbackOnClose!=None:
@@ -96,11 +96,21 @@ class BTimidityOptions():
 				top.destroy()
 			top.protocol("WM_DELETE_WINDOW", callCallback)
 		self.top = top
+	
+	def getAdditionalCfg(self, field='AdditionalCfg'):
+		additionalCmd = self.getStringEntryVal(field)
+		if not additionalCmd:
+			return []
+		else:
+			return additionalCmd.split('|')
+			
+	def getPatchesTakePrecedence(self):
+		return not not self.varPatchesTakePrecedence.get()
+		
 	def destroy(self):
 		self.top.destroy()
 	
-	def getVariableValueAsIntOrNoneIfDefault(self, variable, varname, min, max, defaultValueMapToNone):
-		val = variable.get()
+	def getVariableValueAsIntOrNoneIfDefault(self, val, varname, min, max, defaultValueMapToNone):
 		if val == '' or val==defaultValueMapToNone:
 			return None
 		try: val = int(val); valid = val >= min and val<=max
@@ -119,9 +129,10 @@ class BTimidityOptions():
 		reverb = self.getOptValue('reverb')
 		interpolationpoints = self.getOptValue('interpolationpoints')
 		
-		psreverb = self.getVariableValueAsIntOrNoneIfDefault(self.varPsReverb, 'psuedo reverb', 0, 1000, '')
-		ampTotal = self.getVariableValueAsIntOrNoneIfDefault(self.varAmpTotal, 'Amplify', 0, 1000, '100')
-		ampDrums = self.getVariableValueAsIntOrNoneIfDefault(self.varAmpDrums, 'Amplify percussion', 0, 1000, '100')
+		psreverb = self.getVariableValueAsIntOrNoneIfDefault(self.getStringEntryVal('PsReverb'), 'psuedo reverb', 0, 1000, '')
+		ampTotal = self.getVariableValueAsIntOrNoneIfDefault(self.getStringEntryVal('AmpTotal'), 'Amplify', 0, 1000, '100')
+		ampDrums = self.getVariableValueAsIntOrNoneIfDefault(self.getStringEntryVal('AmpDrums'), 'Amplify percussion', 0, 1000, '100')
+		additionalCmd = self.getAdditionalCfg('AdditionalCmd')
 		
 		if ampTotal != None:
 			ampTotal = int(70.0*(ampTotal/100.0))
@@ -177,6 +188,7 @@ class BTimidityOptions():
 		arParams.append('%s'%delay)
 		arParams.append('--reverb')
 		arParams.append('%s'%reverb)
+		arParams.extend(additionalCmd)
 		
 		return arParams
 		
