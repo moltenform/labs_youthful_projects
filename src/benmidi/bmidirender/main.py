@@ -117,7 +117,7 @@ class App():
 		menubar.add_cascade(label="File", menu=menuFile, underline=0)
 		menuFile.add_command(label="Open Midi", command=self.menu_openMidi, underline=0, accelerator='Ctrl+O')
 		menuFile.add_separator()
-		menuFile.add_command(label="Modify raw midi...", command=self.menuModifyRawMidi, underline=0, accelerator='Ctrl+Shift+S')
+		menuFile.add_command(label="Modify raw midi...", command=self.menuModifyRawMidi, underline=0)
 		menuFile.add_separator()
 		menuFile.add_command(label="Save modified midi...", command=self.saveModifiedMidi, underline=0, accelerator='Ctrl+Shift+S')
 		menuFile.add_separator()
