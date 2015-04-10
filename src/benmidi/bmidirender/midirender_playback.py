@@ -61,7 +61,7 @@ class BMidiRenderPlayback():
 			time.sleep(0.2)
 			
 	
-	def actionPlay(self, midiCopy, arParams, strConfig, bRenderPreview = False):
+	def actionPlay(self, midiCopy, arParams, strConfig, directoryForOldTimidity, bRenderPreview = False):
 		if self.playingState == 'playing': return
 		
 		if self.midiPlayerObject != None and self.midiPlayerObject.isPlaying: return #evidently still playing something...
@@ -85,7 +85,7 @@ class BMidiRenderPlayback():
 			
 			if bRenderPreview:
 				self.midiPlayerObject = midirender_runtimidity.RenderTimidityMidiPlayer()
-				self.midiPlayerObject.setConfiguration(strConfig)
+				self.midiPlayerObject.setConfiguration(strConfig, directoryForOldTimidity)
 				self.midiPlayerObject.setParameters(arParams)
 				self.midiPlayerObject.playMidiObject(midiCopy, False)
 			else:

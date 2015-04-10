@@ -27,7 +27,6 @@ if not os.path.exists(clefspath):
 	clefspath = bmidirenderdirectory + os.sep + '..'+os.sep+clefspath
 from scoreview import scoreview, listview
 
-
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class App():
 	def __init__(self, root):
@@ -110,6 +109,7 @@ class App():
 		root.bind('<Control-o>', self.menu_openMidi)
 		root.bind('<Control-S>', self.saveModifiedMidi)
 		root.bind('<Control-m>', self.openMixerView)
+		root.bind('<Control-p>', self.openAudioOptsWindow)
 		menubar = Menu(root)
 		
 		menuFile = Menu(menubar, tearoff=0)
@@ -128,8 +128,8 @@ class App():
 		menuAudio.add_command(label="Pause", command=self.onBtnPause, underline=2)
 		menuAudio.add_command(label="Stop", command=self.onBtnStop, underline=0)
 		menuAudio.add_separator()
+		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=6, accelerator='Ctrl+P')
 		menuAudio.add_command(label="Change Tempo...", command=self.menu_changeTempo, underline=0)
-		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=6)
 		menuAudio.add_command(label="Copy Options String", command=self.menuCopyAudioOptsString, underline=1)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=5, accelerator='Ctrl+R')
@@ -321,19 +321,15 @@ class App():
 			
 		midicopy = self.buildModifiedMidi()
 		
-		if self.audioOptsWindow != None:
-			arParams = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=True)
-			if arParams==None: return #evidently an error occurred over there
-		else:
-			arParams =['-Ow']
-		
+		arParams, directoryForOldTimidity = self.getParamsForTimidity(True)
+		if arParams == None: return
 		arParams.append('-o')
 		arParams.append(filename)
 		
 		#Play it synchronously, meaning that the whole program stalls while this happens...
 		midirender_util.alert('Beginning wave process. Be patient... this may take a few moments...')
 		objplayer = midirender_runtimidity.RenderTimidityMidiPlayer()
-		objplayer.setConfiguration(self.buildCfg())
+		objplayer.setConfiguration(self.buildCfg(), directoryForOldTimidity)
 		objplayer.setParameters(arParams)
 		
 		objplayer.playMidiObject(midicopy, bSynchronous=True)
@@ -365,7 +361,14 @@ class App():
 		strCfg = ''
 		if filename.endswith('.cfg'):
 			path, justname = os.path.split(filename)
-			strCfg += '\ndir "%s"\nsource "%s"' % (path, filename)
+			if self.audioOptsWindow and self.audioOptsWindow.getUseOldTimidity():
+				if ' ' in justname:
+					midirender_util.alert("Warning: old version of Timidity probably doesn't support spaces in filenames.")
+				if justname.lower()!='timidity.cfg' and os.path.exists(path+os.sep+'timidity.cfg'):
+					midirender_util.alert("Warning: there is a filename timidity.cfg in this directory and so the old version of Timidity will use it.")
+				strCfg += '\nsource %s' % (justname)
+			else:
+				strCfg += '\ndir "%s"\nsource "%s"' % (path, filename)
 		else:
 			strCfg += '\nsoundfont "%s"' % (filename)
 			if self.audioOptsWindow != None and self.audioOptsWindow.getPatchesTakePrecedence():
@@ -373,7 +376,7 @@ class App():
 		
 		#now add customization to override specific voices, if set
 		if self.soundfontWindow != None:
-			strCfg += '\n' + self.soundfontWindow.getCfgResults()
+			strCfg += '\n' + self.soundfontWindow.getCfgResults(self.audioOptsWindow and self.audioOptsWindow.getUseOldTimidity())
 			
 		if self.audioOptsWindow != None:
 			addedLines = self.audioOptsWindow.getAdditionalCfg()
@@ -524,7 +527,7 @@ class App():
 		self.top.clipboard_clear()
 		self.top.clipboard_append(params)
 	
-	def openAudioOptsWindow(self):
+	def openAudioOptsWindow(self, evt=None):
 		#i guess we'll let people open this before opening a midi...
 		if self.audioOptsWindow: return #only allow one instance open at a time
 			
@@ -573,15 +576,33 @@ class App():
 		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
 		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
 		else: raise 'Unknown button'
+			
+	def getParamsForTimidity(self, bRenderWav):
+		directoryForOldTimidity = None
+		
+		if self.audioOptsWindow != None:
+			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=bRenderWav) 
+			if params==None:
+				midirender_util.alert('Unknown error.')
+				return None, None
+			
+			if self.audioOptsWindow.getUseOldTimidity():
+				if not self.currentSoundfont[0].lower().endswith('.cfg'):
+					midirender_util.alert('Provide a cfg with no soundfonts for old timidity.')
+					return None, None
+					
+				directoryForOldTimidity = os.path.split(self.currentSoundfont[0])[0]
+		else:
+			if bRenderWav: params = ['-Ow']
+			else: params = []
+		return params, directoryForOldTimidity
 	
 	def onBtnPlay(self, e=None):
 		if not self.isMidiLoaded: return
 		
-		params = []
-		if self.audioOptsWindow != None:
-			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
-			if params==None: params = [] #evidently an error occurred over there
-		self.player.actionPlay(self.buildModifiedMidi(), params, self.buildCfg(), self.varPreviewTimidity.get())
+		params, directoryForOldTimidity = self.getParamsForTimidity(False)
+		if params != None:
+			self.player.actionPlay(self.buildModifiedMidi(), params, self.buildCfg(), directoryForOldTimidity, self.varPreviewTimidity.get())
 		
 	def playCallbackGetSlider(self):
 		return self.sliderTime.get()

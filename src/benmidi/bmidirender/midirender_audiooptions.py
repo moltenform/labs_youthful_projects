@@ -59,12 +59,12 @@ class BTimidityOptions():
 				['16-bit','24-bit'], [16,24], 0)
 		
 		frameTimOpts = pack(LabelFrame(frameTop, text='Audio Settings'), expand=YES, fill=BOTH)
-		self.varFastDecay=IntVar(); self.varFastDecay.set(0)
-		Checkbutton(frameTimOpts, variable=self.varFastDecay, text='Fast decay mode').pack()
-		
 		self.varOldTimidity=IntVar(); self.varOldTimidity.set(0)
 		if sys.platform == 'win32':
 			Checkbutton(frameTimOpts, variable=self.varOldTimidity, text='Old timidity (.cfg only)').pack()
+		
+		self.varFastDecay=IntVar(); self.varFastDecay.set(0)
+		Checkbutton(frameTimOpts, variable=self.varFastDecay, text='Fast decay mode').pack()
 		
 		self.varNoPolyReduction=IntVar(); self.varNoPolyReduction.set(1)
 		Checkbutton(frameTimOpts, variable=self.varNoPolyReduction, text='Max polyphony').pack()
@@ -161,7 +161,7 @@ class BTimidityOptions():
 			renderOutputOption+= 's'
 				
 			if bitrate==8: renderOutputOption+='8' #8-bit audio
-			elif bitrate==24: renderOutputOption+='2' #24 bit
+			elif bitrate==24: renderOutputOption+='2' if self.getUseOldTimidity() else '1' #24 bit
 			else: renderOutputOption+='1' #16 bit
 				
 			renderOutputOption+='l' #l for PCM encoding
@@ -169,32 +169,43 @@ class BTimidityOptions():
 			arParams.append('-s')
 			arParams.append('%d'%sample) #sampling rate, 44100 or 22050
 
+		
 		if decay:
 			arParams.append('-f')
-		if psreverb != None:
-			arParams.append('-R')
-			arParams.append('%d'%psreverb)
-		
-		if self.varNoPolyReduction.get(): 
-			arParams.append('--no-polyphony-reduction')
-			
-		if ampTotal != None or ampDrums!=None:
-			ampOption = '-A'
+				
+		if self.getUseOldTimidity():
 			if ampTotal != None:
-				ampOption+=str(ampTotal)
-			if ampDrums!=None:
-				ampOption+=','+str(ampDrums)
-			arParams.append(ampOption)
+				arParams.append('-A%d'%ampTotal)
+			if self.varNoPolyReduction.get(): 
+				arParams.append('-p')
+				arParams.append('48') #maximum supported value
+		else:
 			
-		if interpolationpoints and interpolationpoints!='25':
-			arParams.append('--interpolation=%s'%interpolationpoints)
-		
-		arParams.append('--voice-lpf')
-		arParams.append('%s'%lpf)
-		arParams.append('--delay')
-		arParams.append('%s'%delay)
-		arParams.append('--reverb')
-		arParams.append('%s'%reverb)
+			if psreverb != None:
+				arParams.append('-R')
+				arParams.append('%d'%psreverb)
+			
+			if self.varNoPolyReduction.get(): 
+				arParams.append('--no-polyphony-reduction')
+				
+			if ampTotal != None or ampDrums!=None:
+				ampOption = '-A'
+				if ampTotal != None:
+					ampOption+=str(ampTotal)
+				if ampDrums!=None:
+					ampOption+=','+str(ampDrums)
+				arParams.append(ampOption)
+				
+			if interpolationpoints and interpolationpoints!='25':
+				arParams.append('--interpolation=%s'%interpolationpoints)
+			
+			arParams.append('--voice-lpf')
+			arParams.append('%s'%lpf)
+			arParams.append('--delay')
+			arParams.append('%s'%delay)
+			arParams.append('--reverb')
+			arParams.append('%s'%reverb)
+			
 		arParams.extend(additionalCmd)
 		
 		return arParams

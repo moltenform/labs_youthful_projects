@@ -161,7 +161,7 @@ class BSoundfontWindow():
 		self.varParamAmp.set(state['param_amp'])
 		self.varParamRndDelays.set(state['param_rnddelay'])
 		
-	def getCfgResults(self):
+	def getCfgResults(self, bUseOldTimidity):
 		if not self.showCustomize: 
 			return ''
 		
@@ -172,18 +172,37 @@ class BSoundfontWindow():
 				
 		self.stringParamFromUI() # get the most recent changes
 			
-		#elsewhere, the global "soundfont" will be set. That's necessary to cover percussion, which we don't handle here.
+		#elsewhere, the "global soundfont" will be set. That's necessary to cover percussion, which we don't handle here.
 		#here we only set the custom overrides.
 		
 		strCfg = '\nbank 0\n'
 		for state in self.arCustomizationState:
 			if state['soundfont'].endswith('.pat'):
-				if not self.main_soundfont_reference[0].endswith('.cfg'): #if using a global soundfont,
-					strCfg += '\nfont exclude 0 %d'%state['instrument'] #signal to Timidity that we want to override the soundfont's instrument
-				strCfg += '\n%d "%s" '%(state['instrument'], state['soundfont'])
+				if not bUseOldTimidity:
+					if not self.main_soundfont_reference[0].endswith('.cfg'): #if using a global soundfont,
+						strCfg += '\nfont exclude 0 %d'%state['instrument'] #signal to Timidity that we want to override the soundfont's instrument
+					strCfg += '\n%d "%s" '%(state['instrument'], state['soundfont'])
+				else:
+					if ' ' in state['soundfont']:
+						midirender_util.alert("Warning: old version of Timidity doesn't support spaces in directory names or filenames.")
+					
+					directoryWithPatchfile, nameOfPatchFile = os.path.split(state['soundfont'])
+					mainDirectory = os.path.split(self.main_soundfont_reference[0])[0]
+					if os.path.exists(mainDirectory + os.sep + nameOfPatchFile) and mainDirectory.lower() != directoryWithPatchfile.lower():
+						midirender_util.alert("Warning: better to use a different .pat name, old version of Timidity might use\n%s \ninstead of\n%s."%(
+							mainDirectory + os.sep + nameOfPatchFile, state['soundfont']))
+					
+					nameOfPatchFile, _ = os.path.splitext(nameOfPatchFile)
+					strCfg += '\ndir %s\n%d %s'%(directoryWithPatchfile, state['instrument'], nameOfPatchFile)
+					
+				if state['param_amp']!='100':
+					strCfg+=' amp=%d'%intOrNothing(state['param_amp'])
+					
 			elif state['soundfont'].endswith('.cfg'):
 				pass #must be taking this from a global cfg, because cfgs can't be set individually...
 			else:
+				if bUseOldTimidity:
+					midirender_util.alert("Warning: old version of Timidity doesn't support soundfonts, only .pat files.")
 				strCfg += '\n%d '%state['instrument'] + ' %font' #note a literal% symbol. The string %font, not intended for substitution
 				strCfg += ' "%s" %d %d'%(state['soundfont'],state['sf_bank'],state['sf_program']) 
 				if state['param_amp']!='100':
@@ -269,7 +288,7 @@ class BSoundfontWindow():
 		elif state['soundfont'].endswith('.pat'):
 			strCfg = '\nbank 0\n\n%d "%s"\n' % (state['instrument'],state['soundfont'])
 		else:
-			strCfg = self.getCfgResults() #note that this preview might not work for percussion, but shouldn't matter since we're only previewing a solo instrument.
+			strCfg = self.getCfgResults(False) #note that this preview might not work for percussion, but shouldn't matter since we're only previewing a solo instrument.
 		
 		self.player = midirender_runtimidity.RenderTimidityMidiPlayer()
 		self.player.setConfiguration(strCfg)

@@ -14,14 +14,21 @@ class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
 	win_timiditypath = midirender_util.bmidirenderdirectory + os_sep + 'timidity'+ os_sep + 'timidity.exe'
 	extraParameters = None
 	cfgFile = None
+		
 	def setParameters(self, arParameters):
 		self.extraParameters = arParameters
-	def setConfiguration(self, strCfg):
-		filename = tempcfgfilename
+	def setConfiguration(self, strCfg, directoryForOldTimidity=None):
+		if directoryForOldTimidity:
+			self.win_timiditypath = midirender_util.bmidirenderdirectory + os_sep + 'timidity'+ os_sep + 'timidity95.exe'
+			os.chdir(directoryForOldTimidity)
+			self.cfgFile = '.tempmidirendercfg.cfg'
+			filename = directoryForOldTimidity + os_sep + self.cfgFile
+		else:
+			filename = self.cfgFile = tempcfgfilename
+		
 		f=open(filename, 'w')
 		f.write(strCfg)
 		f.close()
-		self.cfgFile = filename
 	
 	def _additionalTimidityArgs(self):
 		ret = []
