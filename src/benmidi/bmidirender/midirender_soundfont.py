@@ -166,9 +166,9 @@ class BSoundfontWindow():
 			return ''
 		
 		def intOrNothing(s):
-			import math
-			try: return math.max(0, int(s))
-			except: return 0
+			try: val = int(s)
+			except: val = 0
+			return max(0, val)
 				
 		self.stringParamFromUI() # get the most recent changes
 			

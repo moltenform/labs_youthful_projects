@@ -62,6 +62,10 @@ class BTimidityOptions():
 		self.varFastDecay=IntVar(); self.varFastDecay.set(0)
 		Checkbutton(frameTimOpts, variable=self.varFastDecay, text='Fast decay mode').pack()
 		
+		self.varOldTimidity=IntVar(); self.varOldTimidity.set(0)
+		if sys.platform == 'win32':
+			Checkbutton(frameTimOpts, variable=self.varOldTimidity, text='Old timidity (.cfg only)').pack()
+		
 		self.varNoPolyReduction=IntVar(); self.varNoPolyReduction.set(1)
 		Checkbutton(frameTimOpts, variable=self.varNoPolyReduction, text='Max polyphony').pack()
 		
@@ -106,6 +110,9 @@ class BTimidityOptions():
 			
 	def getPatchesTakePrecedence(self):
 		return not not self.varPatchesTakePrecedence.get()
+	
+	def getUseOldTimidity(self):
+		return not not self.varOldTimidity.get()
 		
 	def destroy(self):
 		self.top.destroy()
