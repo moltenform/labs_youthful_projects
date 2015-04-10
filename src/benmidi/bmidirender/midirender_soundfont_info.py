@@ -9,7 +9,7 @@ import midirender_runtimidity
 
 from soundfontpreview import pysf
 
-sampleMidiPath = 'soundfontpreview'
+sampleMidiPath = midirender_util.bmidirenderdirectory+os.sep+'soundfontpreview'
 sampleMidiScale = os.path.join(sampleMidiPath, 'scale.mid')
 
 #This window can be one of two things:

@@ -19,12 +19,12 @@ import midirender_runtimidity
 import midirender_soundfont
 import midirender_soundfont_info
 
-from midirender_util import bmidilib, bmiditools
+from midirender_util import bmidilib, bmiditools, bmidirenderdirectory
 
 
-clefspath = 'scoreview' + os.sep + 'clefs'
+clefspath = bmidirenderdirectory + os.sep + 'scoreview' + os.sep + 'clefs'
 if not os.path.exists(clefspath):
-	clefspath = '..'+os.sep+clefspath
+	clefspath = bmidirenderdirectory + os.sep + '..'+os.sep+clefspath
 from scoreview import scoreview, listview
 
 
@@ -34,7 +34,6 @@ class App():
 		root.title('Bmidi to wave')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
 		self.top = root
-		
 		frameMain = pack( Frame(root), side=TOP, fill=BOTH, expand=True)
 		
 		self.lblFilename = pack( Label(frameMain, text='No file opened.'), side=TOP, anchor='w')

@@ -1,7 +1,7 @@
 from Tkinter import *
 import midirender_util
 
-from midirender_util import bmidilib
+from midirender_util import bmidilib, bmidirenderdirectory
 
 class MixerTrackInfo():
 	def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar,scalevolVar):
@@ -161,7 +161,7 @@ if __name__=='__main__':
 	
 	
 	midiobj = bmidilib.BMidiFile()
-	midiobj.open('..\\midis\\16keys.mid', 'rb')
+	midiobj.open(bmidirenderdirectory+'..\\midis\\16keys.mid', 'rb')
 	midiobj.read()
 	midiobj.close()
 	

@@ -1,10 +1,12 @@
 
 import sys
+import os
+
 sys.path.append('..')
 from bmidilib import bmidilib, bmiditools
 sys.path.pop()
 
-import os
+bmidirenderdirectory = os.path.abspath('.')
 rememberLastDirectoryOpen = {}
 rememberLastDirectorySave = {}
 

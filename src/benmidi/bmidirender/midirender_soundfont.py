@@ -8,7 +8,7 @@ import os
 
 from bmidilib import bmidilib, bmiditools
 
-soundfontsdir = 'soundfonts'
+soundfontsdir = os.path.join(midirender_util.bmidirenderdirectory, 'soundfonts')
 gm_dir = os.path.join(soundfontsdir,'sf_gm')
 
 def getDefaultSoundfont():

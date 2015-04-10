@@ -11,6 +11,7 @@ tempcfgfilename = tempfile.gettempdir() + os_sep + 'tmpcg.cfg'
 
 
 class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
+	win_timiditypath = midirender_util.bmidirenderdirectory + os_sep + 'timidity'+ os_sep + 'timidity.exe'
 	extraParameters = None
 	cfgFile = None
 	def setParameters(self, arParameters):
@@ -52,11 +53,11 @@ if __name__=='__main__':
 	def start(top):
 		def start():
 			global mmplayer
-			mmplayer.playSynchronous('..\\midis\\tempotest.mid')
+			mmplayer.playSynchronous(midirender_util.bmidirenderdirectory+'\\..\\midis\\tempotest.mid')
 		
 		def startsync():
 			global mmplayer
-			mmplayer.playAsync('..\\midis\\16keys.mid')
+			mmplayer.playAsync(midirender_util.bmidirenderdirectory+'\\..\\midis\\16keys.mid')
 		
 		def stop():
 			global mmplayer
