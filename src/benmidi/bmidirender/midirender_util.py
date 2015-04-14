@@ -7,8 +7,7 @@ from bmidilib import bmidilib, bmiditools
 sys.path.pop()
 
 bmidirenderdirectory = os.path.abspath('.')
-rememberLastDirectoryOpen = {}
-rememberLastDirectorySave = {}
+rememberLastDirectory = {}
 
 class Callable():
 	def __init__(self, func, *args, **kwds):
@@ -31,7 +30,7 @@ def ask_openfile(initialfolder='.',title='Open',types=None):
 	Specify types in the format ['.bmp|Windows Bitmap','.gif|Gif image'] and so on.
 	"""
 	stypes = repr(types)
-	actualinitialfolder = rememberLastDirectoryOpen.get(stypes, initialfolder)
+	actualinitialfolder = rememberLastDirectory.get(stypes, initialfolder)
 		
 	import tkFileDialog
 	# for the underlying tkinter, Specify types in the format type='.bmp' types=[('Windows bitmap','.bmp')]
@@ -43,7 +42,7 @@ def ask_openfile(initialfolder='.',title='Open',types=None):
 		strFiles = tkFileDialog.askopenfilename(initialdir=actualinitialfolder,title=title)
 		
 	if strFiles:
-		rememberLastDirectoryOpen[stypes] = os.path.split(strFiles)[0]
+		rememberLastDirectory[stypes] = os.path.split(strFiles)[0]
 	return strFiles
 
 def ask_savefile(initialfolder='.',title='Save As',types=None):
@@ -51,7 +50,7 @@ def ask_savefile(initialfolder='.',title='Save As',types=None):
 	Specify types in the format ['.bmp|Windows Bitmap','.gif|Gif image'] and so on.
 	"""
 	stypes = repr(types)
-	actualinitialfolder = rememberLastDirectorySave.get(stypes, initialfolder)
+	actualinitialfolder = rememberLastDirectory.get(stypes, initialfolder)
 	
 	import tkFileDialog
 	if types!=None:
@@ -62,7 +61,7 @@ def ask_savefile(initialfolder='.',title='Save As',types=None):
 		strFiles = tkFileDialog.asksaveasfilename(initialdir=actualinitialfolder,title=title)
 		
 	if strFiles:
-		rememberLastDirectorySave[stypes] = os.path.split(strFiles)[0]
+		rememberLastDirectory[stypes] = os.path.split(strFiles)[0]
 	return strFiles
 
 def alert(message, title=None, icon='info'):

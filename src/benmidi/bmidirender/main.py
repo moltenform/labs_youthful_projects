@@ -404,8 +404,8 @@ class App():
 		
 		import tempfile, os, subprocess
 		
-		m2t = '.\\timidity\\m2t.exe'
-		t2m = '.\\timidity\\t2m.exe'
+		m2t = midirender_util.bmidirenderdirectory+'\\timidity\\m2t.exe'
+		t2m = midirender_util.bmidirenderdirectory+'\\timidity\\t2m.exe'
 		notepadexe = 'C:\\Windows\\System32\\notepad.exe'
 		if not os.path.exists(m2t) or not os.path.exists(t2m) or not os.path.exists(notepadexe):
 			midirender_util.alert('Could not find %s or %s or %s.'%(m2t, t2m, notepadexe))
