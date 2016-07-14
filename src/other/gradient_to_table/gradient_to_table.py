@@ -16,14 +16,14 @@ def main():
     
     parts = len(alltxt.split('{'))
     if parts==1:
-        print 'Probably not a valid gradient, no { found'
+        print('Probably not a valid gradient, no { found')
         return
     elif parts > 2:
-        print 'More than one gradient in file... we don\'t support this'
+        print('More than one gradient in file... we don\'t support this')
         return
     
     i=0
-    for i in xrange(len(thelist)):
+    for i in range(len(thelist)):
         if thelist[i].startswith('index='): break
         i+=1
     
@@ -32,11 +32,11 @@ def main():
         if thelist[i].startswith('index='):
             
             xpoints.append(parsevalue(thelist[i]))
-            print '@', xpoints[-1]
+            print('@', xpoints[-1])
         elif thelist[i].startswith('color='):
             r,g,b = parsecolor(parsevalue(thelist[i]))
             rpoints.append(r); gpoints.append(g); bpoints.append(b); 
-            print '@@@r=%d\tg=%d\tb=%d' % (rpoints[-1],gpoints[-1],bpoints[-1])
+            print('@@@r=%d\tg=%d\tb=%d' % (rpoints[-1],gpoints[-1],bpoints[-1]))
         else:
             break
         i+=1
@@ -52,10 +52,10 @@ def main():
     G = LinInt(xpoints, gpoints)
     B = LinInt(xpoints, bpoints)
     
-    print xpoints
-    print rpoints
-    print gpoints
-    print bpoints
+    print(xpoints)
+    print(rpoints)
+    print(gpoints)
+    print(bpoints)
 
     #write results
     f= open(outputfile,'w')
@@ -115,7 +115,7 @@ def packinto16bits(r,g,b):
         rbits = (r & 0xf8) >> 3
         gbits = (g & 0xfc) >> 2
         bbits = (b & 0xf8) >> 3
-        print 'r',bstr_pos(rbits),'g',bstr_pos(gbits),'b',bstr_pos(bbits)
+        print('r',bstr_pos(rbits),'g',bstr_pos(gbits),'b',bstr_pos(bbits))
         return bbits + (gbits << 5) + (rbits << 11)
 
 if __name__ == '__main__':

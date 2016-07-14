@@ -1,7 +1,7 @@
 # Ben Fisher
 # an unorthodox way to parse.
 
-class FunctionSymbol:
+class FunctionSymbol(object):
   def __init__(self, name):
     self.name = name
   def __call__(self, *args):
@@ -9,7 +9,7 @@ class FunctionSymbol:
   def __str__(self):
     return 'FN_'+self.name
 
-class VariableSymbol:
+class VariableSymbol(object):
   def __init__(self, name):
     self.name = name
   def __add__(self, other):
@@ -43,16 +43,16 @@ def strangeparser(s):
   # evaluate it
   try: 
     return eval( s , globals(), symbols )
-  except Exception, e: 
-    print 'Could not parse. %s' % str(e)
+  except Exception as e: 
+    print('Could not parse. %s' % str(e))
     return None
   
 def main():
   tree = strangeparser('a+b+c')
-  print tree
+  print(tree)
   # OP_ADD(OP_ADD(VAR_a,VAR_b),VAR_c)
   tree = strangeparser('f(f( a+f(a * b * f(c))))')
-  print tree
+  print(tree)
   # FN_f(FN_f(OP_ADD(VAR_a,FN_f(OP_MULT(OP_MULT(VAR_a,VAR_b),FN_f(VAR_c))))))
 
 
