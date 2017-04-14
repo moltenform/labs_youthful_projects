@@ -1,5 +1,0 @@
-Open in lnz script. hit ctrlF2 to run make.jsz and launch.
-
-command.name.2.*=run in browser
-command.2.*="$(lnzscite.lnzlocation)" /f "C:\pydev\mainsvn\recursive\drawdraw\ddexp\lib\make.jsz" "$(FilePath)"
-command.subsystem.2.*=0
