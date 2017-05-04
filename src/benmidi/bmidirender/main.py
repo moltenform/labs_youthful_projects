@@ -1,7 +1,9 @@
+#!/usr/bin/env python2
+
 """
 bmidi to wave
 Ben Fisher, 2009, GPL
-halfhourhacks.blogspot.com
+https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
 """
 
 from Tkinter import *
@@ -330,7 +332,7 @@ class App(object):
 		arParams.append(filename)
 		
 		# play it synchronously, meaning that the whole program stalls while this happens...
-		midirender_util.alert('Beginning wave process. Be patient... this may take a few moments...')
+		midirender_util.alert('Beginning export to wave...')
 		objplayer = midirender_runtimidity.RenderTimidityMidiPlayer()
 		objplayer.setConfiguration(self.buildCfg(), directoryForOldTimidity)
 		objplayer.setParameters(arParams)
@@ -650,7 +652,7 @@ class App(object):
 			if bRenderWav: params = ['-Ow']
 			else: params = []
 		
-		if self.transposePitches is not None:
+		if self.transposePitches is not None and (not self.audioOptsWindow or not self.audioOptsWindow.getUseOldTimidity()):
 			params.append('--adjust-key=%d' % int(self.transposePitches))
 		
 		return params, directoryForOldTimidity
@@ -709,7 +711,6 @@ root = Tk()
 app = App(root)
 root.mainloop()
 
-# todo: preview solo is a few seconds late
 # todo: preview soundfont information could take a cfg and show all patches.
 # todo: in choose soundfont window, change caption 'customize' to 'set each instrument individually'
 # todo: instead of modify raw midi, have two menu items "MIDI to text" and "text to MIDI"
