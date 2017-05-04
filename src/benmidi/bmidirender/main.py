@@ -427,7 +427,7 @@ class App(object):
 			return
 		
 		args = [m2t, filenameMidInput, filenameText]
-		retcode = subprocess.call(args)
+		retcode = subprocess.call(args, creationflags=0x08000000)
 		if retcode:
 			midirender_util.alert('Midi to text returned failure')
 			return
@@ -447,7 +447,7 @@ class App(object):
 		if not filenameMidOutput: return
 		
 		args = [t2m, filenameText, filenameMidOutput]
-		retcode = subprocess.call(args)
+		retcode = subprocess.call(args, creationflags=0x08000000)
 		if retcode:
 			midirender_util.alert('text to midi returned failure')
 			return

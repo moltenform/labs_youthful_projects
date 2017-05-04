@@ -30,6 +30,32 @@ class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
 		f.write(strCfg)
 		f.close()
 	
+	def _startPlayback(self, strMidiPath):
+		import subprocess
+		kwargs = {}
+		if sys.platform.startswith('win'):
+			tim = self.win_timiditypath
+			kwargs['creationflags'] = 0x08000000
+		else:
+			tim = 'timidity'
+		
+		args = [tim]
+		args.extend(self._additionalTimidityArgs())
+		args.append(strMidiPath)
+		
+		try:
+			self.process = subprocess.Popen(args, stdout=subprocess.PIPE, **kwargs)
+		except EnvironmentError, e:
+			self.isPlaying = False
+			raise bmidiplay.PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
+			return
+		
+		self.process.wait()
+		self.strLastStdOutput = self.process.stdout.read()
+		self.process = None
+		self.isPlaying = False
+		# note that these lines should be run, even if signalStop() is called.
+	
 	def _additionalTimidityArgs(self):
 		ret = []
 		if self.cfgFile != None:
@@ -55,7 +81,6 @@ if __name__=='__main__':
 	from Tkinter import *
 	global mmplayer
 	mmplayer = bmidiplay.TimidityMidiPlayer()
-	# mmplayerwin.timiditypath = 'timidity\\timidity.exe'
 	
 	def start(top):
 		def start():
@@ -79,17 +104,3 @@ if __name__=='__main__':
 	root = Tk()
 	start(root)
 	root.mainloop()
-
-
-#tested with timidity 2.13.
-#~ if __name__=='__main__':
-	#~ verbose = True
-	#~ def callback():
-		#~ print 'done'
-	
-	#~ strConfig = '\n'
-	#~ strConfig+= 'soundfont "' + r'C:\Projects\midi\!midi_to_wave\soundfonts_good\sf2_other\vintage_dreams_waves_v2.sf2' + '"\n'
-	
-	#~ dir = 'timidity'
-	#~ runTimidity(strConfig, 'out.mid', dir, fnCallback=callback)
-	
