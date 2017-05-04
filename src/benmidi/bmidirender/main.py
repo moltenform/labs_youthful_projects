@@ -45,16 +45,8 @@ class App(object):
 		self.btnPlay = pack(Button(frameBtns, image=self.icon0, text='Play', command=self.onBtnPlay), side=LEFT, padx=4)
 		self.btnPause = pack(Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause), side=LEFT, padx=4)
 		self.btnStop = pack(Button(frameBtns, image=self.icon2, text='Stop', command=self.onBtnStop, relief=SUNKEN), side=LEFT, padx=4)
-		
-		self.varPreviewTimidity = IntVar()
-		self.varPreviewTimidity.set(1)
-		if sys.platform=='win32':
-			thetxt = 'Play with Timidity'
-		else:
-			thetxt='Preview Render'
-		
-		Checkbutton(frameBtns, text=thetxt, variable=self.varPreviewTimidity).pack(side=LEFT, padx=35)
-		self.btnSave = pack(Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave), side=LEFT, padx=2)
+		pack(Button(frameBtns, text='Choose SoundFont...', command=self.openSoundfontWindow), side=LEFT, padx=(70, 4))
+		pack(Button(frameBtns, text='Save Wav...', command=self.onBtnSaveWave), side=LEFT, padx=4)
 		
 		frameBtns.pack(side=TOP, fill=X, pady=2)
 		frameDecogroup.pack(side=TOP, fill=X)
@@ -641,8 +633,12 @@ class App(object):
 		if not self.isMidiLoaded: return
 		
 		params, directoryForOldTimidity = self.getParamsForTimidity(False)
+		bypassTimidity = False
+		if self.audioOptsWindow is not None:
+			bypassTimidity = self.audioOptsWindow.getBypassTimidity()
+		
 		if params is not None:
-			self.player.actionPlay(self.buildModifiedMidi(), params, self.buildCfg(), directoryForOldTimidity, self.varPreviewTimidity.get())
+			self.player.actionPlay(self.buildModifiedMidi(), params, self.buildCfg(), directoryForOldTimidity, not bypassTimidity)
 		
 	def playCallbackGetSlider(self):
 		return self.sliderTime.get()

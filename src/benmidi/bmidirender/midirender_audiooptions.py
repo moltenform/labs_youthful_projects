@@ -68,7 +68,7 @@ class AudioOptionManager(object):
 	
 	def confirmSeen(self, allowNotSeen):
 		print('checking')
-		if not self.get('useold'):
+		if 'useold' in self.mapIdToOptionAndVariable and not self.get('useold'):
 			for key in self.mapIdToOptionAndVariable:
 				if not key in allowNotSeen:
 					if not self.mapIdToOptionAndVariable[key][2]:
@@ -96,102 +96,142 @@ class WindowAudioOptions(object):
 		
 		self.top = top
 		self.options = AudioOptionManager()
-		self.options.addOption('bitdepth', 'Wav quality:', [('8-bit', 8), ('16-bit', 16), ('24-bit', 24)], initialval='16-bit')
-		if sys.platform == 'win32':
-			self.options.addOption('useold', 'Old timidity (note: supports .cfg only)', 'Bool')
 		
-		self.options.addOption('fastdecay', 'Fast decay', [('(default)', None), ('Off', False), ('On', True)])
-		self.options.addOption('antialias', 'Antialias LPF', [('(default)', None), ('Off', False), ('On', True)])
+		# options that aren't as obscure:
+		self.options.addOption('bitdepth', 'Output quality:', [('16-bit', 16), ('24-bit', 24)])
+		self.options.addOption('AmpTotal', 'Amplify all notes by %', 'Int')
+		self.options.addOption('AmpDrums', 'Amplify percussion by %', 'Int')
 		self.options.addOption('maxpolyphony', 'Max polyphony', 'Bool', initialval=True)
-		self.options.addOption('PsReverb', 'Pseudo reverb (milliseconds):', 'Int')
-		self.options.addOption('AmpTotal', 'Amplify all notes (default=100):', 'Int')
-		self.options.addOption('AmpDrums', 'Amplify percussion (default=100):', 'Int')
-		
-		self.options.addOption('points', 'Interpolation points:', [('(default)', None), ('1', '1'), ('4', '4'), ('7', '7'), ('10', '10'), ('13', '13'), ('16', '16'), ('19', '19'), ('22', '22'), ('25 (normal)', '25'), ('28', '28'), ('31', '31'), ('34', '34')])
 		self.options.addOption('PatchesTakePrecedence', 'Patches have priority over soundfonts', 'Bool')
+		if sys.platform == 'win32':
+			self.options.addOption('useold', 'Use old timidity version (requires .cfg and/or .pat)', 'Bool')
+			self.options.addOption('bypasstimidity', 'Bypass all settings and send MIDI to OS', 'Bool')
 		
-		self.options.addOption('controlratio', 'Control ratio, smaller is better', 'Int')
+		# room/reverb settings
+		self.options.addOption('delay', 'Stereo delay type:', [('(default)', None), ('Off', 'd'), ('Left delay', 'l'), ('Right delay', 'r'), ('Rotate', 'b')])
+		self.options.addOption('delayAmount', 'Stereo delay (milliseconds):', 'Int')
+		self.options.addOption('chorus', 'Chorus type:', [('(default)', None), ('Disabled', 'd'), ('Enabled', 'n'), ('Surround', 's')])
+		self.options.addOption('chorusAmount', 'Chorus strength %:', 'Int', lbound=0, rbound=100)
+		self.options.addOption('reverb', 'Reverb type:', [('(default)', None), ('Disabled', 'd'), ('Older Reverb', 'n'), ('Older Reverb, Global', 'g'), ('Newer Reverb', 'f'), ('Newer Reverb, Global', 'G')])
+		self.options.addOption('reverbAmount', 'Reverb strength %:', 'Int', lbound=0, rbound=100)
+		self.options.addOption('reverbPseudo', 'Global pseudo reverb (1-5000):', 'Int')
+		self.options.addOption('lpf', 'Low pass filter:', [('(default)', None), ('Off', 'd'), ('12dB / oct', 'c'), ('24dB / oct', 'm')])
+		self.options.addOption('fastdecay', 'Fast decay', [('(default)', None), ('Off', False), ('On', True)])
 		
+		# advanced settings
+		self.options.addOption('antialias', 'Antialias', [('(default)', None), ('Off', False), ('On', True)])
+		self.options.addOption('volcurve', 'Power of volume curve, %', 'Int')
+		self.options.addOption('points', 'Interpolation points (0-34, default=25)', 'Int')
+		self.options.addOption('controlratio', 'Control ratio, smaller for better quality', 'Int')
 		self.options.addOption('AdditionalCmd', 'Custom cmdline, delimit by |', 'Str', width=35)
 		self.options.addOption('AdditionalCfg', 'Custom cfg, delimit by |', 'Str', width=35)
 		
-		
-		
-		#~ self.options.addOption('lpf', 'Low pass filter:', [('(default)', None), ('Off', 'd'), ('12dB / oct', 'c'), ('24dB / oct', 'm')])
-		#~ self.options.addOption('delay', 'Stereo delay:', [('Off', 'd'), ('Left delay', 'l'), ('Right delay', 'r'), ('Rotate', 'b')])
-		#~ self.options.addOption('reverb', 'Reverb type:', [('(default)', None), ('Off', 'd'), ('Enable Normal', 'n'), ('Global Normal', 'g'), ('Enable New', 'f'), ('Global New', 'G')])
+		# decided not to include:
+		# sample rate, no reason not to use 44100
+		# stereo/mono, no reason not to use stereo
+		# mindecay, --decay-time= made no difference
+		# noiseshaping, default of 4 seems the best for -EFns=n Enable the nth degree (type) noise shaping filter
+		# pure-intonation
+		# frequency tables
 		
 		self.createUI(top)
 	
 	def getOptionsListImpl(self, includeRenderOptions=False):
 		ret = []
-		
-		allowNotSeen=dict(useold=1, AdditionalCfg=1, PatchesTakePrecedence=1)
+		allowNotSeen=dict(useold=1, bitdepth=1, AdditionalCfg=1, bypasstimidity=1, PatchesTakePrecedence=1)
 		if includeRenderOptions:
 			bitdepth = self.options.get('bitdepth')
+			if self.getUseOldTimidity(): # old Timidity doesn't support 24bit output
+				bitdepth = max(bitdepth, 16)
+			
 			opt = '-Ow'
-			opt +='S' # use stereo
+			opt += 'S' # use stereo
 			opt += 's' # signed
-			if bitdepth==8: opt+='8' #8-bit audio
-			elif bitdepth==24: opt+='2' if self.getUseOldTimidity() else '1' #24 bit
-			else: opt+='1' #16 bit
-			opt+='l' # PCM encoding
+			if bitdepth == 8:
+				opt += '8' # 8-bit audio
+			elif bitdepth == 24:
+				opt += '2' # 24-bit audio
+			else:
+				opt += '1' # 16-bit audio
+			
+			opt += 'l' # PCM encoding
 			ret.append(opt)
 			ret.append('-s')
 			ret.append('44100')
-		else:
-			allowNotSeen['bitdepth'] = 1
-		
+			
+		def fromPercentage(optid, map100to, truncate=True):
+			if self.options.get(optid) is None:
+				return None
+			else:
+				val = map100to*(self.options.get(optid)/100.0)
+				return int(val) if truncate else val
 		
 		if self.getUseOldTimidity():
-			# also supports:  -a   Enable the antialiasing filter
+			if self.options.get('antialias') is not None and self.options.get('antialias'):
+				ret.append('-a')
 			if self.options.get('fastdecay') is not None and not self.options.get('fastdecay'):
 				ret.append('-f')
 			if self.options.get('AmpTotal') is not None:
 				ret.append('-A')
-				ret.append(str(ampTotal))
+				ret.append(str(self.options.get('AmpTotal')))
 			if self.options.get('maxpolyphony'):
 				ret.append('-p')
 				ret.append('48') #maximum supported value
 		else:
-			ampTotal = int(70.0*(self.options.get('AmpTotal')/100.0)) if self.options.get('AmpTotal') is not None else None
-			ampDrums = int(100.0*(self.options.get('AmpDrums')/100.0)) if self.options.get('AmpDrums') is not None else None
-			if ampTotal is not None or ampDrums is not None:
-				ampOption = '-A'
-				if ampTotal != None:
-					ampOption+=str(ampTotal)
-				if ampDrums!=None:
-					ampOption+=','+str(ampDrums)
-				ret.append(ampOption)
+			if self.options.get('antialias') is not None:
+				ret.append('--anti-alias' if self.options.get('antialias') else '--no-anti-alias')
 			if self.options.get('fastdecay') is not None:
-				if self.options.get('fastdecay'):
-					ret.append('--fast-decay')
-				else:
-					ret.append('--no-fast-decay')
+				ret.append('--fast-decay' if self.options.get('fastdecay') else '--no-fast-decay')
 			if self.options.get('maxpolyphony'):
 				ret.append('--no-polyphony-reduction')
+			if self.options.get('AmpTotal') is not None:
+				ret.append('--volume=%d' % fromPercentage('AmpTotal', 70.0))
+			if self.options.get('AmpDrums') is not None:
+				ret.append('--drum-power=%d' % fromPercentage('AmpDrums', 100.0))
+
+			if self.options.get('delay') is not None:
+				opt = '--delay=' + self.options.get('delay')
+				if self.options.get('delayAmount') is not None:
+					opt += ',%d' % self.options.get('delayAmount')
+				ret.append(opt)
+			
+			if self.options.get('chorus') is not None:
+				opt = '--chorus=' + self.options.get('chorus')
+				if self.options.get('chorusAmount') is not None:
+					opt += ',%d' % fromPercentage('chorusAmount', 127.0)
+				ret.append(opt)
+			
+			if self.options.get('reverb') is not None:
+				opt = '--reverb=' + self.options.get('reverb')
+				if self.options.get('reverbAmount') is not None:
+					opt += ',%d' % fromPercentage('reverbAmount', 127.0)
+				ret.append(opt)
+			
+			if self.options.get('reverbPseudo') is not None:
+				ret.append('-R')
+				ret.append('%d'%self.options.get('reverbPseudo'))
+			
+			if self.options.get('lpf') is not None:
+				ret.append('--voice-lpf=%s'%self.options.get('lpf'))
+			
+			if self.options.get('volcurve') is not None:
+				ret.append('--volume-curve=%f'%fromPercentage('volcurve', 1.661, truncate=False))
+			
 			if self.options.get('points') is not None:
-				ret.append('--interpolation=%s'%self.options.get('points'))
+				ret.append('--interpolation=%d'%self.options.get('points'))
+			
+			if self.options.get('controlratio') is not None:
+				ret.append('--control-ratio=%d'%self.options.get('controlratio'))
 			
 		ret.extend(self.getAdditionalCfg('AdditionalCmd'))
 		self.options.confirmSeen(allowNotSeen)
 		return ret
-			
-		#~ todo: enable these.
-		#~ arParams.append('-R')
-		#~ arParams.append('%d'%psreverb)
-		#~ arParams.append('--voice-lpf')
-		#~ arParams.append('%s'%lpf)
-		#~ arParams.append('--delay')
-		#~ arParams.append('%s'%delay)
-		#~ arParams.append('--reverb')
-		#~ arParams.append('%s'%reverb)
 	
 	def getOptionsList(self, includeRenderOptions=False):
 		try:
 			return self.getOptionsListImpl(includeRenderOptions)
 		except:
-			e = sys.exc_info()[0]
+			e = sys.exc_info()
 			midirender_util.alert('Alert: ' + str(e))
 			return None
 	
@@ -214,7 +254,16 @@ class WindowAudioOptions(object):
 		return self.options.get('PatchesTakePrecedence')
 	
 	def getUseOldTimidity(self):
-		return self.options.get('useold')
+		if sys.platform == 'win32':
+			return self.options.get('useold')
+		else:
+			return False
+	
+	def getBypassTimidity(self):
+		if sys.platform == 'win32':
+			return self.options.get('bypasstimidity')
+		else:
+			return False
 		
 	def destroy(self):
 		self.top.destroy()
