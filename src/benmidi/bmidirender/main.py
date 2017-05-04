@@ -28,7 +28,7 @@ if not os.path.exists(clefspath):
 from scoreview import scoreview, listview
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
-class App():
+class App(object):
 	def __init__(self, root):
 		root.title('Bmidi to wave')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
@@ -305,11 +305,11 @@ class App():
 			if evt.type=='PROGRAM_CHANGE':
 				theEvt = evt
 				break
-		if theEvt==None: return
+		if theEvt is None: return
 		
 		dlg = midirender_choose_midi_voice.ChooseMidiInstrumentDialog(self.frameGrid, 'Choose Instrument', min(theEvt.data,127))
 		midiNumber = dlg.result
-		if midiNumber==None: return
+		if midiNumber is None: return
 		
 		theEvt.data = midiNumber
 		btn['text'] = str(midiNumber) + ' (' + bmidilib.getInstrumentName(midiNumber) + ')'
@@ -322,7 +322,7 @@ class App():
 		midicopy = self.buildModifiedMidi()
 		
 		arParams, directoryForOldTimidity = self.getParamsForTimidity(True)
-		if arParams == None: return
+		if arParams is None: return
 		arParams.append('-o')
 		arParams.append(filename)
 		
@@ -333,7 +333,7 @@ class App():
 		objplayer.setParameters(arParams)
 		
 		objplayer.playMidiObject(midicopy, bSynchronous=True)
-		if self.consoleOutWindow!=None: self.consoleOutWindow.clear(); self.consoleOutWindow.writeToWindow(objplayer.strLastStdOutput)
+		if self.consoleOutWindow is not None: self.consoleOutWindow.clear(); self.consoleOutWindow.writeToWindow(objplayer.strLastStdOutput)
 		midirender_util.alert('Completed.')
 		
 	
@@ -371,14 +371,14 @@ class App():
 				strCfg += '\ndir "%s"\nsource "%s"' % (path, filename)
 		else:
 			strCfg += '\nsoundfont "%s"' % (filename)
-			if self.audioOptsWindow != None and self.audioOptsWindow.getPatchesTakePrecedence():
+			if self.audioOptsWindow is not None and self.audioOptsWindow.getPatchesTakePrecedence():
 				strCfg +=' order=1'
 		
 		#now add customization to override specific voices, if set
-		if self.soundfontWindow != None:
+		if self.soundfontWindow is not None:
 			strCfg += '\n' + self.soundfontWindow.getCfgResults(self.audioOptsWindow and self.audioOptsWindow.getUseOldTimidity())
 			
-		if self.audioOptsWindow != None:
+		if self.audioOptsWindow is not None:
 			addedLines = self.audioOptsWindow.getAdditionalCfg()
 			if addedLines:
 				strCfg += '\n'+'\n'.join(addedLines)
@@ -393,7 +393,7 @@ class App():
 		midiCopy = copy.deepcopy(self.objMidi)
 		if self.mixerWindow: 
 			self.mixerWindow.createMixedMidi( midiCopy )
-		if self.tempoScaleFactor!=None:
+		if self.tempoScaleFactor is not None:
 			midirender_tempo.doChangeTempo(midiCopy, self.tempoScaleFactor)
 		return midiCopy
 		
@@ -474,7 +474,7 @@ class App():
 	def menu_changeTempo(self, e=None):
 		if not self.isMidiLoaded: return			
 		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
-		if res==None: return #canceled.
+		if res is None: return #canceled.
 		if abs(res-1.0) < 0.001:  #we don't need to change the tempo if it is staying the same.
 			self.tempoScaleFactor = None
 		else:
@@ -511,15 +511,15 @@ class App():
 		if not self.isMidiLoaded: return
 		#the window has requested that we show the stdout.
 		
-		if self.consoleOutWindow==None: return
+		if self.consoleOutWindow is None: return
 		self.consoleOutWindow.clear()
 		self.consoleOutWindow.writeToWindow(self.player.getLastStdout())
 	
 	def menuCopyAudioOptsString(self, evt=None):
 		params = []
-		if self.audioOptsWindow != None:
+		if self.audioOptsWindow is not None:
 			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
-			if params==None: params = [] #evidently an error occurred over there
+			if params is None: params = [] #evidently an error occurred over there
 		params = 'timidity song.mid '+' '.join(params)
 		params += os.linesep+os.linesep + 'timidity.cfg:'+os.linesep
 		params += self.buildCfg()
@@ -534,7 +534,7 @@ class App():
 		top = Toplevel()
 		def callbackOnClose(): self.audioOptsWindow = None
 			
-		self.audioOptsWindow = midirender_audiooptions.BTimidityOptions(top, callbackOnClose)
+		self.audioOptsWindow = midirender_audiooptions.WindowAudioOptions(top, callbackOnClose)
 		top.focus_set()
 		
 	def openScoreView(self, n):
@@ -575,15 +575,15 @@ class App():
 		if strBtn=='play': self.btnPlay.config(relief=SUNKEN)
 		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
 		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
-		else: raise 'Unknown button'
+		else: raise Exception('Unknown button')
 			
 	def getParamsForTimidity(self, bRenderWav):
 		directoryForOldTimidity = None
 		
-		if self.audioOptsWindow != None:
+		if self.audioOptsWindow is not None:
 			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=bRenderWav) 
-			if params==None:
-				midirender_util.alert('Unknown error.')
+			if params is None:
+				midirender_util.alert('Could not get parameters.')
 				return None, None
 			
 			if self.audioOptsWindow.getUseOldTimidity():
@@ -601,7 +601,7 @@ class App():
 		if not self.isMidiLoaded: return
 		
 		params, directoryForOldTimidity = self.getParamsForTimidity(False)
-		if params != None:
+		if params is not None:
 			self.player.actionPlay(self.buildModifiedMidi(), params, self.buildCfg(), directoryForOldTimidity, self.varPreviewTimidity.get())
 		
 	def playCallbackGetSlider(self):
