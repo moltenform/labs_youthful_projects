@@ -67,12 +67,14 @@ class AudioOptionManager(object):
 			self.mapIdToOptionAndVariable[opt.id] = [opt, var, False]
 	
 	def confirmSeen(self, allowNotSeen):
-		print('checking')
-		if 'useold' in self.mapIdToOptionAndVariable and not self.get('useold'):
-			for key in self.mapIdToOptionAndVariable:
-				if not key in allowNotSeen:
-					if not self.mapIdToOptionAndVariable[key][2]:
-						print('Internal note: option %s not checked' % key)
+		# this is a simple check to check that all options are looked at, not needed in production.
+		if False:
+			print('checking')
+			if 'useold' in self.mapIdToOptionAndVariable and not self.get('useold'):
+				for key in self.mapIdToOptionAndVariable:
+					if not key in allowNotSeen:
+						if not self.mapIdToOptionAndVariable[key][2]:
+							print('Internal note: option %s not checked' % key)
 
 class AudioOption(object):
 	def __init__(self, optionid, caption, vals, initialval='', width=10, lbound=0, rbound=1e10):

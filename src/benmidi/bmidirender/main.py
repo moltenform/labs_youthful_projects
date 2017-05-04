@@ -101,11 +101,11 @@ class App(object):
 		
 		menuFile = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="File", menu=menuFile, underline=0)
-		menuFile.add_command(label="Open Midi", command=self.menu_openMidi, underline=0, accelerator='Ctrl+O')
+		menuFile.add_command(label="Open MIDI", command=self.menu_openMidi, underline=0, accelerator='Ctrl+O')
 		menuFile.add_separator()
-		menuFile.add_command(label="Modify raw midi...", command=self.menuModifyRawMidi, underline=0)
+		menuFile.add_command(label="Modify MIDI Events...", command=self.menuModifyRawMidi, underline=0)
 		menuFile.add_separator()
-		menuFile.add_command(label="Save modified midi...", command=self.saveModifiedMidi, underline=0, accelerator='Ctrl+Shift+S')
+		menuFile.add_command(label="Save Changes From Mixer...", command=self.saveModifiedMidi, underline=0, accelerator='Ctrl+Shift+S')
 		menuFile.add_separator()
 		menuFile.add_command(label="Exit", command=root.quit, underline=1)
 		
@@ -120,9 +120,9 @@ class App(object):
 		menuAudio.add_command(label="Transpose Pitch...", command=self.menu_changeTranspose, underline=0)
 		menuAudio.add_command(label="Copy Options String", command=self.menuCopyAudioOptsString, underline=1)
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=5, accelerator='Ctrl+R')
+		menuAudio.add_command(label="Save Wav", command=self.onBtnSaveWave, underline=5, accelerator='Ctrl+R')
 		menuAudio.add_separator()
-		menuAudio.add_command(label="Choose Sound Font...", command=self.openSoundfontWindow, underline=13, accelerator='Ctrl+F')
+		menuAudio.add_command(label="Choose SoundFont...", command=self.openSoundfontWindow, underline=13, accelerator='Ctrl+F')
 		
 		self.objOptionsDuration = IntVar()
 		self.objOptionsDuration.set(0)
@@ -131,7 +131,7 @@ class App(object):
 		menuView = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="View", menu=menuView, underline=0)
 		menuView.add_command(label="Mixer", command=self.openMixerView, underline=0, accelerator='Ctrl+M')
-		menuView.add_command(label="Console output", command=self.menu_openConsoleWindow, underline=0)
+		menuView.add_command(label="Console Output", command=self.menu_openConsoleWindow, underline=0)
 		menuView.add_separator()
 		menuView.add_command(label="SoundFont Information Tool", command=self.menu_soundFontInfoTool, underline=0)
 		menuView.add_separator()
@@ -139,7 +139,8 @@ class App(object):
 		menuView.add_checkbutton(label="Show Barlines in score", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wave, by Ben Fisher 2009\nhalfhourhacks.blogspot.com\n\nA graphical frontend for Timidity.','Bmidi to wave')))
+		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wave, by Ben Fisher 2009\nA graphical frontend for Timidity and sfubar.\n\nSee the documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md\n\nSource code at https://github.com/moltenform/labs_youthful_projects/tree/master/benmidi/bmidirender','Bmidi to wave')))
+		menuHelp.add_command(label='Documentation', underline=0, command=(lambda: midirender_util.alert('There are many pages of online documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md','Bmidi to wave')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)
@@ -313,6 +314,7 @@ class App(object):
 		
 	def onBtnSaveWave(self,e=None):
 		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
 			return
 		
 		filename = midirender_util.ask_savefile(title="Create Wav File", types=['.wav|Wav file'])
@@ -456,6 +458,7 @@ class App(object):
 			
 	def saveModifiedMidi(self, evt=None):
 		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
 			return
 			
 		filename = midirender_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])
@@ -472,6 +475,7 @@ class App(object):
 	
 	def menu_changeTempo(self, e=None):
 		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
 			return
 		
 		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
@@ -484,6 +488,10 @@ class App(object):
 			self.tempoScaleFactor = res
 	
 	def menu_changeTranspose(self, e=None):
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
+			
 		strPrompt = 'Adjust key (i.e., transpose the song) by n half tones. Valid range is from -24 to 24.'
 		default = self.transposePitches if self.transposePitches else 0.0
 		res = midirender_util.ask_float(strPrompt, default=default, min=-24.1, max=24.1, title='Transpose')
@@ -491,8 +499,12 @@ class App(object):
 			self.transposePitches = int(res)
 			
 	def openSoundfontWindow(self, e=None):
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
+		
 		# this is different than the list and score view - there can only be one of them open at once
-		if not self.isMidiLoaded or self.soundfontWindow:
+		if self.soundfontWindow:
 			return # only allow one instance open at a time
 			
 		top = Toplevel()
@@ -503,7 +515,11 @@ class App(object):
 		top.focus_set()
 	
 	def openMixerView(self, e=None):
-		if not self.isMidiLoaded or self.mixerWindow: 
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
+			
+		if self.mixerWindow: 
 			return # only allow one instance open at a time
 			
 		top = Toplevel()
@@ -514,7 +530,10 @@ class App(object):
 		top.focus_set()
 	
 	def openAudioOptsWindow(self, evt=None):
-		# i guess we'll let people open this before opening a midi...
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
+		
 		if self.audioOptsWindow:
 			return # only allow one instance open at a time
 			
@@ -526,7 +545,10 @@ class App(object):
 		top.focus_set()
 		
 	def menu_openConsoleWindow(self):
-		# i guess we'll let people open this before opening a midi...
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
+		
 		if self.consoleOutWindow:
 			return # only allow one instance open at a time
 		
@@ -559,6 +581,10 @@ class App(object):
 		self.top.clipboard_append(ret)
 		
 	def openScoreView(self, n):
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
+			
 		if len(self.objMidi.tracks[n].notelist)==0:
 			midirender_util.alert('No notes to show in this track.')
 			return
@@ -630,7 +656,9 @@ class App(object):
 		return params, directoryForOldTimidity
 	
 	def onBtnPlay(self, e=None):
-		if not self.isMidiLoaded: return
+		if not self.isMidiLoaded:
+			midirender_util.alert('Please open a MIDI file first.')
+			return
 		
 		params, directoryForOldTimidity = self.getParamsForTimidity(False)
 		bypassTimidity = False
@@ -683,6 +711,8 @@ root.mainloop()
 
 # todo: preview solo is a few seconds late
 # todo: preview soundfont information could take a cfg and show all patches.
+# todo: in choose soundfont window, change caption 'customize' to 'set each instrument individually'
+# todo: instead of modify raw midi, have two menu items "MIDI to text" and "text to MIDI"
 
 '''
 midis are modified by:
