@@ -45,7 +45,7 @@ class AudioOptionManager(object):
 					return opt.vals[i][1]
 			raise AssertionError('unknown value, got %s and expected one of %s' % (v, opt.vals))
 	
-	def addToUI(self, parent):
+	def createUI(self, parent):
 		for opt in self.options:
 			if opt.vals == 'Int' or opt.vals == 'Str':
 				var = StringVar()
@@ -102,9 +102,9 @@ class WindowAudioOptions(object):
 		
 		self.options.addOption('fastdecay', 'Fast decay', [('(default)', None), ('Off', False), ('On', True)])
 		self.options.addOption('maxpolyphony', 'Max polyphony', 'Bool', initialval=True)
-		self.options.addOption('PsReverb', 'Pseudo reverb (0-800ms):', 'Int')
-		self.options.addOption('AmpTotal', 'Amplify all notes (default=100)', 'Int')
-		self.options.addOption('AmpDrums', 'Amplify percussion (default=100)', 'Int')
+		self.options.addOption('PsReverb', 'Pseudo reverb (milliseconds):', 'Int')
+		self.options.addOption('AmpTotal', 'Amplify all notes (default=100):', 'Int')
+		self.options.addOption('AmpDrums', 'Amplify percussion (default=100):', 'Int')
 		self.options.addOption('lpf', 'Low pass filter:', [('(default)', None), ('Off', 'd'), ('12dB / oct', 'c'), ('24dB / oct', 'm')])
 		self.options.addOption('delay', 'Stereo delay:', [('Off', 'd'), ('Left delay', 'l'), ('Right delay', 'r'), ('Rotate', 'b')])
 		self.options.addOption('reverb', 'Reverb type:', [('(default)', None), ('Off', 'd'), ('Enable Normal', 'n'), ('Global Normal', 'g'), ('Enable New', 'f'), ('Global New', 'G')])
@@ -192,8 +192,8 @@ class WindowAudioOptions(object):
 		frameTop.pack(expand=YES, fill=BOTH)
 		self.frameTop=frameTop
 		frameOpts = pack(LabelFrame(frameTop, text='Audio Options'), expand=YES, fill=BOTH)
-		self.options.addToUI(frameOpts)
-		Label(frameTop, text='Settings remain in effect while this dialog is open.'+' '*15).pack(pady=5)
+		self.options.createUI(frameOpts)
+		Label(frameTop, text='Settings remain in effect while this dialog is open.' + ' '*15).pack(pady=5)
 	
 	def getAdditionalCfg(self, field='AdditionalCfg'):
 		additionalCmd = self.options.get(field)

@@ -18,42 +18,43 @@ import midirender_playback
 import midirender_runtimidity
 import midirender_soundfont
 import midirender_soundfont_info
-
 from midirender_util import bmidilib, bmiditools, bmidirenderdirectory
-
+from scoreview import scoreview, listview
 
 clefspath = bmidirenderdirectory + os.sep + 'scoreview' + os.sep + 'clefs'
 if not os.path.exists(clefspath):
-	clefspath = bmidirenderdirectory + os.sep + '..'+os.sep+clefspath
-from scoreview import scoreview, listview
+	clefspath = bmidirenderdirectory + os.sep + '..' + os.sep + clefspath
 
-def pack(o, **kwargs): o.pack(**kwargs); return o
 class App(object):
 	def __init__(self, root):
 		root.title('Bmidi to wave')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
 		self.top = root
-		frameMain = pack( Frame(root), side=TOP, fill=BOTH, expand=True)
 		
-		self.lblFilename = pack( Label(frameMain, text='No file opened.'), side=TOP, anchor='w')
-				
-		
-		self.icon0 = PhotoImage(data=icon0); self.icon1 = PhotoImage(data=icon1); self.icon2 = PhotoImage(data=icon2)
+		frameMain = pack(Frame(root), side=TOP, fill=BOTH, expand=True)
+		self.lblFilename = pack(Label(frameMain, text='No file opened.'), side=TOP, anchor='w')
+		self.icon0 = PhotoImage(data=icon0)
+		self.icon1 = PhotoImage(data=icon1)
+		self.icon2 = PhotoImage(data=icon2)
 		
 		frameDecogroup = Frame(frameMain, borderwidth=1, relief=GROOVE, padx=3, pady=3)
 		self.sliderTime = Scale(frameDecogroup, orient=HORIZONTAL,resolution=0.1, width=5, from_=0, to_=0)
 		self.sliderTime.pack(side=TOP, fill=X)
 		
 		frameBtns = Frame(frameDecogroup)
-		self.btnPlay = pack( Button(frameBtns, image=self.icon0, text='Play', command=self.onBtnPlay), side=LEFT, padx=4)
-		self.btnPause = pack( Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause), side=LEFT, padx=4)
-		self.btnStop = pack( Button(frameBtns, image=self.icon2,  text='Stop', command=self.onBtnStop,relief=SUNKEN), side=LEFT, padx=4)
+		self.btnPlay = pack(Button(frameBtns, image=self.icon0, text='Play', command=self.onBtnPlay), side=LEFT, padx=4)
+		self.btnPause = pack(Button(frameBtns, image=self.icon1, text='Pause', command=self.onBtnPause), side=LEFT, padx=4)
+		self.btnStop = pack(Button(frameBtns, image=self.icon2, text='Stop', command=self.onBtnStop, relief=SUNKEN), side=LEFT, padx=4)
 		
-		self.varPreviewTimidity = IntVar(); self.varPreviewTimidity.set(1)
-		if sys.platform=='win32': thetxt = 'Play with Timidity'
-		else: thetxt='Preview Render'
+		self.varPreviewTimidity = IntVar()
+		self.varPreviewTimidity.set(1)
+		if sys.platform=='win32':
+			thetxt = 'Play with Timidity'
+		else:
+			thetxt='Preview Render'
+		
 		Checkbutton(frameBtns, text=thetxt, variable=self.varPreviewTimidity).pack(side=LEFT, padx=35)
-		self.btnSave = pack( Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave), side=LEFT, padx=2)
+		self.btnSave = pack(Button(frameBtns, text='Save Wav', command=self.onBtnSaveWave), side=LEFT, padx=2)
 		
 		frameBtns.pack(side=TOP, fill=X, pady=2)
 		frameDecogroup.pack(side=TOP, fill=X)
@@ -68,25 +69,19 @@ class App(object):
 		self.objMidi = None
 		self.frameGrid = frameGrid
 		
-		#save and reuse grid widgets created.
-		self.gridwidgets = {} #index is tuple (row, column)
-		self.gridbuttons = {} #index is tuple (row, column)
-		
-		
-		self.listviews = {} #index is track number. 
+		# save and reuse grid widgets created.
+		self.gridwidgets = {} # index is tuple (row, column)
+		self.gridbuttons = {} # index is tuple (row, column)
+		self.listviews = {} # index is track number. 
 		self.scoreviews = {}
 		self.mixerWindow=None
 		self.audioOptsWindow=None
 		self.soundfontWindow=None
 		self.consoleOutWindow=None
-		self.currentSoundfont = [midirender_soundfont.getDefaultSoundfont()] #an array so we can pass it as a reference.
-		
+		self.currentSoundfont = [midirender_soundfont.getDefaultSoundfont()] # an array so we can pass it as a reference.
 		self.create_menubar(root)
-		
 		self.clearModifications()
-		
 		self.player = midirender_playback.BMidiRenderPlayback(self.playCallbackToggleButton, self.playCallbackGetSlider, self.playCallbackSetSlider)
-		
 	
 	def drawColumnHeaders(self):
 		opts = {}
@@ -136,10 +131,10 @@ class App(object):
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Choose Sound Font...", command=self.openSoundfontWindow, underline=13, accelerator='Ctrl+F')
 		
-		
-		
-		self.objOptionsDuration = IntVar(); self.objOptionsDuration.set(0)
-		self.objOptionsBarlines = IntVar(); self.objOptionsBarlines.set(1)
+		self.objOptionsDuration = IntVar()
+		self.objOptionsDuration.set(0)
+		self.objOptionsBarlines = IntVar()
+		self.objOptionsBarlines.set(1)
 		menuView = Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="View", menu=menuView, underline=0)
 		menuView.add_command(label="Mixer", command=self.openMixerView, underline=0, accelerator='Ctrl+M')
@@ -150,19 +145,18 @@ class App(object):
 		menuView.add_checkbutton(label="Show Durations in score", variable=self.objOptionsDuration, underline=5, onvalue=1, offvalue=0)
 		menuView.add_checkbutton(label="Show Barlines in score", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
 		
-		
 		menuHelp = Menu(menubar, tearoff=0)
 		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wave, by Ben Fisher 2009\nhalfhourhacks.blogspot.com\n\nA graphical frontend for Timidity.','Bmidi to wave')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)
 		
-		
 	def menu_openMidi(self, evt=None):
 		filename = midirender_util.ask_openfile(title="Open Midi File", types=['.mid|Mid file'])
-		if not filename: return
+		if not filename:
+			return
 
-		#first, see if it loads successfully.
+		# first, see if it loads successfully.
 		try:
 			newmidi = bmidilib.BMidiFile()
 			newmidi.open(filename, 'rb')
@@ -172,6 +166,7 @@ class App(object):
 			e=''
 			midirender_util.alert('Could not load midi: exception %s'%str(e), title='Could not load midi',icon='error')
 			return
+		
 		self.lblFilename['text'] = filename
 		self.loadMidiObj(newmidi)
 			
@@ -181,36 +176,39 @@ class App(object):
 		
 		if not self.haveDrawnHeaders: self.drawColumnHeaders()
 		if not self.isMidiLoaded: 
-			#check if Timidity is installed
+			# check if Timidity is installed
 			if sys.platform != 'win32':
 				if not midirender_runtimidity.isTimidityInstalled():
 					midirender_util.alert('It appears that the program Timidity is not installed. This program is required for playing and rendering music.\n\nYou could try running something corresponding to "sudo apt-get install timidity" or "sudo yum install timidity++" in a terminal.')
 			self.isMidiLoaded = True
 		
-		#close any open views
-		for key in self.listviews: self.listviews[key].destroy()
-		for key in self.scoreviews: self.scoreviews[key].destroy()
-		self.listviews = {}; self.scoreviews = {}
+		# close any open views
+		for key in self.listviews:
+			self.listviews[key].destroy()
+		for key in self.scoreviews:
+			self.scoreviews[key].destroy()
+		self.listviews = {}
+		self.scoreviews = {}
 		self.clearModifications()
 		
-		#hide all of the old widgets
+		# hide all of the old widgets
 		for key in self.gridwidgets:
-			w= self.gridwidgets[key]
+			w = self.gridwidgets[key]
 			if w.master.is_smallframe==1:
 				w.master.grid_forget()
 		for key in self.gridbuttons:
 			self.gridbuttons[key].grid_forget()
 		
 		def addLabel(text, y, x, isButton=False):
-			#Only create a new widget when necessary. This way, don't need to allocate every time a file is opened.
-			if (x,y+1) not in self.gridwidgets:
+			# only create a new widget when necessary. This way, don't need to allocate every time a file is opened.
+			if (x, y+1) not in self.gridwidgets:
 				smallFrame = Frame(self.frameGrid, borderwidth=1, relief=RIDGE)
 				smallFrame.is_smallframe=1
 				if isButton: 
 					btn = Button(smallFrame, text=text, relief=GROOVE,anchor='w')
 					btn.config(command=midirender_util.Callable(self.onBtnChangeInstrument, y,btn))
 					btn.pack(anchor='w', fill=BOTH)
-					btn['disabledforeground'] = 'black' #means that when it is disabled, looks just like a label. sweet.
+					btn['disabledforeground'] = 'black' # means that when it is disabled, looks just like a label. sweet.
 					thewidget = btn
 					
 				else: 
@@ -227,7 +225,7 @@ class App(object):
 		lengthTimer = bmiditools.BMidiSecondsLength(self.objMidi)
 		overallLengthSeconds = lengthTimer.getOverallLength(self.objMidi)
 		self.sliderTime['to'] = max(1.0, overallLengthSeconds+1.0)
-		self.player.load( max(1.0, overallLengthSeconds+1.0) ) #"loading" will also set position to 0.0
+		self.player.load(max(1.0, overallLengthSeconds+1.0)) # "loading" will also set position to 0.0
 		
 		warnMultipleChannels = False
 		for rownum in range(len(self.objMidi.tracks)):
@@ -240,32 +238,38 @@ class App(object):
 			defaultname = 'Condtrack' if rownum==0 else ('Track %d'%rownum)
 			searchFor = {'TRACKNAME':defaultname, 'INSTRUMENTS':1 }
 			res = bmiditools.getTrackInformation(trackobj, searchFor)
-			addLabel( res['TRACKNAME'], rownum, 1)
+			addLabel(res['TRACKNAME'], rownum, 1)
 			
 			# Track Channel(s)
 			chanarray = self.findNoteChannels(trackobj)
 			if len(chanarray)==0: channame='None'
 			elif len(chanarray)>1: channame='(Many)'; warnMultipleChannels=True
 			else: channame = str(chanarray[0])
-			addLabel( channame, rownum, 2)
-			
+			addLabel(channame, rownum, 2)
 			countednoteevts = len(trackobj.notelist) # this assumes notelist is valid, and notelist is only valid if we've just read from a file
 			
 			# Track Instrument(s)
 			instarray = res['INSTRUMENTS']
-			if len(instarray)==0: instname='None'
-			elif len(instarray)>1: instname='(Many)'
-			else: instname = str(instarray[0]) + ' (' + bmidilib.getInstrumentName(instarray[0]) + ')'
-			if channame=='10': instname = '(Percussion channel)'
+			if len(instarray)==0:
+				instname='None'
+			elif len(instarray)>1:
+				instname='(Many)'
+			else:
+				instname = str(instarray[0]) + ' (' + bmidilib.getInstrumentName(instarray[0]) + ')'
+			if channame == '10':
+				instname = '(Percussion channel)'
 			
-			btn = addLabel( instname, rownum, 3, isButton=True) #add a button (not a label)
-			isEnabled = channame!='10' and instname!='None' and instname!='(Many)' #countednoteevts>0
-			if isEnabled: btn['state'] = NORMAL; btn['relief'] = GROOVE
-			else: btn['state'] = DISABLED; btn['relief'] = FLAT
-			# if there are multiple inst. changes in a track, we don't let you change instruments because there isn't a conveniant way to do that.
+			btn = addLabel( instname, rownum, 3, isButton=True) # add a button (not a label)
+			isEnabled = channame!='10' and instname!='None' and instname!='(Many)' # countednoteevts>0
+			if isEnabled:
+				btn['state'] = NORMAL
+				btn['relief'] = GROOVE
+			else:
+				btn['state'] = DISABLED
+				btn['relief'] = FLAT
+			# if there are multiple inst. changes in a track, we don't let you change instruments because there isn't a convenient way to do that.
 			
-			
-			#Track Time
+			# Track Time
 			if len(trackobj.notelist)==0: strTime = lengthTimer.secondsToString(0)
 			else: strTime = lengthTimer.secondsToString(lengthTimer.ticksToSeconds(trackobj.notelist[0].time))
 			addLabel( strTime, rownum, 4)
@@ -273,7 +277,7 @@ class App(object):
 			# Track Notes
 			addLabel( str(countednoteevts), rownum, 5)
 			
-			#Buttons
+			# Buttons
 			if (rownum, 0) not in self.gridbuttons:
 				btn = Button(self.frameGrid, text='Mixer', command=self.openMixerView)
 				self.gridbuttons[(rownum, 0)] = btn
@@ -298,7 +302,7 @@ class App(object):
 				return
 	
 	def onBtnChangeInstrument(self, y, btn):
-		#As of now, this actually modifies the midi object. For good.
+		# in this version, we'll actually modify the midi object. unclear if this is the best design.
 		track = self.objMidi.tracks[y]
 		theEvt = None
 		for evt in track.events:
@@ -315,30 +319,34 @@ class App(object):
 		btn['text'] = str(midiNumber) + ' (' + bmidilib.getInstrumentName(midiNumber) + ')'
 		
 	def onBtnSaveWave(self,e=None):
-		if not self.isMidiLoaded: return
+		if not self.isMidiLoaded:
+			return
+		
 		filename = midirender_util.ask_savefile(title="Create Wav File", types=['.wav|Wav file'])
-		if not filename: return
+		if not filename:
+			return
 			
 		midicopy = self.buildModifiedMidi()
-		
 		arParams, directoryForOldTimidity = self.getParamsForTimidity(True)
-		if arParams is None: return
+		if arParams is None:
+			return
+			
 		arParams.append('-o')
 		arParams.append(filename)
 		
-		#Play it synchronously, meaning that the whole program stalls while this happens...
+		# play it synchronously, meaning that the whole program stalls while this happens...
 		midirender_util.alert('Beginning wave process. Be patient... this may take a few moments...')
 		objplayer = midirender_runtimidity.RenderTimidityMidiPlayer()
 		objplayer.setConfiguration(self.buildCfg(), directoryForOldTimidity)
 		objplayer.setParameters(arParams)
-		
 		objplayer.playMidiObject(midicopy, bSynchronous=True)
-		if self.consoleOutWindow is not None: self.consoleOutWindow.clear(); self.consoleOutWindow.writeToWindow(objplayer.strLastStdOutput)
+		if self.consoleOutWindow is not None:
+			self.consoleOutWindow.clear()
+			self.consoleOutWindow.writeToWindow(objplayer.strLastStdOutput)
 		midirender_util.alert('Completed.')
-		
 	
 	def clearModifications(self):
-		#close Mixer window.
+		# close Mixer window
 		if self.mixerWindow:
 			self.mixerWindow.destroy()
 			self.mixerWindow = None
@@ -348,15 +356,13 @@ class App(object):
 		if self.soundfontWindow:
 			self.soundfontWindow.destroy()
 			self.soundfontWindow = None
-			#note, however, that self.currentSoundfont remains as it should.
+			# note, however, that self.currentSoundfont remains as it should.
 			
-		#get rid of Tempo modifications.
+		# get rid of Tempo modifications.
 		self.tempoScaleFactor = None
 		
-		#get rid of instrument/change modifications
-		
 	def buildCfg(self):
-		#begin by adding the global soundfont or cfg file.
+		# begin by adding the global soundfont or cfg file.
 		filename =self.currentSoundfont[0]
 		strCfg = ''
 		if filename.endswith('.cfg'):
@@ -374,7 +380,7 @@ class App(object):
 			if self.audioOptsWindow is not None and self.audioOptsWindow.getPatchesTakePrecedence():
 				strCfg +=' order=1'
 		
-		#now add customization to override specific voices, if set
+		# now add customization to override specific voices, if set
 		if self.soundfontWindow is not None:
 			strCfg += '\n' + self.soundfontWindow.getCfgResults(self.audioOptsWindow and self.audioOptsWindow.getUseOldTimidity())
 			
@@ -403,7 +409,6 @@ class App(object):
 			return
 		
 		import tempfile, os, subprocess
-		
 		m2t = midirender_util.bmidirenderdirectory+'\\timidity\\m2t.exe'
 		t2m = midirender_util.bmidirenderdirectory+'\\timidity\\t2m.exe'
 		notepadexe = 'C:\\Windows\\System32\\notepad.exe'
@@ -412,8 +417,8 @@ class App(object):
 			return
 		
 		filenameMidInput = midirender_util.ask_openfile(title="Choose Midi File to modify", types=['.mid|Mid file'])
-		if not filenameMidInput: return
-		
+		if not filenameMidInput:
+			return
 		
 		filenameText = tempfile.gettempdir() + os.sep + 'tmpout.txt'
 		try:
@@ -456,9 +461,12 @@ class App(object):
 		midirender_util.alert('Complete.')
 			
 	def saveModifiedMidi(self, evt=None):
-		if not self.isMidiLoaded: return
+		if not self.isMidiLoaded:
+			return
+			
 		filename = midirender_util.ask_savefile(title="Save Midi File", types=['.mid|Mid file'])
-		if not filename: return
+		if not filename:
+			return
 		
 		mfile = self.buildModifiedMidi()
 		if mfile:
@@ -466,85 +474,99 @@ class App(object):
 			mfile.write()
 			mfile.close()
 	
-	
-	
-	#########Windows for settings###############
-	
+	######### Windows for settings ###############
 	
 	def menu_changeTempo(self, e=None):
 		if not self.isMidiLoaded: return			
 		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
-		if res is None: return #canceled.
-		if abs(res-1.0) < 0.001:  #we don't need to change the tempo if it is staying the same.
+		if res is None:
+			return # canceled.
+		
+		if abs(res-1.0) < 0.001:  # we don't need to change the tempo if it is staying the same.
 			self.tempoScaleFactor = None
 		else:
 			self.tempoScaleFactor = res
 			
 	def openSoundfontWindow(self,e=None):
-		#this is different than the list and score view - there can only be one of them open at once
-		if not self.isMidiLoaded: return
-		if self.soundfontWindow: return #only allow one instance open at a time
+		# this is different than the list and score view - there can only be one of them open at once
+		if not self.isMidiLoaded or self.soundfontWindow:
+			return # only allow one instance open at a time
 			
 		top = Toplevel()
-		def callbackOnClose():  self.soundfontWindow = None
+		def callbackOnClose(): 
+			self.soundfontWindow = None
 			
 		self.soundfontWindow = midirender_soundfont.BSoundfontWindow(top, self.currentSoundfont, self.objMidi, callbackOnClose)	
 		top.focus_set()
 	
 	def openMixerView(self, e=None):
-		if not self.isMidiLoaded: return
-		if self.mixerWindow: return #only allow one instance open at a time
+		if not self.isMidiLoaded or self.mixerWindow: 
+			return # only allow one instance open at a time
 			
 		top = Toplevel()
-		def callbackOnClose():  self.mixerWindow = None
+		def callbackOnClose():
+			self.mixerWindow = None
 			
 		self.mixerWindow = midirender_mixer.BMixerWindow(top, self.objMidi, {}, callbackOnClose)
 		top.focus_set()
-	def menu_openConsoleWindow(self):
-		#i guess we'll let people open this before opening a midi...
-		if self.consoleOutWindow: return #only allow one instance open at a time
+	
+	def openAudioOptsWindow(self, evt=None):
+		# i guess we'll let people open this before opening a midi...
+		if self.audioOptsWindow:
+			return # only allow one instance open at a time
+			
 		top = Toplevel()
-		def callbackOnClose(): self.consoleOutWindow = None
-		self.consoleOutWindow = midirender_consoleout.BConsoleOutWindow(top,self.consoleOutCallback, callbackOnClose=callbackOnClose)
+		def callbackOnClose():
+			self.audioOptsWindow = None
+			
+		self.audioOptsWindow = midirender_audiooptions.WindowAudioOptions(top, callbackOnClose)
 		top.focus_set()
-	def consoleOutCallback(self):
-		if not self.isMidiLoaded: return
-		#the window has requested that we show the stdout.
 		
-		if self.consoleOutWindow is None: return
-		self.consoleOutWindow.clear()
-		self.consoleOutWindow.writeToWindow(self.player.getLastStdout())
+	def menu_openConsoleWindow(self):
+		# i guess we'll let people open this before opening a midi...
+		if self.consoleOutWindow:
+			return # only allow one instance open at a time
+		
+		top = Toplevel()
+		def callbackOnClose():
+			self.consoleOutWindow = None
+		
+		self.consoleOutWindow = midirender_consoleout.BConsoleOutWindow(top, self.consoleOutCallback, callbackOnClose=callbackOnClose)
+		top.focus_set()
+	
+	def consoleOutCallback(self):
+		# the window has requested that we show the stdout.
+		if not self.isMidiLoaded: 
+			return
+		
+		if self.consoleOutWindow is not None: 
+			self.consoleOutWindow.clear()
+			self.consoleOutWindow.writeToWindow(self.player.getLastStdout())
 	
 	def menuCopyAudioOptsString(self, evt=None):
 		params = []
 		if self.audioOptsWindow is not None:
 			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
-			if params is None: params = [] #evidently an error occurred over there
+			if params is None:
+				params = [] # evidently an error occurred over there
+			
 		params = 'timidity song.mid '+' '.join(params)
 		params += os.linesep+os.linesep + 'timidity.cfg:'+os.linesep
 		params += self.buildCfg()
 		
 		self.top.clipboard_clear()
 		self.top.clipboard_append(params)
-	
-	def openAudioOptsWindow(self, evt=None):
-		#i guess we'll let people open this before opening a midi...
-		if self.audioOptsWindow: return #only allow one instance open at a time
-			
-		top = Toplevel()
-		def callbackOnClose(): self.audioOptsWindow = None
-			
-		self.audioOptsWindow = midirender_audiooptions.WindowAudioOptions(top, callbackOnClose)
-		top.focus_set()
 		
 	def openScoreView(self, n):
 		if len(self.objMidi.tracks[n].notelist)==0:
 			midirender_util.alert('No notes to show in this track.')
 			return
+		
 		opts = {}
 		opts['show_durations'] = self.objOptionsDuration.get()
 		opts['show_barlines'] = self.objOptionsBarlines.get()
-		opts['show_stems'] = 1; opts['prefer_flats'] = 0
+		opts['show_stems'] = 1
+		opts['prefer_flats'] = 0
 		opts['clefspath'] = clefspath
 		
 		top = Toplevel()
@@ -561,21 +583,26 @@ class App(object):
 	
 	def menu_soundFontInfoTool(self):
 		filename = midirender_util.ask_openfile(initialfolder=midirender_soundfont.gm_dir, title="Choose SoundFont", types=['.sf2|SoundFont','.sbk|SoundFont1','.pat|Patch sound'])
-		if not filename: return
+		if not filename:
+			return
 		
 		dlg = midirender_soundfont_info.BSoundFontInformation(self.top, filename, bSelectMode=False)
-		#note that it is modal. that is fine for now, though.
+		# note that it is modal. that is fine for now, though.
 
-
-	#########Event handlers################
-
+	######### Event handlers ################
 
 	def playCallbackToggleButton(self, strBtn): 
-		self.btnPlay.config(relief=RAISED); self.btnPause.config(relief=RAISED); self.btnStop.config(relief=RAISED); 
-		if strBtn=='play': self.btnPlay.config(relief=SUNKEN)
-		elif strBtn=='pause': self.btnPause.config(relief=SUNKEN)
-		elif strBtn=='stop': self.btnStop.config(relief=SUNKEN)
-		else: raise Exception('Unknown button')
+		self.btnPlay.config(relief=RAISED)
+		self.btnPause.config(relief=RAISED)
+		self.btnStop.config(relief=RAISED)
+		if strBtn=='play':
+			self.btnPlay.config(relief=SUNKEN)
+		elif strBtn=='pause':
+			self.btnPause.config(relief=SUNKEN)
+		elif strBtn=='stop':
+			self.btnStop.config(relief=SUNKEN)
+		else:
+			raise Exception('Unknown button')
 			
 	def getParamsForTimidity(self, bRenderWav):
 		directoryForOldTimidity = None
@@ -595,6 +622,7 @@ class App(object):
 		else:
 			if bRenderWav: params = ['-Ow']
 			else: params = []
+		
 		return params, directoryForOldTimidity
 	
 	def onBtnPlay(self, e=None):
@@ -606,19 +634,22 @@ class App(object):
 		
 	def playCallbackGetSlider(self):
 		return self.sliderTime.get()
+
 	def playCallbackSetSlider(self,v):
 		self.sliderTime.set(v)
+
 	def onBtnStop(self, e=None):
-		if not self.isMidiLoaded: return
-		self.player.actionStop()
+		if self.isMidiLoaded:
+			self.player.actionStop()
+
 	def onBtnPause(self, e=None):
-		if not self.isMidiLoaded: return
-		self.player.actionPause()
-		
+		if self.isMidiLoaded:
+			self.player.actionPause()
+
 	def onClose(self):
 		try:
 			self.onBtnStop()
-			#stop playback slider thread
+			# stop playback slider thread
 			self.player.playingState = 'stopped'
 		finally:
 			self.top.destroy()
@@ -627,22 +658,27 @@ class App(object):
 		channelsSeen = {}
 		for note in trackObject.notelist:
 			channelsSeen[note.channel] = 1
+
 		return channelsSeen.keys()
 
-icon0='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg7AP0JHEiwoEGCABIqXHiwoUODCR82XBhRosWHFAFc9JeRocOKG0OKHLnRY8mOFjuahIhS4kqSMGM+DAgAOw=='''
-icon1='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''
-icon2='''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg4AP0JHEiwoMGCABIqTHiwocOHEA8uXBixosSJDCFizPhwIwCLIEOKHBnRY8mNJzGmnEiypUuDAQEAOw=='''
+def pack(o, **kwargs): 
+	o.pack(**kwargs)
+	return o
+
+icon0 = '''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg7AP0JHEiwoEGCABIqXHiwoUODCR82XBhRosWHFAFc9JeRocOKG0OKHLnRY8mOFjuahIhS4kqSMGM+DAgAOw=='''
+icon1 = '''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''
+icon2 = '''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg4AP0JHEiwoMGCABIqTHiwocOHEA8uXBixosSJDCFizPhwIwCLIEOKHBnRY8mNJzGmnEiypUuDAQEAOw=='''
 
 root = Tk()
 app = App(root)
 root.mainloop()
 
-#todo: preview solo is a few seconds late
-#todo: adjust reverb parameters like room size
-#todo: see if control_ratio param can be used to increase quality
-#todo: tremolo=sweep_increment,trempitch,modpitch, and so on
-#todo: is legato mode interesting?
-#todo: preview soundfont information could take a cfg and show all patches.
+# todo: preview solo is a few seconds late
+# todo: adjust reverb parameters like room size
+# todo: see if control_ratio param can be used to increase quality
+# todo: tremolo=sweep_increment,trempitch,modpitch, and so on
+# todo: is legato mode interesting?
+# todo: preview soundfont information could take a cfg and show all patches.
 
 
 '''
