@@ -101,20 +101,29 @@ class WindowAudioOptions(object):
 			self.options.addOption('useold', 'Old timidity (note: supports .cfg only)', 'Bool')
 		
 		self.options.addOption('fastdecay', 'Fast decay', [('(default)', None), ('Off', False), ('On', True)])
+		self.options.addOption('antialias', 'Antialias LPF', [('(default)', None), ('Off', False), ('On', True)])
 		self.options.addOption('maxpolyphony', 'Max polyphony', 'Bool', initialval=True)
 		self.options.addOption('PsReverb', 'Pseudo reverb (milliseconds):', 'Int')
 		self.options.addOption('AmpTotal', 'Amplify all notes (default=100):', 'Int')
 		self.options.addOption('AmpDrums', 'Amplify percussion (default=100):', 'Int')
-		self.options.addOption('lpf', 'Low pass filter:', [('(default)', None), ('Off', 'd'), ('12dB / oct', 'c'), ('24dB / oct', 'm')])
-		self.options.addOption('delay', 'Stereo delay:', [('Off', 'd'), ('Left delay', 'l'), ('Right delay', 'r'), ('Rotate', 'b')])
-		self.options.addOption('reverb', 'Reverb type:', [('(default)', None), ('Off', 'd'), ('Enable Normal', 'n'), ('Global Normal', 'g'), ('Enable New', 'f'), ('Global New', 'G')])
+		
 		self.options.addOption('points', 'Interpolation points:', [('(default)', None), ('1', '1'), ('4', '4'), ('7', '7'), ('10', '10'), ('13', '13'), ('16', '16'), ('19', '19'), ('22', '22'), ('25 (normal)', '25'), ('28', '28'), ('31', '31'), ('34', '34')])
 		self.options.addOption('PatchesTakePrecedence', 'Patches have priority over soundfonts', 'Bool')
+		
+		self.options.addOption('controlratio', 'Control ratio, smaller is better', 'Int')
+		
 		self.options.addOption('AdditionalCmd', 'Custom cmdline, delimit by |', 'Str', width=35)
 		self.options.addOption('AdditionalCfg', 'Custom cfg, delimit by |', 'Str', width=35)
+		
+		
+		
+		#~ self.options.addOption('lpf', 'Low pass filter:', [('(default)', None), ('Off', 'd'), ('12dB / oct', 'c'), ('24dB / oct', 'm')])
+		#~ self.options.addOption('delay', 'Stereo delay:', [('Off', 'd'), ('Left delay', 'l'), ('Right delay', 'r'), ('Rotate', 'b')])
+		#~ self.options.addOption('reverb', 'Reverb type:', [('(default)', None), ('Off', 'd'), ('Enable Normal', 'n'), ('Global Normal', 'g'), ('Enable New', 'f'), ('Global New', 'G')])
+		
 		self.createUI(top)
 	
-	def createTimidityOptionsListImpl(self, includeRenderOptions=False):
+	def getOptionsListImpl(self, includeRenderOptions=False):
 		ret = []
 		
 		allowNotSeen=dict(useold=1, AdditionalCfg=1, PatchesTakePrecedence=1)
@@ -178,10 +187,9 @@ class WindowAudioOptions(object):
 		#~ arParams.append('--reverb')
 		#~ arParams.append('%s'%reverb)
 	
-	def createTimidityOptionsList(self, includeRenderOptions=False):
-		return self.createTimidityOptionsListImpl(includeRenderOptions)
+	def getOptionsList(self, includeRenderOptions=False):
 		try:
-			return self.createTimidityOptionsListImpl(includeRenderOptions)
+			return self.getOptionsListImpl(includeRenderOptions)
 		except:
 			e = sys.exc_info()[0]
 			midirender_util.alert('Alert: ' + str(e))

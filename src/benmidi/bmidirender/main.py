@@ -125,6 +125,7 @@ class App(object):
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Audio Options...", command=self.openAudioOptsWindow, underline=6, accelerator='Ctrl+P')
 		menuAudio.add_command(label="Change Tempo...", command=self.menu_changeTempo, underline=0)
+		menuAudio.add_command(label="Transpose Pitch...", command=self.menu_changeTranspose, underline=0)
 		menuAudio.add_command(label="Copy Options String", command=self.menuCopyAudioOptsString, underline=1)
 		menuAudio.add_separator()
 		menuAudio.add_command(label="Save Wave", command=self.onBtnSaveWave, underline=5, accelerator='Ctrl+R')
@@ -360,6 +361,7 @@ class App(object):
 			
 		# get rid of Tempo modifications.
 		self.tempoScaleFactor = None
+		self.transposePitches = None
 		
 	def buildCfg(self):
 		# begin by adding the global soundfont or cfg file.
@@ -477,7 +479,9 @@ class App(object):
 	######### Windows for settings ###############
 	
 	def menu_changeTempo(self, e=None):
-		if not self.isMidiLoaded: return			
+		if not self.isMidiLoaded:
+			return
+		
 		res = midirender_tempo.queryChangeTempo(self.objMidi, self.tempoScaleFactor)
 		if res is None:
 			return # canceled.
@@ -486,8 +490,15 @@ class App(object):
 			self.tempoScaleFactor = None
 		else:
 			self.tempoScaleFactor = res
+	
+	def menu_changeTranspose(self, e=None):
+		strPrompt = 'Adjust key (i.e., transpose the song) by n half tones. Valid range is from -24 to 24.'
+		default = self.transposePitches if self.transposePitches else 0.0
+		res = midirender_util.ask_float(strPrompt, default=default, min=-24.1, max=24.1, title='Transpose')
+		if res is not None and res is not False:
+			self.transposePitches = int(res)
 			
-	def openSoundfontWindow(self,e=None):
+	def openSoundfontWindow(self, e=None):
 		# this is different than the list and score view - there can only be one of them open at once
 		if not self.isMidiLoaded or self.soundfontWindow:
 			return # only allow one instance open at a time
@@ -544,18 +555,16 @@ class App(object):
 			self.consoleOutWindow.writeToWindow(self.player.getLastStdout())
 	
 	def menuCopyAudioOptsString(self, evt=None):
-		params = []
-		if self.audioOptsWindow is not None:
-			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=False) 
-			if params is None:
-				params = [] # evidently an error occurred over there
+		params, dir = self.getParamsForTimidity(bRenderWav=False)
+		if params is None:
+			return # evidently an error occurred over there
 			
-		params = 'timidity song.mid '+' '.join(params)
-		params += os.linesep+os.linesep + 'timidity.cfg:'+os.linesep
-		params += self.buildCfg()
+		ret = 'timidity song.mid '+' '.join(('"' + p + '"' for p in params))
+		ret += os.linesep+os.linesep + 'timidity.cfg:'+os.linesep
+		ret += self.buildCfg()
 		
 		self.top.clipboard_clear()
-		self.top.clipboard_append(params)
+		self.top.clipboard_append(ret)
 		
 	def openScoreView(self, n):
 		if len(self.objMidi.tracks[n].notelist)==0:
@@ -608,7 +617,7 @@ class App(object):
 		directoryForOldTimidity = None
 		
 		if self.audioOptsWindow is not None:
-			params = self.audioOptsWindow.createTimidityOptionsList(includeRenderOptions=bRenderWav) 
+			params = self.audioOptsWindow.getOptionsList(includeRenderOptions=bRenderWav) 
 			if params is None:
 				midirender_util.alert('Could not get parameters.')
 				return None, None
@@ -622,6 +631,9 @@ class App(object):
 		else:
 			if bRenderWav: params = ['-Ow']
 			else: params = []
+		
+		if self.transposePitches is not None:
+			params.append('--adjust-key=%d' % int(self.transposePitches))
 		
 		return params, directoryForOldTimidity
 	
@@ -674,12 +686,7 @@ app = App(root)
 root.mainloop()
 
 # todo: preview solo is a few seconds late
-# todo: adjust reverb parameters like room size
-# todo: see if control_ratio param can be used to increase quality
-# todo: tremolo=sweep_increment,trempitch,modpitch, and so on
-# todo: is legato mode interesting?
 # todo: preview soundfont information could take a cfg and show all patches.
-
 
 '''
 midis are modified by:
