@@ -1,13 +1,13 @@
 tunescript, a music toy
-Copyright (C) Ben Fisher, 2009. GPL.
-http://b3nf.com/codepages/bmidi/
+Copyright (C) Ben Fisher, 2009. GPLv3.
+https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
 
 Why:
 	It's a musical toy: a fun way to enter in some music.
 	It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.
 
 Usage:
-	Open "main.py" in a recent version of Python, like 2.5
+	Open "main.py" in Python2
 	Type in something, like 'c d e f g'.
 	Press "play". You should hear some sounds.
 	
@@ -17,7 +17,7 @@ Usage:
 	In Linux,
 		You may not have the required program "timidity" installed.
 		In a terminal, if you type in "timidity" but do not get a response, you might have to do something along the lines of 
-			sudo apt-get install timidity
+			sudo apt-get install timidity++
 			or 
 			sudo yum install timidity++
 		in a terminal to install the timidity++ package.
@@ -25,22 +25,16 @@ Usage:
 Getting started:
 	Load one of the examples from the Examples menu.
 	Play around with it, and make your own songs.
-	If you come up with something cool, send it to me at boinjyboing@hotmail.com
 	
 	
 
 There are two modes, "tunescript" mode and "Code" mode. 
 	The tunescript mode is the interesting and fun one
-	Code mode simply evaluates the Python code you provide as a way to quickly make scripts using bbuilder.py.
-	In the Examples menu, the second set of examples are in Code mode.
-	The examples given should be used for reference.
-
-
-
+	Code mode simply evaluates the Python code you provide.
+	See the Examples menu.
 
 
 Index of "tunescript" syntax: 
-	(Kind of like cheating, you should explore on your own.)
 	See the end of bmidiconstants.py for a list of all instrument names.
 
 Directives. These must occur on their own line.
@@ -145,7 +139,6 @@ w		Long Whistle
 For cymbals that may be long, duration can be used, as in
 {},,,,
 s!
-
 
 Currently unsupported:
 	/c/!
