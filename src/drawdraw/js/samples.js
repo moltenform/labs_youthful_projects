@@ -1,3 +1,4 @@
+//drawdraw, Ben Fisher, 2010. released under the GPLv3
 
 var g_samples = [
 '{vn=0.1,nshapes=300,pm=0,shapes=[{type=lgen,X=218,A=290,Y=233,B=205,rx=0},{type=c,X=200,A=0,Y=150,B=0,rx=50}]}'
@@ -48,84 +49,17 @@ var g_samples = [
 ]
 
 	
-//~ var nn=0;
 function onLoadRandom()
 {
 	var w = Math.floor(Math.random()*g_samples.length)
-	//~ nn++;
 	if (g_samples[w].vn)
+	{
 		loadJson(JSON.stringify(g_samples[w]))
+	}
 	else
+	{
 		loadJson((g_samples[w]))
+	}
+	
 	doTransformRender();
 }
-
-
-/*
-var nOld = 0
-function getNextOld()
-{
-	alert(nOld)
-	convertOld(oldsall[nOld])
-	nOld++
-}
-	
-function convertOld(old)
-{
-	
-	function clone(o)
-	{
-		var newo = {}
-		for (var key in o)
-			newo[key] = o[key]
-		return newo
-	}
-	function convPiece(o, settype)
-	{
-		o = clone(o)
-		o = convCoords(o)
-		if (settype) o.type=settype
-		delete o['visible']
-		delete o['hasChildren']
-		delete o['isFirst']
-		return o
-	}
-	function convCoords(o)
-	{
-		//~ return o
-		var relative = rawShapeToRelativeShape(pseudoMainContext, o)
-		//now it was relative to the main shape.
-		var currentRawShape = {}
-		drawShapeRelativeToContext(mainContext, relative, currentRawShape)
-		return currentRawShape
-	}
-	if (!old[0].isFirst) alert('why is old0 not first')
-	//things need to be relative to that guy.
-	function flipcoords(o) {
-	if (o.type=='c') return;
-	var t=o.x2; o.x2=o.x1; o.x1=t;
-	t=o.y2; o.y2=o.y1; o.y1=t;
-	}
-	flipcoords(old[0])
-	var pseudoMainContext = contextFromRawShape(old[0])
-	
-	//~ mainContextShape = old[0]
-	//~ mainContext = contextFromRawShape(old[0])
-	
-	var objNew = {'vn':0.1,'nshapes':300,'shapes':[]}
-	for (var i=0; i<old.length; i++)
-	{
-		if (i==0) continue; //don't add the first, it's implied
-		flipcoords(old[i])
-		if (old[i].type=='l' && old[i].hasChildren) old[i].type='lgen'
-		if (old[i].type=='l' && !old[i].visible) continue;
-		if (old[i].type=='c' && !old[i].visible) continue;
-		if (old[i].type=='lgen' && old[i].visible) 
-			objNew.shapes.push( convPiece(old[i], 'l') )
-		objNew.shapes.push( convPiece(old[i]))
-	}
-	objNew.shapes.push( convPiece(old[0], 'l') )
-	
-	loadJson(JSON.stringify(objNew))
-	doTransformRender();
-}*/

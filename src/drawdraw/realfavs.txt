@@ -142,6 +142,9 @@ file:///C:/pydev/mainsvn/recursive/drawdraw/drawdraw/main.html?{vn=0.1,nshapes=1
 
 balls
 file:///C:/pydev/mainsvn/recursive/drawdraw/drawdraw/main.html?{vn=0.1,nshapes=300,pm=0,shapes=[{type=lgen,X=280,A=280,Y=172,B=130,rx=0},{type=lgen,X=121,A=121,Y=166,B=131,rx=0},{type=c,X=197,A=0,Y=142,B=0,rx=27}]}
+Cool zoom in:
+file:///C:/b/devarchive/current_moltensyntax/fromhhh/projects/2007-10-11-drawdraw-python(%5E)(itsdone)/site/index.html?{vn=0.1,nshapes=300,pm=0,shapes=[{type=l,X=200,A=112,Y=200,B=116,rx=0},{type=lgen,X=200,A=139,Y=200,B=271,rx=0},{type=c,X=200,A=0,Y=100,B=0,rx=1},{type=lgen,X=198,A=275,Y=214,B=111,rx=0}]}
+
 
 
 
