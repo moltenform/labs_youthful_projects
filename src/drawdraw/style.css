@@ -1,3 +1,5 @@
+/* Drawdraw is by Ben Fisher, 2010, released under the GPLv3 */
+
 body {
     background: #999;
     color: #fff;
@@ -5,13 +7,13 @@ body {
 }
 
 #copy {
-    bottom: 0;
-    font: 300 .7em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+    bottom: 2em;
+    font: 300 1.2em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
     position: absolute;
     right: 1em;
     text-align: right;
 }
 
 #copy a {
-    color: #fff;
+    color: #fff; 
 }
