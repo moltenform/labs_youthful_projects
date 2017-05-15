@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 """
-bmidi to wave
+bmidi to wav
 Ben Fisher, 2009, GPL
 https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
 """
@@ -29,7 +29,7 @@ if not os.path.exists(clefspath):
 
 class App(object):
 	def __init__(self, root):
-		root.title('Bmidi to wave')
+		root.title('Bmidi to wav')
 		root.protocol("WM_DELETE_WINDOW", self.onClose)
 		self.top = root
 		
@@ -141,8 +141,8 @@ class App(object):
 		menuView.add_checkbutton(label="Show Barlines in score", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wave, by Ben Fisher 2009\nA graphical frontend for Timidity and sfubar.\n\nSee the documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md\n\nSource code at https://github.com/moltenform/labs_youthful_projects/tree/master/benmidi/bmidirender','Bmidi to wave')))
-		menuHelp.add_command(label='Documentation', underline=0, command=(lambda: midirender_util.alert('There are many pages of online documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md','Bmidi to wave')))
+		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wav, by Ben Fisher 2009\nA graphical frontend for Timidity and sfubar.\n\nSee the documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md\n\nSource code at https://github.com/moltenform/labs_youthful_projects/tree/master/benmidi/bmidirender','Bmidi to wav')))
+		menuHelp.add_command(label='Documentation', underline=0, command=(lambda: midirender_util.alert('There are many pages of online documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md','Bmidi to wav')))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)
@@ -374,6 +374,7 @@ class App(object):
 			else:
 				strCfg += '\ndir "%s"\nsource "%s"' % (path, filename)
 		else:
+
 			strCfg += '\nsoundfont "%s"' % (filename)
 			if self.audioOptsWindow is not None and self.audioOptsWindow.getPatchesTakePrecedence():
 				strCfg +=' order=1'
