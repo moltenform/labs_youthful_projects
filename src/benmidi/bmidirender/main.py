@@ -650,8 +650,14 @@ class App(object):
 					
 				directoryForOldTimidity = os.path.split(self.currentSoundfont[0])[0]
 		else:
-			if bRenderWav: params = ['-Ow']
-			else: params = []
+			if bRenderWav:
+				# in Linux render 24bit by default (workaround for timidity++ bug 710927)
+				if not sys.platform.startswith('win'):
+					params = ['-Ow2']
+				else:
+					params = ['-Ow']
+			else:
+				params = []
 		
 		if self.transposePitches is not None and (not self.audioOptsWindow or not self.audioOptsWindow.getUseOldTimidity()):
 			params.append('--adjust-key=%d' % int(self.transposePitches))

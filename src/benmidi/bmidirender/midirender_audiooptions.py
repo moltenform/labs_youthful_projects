@@ -90,7 +90,7 @@ class WindowAudioOptions(object):
 	def __init__(self, top, callbackOnClose=None):
 		top.title('Audio Options')
 		
-		if callbackOnClose!=None:
+		if callbackOnClose != None:
 			def callCallback():
 				callbackOnClose()
 				top.destroy()
@@ -99,13 +99,17 @@ class WindowAudioOptions(object):
 		self.top = top
 		self.options = AudioOptionManager()
 		
+		# workaround for timidity++ bug 710927 (garbled noise at the beginning)
+		# apparently fixed in 2.14 which isn't in Ubuntu yet.
+		defaultBitdepth = '16-bit' if sys.platform.startswith('win') else '24-bit'
+		
 		# options that aren't as obscure:
-		self.options.addOption('bitdepth', 'Output quality:', [('16-bit', 16), ('24-bit', 24)])
+		self.options.addOption('bitdepth', 'Output quality:', [('16-bit', 16), ('24-bit', 24)], initialval=defaultBitdepth)
 		self.options.addOption('AmpTotal', 'Amplify all notes by %', 'Int')
 		self.options.addOption('AmpDrums', 'Amplify percussion by %', 'Int')
 		self.options.addOption('maxpolyphony', 'Max polyphony', 'Bool', initialval=True)
 		self.options.addOption('PatchesTakePrecedence', 'Patches have priority over soundfonts', 'Bool')
-		if sys.platform == 'win32':
+		if sys.platform.startswith('win'):
 			self.options.addOption('useold', 'Use old timidity version (requires .cfg and/or .pat)', 'Bool')
 			self.options.addOption('bypasstimidity', 'Bypass all settings and send MIDI to OS', 'Bool')
 		
@@ -140,7 +144,7 @@ class WindowAudioOptions(object):
 	
 	def getOptionsListImpl(self, includeRenderOptions=False):
 		ret = []
-		allowNotSeen=dict(useold=1, bitdepth=1, AdditionalCfg=1, bypasstimidity=1, PatchesTakePrecedence=1)
+		allowNotSeen = dict(useold=1, bitdepth=1, AdditionalCfg=1, bypasstimidity=1, PatchesTakePrecedence=1)
 		if includeRenderOptions:
 			bitdepth = self.options.get('bitdepth')
 			if self.getUseOldTimidity(): # old Timidity doesn't support 24bit output
@@ -165,7 +169,7 @@ class WindowAudioOptions(object):
 			if self.options.get(optid) is None:
 				return None
 			else:
-				val = map100to*(self.options.get(optid)/100.0)
+				val = map100to * (self.options.get(optid)/100.0)
 				return int(val) if truncate else val
 		
 		if self.getUseOldTimidity():
@@ -240,7 +244,7 @@ class WindowAudioOptions(object):
 	def createUI(self, top):
 		frameTop = Frame(top, height=600)
 		frameTop.pack(expand=YES, fill=BOTH)
-		self.frameTop=frameTop
+		self.frameTop = frameTop
 		frameOpts = pack(LabelFrame(frameTop, text='Audio Options'), expand=YES, fill=BOTH)
 		self.options.createUI(frameOpts)
 		Label(frameTop, text='Settings remain in effect while this dialog is open.' + ' '*15).pack(pady=5)
@@ -256,13 +260,13 @@ class WindowAudioOptions(object):
 		return self.options.get('PatchesTakePrecedence')
 	
 	def getUseOldTimidity(self):
-		if sys.platform == 'win32':
+		if sys.platform.startswith('win'):
 			return self.options.get('useold')
 		else:
 			return False
 	
 	def getBypassTimidity(self):
-		if sys.platform == 'win32':
+		if sys.platform.startswith('win'):
 			return self.options.get('bypasstimidity')
 		else:
 			return False
