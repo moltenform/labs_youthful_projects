@@ -222,7 +222,7 @@ class BSoundfontWindow():
 		
 	def setGlobalSoundfont(self):
 		filename = midirender_util.ask_openfile(initialfolder=gm_dir, title='Choose SoundFont',
-			types=['.sf2|SoundFont','.sbk|SoundFont1','.cfg|Timidity Configuration file'])
+			types=['.sf2 .sbk .cfg|SoundFont or cfg'])
 		
 		if not filename:
 			return
@@ -246,7 +246,7 @@ class BSoundfontWindow():
 			self.lblInstsf.config(text='Soundfont: %s\n bank %d program %d' % (state['soundfont'], state['sf_bank'], state['sf_program']))
 		
 	def onBtnChooseSoundfont(self):
-		filename = midirender_util.ask_openfile(initialfolder=gm_dir, title='Choose SoundFont', types=['.sf2|SoundFont','.sbk|SoundFont1','.pat|Patch file'])
+		filename = midirender_util.ask_openfile(initialfolder=gm_dir, title='Choose SoundFont', types=['.sf2 .sbk .cfg|SoundFont or cfg'])
 		if not filename:
 			return
 		
