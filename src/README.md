@@ -1,6 +1,6 @@
 
-### Youthful experiments
+### labs\_youthful\_projects
 
-These projects and experiments were written as part of the half hour hacks blog.
+Projects and experiments released under the GPL license.
 
-All code here is released under the GPL license.
+See https://www.moltensyntax.com for more info.
