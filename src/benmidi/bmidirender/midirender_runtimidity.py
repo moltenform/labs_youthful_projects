@@ -6,6 +6,7 @@ import sys
 from bmidilib import bmidiplay
 
 import tempfile
+import traceback
 from os import sep as os_sep
 tempcfgfilename = tempfile.gettempdir() + os_sep + 'tmpcg.cfg'
 
@@ -36,6 +37,11 @@ class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
 		if sys.platform.startswith('win'):
 			tim = self.win_timiditypath
 			kwargs['creationflags'] = 0x08000000
+			
+			# without these, get WindowsError Error 6 The handle is invalid
+			# if running in bmidi_to_wav.exe or pythonw.exe context.
+			kwargs['stderr'] = subprocess.PIPE
+			kwargs['stdin'] = subprocess.PIPE
 		else:
 			tim = 'timidity'
 		
@@ -46,6 +52,7 @@ class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
 		try:
 			self.process = subprocess.Popen(args, stdout=subprocess.PIPE, **kwargs)
 		except EnvironmentError, e:
+			traceback.print_exc()
 			self.isPlaying = False
 			raise bmidiplay.PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
 			return

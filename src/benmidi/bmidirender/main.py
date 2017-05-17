@@ -6,9 +6,11 @@ Ben Fisher, 2009, GPL
 https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
 """
 
-from Tkinter import *
 import threading
 import os
+import sys
+import tempfile
+from Tkinter import *
 
 import midirender_util
 import midirender_mixer
@@ -26,6 +28,12 @@ from scoreview import scoreview, listview
 clefspath = bmidirenderdirectory + os.sep + 'scoreview' + os.sep + 'clefs'
 if not os.path.exists(clefspath):
 	clefspath = bmidirenderdirectory + os.sep + '..' + os.sep + clefspath
+
+if getattr(sys, 'frozen', False):
+	sys.stdout = open(tempfile.gettempdir() + os.sep + 'bmidi_to_wav_tmpstdout.txt', 'w')
+	sys.stderr = open(tempfile.gettempdir() + os.sep + 'bmidi_to_wav_tmpstderr.txt', 'w')
+
+tempcfgfilename = tempfile.gettempdir() + os.sep + 'bmidi_to_wav_tmpcfg.cfg'
 
 class App(object):
 	def __init__(self, root):
@@ -148,7 +156,7 @@ class App(object):
 		root.config(menu=menubar)
 		
 	def menu_openMidi(self, evt=None):
-		filename = midirender_util.ask_openfile(title="Open Midi File", types=['.mid|Mid file'])
+		filename = midirender_util.ask_openfile(title='Open Midi File', types=['.mid|Mid file'])
 		if not filename:
 			return
 
@@ -415,7 +423,7 @@ class App(object):
 			midirender_util.alert('Could not find %s or %s or %s.'%(m2t, t2m, notepadexe))
 			return
 		
-		filenameMidInput = midirender_util.ask_openfile(title="Choose Midi File to modify", types=['.mid|Mid file'])
+		filenameMidInput = midirender_util.ask_openfile(title='Choose Midi File to modify', types=['.mid|Mid file'])
 		if not filenameMidInput:
 			return
 		
@@ -612,7 +620,7 @@ class App(object):
 		top.focus_set()
 	
 	def menu_soundFontInfoTool(self):
-		filename = midirender_util.ask_openfile(initialfolder=midirender_soundfont.gm_dir, title="Choose SoundFont", types=['.sf2|SoundFont','.sbk|SoundFont1','.pat|Patch sound'])
+		filename = midirender_util.ask_openfile(initialfolder=midirender_soundfont.gm_dir, title='Choose SoundFont', types=['.sf2 .sbk .pat|SoundFont or Patch'])
 		if not filename:
 			return
 		
