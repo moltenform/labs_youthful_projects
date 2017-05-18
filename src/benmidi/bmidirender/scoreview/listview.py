@@ -37,7 +37,13 @@ class ListViewWindow(object):
         if event.num == 4 or event.delta == 120:
             self.lb.yview_scroll(-5, 'units')
 
+isPy3OrNewer = sys.version_info[0] > 2
 
+def isAClass(obj):
+    if isPy3OrNewer:
+        return isinstance(obj, type)
+    else:
+        return type(obj) == ClassType
 
 class ScrolledListbox(Listbox): #an imitation of ScrolledText
     def __init__(self, master=None, cnf=None, **kw):
@@ -47,7 +53,7 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
             cnf = _cnfmerge((cnf, kw))
         fcnf = {}
         for k in list(cnf.keys()):
-            if type(k) == ClassType or k == 'name':
+            if isAClass(k) or k == 'name':
                 fcnf[k] = cnf[k]
                 del cnf[k]
         self.frame = Frame(master, **fcnf)

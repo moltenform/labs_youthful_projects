@@ -167,12 +167,13 @@ class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance
         self.mci.send('open "%s" alias cursong'%strFilename) #does strFilename need escaping?
         self.mci.send('set cursong time format milliseconds')
         buflength = self.mci.send('status cursong length ')
-        fTotalLength =  (int(buflength)/1000.0)
-        fStartingPos = int(fromMs)/1000.0
+        slength = buflength if sys.version_info[0] <= 2 else buflength.decode('utf-8')
+        fTotalLength =  int(int(buflength)/1000.0)
+        fStartingPos = int(fromMs/1000.0)
         if fStartingPos>fTotalLength: 
             return 0.0
             
-        self.mci.send('play cursong from %s to %s'%(str(int(fromMs)),str(buflength)))
+        self.mci.send('play cursong from %s to %s'%(int(fromMs),int(buflength)))
         return fTotalLength - fStartingPos
         
         
@@ -192,7 +193,8 @@ class Mci(object):
 
     def send(self,command):
         buffer = c_buffer(255)
-        errorcode = self.fnMciSendString(str(command),buffer,254,0)
+        cmd = str(command) if sys.version_info[0] <= 2 else command.encode('utf-8')
+        errorcode = self.fnMciSendString(cmd,buffer,254,0)
         if errorcode:
             txt=buffer
             raise PlayMidiException('MCIError:' + str(self.get_error(errorcode)) + ':'+ str(txt)+':'+str(buffer))

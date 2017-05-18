@@ -6,7 +6,7 @@ Common tasks to do with Midi files.
 
 '''
 
-import bmidilib
+from . import bmidilib
 
 def getTrackName(trackObject, defaultname='Unnamed Track'):
     searchFor = {}
@@ -43,7 +43,7 @@ def getTrackInformation(trackObject, searchFor):
             currentInstruments[evt.data] = 1
         
         if evt.type=='SEQUENCE_TRACK_NAME' and bSeeTracknames:
-            currentName = evt.data
+            currentName = bmidilib.byteListToStr(evt.data)
             
     
     res = {}
@@ -51,11 +51,22 @@ def getTrackInformation(trackObject, searchFor):
     if bSeeInstruments: res['INSTRUMENTS'] = list(currentInstruments.keys())
     return res
 
+def getMidiCopy(midiObject, deep=True):
+    import copy
+    f = midiObject.file
+    try:
+        midiObject.file = None
+        if deep:
+            midiCopy = copy.deepcopy(midiObject)
+        else:
+            midiCopy = copy.copy(midiObject)
+    finally:
+        midiCopy.file = f
+    return midiCopy
 
 #create a solo/mute midi. trackArr should be an array the length of midiObject.tracks, with True or False
 def muteTracksMidi(midiObject, trackArr):
-    import copy
-    newmidi = copy.copy(midiObject)
+    newmidi = getMidiCopy(midiObject, deep=False)
     newmidi.tracks = []
     for i in range(len(midiObject.tracks)):
         if trackArr[i]:
@@ -167,7 +178,7 @@ def getMidiExcerpt(midiObject, nTics): #note: is destructive, modifies things
             evt = bmidilib.BMidiEvent()
             evt.type='END_OF_TRACK'
             evt.time = track.events[-1].time + 1
-            evt.data = ''
+            evt.data = bytearray([])
             track.events.append(evt)
     
     return None #as a signal that this modifies, not returns a copy
@@ -194,8 +205,7 @@ and so on.
 
 #first, create 16 tracks, then remove empty ones later
 def restructureMidi(midiObject):
-    import copy
-    newmidi = copy.copy(midiObject)
+    newmidi = getMidiCopy(midiObject, deep=False)
     newmidi.tracks = [ bmidilib.BMidiTrack() for i in range(17) ] #conductor track and then a track for all 16 channels
     
     for oldtrack in midiObject.tracks:
@@ -215,13 +225,19 @@ def restructureMidi(midiObject):
         evt = bmidilib.BMidiEvent()
         evt.type='END_OF_TRACK'
         evt.time = track.events[-1].time + 1
-        evt.data = ''
+        evt.data = bytearray([])
         track.events.append(evt)
         
         track.createNotelist() #add the notes
         
     return newmidi
-    
+
+def makeEndOfTrackEvent():
+    evt = bmidilib.BMidiEvent()
+    evt.type='END_OF_TRACK'
+    evt.time = 1
+    evt.data = bytearray([])
+    return evt
     
 #~ class VolumeAndPanModifier
 #~ def getFirstVolumeAndPanEvents(midiObject, 

@@ -10,6 +10,7 @@ except ImportError:
 
 
 import os
+import sys
 import subprocess
 
 import midirender_util
@@ -197,7 +198,6 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
         self.player.signalStop()
         
 
-verbose = False
 def getpresets(file):
     class nullFile(object):
         def _null(self, *args, **kwds):
@@ -217,44 +217,47 @@ def getpresets(file):
         Chunk = pysf.SfChunkReader(InHandle)
         Tree = pysf.SfTree(pysf.SfItems(), pysf.SfContainers, None, OutHandle, "")
         Tree.Read(Chunk, 0)
-        Presets = pysf.SfZoneList(Tree, pysf.SfZoneType('preset'))
+        Presets = pysf.SfZoneList(Tree, pysf.SfZoneType(b'preset'))
     
         currentFont = SoundFontInfo()
-        INAM = Tree.CkIdStr('INAM', None, -1)
-        ICRD = Tree.CkIdStr('ICRD', None, -1)
-        IENG = Tree.CkIdStr('IENG', None, -1)
-        IPRD = Tree.CkIdStr('IPRD', None, -1)
-        ICOP = Tree.CkIdStr('ICOP', None, -1)
-        ICMT = Tree.CkIdStr('ICMT', None, -1)
+        INAM = Tree.CkIdStr(b'INAM', None, -1)
+        ICRD = Tree.CkIdStr(b'ICRD', None, -1)
+        IENG = Tree.CkIdStr(b'IENG', None, -1)
+        IPRD = Tree.CkIdStr(b'IPRD', None, -1)
+        ICOP = Tree.CkIdStr(b'ICOP', None, -1)
+        ICMT = Tree.CkIdStr(b'ICMT', None, -1)
         if INAM != None:
-            currentFont.name = INAM
+            currentFont.name = getToString(INAM)
         if ICRD != None:
-            currentFont.date = ICRD
+            currentFont.date = getToString(ICRD)
         if IENG != None:
-            currentFont.author = IENG
-            if verbose: print('By: ' + IENG)
+            currentFont.author = getToString(IENG)
         if IPRD != None:
-            currentFont.product = IPRD
+            currentFont.product = getToString(IPRD)
         if ICOP != None:
-            currentFont.copyright = ICOP
+            currentFont.copyright = getToString(ICOP)
         if ICMT != None:
-            currentFont.comment = ICMT
+            currentFont.comment = getToString(ICMT)
         for preset in Presets:
             currentFont.presets.append(SoundFontInfoPreset())
-            currentFont.presets[-1].name = preset[u'name']
-            currentFont.presets[-1].presetNumber = preset[u'presetId']
-            if verbose: print('\tProgram: ' + preset[u'presetId'])
-            currentFont.presets[-1].bank = preset[u'bank']
-            if verbose: print('\tBank: ' + preset[u'bank'])
+            currentFont.presets[-1].name = getToString(preset[u'name'])
+            currentFont.presets[-1].presetNumber = getToString(preset[u'presetId'])
+            currentFont.presets[-1].bank = getToString(preset[u'bank'])
         InHandle.close()
         OutHandle.close()
         
     except pysf.PysfException as e:
         raise SFInfoException('Could not parse soundfont: '+str(e))
         
-    currentFont.presets.sort(key=lambda x: x.bank*1000 + x.presetNumber)
+    currentFont.presets.sort(key=lambda x: float(x.bank)*1000 + float(x.presetNumber))
     return currentFont
-    
+
+def getToString(b):
+    if sys.version_info[0] > 2 and isinstance(b, bytes):
+        return b.decode('utf-8')
+    else:
+        return b
+
 class SFInfoException(Exception): pass
 
 class SoundFontInfo(object):

@@ -3,7 +3,7 @@ try:
 except ImportError:
     from tkinter import *
 
-import scoreview_util
+from . import scoreview_util
 import os
 
 defaultClefsPath = 'clefs'
@@ -144,8 +144,10 @@ class ScoreViewFrame(Frame):
         posy, sharpflat = self.getnoteposition(notenumber, self.shiftnotes, self.prefersharpflat)
         
         fy = posy
-        if fy >= 0:	fy += 2  #treble clef, move up
-        else:    	fy -= 2  #bass clef, move down
+        if fy >= 0:
+            fy += 2  #treble clef, move up
+        else:
+            fy -= 2  #bass clef, move down
         
         #draw note head
         self.draw_oval(xPixels, fy+0.6, xPixels+3, fy-0.6)

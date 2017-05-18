@@ -93,8 +93,8 @@ All Public Methods
     b.save(outFilename)
     
 '''
-import bmidilib
-
+from . import bmidilib
+from . import midiutil
 
 class BuilderException(Exception): pass
 class BMidiBuilder(object):
@@ -145,7 +145,7 @@ class BMidiBuilder(object):
     def insertPitchBendEvent(self, number): #pitch bend, from -100 to 100, accepts floats.
         if number <-100 or number > 100: raise BuilderException('Pitch bend: Out of range, -100 to 100')
         number = int(round((number/100.0)*8100.0))
-        import midiutil
+        
         evt = bmidilib.BMidiEvent()
         evt.type='PITCH_BEND'
         evt.time=self.ourTimingToTicks(self.currentTime)
@@ -260,13 +260,13 @@ def build_midi(builderObjects):
         evt = bmidilib.BMidiEvent()
         evt.type = 'SEQUENCE_TRACK_NAME'
         evt.time = 0
-        evt.data = 'bbuilder,BenFisher,2009'
+        evt.data = bmidilib.strToByteList('bbuilder,BenFisher,2009')
         return evt
     def makeEndTrackEvent(time):
         evt = bmidilib.BMidiEvent()
         evt.type='END_OF_TRACK'
         evt.time = time
-        evt.data = ''
+        evt.data = bytearray([])
         return evt
     
     #create conductor track
@@ -278,7 +278,7 @@ def build_midi(builderObjects):
         evt = bmidilib.BMidiEvent()
         evt.type = 'SET_TEMPO'
         evt.time = 0
-        evt.data = '\x02\x9d\xa4'
+        evt.data = bytearray([0x02, 0x9d, 0xa4])
         cnd.events.append(evt)
     
     cnd.events.append( makeEndTrackEvent(0))

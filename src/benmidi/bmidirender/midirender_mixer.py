@@ -6,7 +6,7 @@ except ImportError:
 
 import midirender_util
 
-from midirender_util import bmidilib, bmidirenderdirectory
+from midirender_util import bmidilib, bmidirenderdirectory, bmiditools
 
 class MixerTrackInfo(object):
     def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar,scalevolVar):
@@ -95,7 +95,7 @@ class BMixerWindow(object):
             if not trackInfo.enableVar.get():
                 #eliminate the track by making an empty one in its place
                 midiObject.tracks[trackNumber] = bmidilib.BMidiTrack() 
-                evt = bmidilib.BMidiEvent(); evt.type='END_OF_TRACK'; evt.time = 1; evt.data = ''
+                evt = bmiditools.makeEndOfTrackEvent()
                 midiObject.tracks[trackNumber].events.append(evt)
             else:
                 trackObject = midiObject.tracks[trackNumber]

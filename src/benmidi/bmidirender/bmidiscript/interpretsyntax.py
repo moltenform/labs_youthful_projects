@@ -378,7 +378,7 @@ class Interp(object):
         elif remaining.startswith('?'): changeLastVolume(40); _, remaining = eatChars(remaining, 1)
         if remaining and remaining[0] in '!?': raise InterpException('Too many volume modifiers, c!! allowed but not c!!!')
         
-        # modify duration of note c,,		
+        # modify duration of note c,,
         duration = 1
         while remaining and remaining[0]==',':
             _, remaining = eatChars(remaining, 1)

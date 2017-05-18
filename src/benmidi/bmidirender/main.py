@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 
 """
 bmidi to wav
@@ -170,7 +169,7 @@ class App(object):
             newmidi.read()
             newmidi.close()
         except:
-            e=''
+            e = sys.exc_info()[1]
             midirender_util.alert('Could not load midi: exception %s'%str(e), title='Could not load midi',icon='error')
             return
         
@@ -405,8 +404,7 @@ class App(object):
         # at first I thought that I could avoid the deepcopy if we haven't changed any settings.
         # that is not right, though, because we cut the midi for playback that isn't at the beginning.
         
-        import copy
-        midiCopy = copy.deepcopy(self.objMidi)
+        midiCopy = bmiditools.getMidiCopy(self.objMidi, deep=True)
         if self.mixerWindow: 
             self.mixerWindow.createMixedMidi( midiCopy )
         if self.tempoScaleFactor is not None:
@@ -525,7 +523,7 @@ class App(object):
         def callbackOnClose(): 
             self.soundfontWindow = None
             
-        self.soundfontWindow = midirender_soundfont.BSoundfontWindow(top, self.currentSoundfont, self.objMidi, callbackOnClose)	
+        self.soundfontWindow = midirender_soundfont.BSoundfontWindow(top, self.currentSoundfont, self.objMidi, callbackOnClose)
         top.focus_set()
     
     def openMixerView(self, e=None):
@@ -765,3 +763,4 @@ timidity playback is modified by
     "customize" options 
     midirender_audiooptions - when dialog is open
 '''
+

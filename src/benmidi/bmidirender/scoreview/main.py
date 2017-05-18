@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 
 """
 ScoreView
@@ -11,9 +10,9 @@ try:
 except ImportError:
     from tkinter import *
 
-import scoreview_util
-import listview
-import scoreview
+from . import scoreview_util
+from . import listview
+from . import scoreview
 
 sys.path.append('..')
 from bmidilib import bmidilib, bmiditools

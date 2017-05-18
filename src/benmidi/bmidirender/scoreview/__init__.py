@@ -1,2 +1,3 @@
-import scoreview
-import listview
+
+from . import scoreview
+from . import listview

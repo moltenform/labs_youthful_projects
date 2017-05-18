@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 
 """
 bmidilib.py , code for reading/creating midi files in Python
@@ -36,20 +35,18 @@ BNote
 note that channel, here, is 1 based. values 1 through 16 inclusive are valid channels, not 0-15.
 """
 
-def cmp(a, b):
-    # python 3 compat
-    return (a > b) - (a < b) 
-
 import sys, string, types
-from midiutil import *
-import bmidiconstants
+from .midiutil import *
+from . import bmidiconstants
 
+# internally use a bytearray()
+# in order to be both py2 and py3 compatible
 
 class BMidiFile(object):
     def __init__(self):
         self.file = None
         self.format = 1
-        self.tracks = [ ]
+        self.tracks = []
         self.ticksPerQuarterNote = None
         self.ticksPerSecond = None
 
@@ -66,17 +63,19 @@ class BMidiFile(object):
         self.file.close()
 
     def read(self):
-        self.readstr(self.file.read())
+        ar = bytearray(self.file.read())
+        self.readbytes(ar)
 
-    def readstr(self, str):
-        assert str[:4] == "MThd"
-        length, str = getNumber(str[4:], 4)
+    def readbytes(self, b):
+        assert isByteList(b)
+        assert b[:4] == strToByteList("MThd")
+        length, b = getNumber(b[4:], 4)
         assert length == 6
-        format, str = getNumber(str, 2)
+        format, b = getNumber(b, 2)
         self.format = format
         assert format == 0 or format == 1   # dunno how to handle 2
-        numTracks, str = getNumber(str, 2)
-        division, str = getNumber(str, 2)
+        numTracks, b = getNumber(b, 2)
+        division, b = getNumber(b, 2)
         if division & 0x8000:
             framesPerSecond = -((division >> 8) | -128)
             ticksPerFrame = division & 0xFF
@@ -88,24 +87,25 @@ class BMidiFile(object):
             self.ticksPerQuarterNote = division & 0x7FFF
         for i in range(numTracks):
             trk = BMidiTrack()
-            str = trk.read(str)
+            b = trk.read(b)
             self.tracks.append(trk)
 
     def write(self):
-        self.file.write(self.writestr())
+        lstBytes = self.writebytes()
+        assert isByteList(lstBytes)
+        self.file.write(lstBytes)
 
-    def writestr(self):
+    def writebytes(self):
         division = self.ticksPerQuarterNote
         # Don't handle ticksPerSecond yet, too confusing
         assert (division & 0x8000) == 0
-        str = "MThd" + putNumber(6, 4) + putNumber(self.format, 2)
-        str = str + putNumber(len(self.tracks), 2)
-        str = str + putNumber(division, 2)
-        
+        b = strToByteList("MThd") + putNumber(6, 4) + putNumber(self.format, 2)
+        b = b + putNumber(len(self.tracks), 2)
+        b = b + putNumber(division, 2)
         
         for trk in self.tracks:
-            str = str + trk.write()
-        return str
+            b = b + trk.write()
+        return b
 
 
 class BMidiTrack(object):
@@ -114,18 +114,17 @@ class BMidiTrack(object):
         self.notelist = None
         self.length = 0
 
-    def read(self, str):
-        
+    def read(self, b):
         #Keep track of starting/stopping note events.
         seenNoteStarts = { } #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
         self.notelist = []
         
         time = 0
-        assert str[:4] == "MTrk"
-        length, str = getNumber(str[4:], 4)
+        assert b[:4] == strToByteList("MTrk")
+        length, b = getNumber(b[4:], 4)
         self.length = length
-        mystr = str[:length]
-        remainder = str[length:]
+        mystr = b[:length]
+        remainder = b[length:]
         while mystr:            
             dt, mystr = delta_time_read(mystr)
             time = time + dt
@@ -160,23 +159,21 @@ class BMidiTrack(object):
 
     def write(self):
         time = self.events[0].time
-        # build str using BMidiEvents
-        s = ""
+        # build using BMidiEvents
+        b = bytearray([])
         curtime = 0
-        
         for e in self.events:
             nexttime = e.time
             if nexttime - curtime < 0:
                 raise 'bad: negative. at time:%d, difference is %d'%(nexttime, nexttime - curtime)
-            s = s + putVariableLengthNumber(nexttime - curtime)
-            s = s + e.write()
+            b = b + putVariableLengthNumber(nexttime - curtime)
+            b = b + e.write()
             curtime=nexttime
             
-            
-        return "MTrk" + putNumber(len(s), 4) + s
+        return strToByteList("MTrk") + putNumber(len(b), 4) + b
 
     def __repr__(self):
-        r = "<MidiTrack  -- %d events\n" % ( len(self.events))
+        r = "<MidiTrack  -- %d events\n" % (len(self.events))
         for e in self.events:
             r = r + "    " + repr(e) + "\n"
         return r + "  >"
@@ -208,6 +205,9 @@ class BMidiEvent(object):
     def __cmp__(self, other):
         if other==None: return 1 #allows comparisons like evt==None
         return cmp(self.time, other.time)
+    def __lt__(self, other):
+        if other==None: return False #allows comparisons like evt==None
+        return self.time < other.time
     def __repr__(self):
         if False: #old text representation
             r = ("<MidiEvent %s, t=%s, channel=%s" %
@@ -243,16 +243,17 @@ class BMidiEvent(object):
                 if self.velocity!=None: s+=', v='+repr(self.velocity)
             return s
             
-    def read(self, time, str):
+    def read(self, time, b):
         global runningStatus
         self.time = time
         # do we need to use running status?
-        if not (ord(str[0]) & 0x80):
-            str = runningStatus + str
-        runningStatus = x = str[0]
-        x = ord(x)
+        if not (b[0] & 0x80):
+            assert runningStatus
+            b = bytearray([runningStatus]) + b
+        runningStatus = b[0]
+        x = b[0]
         y = x & 0xF0
-        z = ord(str[1])
+        z = b[1]
 
         if bmidiconstants.channelVoiceMessages.has_value(y):
             self.channel = (x & 0x0F) + 1
@@ -260,28 +261,28 @@ class BMidiEvent(object):
             if (self.type == "PROGRAM_CHANGE" or
                 self.type == "CHANNEL_KEY_PRESSURE"):
                 self.data = z
-                return str[2:]
+                return b[2:]
             else:
                 # Most likely adding a new note-on or note-off
                 self.pitch = z
-                self.velocity = ord(str[2])
+                self.velocity = b[2]
                 
-                return str[3:]
+                return b[3:]
 
         elif y == 0xB0 and bmidiconstants.channelModeMessages.has_value(z):
             self.channel = (x & 0x0F) + 1
             self.type = bmidiconstants.channelModeMessages.whatis(z)
             if self.type == "LOCAL_CONTROL":
-                self.data = (ord(str[2]) == 0x7F)
+                self.data = 1 if (b[2] == 0x7F) else 0
             elif self.type == "MONO_MODE_ON":
-                self.data = ord(str[2])
-            return str[3:]
+                self.data = b[2]
+            return b[3:]
 
         elif x == 0xF0 or x == 0xF7:
             self.type = {0xF0: "F0_SYSEX_EVENT", 0xF7: "F7_SYSEX_EVENT"}[x]
-            length, str = getVariableLengthNumber(str[1:])
-            self.data = str[:length]
-            return str[length:]
+            length, b = getVariableLengthNumber(b[1:])
+            self.data = b[:length]
+            return b[length:]
 
         elif x == 0xFF:
             if not bmidiconstants.metaEvents.has_value(z):
@@ -289,40 +290,50 @@ class BMidiEvent(object):
                 sys.stdout.flush()
                 raise "Unknown midi event type"
             self.type = bmidiconstants.metaEvents.whatis(z)
-            length, str = getVariableLengthNumber(str[2:])
-            self.data = str[:length]
-            return str[length:]
+            length, b = getVariableLengthNumber(b[2:])
+            self.data = b[:length]
+            return b[length:]
 
         raise "Unknown midi event type"
 
     def write(self):
         sysex_event_dict = {"F0_SYSEX_EVENT": 0xF0, "F7_SYSEX_EVENT": 0xF7}
         if bmidiconstants.channelVoiceMessages.hasattr(self.type):
-            x = chr((self.channel - 1) +
-                    getattr(bmidiconstants.channelVoiceMessages, self.type))
+            ret = [(self.channel - 1) +
+                    getattr(bmidiconstants.channelVoiceMessages, self.type)]
             if (self.type != "PROGRAM_CHANGE" and
                 self.type != "CHANNEL_KEY_PRESSURE"):
-                data = chr(self.pitch) + chr(self.velocity)
+                data = [self.pitch, self.velocity]
             else:
-                data = chr(self.data)
-            return x + data
+                data = [self.data]
+            return bytearray(ret + data)
 
         elif bmidiconstants.channelModeMessages.hasattr(self.type):
-            x = getattr(bmidiconstants.channelModeMessages, self.type)
-            x = (chr(0xB0 + (self.channel - 1)) +
-                 chr(x) +
-                 chr(self.data))
-            return x
+            msg = getattr(bmidiconstants.channelModeMessages, self.type)
+            ret = bytearray([0xB0 + (self.channel - 1),
+                 msg])
+            # this type of event is rare, so cover all possibilities
+            if self.data is None:
+                return ret
+            elif isinstance(self.data, bytearray):
+                return ret + self.data
+            elif isinstance(self.data, int):
+                return ret + bytearray([self.data])
+            else:
+                raise "unknown channelModeMessages data"
 
         elif self.type in sysex_event_dict:
-            str = chr(sysex_event_dict[self.type])
-            str = str + putVariableLengthNumber(len(self.data))
-            return str + self.data
+            ret = [sysex_event_dict[self.type]]
+            ret += putVariableLengthNumber(len(self.data))
+            return bytearray(ret) + self.data
 
         elif bmidiconstants.metaEvents.hasattr(self.type):
-            str = chr(0xFF) + chr(getattr(bmidiconstants.metaEvents, self.type))
-            str = str + putVariableLengthNumber(len(self.data))
-            return str + self.data
+            ret = bytearray([0xFF, + getattr(bmidiconstants.metaEvents, self.type)])
+            ret += putVariableLengthNumber(len(self.data))
+            if isinstance(self.data, list):
+                print('noooooo')
+                print(self.data)
+            return ret + self.data
 
         else:
             raise "unknown midi event type: " + self.type
@@ -338,7 +349,8 @@ def getInstrumentName(n):
     else:
         return 'Instrument %d'%n
 
-
+def cmp(a, b):
+    return (a > b) - (a < b) 
 
 def main(argv):
     m = BMidiFile()
@@ -346,8 +358,8 @@ def main(argv):
     m.read()
     m.close()
     
-    #~ print m.ticksPerQuarterNote
-    #~ print m.tracks[2].notelist
+    #~ print(m.ticksPerQuarterNote)
+    #~ print(m.tracks[2].notelist)
     print(m)
     
     #~ m.open('..\\midis\\bossa_ben_out.mid', "wb")

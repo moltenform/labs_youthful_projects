@@ -28,8 +28,6 @@ sys.path.append('..')
 from bmidilib import bmidilib, bmiditools
 sys.path.pop()
 
-rememberLastDirectory = {}
-
 class Callable(object):
     def __init__(self, func, *args, **kwds):
         self.func = func
@@ -108,6 +106,12 @@ def ask_float(prompt, default=None, min=0.0,max=100.0, title=''):
 
 isPy3OrNewer = sys.version_info[0] > 2
 
+def isAClass(obj):
+    if isPy3OrNewer:
+        return isinstance(obj, type)
+    else:
+        return type(obj) == ClassType
+
 class ScrolledListbox(Listbox): #an imitation of ScrolledText
     def __init__(self, master=None, cnf=None, **kw):
         if cnf is None:
@@ -116,7 +120,7 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
             cnf = _cnfmerge((cnf, kw))
         fcnf = {}
         for k in list(cnf.keys()):
-            if type(k) == ClassType or k == 'name':
+            if isAClass(k) or k == 'name':
                 fcnf[k] = cnf[k]
                 del cnf[k]
         self.frame = Frame(master, **fcnf)

@@ -1,5 +1,5 @@
 
-from midiutil import Enumeration
+from .midiutil import Enumeration
 
 channelVoiceMessages = Enumeration([("NOTE_OFF", 0x80, 'NoteOff'),
                                     ("NOTE_ON", 0x90, 'NoteOn'),
@@ -35,8 +35,6 @@ metaEvents = Enumeration([("SEQUENCE_NUMBER", 0x00,'Sequence Number'),
                           ("TIME_SIGNATURE", 0x58,'Time Signature'),
                           ("KEY_SIGNATURE", 0x59,'Key Signature'),
                           ("SEQUENCER_SPECIFIC_META_EVENT", 0x7F,'Sequencer Specific Meta Event')])
-
-              
 
 
 controllerTypes = Enumeration([

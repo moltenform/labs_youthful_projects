@@ -215,7 +215,7 @@
     // also set up the proper time division (96 PPQN)
     prop.cbStruct = sizeof(MIDIPROPTIMEDIV);
     prop.dwTimeDiv = 96;
-  		err = midiStreamProperty(stream, (LPBYTE)&prop, MIDIPROP_SET|MIDIPROP_TIMEDIV);
+      err = midiStreamProperty(stream, (LPBYTE)&prop, MIDIPROP_SET|MIDIPROP_TIMEDIV);
     if (err != MMSYSERR_NOERROR) {
       PyErr_SetString(PyExc_WindowsError, "could not set time division");
       return 0;

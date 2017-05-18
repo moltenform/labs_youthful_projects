@@ -304,9 +304,14 @@ class BSoundfontWindow(object):
         import copy
         
         # include track 0 in the copy, because it has tempo events.
-        shallowcopy = copy.copy(self.midiObject)
-        shallowcopy.tracks = [trackobj, self.midiObject.tracks[0]] 
-        midicopy = copy.deepcopy(shallowcopy)
+        try:
+            storedfile = self.midiObject.file
+            self.midiObject.file = None
+            shallowcopy = copy.copy(self.midiObject)
+            shallowcopy.tracks = [trackobj, self.midiObject.tracks[0]] 
+            midicopy = copy.deepcopy(shallowcopy)
+        finally:
+            self.midiObject.file = storedfile
         bmiditools.getMidiExcerpt(midicopy, startTime)
         
         if state['soundfont'].endswith('.cfg'):
