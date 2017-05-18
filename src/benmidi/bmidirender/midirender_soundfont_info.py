@@ -1,6 +1,14 @@
-from Tkinter import *
-import tkSimpleDialog
-import exceptions
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
+try:
+	import tkSimpleDialog
+except ImportError:
+	import tkinter.simpledialog as tkSimpleDialog
+
+
 import os
 import subprocess
 
@@ -111,7 +119,7 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 		else:
 			try:
 				objSf = getpresets(filename)
-			except SFInfoException, e:
+			except SFInfoException as e:
 				midirender_util.alert(str(e))
 				return
 				
@@ -191,7 +199,7 @@ class BSoundFontInformation(tkSimpleDialog.Dialog):
 
 verbose = False
 def getpresets(file):
-	class nullFile:
+	class nullFile(object):
 		def _null(self, *args, **kwds):
 			pass
 
@@ -224,7 +232,7 @@ def getpresets(file):
 			currentFont.date = ICRD
 		if IENG != None:
 			currentFont.author = IENG
-			if verbose: print 'By: ' + IENG
+			if verbose: print('By: ' + IENG)
 		if IPRD != None:
 			currentFont.product = IPRD
 		if ICOP != None:
@@ -235,21 +243,21 @@ def getpresets(file):
 			currentFont.presets.append(SoundFontInfoPreset())
 			currentFont.presets[-1].name = preset[u'name']
 			currentFont.presets[-1].presetNumber = preset[u'presetId']
-			if verbose: print '\tProgram: ' + preset[u'presetId']
+			if verbose: print('\tProgram: ' + preset[u'presetId'])
 			currentFont.presets[-1].bank = preset[u'bank']
-			if verbose: print '\tBank: ' + preset[u'bank']
+			if verbose: print('\tBank: ' + preset[u'bank'])
 		InHandle.close()
 		OutHandle.close()
 		
-	except pysf.PysfException, e:
+	except pysf.PysfException as e:
 		raise SFInfoException('Could not parse soundfont: '+str(e))
 		
 	currentFont.presets.sort(key=lambda x: x.bank*1000 + x.presetNumber)
 	return currentFont
 	
-class SFInfoException(exceptions.Exception): pass
+class SFInfoException(Exception): pass
 
-class SoundFontInfo():
+class SoundFontInfo(object):
 	type=None
 	name = None
 	date = None
@@ -267,7 +275,7 @@ class SoundFontInfo():
 		for preset in self.presets: s+= '\n\tPreset '+str(preset)
 		return s
 		
-class SoundFontInfoPreset():
+class SoundFontInfoPreset(object):
 	name=None
 	bank=None
 	presetNumber=None #a string, for now

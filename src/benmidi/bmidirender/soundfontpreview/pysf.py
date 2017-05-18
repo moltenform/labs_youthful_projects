@@ -13,8 +13,8 @@
 import aifc, array, chunk, datetime, logging, math, os, os.path
 import struct, sys, tempfile, wave
 
-import exceptions
-class PysfException(exceptions.Exception): pass
+
+class PysfException(Exception): pass
 
 class SfChunkReader(chunk.Chunk):
     Item = 0
@@ -50,7 +50,15 @@ class SfChunkReader(chunk.Chunk):
         self.seek(Pos + 8 + Size)
         return Retval
 
-class SfTreeItem:
+def old_div(a, b):
+    "Equivalent to ``a / b`` on Python 2"
+    import numbers
+    if isinstance(a, numbers.Integral) and isinstance(b, numbers.Integral):
+        return a // b
+    else:
+        return a / b
+
+class SfTreeItem(object):
     Level = None
     CkId = None
     Form = None
@@ -63,7 +71,7 @@ class SfTreeItem:
     def ChunkAssign(self, Chunk):
         self.Chunk = Chunk
 
-class SfTree:
+class SfTree(object):
     Prefix = None
     Items = None
     Containers = None
@@ -142,7 +150,7 @@ class SfTree:
                     SubChunk = Chunk.SubChunk()
                     self.Read(SubChunk, Level + 1)
 
-class SfZoneType:
+class SfZoneType(object):
     KeyN = None
     ItemN = None
     ItemMax = None
@@ -179,11 +187,15 @@ Usage: pysf [conversion] [infile] [outfile]
     conversion := --aif2xml | --xml2aif
     conversion := --wav2xml | --xml2wav
 """
-    print UsageStr
+    print(UsageStr)
     sys.exit(0)
 
 def ustr(Arg):
-    return unicode(str(Arg), 'utf-8')
+	import sys
+	if sys.version_info[0] > 2:
+		return Arg.decode('utf-8')
+	else:
+		return unicode(str(Arg), 'utf-8')
 
 def LogDie(Msg):
     logging.error(Msg)
@@ -201,18 +213,18 @@ def Def(Variable, Default):
 def Val(Dict, Key):
     if Dict == None:
         Retval = None
-    elif ListHas(Dict.keys(), Key):
+    elif ListHas(list(Dict.keys()), Key):
         Retval = Dict[Key]
     else:
         Retval = None
     return Retval
 
 def ListHas(List, Item):
-    return len(filter(lambda x: x == Item, List)) > 0
+    return len([x for x in List if x == Item]) > 0
 
 def LdFind(List, Key, Value):
     Retval = None
-    Results = filter(lambda x: x[Key] == Value, List)
+    Results = [x for x in List if x[Key] == Value]
     if len(Results) > 0:
         Retval = Results[0]
     return Retval
@@ -284,7 +296,7 @@ def DataCopy(Src, Dst, SrcWidth, FramesLeft, Byteswap = None, \
         FramesLeft = FramesLeft - DataSize
 
 def DictToXml(Xml, XmlEl, Dict):
-    KeyList = Dict.keys()
+    KeyList = list(Dict.keys())
     KeyList.sort()
     for Key in KeyList:
         if type(Dict[Key]) == dict:
@@ -324,7 +336,7 @@ def XmlToDict(Xml):
         if Node.nodeType == Node.ELEMENT_NODE:
             NewDict = XmlToDict(Node)
             if ListHas(CTags, Node.nodeName):
-                if ListHas(Dict.keys(), Node.nodeName):
+                if ListHas(list(Dict.keys()), Node.nodeName):
                     Dict[Node.nodeName].append(NewDict)
                 else:
                     Dict[Node.nodeName] = [NewDict]
@@ -372,7 +384,7 @@ def ListToIff(List, OutHandle):
         OutHandle.write(FormData)
         if LikeFile(Data):
             Data.seek(0, 2)
-            FramesLeft = Data.tell() / 2
+            FramesLeft = old_div(Data.tell(), 2)
             Data.seek(0)
             DataCopy(Data, OutHandle, 2, FramesLeft, False)
             Data.close()
@@ -429,19 +441,19 @@ def XmlToAud(Src, Dst, Format):
         raise PysfException('unsupported number of channels')
     if SampleSize < 1 or SampleSize % 8 != 0:
         raise PysfException('unsupported sampleSize')
-    SampleSizeBytes = SampleSize / 8
+    SampleSizeBytes = old_div(SampleSize, 8)
     Raw = open(FileName, 'rb')
     Raw.seek(0, 2)
     FileSize = Raw.tell()
     if FileSize < 1 or FileSize % SampleSizeBytes != 0:
         raise PysfException("unsupported raw data size %d" % (FileSize))
     Raw.seek(0, 0)
-    NumSampleFrames = FileSize / SampleSizeBytes
+    NumSampleFrames = old_div(FileSize, SampleSizeBytes)
     Aud.setnchannels(Channels)
-    Aud.setsampwidth(SampleSize / 8)
+    Aud.setsampwidth(old_div(SampleSize, 8))
     Aud.setframerate(SampleRate)
     Aud.setnframes(NumSampleFrames)
-    DataCopy(Raw, Aud, SampleSize / 8, NumSampleFrames, Byteswap)
+    DataCopy(Raw, Aud, old_div(SampleSize, 8), NumSampleFrames, Byteswap)
     Aud.close()
     Raw.close()
 
@@ -475,7 +487,7 @@ def SfWavetableList(Tree):
     else:
         Sm24 = None
     if Sm24 != None:
-        ExpectedSize = Smpl.Chunk.getsize() / 2
+        ExpectedSize = old_div(Smpl.Chunk.getsize(), 2)
         if ExpectedSize % 2 > 0:
             ExpectedSize = ExpectedSize + 1
         if Sm24.Chunk.getsize() != ExpectedSize:
@@ -718,9 +730,9 @@ def SfInfo(Dict):
     Ieng = SfStr(Val(Dict, u'IENG'))
     if Ieng != None:
         List[1].append('IENG', Ieng)
-    map(List[1].append,
+    list(map(List[1].append,
         ['IPRD', SfStr(Def(Val(Dict, u'IPRD'), 'SBAWE32')),
-        'ISFT', SfStr(Def(Val(Dict, u'ISFT'), 'SFEDT v1.28'))])
+        'ISFT', SfStr(Def(Val(Dict, u'ISFT'), 'SFEDT v1.28'))]))
     return List
 
 def StereoSampleCheck(Wavetables, Id, Channel, WSampleLink):
@@ -811,7 +823,7 @@ def SfSdtaShdr(Dict):
                 AudChannel = 1 # right, filter out left
             elif SfSampleType == 4:
                 AudChannel = 0 # left, filter out right
-        WtStart = SmplD.tell() / 2
+        WtStart = old_div(SmplD.tell(), 2)
         WtEnd = WtStart + Aud.getnframes()
         WtLoopstart = WtLoopstart + WtStart
         WtLoopend = WtLoopend + WtStart
@@ -873,7 +885,7 @@ def SfLog(Item, Key, DefaultVal):
     elif Value == SHOOBVAL:
         pass
     else:
-        Value = math.floor(1200.0 * (math.log(Value) / math.log(2)))
+        Value = math.floor(1200.0 * (old_div(math.log(Value), math.log(2))))
     return Value
 
 def SfZone(Dict, Zt):

@@ -1,10 +1,9 @@
 
-
-class Environment:
+class Environment(object):
 	lastpitch = 60
 	lastduration = 64
 	lastoctave = 4
-class YalpSequence:
+class YalpSequence(object):
 	notes = []
 	tempo = 60
 	instrument = ('midi', 1) #Means midi bank, using instrument 1
@@ -18,14 +17,14 @@ class YalpSequence:
 		for strN in astrNotes:
 			note = CreateNote(strN, self.env)
 			if note==-1:
-				print 'Invalid note:', strN
+				print('Invalid note:', strN)
 				return -1
 			self.notes.append(note)
 		return 1
 		
 			
 
-class Note:
+class Note(object):
 	pitch = 60 #Use pitch 1 to represent a "rest"
 	duration = 4 #Quarter note
 	def __init__(self, pitch, duration):
@@ -37,10 +36,10 @@ class Note:
 		return strz('Pitch:',self.pitch, 'Dur:', self.duration)
 
 def getOctave(pitch):
-	return int(pitch / 12) - 1
+	return int(pitch / 12.0) - 1
 
 def getNoteName(nPitch):
-	nOctave = int(nPitch / 12)-1
+	nOctave = int(nPitch / 12.0)-1
 	nNote = nPitch % 12
 	map = {0:'C',1:'C#',2:'D',3:'D#',4:'E',5:'F',6:'F#',7:'G',8:'G#',9:'A',10:'A#',11:'B'}
 	return map[nNote].lower() +  str(nOctave)
@@ -64,7 +63,7 @@ def CreateNote(strn, env):
 			
 		map = {'1':256, '2':128, '4':64, '8':32, '16':16, '32':8, '64':4, '128':2}
 		if strd not in map:
-			print 'Invalid duration', strd
+			print('Invalid duration', strd)
 			return strRest
 		else:
 			duration = map[strd]
@@ -92,7 +91,7 @@ def CreateNote(strn, env):
 			strd = strd[:-1]
 		map = {'c':0, 'd':2, 'e':4, 'f':5, 'g':7, 'a':9, 'b':11}
 		if strd not in map:
-			print 'Invalid note.',strd
+			print('Invalid note.',strd)
 			return strRest
 		else:
 			pitch = map[strd]
@@ -118,7 +117,7 @@ def CreateNote(strn, env):
 		currentnote, currentoctave = note.pitch%12, getOctave(note.pitch)
 		map = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
 		if strd not in map:
-			print 'Invalid octave',strd
+			print('Invalid octave',strd)
 			return strRest
 		else:
 			octave = map[strd]
@@ -135,24 +134,24 @@ def CreateNote(strn, env):
 	strn = parsePitch(strn, note, env)
 	strn = parseOctave(strn, note, env)
 	if strn != '':
-		print 'Unknown note format: ',strn, 'found after note.'
+		print('Unknown note format: ',strn, 'found after note.')
 		return -1
 	
 	return note
 	
-class Track:
+class Track(object):
 	name = ''
 	instrument = 0
 	notes = []
 	
-class Sequence:
+class Sequence(object):
 	name = ''
 	tracks = []
 
 def strz(*args): return ''.join(map(str,args))
 
 def _testParsing():
-	class Bag:
+	class Bag(object):
 		pass
 
 	t=Bag()
@@ -163,7 +162,7 @@ def _testParsing():
 		n = CreateNote(strn, env)
 		t.ntests += 1
 		if n==-1 or n.pitch!=pitch or n.duration!=dur:
-			print '!FAIL! Expected:',pitch, dur,' Got:',n
+			print('!FAIL! Expected:',pitch, dur,' Got:',n)
 		else:
 			t.npassed += 1
 	testcase('.', 60, 64, t)
@@ -179,7 +178,7 @@ def _testParsing():
 	testcase('c',48, 64, t)
 	testcase('d4',62, 64, t)
 	
-	print t.npassed, ' of ', t.ntests, ' passed.'
+	print(t.npassed, ' of ', t.ntests, ' passed.')
 
 
 if __name__ == '__main__':
@@ -192,6 +191,6 @@ if __name__ == '__main__':
 	
 	env = Environment()
 	n = CreateNote('b-4', env)
-	print n
+	print(n)
 	
 	

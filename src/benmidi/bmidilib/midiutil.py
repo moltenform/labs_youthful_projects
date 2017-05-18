@@ -1,15 +1,15 @@
-
-import sys, string, types, exceptions
+from __future__ import print_function
+import sys, string, types
 
 def midiToFrequency(n):
 	return 8.1758 * (2** (n/12.0))
+
 def frequencyToMidi(f):
 	import math
 	return int(round(69 + 12*math.log(f/440.0)/math.log(2.0)))
 
-
 def pitchToName(nPitch):
-	nOctave = int(nPitch / 12)-1
+	nOctave = int(float(nPitch) / 12)-1
 	nNote = nPitch % 12
 	map = {0:'C',1:'C#',2:'D',3:'D#',4:'E',5:'F',6:'F#',7:'G',8:'G#',9:'A',10:'A#',11:'B'}
 	return (map[nNote], nOctave)
@@ -65,8 +65,8 @@ def tempoToData(msPerQtrNote):
 
 def showstr(str, n=16):
 	for x in str[:n]:
-		print ('%02x' % ord(x)),
-	print
+		print('%02x' % ord(x), end=' ')
+	print()
 
 def getNumber(str, length):
 	# MIDI uses big-endian for everything
@@ -105,10 +105,10 @@ def putVariableLengthNumber(x):
 	lst[-1] = chr(ord(lst[-1]) & 0x7f)
 	return string.join(lst, "")
 
-class EnumException(exceptions.Exception):
+class EnumException(Exception):
 	pass
 
-class Enumeration:
+class Enumeration(object):
 	def __init__(self, enumList):
 		lookup = { }
 		reverseLookup = { }
@@ -118,19 +118,19 @@ class Enumeration:
 		uniqueNames = [ ]
 		uniqueValues = [ ]
 		for x in enumList:
-			if type(x) == types.TupleType:
+			if type(x) == tuple:
 				if len(x)==3:
 					x, i, displayValue = x
 				else:
 					x, i = x; displayValue = ''
-			if type(x) != types.StringType:
-				raise EnumException, "enum name is not a string: " + x
-			if type(i) != types.IntType:
-				raise EnumException, "enum value is not an integer: " + i
+			if type(x) != bytes:
+				raise EnumException("enum name is not a string: " + x)
+			if type(i) != int:
+				raise EnumException("enum value is not an integer: " + i)
 			if x in uniqueNames:
-				raise EnumException, "enum name is not unique: " + x
+				raise EnumException("enum name is not unique: " + x)
 			if i in uniqueValues:
-				raise EnumException, "enum value is not unique for " + x
+				raise EnumException("enum value is not unique for " + x)
 			uniqueNames.append(x)
 			uniqueValues.append(i)
 			lookup[x] = i
@@ -148,11 +148,11 @@ class Enumeration:
 			lst.append((k, other.lookup[k]))
 		return Enumeration(lst)
 	def hasattr(self, attr):
-		return self.lookup.has_key(attr)
+		return attr in self.lookup
 	def has_value(self, attr):
-		return self.reverseLookup.has_key(attr)
+		return attr in self.reverseLookup
 	def __getattr__(self, attr):
-		if not self.lookup.has_key(attr):
+		if attr not in self.lookup:
 			raise AttributeError
 		return self.lookup[attr]
 	def whatis(self, value):

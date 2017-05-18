@@ -3,7 +3,7 @@ import notesrealtimerecorded
 import sys
 if sys.platform != "win32": 
 	s= 'Platform not currently supported. The Windows-only winsound module is currently used. This will be addressed in a future release.'
-	print s
+	print(s)
 	raise s
 
 import winsound
@@ -18,7 +18,7 @@ fntimer = notesrealtimerecorded.fntimer
 
 mediadir=r'media'+'\\'
 
-class NotesRealtimeWav():
+class NotesRealtimeWav(object):
 	manualbindings = None
 	keyCodesCurrentlyHeld = None
 	transposition =60 #default start at c4
@@ -139,7 +139,7 @@ class NotesRealtimeWav():
 				#so this shouldn't happen.
 				#if it does, though, stop all playing notes.
 				#the transposition could have changed, so just stop playing everything
-				print 'warning, unexpected keyrelease', event.state, event.keysym
+				print('warning, unexpected keyrelease', event.state, event.keysym)
 				winsound.PlaySound(None,0)
 			else:
 				notenumber = self.keyCodesCurrentlyHeld[event.keycode]

@@ -11,12 +11,11 @@ import sys
 import time
 from os import sep as os_sep
 
-import exceptions
-class PlayMidiException(exceptions.Exception): pass
+class PlayMidiException(Exception): pass
 
 
 #base class for something that plays Midi files
-class BaseMidiPlayer():
+class BaseMidiPlayer(object):
 	def playMidiObject(self, objMidiFile, bSynchronous=True):
 		raise 'Not implemented'
 	def playSynchronous(self, strFilename):
@@ -47,7 +46,7 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 	win_timiditypath = 'timidity\\timidity.exe'
 	strLastStdOutput = ''
 	def playMidiObject(self, objMidiFile, bSynchronous=True):
-		if self.isPlaying: print 'alreadyplaying'; return
+		if self.isPlaying: print('alreadyplaying'); return
 		tempfilename = self._saveTempMidiFile(objMidiFile)
 		
 		if bSynchronous: 
@@ -55,12 +54,12 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 		else:
 			self.playAsync(tempfilename)
 	def playSynchronous(self, strFilename):
-		if self.isPlaying: print 'alreadyplaying'; return
+		if self.isPlaying: print('alreadyplaying'); return
 		self.isPlaying = True
 		self._startPlayback(strFilename)
 		
 	def playAsync(self, strFilename):
-		if self.isPlaying: print 'alreadyplaying'; return
+		if self.isPlaying: print('alreadyplaying'); return
 		self.isPlaying = True
 		makeThread(self._startPlayback, tuple([strFilename]))
 		
@@ -94,7 +93,7 @@ class TimidityMidiPlayer(BaseMidiPlayer):
 		
 		try:
 			self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
-		except EnvironmentError, e:
+		except EnvironmentError as e:
 			self.isPlaying = False
 			raise PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
 			return
@@ -117,7 +116,7 @@ class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance
 	def __init__(self):
 		self.mci = Mci()
 	def playMidiObject(self, objMidiFile, bSynchronous=True, fromMs=0):
-		if self.isPlaying: print 'alreadyplaying'; return
+		if self.isPlaying: print('alreadyplaying'); return
 			
 		tempfilename = self._saveTempMidiFile(objMidiFile)
 		
@@ -130,7 +129,7 @@ class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance
 			self.playAsync(tempfilename, fromMs=fromMs)
 		
 	def playSynchronous(self, strFilename, fromMs=0): #synchronous, waits for the song to be done. so you can't really use this for a long song unless you want to wait.
-		if self.isPlaying: print 'alreadyplaying'; return
+		if self.isPlaying: print('alreadyplaying'); return
 		self.isPlaying = True
 		
 		fLengthInSeconds = self._mciStartPlayback(strFilename, fromMs)
@@ -140,7 +139,7 @@ class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance
 		self.isPlaying = False
 		
 	def playAsync(self, strFilename,fromMs=0): #should follow with a call to stop.
-		if self.isPlaying: print 'alreadyplaying'; return
+		if self.isPlaying: print('alreadyplaying'); return
 		
 		self.isPlaying = True
 		makeThread(self._playInThread, (strFilename,fromMs)) #thread to automatically close when done.
@@ -186,7 +185,7 @@ class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance
 #note that this can be used to play .wav files and even .mp3 files.
 #based on http://mail.python.org/pipermail/python-win32/2008-August/008059.html
 
-class Mci():
+class Mci(object):
 	def __init__(self):
 		self.fnMciSendString = windll.winmm.mciSendStringA
 		self.fnMciGetErrorString = windll.winmm.mciGetErrorStringA
@@ -210,7 +209,7 @@ class Mci():
 #experimental real-time playing. 
 #This works, but I'm not sure of how robust it is (and I might not be doing it in the best way), so maybe I'll use mci for now.
 #so, consider this experimental for now.
-class RealTimePlayer():
+class RealTimePlayer(object):
 	#References:
 	#http://www.sabren.net/rants/2000/01/20000129a.php3  (uses out-of-date libraries)
 	#http://msdn.microsoft.com/en-us/library/ms711632.aspx

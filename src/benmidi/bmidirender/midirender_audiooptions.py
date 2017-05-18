@@ -1,5 +1,8 @@
 
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
 import sys
 import midirender_util
 
@@ -100,7 +103,7 @@ class WindowAudioOptions(object):
 		self.options = AudioOptionManager()
 		
 		# workaround for timidity++ bug 710927 (garbled noise at the beginning)
-		# apparently fixed in 2.14 which isn't in Ubuntu yet.
+		# this bug is now fixed in the distributions I've tested
 		defaultBitdepth = '16-bit' if sys.platform.startswith('win') else '24-bit'
 		
 		# options that aren't as obscure:

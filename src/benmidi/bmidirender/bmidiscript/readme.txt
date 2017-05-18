@@ -1,13 +1,13 @@
 tunescript, a music toy
 Copyright (C) Ben Fisher, 2009. GPLv3.
-https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
+https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md
 
 Why:
 	It's a musical toy: a fun way to enter in some music.
 	It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.
 
 Usage:
-	Open "main.py" in Python2
+	Open "main.py" in Python
 	Type in something, like 'c d e f g'.
 	Press "play". You should hear some sounds.
 	
@@ -17,10 +17,10 @@ Usage:
 	In Linux,
 		You may not have the required program "timidity" installed.
 		In a terminal, if you type in "timidity" but do not get a response, you might have to do something along the lines of 
-			sudo apt-get install timidity++
+			sudo apt-get install timidity
 			or 
-			sudo yum install timidity++
-		in a terminal to install the timidity++ package.
+			sudo yum install timidity
+		in a terminal to install the timidity package.
 		
 Getting started:
 	Load one of the examples from the Examples menu.

@@ -1,6 +1,10 @@
 
-from Tkinter import *
-import tkSimpleDialog
+try:
+	from Tkinter import *
+	import tkSimpleDialog
+except ImportError:
+	from tkinter import *
+	import tkinter.simpledialog as tkSimpleDialog
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
 class Dlg2(tkSimpleDialog.Dialog):
@@ -34,7 +38,7 @@ class Dlg2(tkSimpleDialog.Dialog):
 if __name__=='__main__':
 	def showdlg():
 		dlg = Dlg2(main)
-		print  dlg.result
+		print(dlg.result)
 		
 	main=Tk()
 	Button(main, text='go', command=showdlg).pack()

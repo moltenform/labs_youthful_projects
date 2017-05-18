@@ -1,4 +1,6 @@
 
+
+
 from notesrealtimerecorded import NotesinterpretException, NotesRealtimeNoteEvent
 useVisualTest = False
 if useVisualTest: import testdepiction
@@ -6,7 +8,7 @@ import bisect
 
 import music_util
 import trclasses
-
+from music_util import old_div
 from mingus.containers import Composition,Track, Instrument, Note,NoteContainer, Bar
 
 #quantize is 4 for qtr note, 8 for 8th, and so on
@@ -18,7 +20,7 @@ def createQuantizedList(objResults, quantize):
 	listPulses, listNotes = objResults.listPulses, objResults.listNotes
 	
 	# how many subdivisions?
-	divisions = quantize / 4 #because each pulse is a qtr note
+	divisions = old_div(quantize, 4) #because each pulse is a qtr note
 	assert quantize >= 4
 	#for example, if quantize by 8th note, and each pulse is a qtr note, there are two possible values per pulse.
 	
@@ -29,7 +31,7 @@ def createQuantizedList(objResults, quantize):
 	listQuantize.append(0.0)
 	prevTime = 0.0
 	for pulseTime in listPulses:
-		inc = (pulseTime-prevTime)/divisions
+		inc = old_div((pulseTime-prevTime),divisions)
 		for i in range(divisions):
 			listQuantize.append(prevTime + i*inc)
 		prevTime = pulseTime
@@ -83,12 +85,12 @@ def createQuantizedList(objResults, quantize):
 def createIntermediateList(listNotes, timesig, quantize, bIsTreble, bSharps):
 	#inserts rests between notes, standardizes all durations to be whole,half,qtr,8th,and so on, tied notes if necessary
 	
-	divisions = quantize / 4 #because each pulse is a qtr note
+	divisions = old_div(quantize, 4) #because each pulse is a qtr note
 	assert quantize >= 4
 	
 	intermed = IntermediateList(timesig, bSharps=bSharps)
 	
-	fQtrnotespermeasure = float(timesig[0]) / (timesig[1]/4)
+	fQtrnotespermeasure = float(timesig[0]) / (old_div(timesig[1],4))
 	nTimestepspermeasure = int( fQtrnotespermeasure * intermed.baseDivisions)
 	
 	#insert rests between notes
@@ -176,14 +178,14 @@ def createMingusComposition(intermed, timesig, bIsTreble, bSharps):
 	
 	
 	
-class IntermediateList():
+class IntermediateList(object):
 	#an intermediate list of notes. timings in terms of baseDivisions.
 	noteList = None # list of NotesRealtimeNoteEvent.
 	bSharps = True
 	timesig=None
 	baseDivisions = 64 #each qtr note can be divided into this many pieces. 64 units always = 1 qtr note
 	
-	atomicnotes = [int(baseDivisions/n) for n in [ 0.25, 0.5, 1, 2, 4, 8, 16, 32]]
+	atomicnotes = [int(old_div(baseDivisions,n)) for n in [ 0.25, 0.5, 1, 2, 4, 8, 16, 32]]
 	#							     whole, half, qtr, 8th, 16, 32, 64, 138
 	
 	def __init__(self, timesig, bSharps=True):
@@ -328,21 +330,21 @@ if __name__=='__main__':
 	intermed=IntermediateList((4,4))
 	bd = intermed.baseDivisions
 	def testTieNotes():
-		r = intermed.effectivelyTieLongNotes( 0, bd*3); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotes( bd, bd*3); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotes( 0 , bd*2); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotes( 0 , bd*3.5); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotes( 0 , bd*2.25); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotes( bd , bd*5); print [ n/float(bd) for n in r]
+		r = intermed.effectivelyTieLongNotes( 0, bd*3); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotes( bd, bd*3); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotes( 0 , bd*2); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotes( 0 , bd*3.5); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotes( 0 , bd*2.25); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotes( bd , bd*5); print([ n/float(bd) for n in r])
 		
 		
-		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*4, bd*4); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*8, bd*4); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*12, bd*4); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*10, bd*4); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotesBarlines( bd , bd*5, bd*4); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotesBarlines( bd , bd*8, bd*4); print [ n/float(bd) for n in r]
-		r = intermed.effectivelyTieLongNotesBarlines( bd*3 , bd*2, bd*4); print [ n/float(bd) for n in r]
+		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*4, bd*4); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*8, bd*4); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*12, bd*4); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotesBarlines( 0 , bd*10, bd*4); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotesBarlines( bd , bd*5, bd*4); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotesBarlines( bd , bd*8, bd*4); print([ n/float(bd) for n in r])
+		r = intermed.effectivelyTieLongNotesBarlines( bd*3 , bd*2, bd*4); print([ n/float(bd) for n in r])
 	
 
 		

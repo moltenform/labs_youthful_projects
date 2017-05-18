@@ -1,5 +1,12 @@
-from Tkinter import *
-import tkSimpleDialog
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
+try:
+	import tkSimpleDialog
+except ImportError:
+	import tkinter.simpledialog as tkSimpleDialog
 
 import midirender_util
 from bmidilib import bmidilib
@@ -51,9 +58,9 @@ class ChooseMidiInstrumentDialog(tkSimpleDialog.Dialog):
 if __name__=='__main__':
 	def start(top):
 		def callback():
-			print 'hi'
+			print('hi')
 			dlg = ChooseMidiInstrumentDialog(top, 'Choose Instrument', 66)
-			print dlg.result
+			print(dlg.result)
 			
 		Button(text='go', command=callback).pack()
 		

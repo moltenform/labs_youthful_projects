@@ -11,7 +11,7 @@ def queryChangeTempo(midiObject, default=None):
 	# convert to bpm
 	# tempo is in microseconds per beat (quarter note).
 	microsecondsPerBeat = float(firstTempo)
-	beatsPerSecond = (1/microsecondsPerBeat)/(1.0e-6)
+	beatsPerSecond = (1/float(microsecondsPerBeat))/(1.0e-6)
 	beatsPerMinute = beatsPerSecond * 60
 	
 	strPrompt = 'The current bpm is %d.' % int(beatsPerMinute)

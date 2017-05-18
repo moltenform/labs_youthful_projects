@@ -1,5 +1,5 @@
 #Pmidi output interface
-from PMIDI.Composer import Sequencer
+from PMIDI.Composer import Sequencer, old_div
 import time
 
 import tunescript_bank
@@ -27,13 +27,13 @@ class Midi_bank(tunescript_bank.Tunescript_bank):
 		nCurrentTime = 0
 		for note in seqyalp.notes:
 			strName, nOctave = tunescript_bank.pitchToName(note.pitch)
-			print nCurrentTime,note.duration,strName,nOctave
+			print(nCurrentTime,note.duration,strName,nOctave)
 			
 			if note.pitch==1:# This is a rest.
-				meas.NewNote(nCurrentTime,note.duration/4,'C',4, 1) #play the note with 1 volume, basically a rest
+				meas.NewNote(nCurrentTime,old_div(note.duration,4),'C',4, 1) #play the note with 1 volume, basically a rest
 			else:
-				meas.NewNote(nCurrentTime,note.duration/4,strName,nOctave)
-			nCurrentTime += note.duration/4
+				meas.NewNote(nCurrentTime,old_div(note.duration,4),strName,nOctave)
+			nCurrentTime += old_div(note.duration,4)
 
 		# play the song
 		self.seq.Play()
@@ -41,7 +41,7 @@ class Midi_bank(tunescript_bank.Tunescript_bank):
 		time.sleep(5)
 
 	def saveSequence(self, strFilename):
-		print 'Saving MIDI files not supported yet.'
+		print('Saving MIDI files not supported yet.')
 		
 	def queryVoice(self, strInstname):
 		results = []

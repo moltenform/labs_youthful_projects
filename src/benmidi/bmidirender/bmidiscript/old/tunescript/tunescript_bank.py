@@ -1,7 +1,7 @@
 
 # Base class for instrument banks
 
-class Tunescript_bank():
+class Tunescript_bank(object):
 	def playSequence(self, seq):
 		pass
 	
@@ -19,20 +19,20 @@ class Tunescript_bank():
 		results = self.queryVoice(s) #This method is probably overridden
 		
 		if results==None or len(results)==0:
-			print 'No instruments called '+s
+			print('No instruments called '+s)
 			return None
 		elif len(results)==1:
-			print 'Set instrument to '+str(results[0])
+			print('Set instrument to '+str(results[0]))
 			return results[0]
 		else:
-			print 'Choose an instrument or press q to cancel:'
-			for i in range(len(results)) in results: print str(i+1) + '> ' + str(results[i])
-			print ''
-			choice = raw_input()
+			print('Choose an instrument or press q to cancel:')
+			for i in list(range(len(results))) in results: print(str(i+1) + '> ' + str(results[i]))
+			print('')
+			choice = input()
 			try: n = int(choice)-1
 			except: return None
 			if n<0 or n>=len(results): return None
-			print 'Set instrument to '+str(results[n])
+			print('Set instrument to '+str(results[n]))
 			return results[n]
 
 
@@ -41,7 +41,7 @@ def midiToFrequency(n):
 	return 8.1758 * (2** (n/12.0))
 
 def pitchToName(nPitch):
-	nOctave = int(nPitch / 12)-1
+	nOctave = int(nPitch / 12.0)-1
 	nNote = nPitch % 12
 	map = {0:'C',1:'C#',2:'D',3:'D#',4:'E',5:'F',6:'F#',7:'G',8:'G#',9:'A',10:'A#',11:'B'}
 	return (map[nNote], nOctave)
@@ -76,13 +76,13 @@ def add_at_length(baseArray, bankArray, nSamples):
 		baseArray.extend( bankArray[ 0 : nSamples])
 	elif len(bankArray) < nSamples:
 		baseArray.extend( bankArray )
-		baseArray.extend([self.midval for i in xrange(len(bankArray) - nSamples)])
+		baseArray.extend([self.midval for i in range(len(bankArray) - nSamples)])
 
 if __name__=='__main__':
 	test = Tunescript_bank()
 	test.user_queryVoice('a')
 	
-	print nameToPitch('C4')
-	print nameToPitch('C#4')
-	print nameToPitch('Db4')
+	print(nameToPitch('C4'))
+	print(nameToPitch('C#4'))
+	print(nameToPitch('Db4'))
 	

@@ -1,8 +1,13 @@
 
-from Tkinter import *
+try:
+	from Tkinter import *
+	from Tkinter import _cnfmerge
+except ImportError:
+	from tkinter import *
+	from tkinter import _cnfmerge
 
 
-class ListViewWindow():
+class ListViewWindow(object):
 	def __init__(self, top, tracknumber, trackdata, opts):
 		top.title('Track %d Events'%tracknumber)
 		frameTop = Frame(top, padx='0m' )
@@ -39,10 +44,9 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
 		if cnf is None:
 			cnf = {}
 		if kw:
-			from Tkinter import _cnfmerge
 			cnf = _cnfmerge((cnf, kw))
 		fcnf = {}
-		for k in cnf.keys():
+		for k in list(cnf.keys()):
 			if type(k) == ClassType or k == 'name':
 				fcnf[k] = cnf[k]
 				del cnf[k]
@@ -56,9 +60,9 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
 		self.vbar['command'] = self.yview
 
 		# Copy geometry methods of self.frame -- hack!
-		methods = Pack.__dict__.keys()
-		methods = methods + Grid.__dict__.keys()
-		methods = methods + Place.__dict__.keys()
+		methods = list(Pack.__dict__.keys())
+		methods = methods + list(Grid.__dict__.keys())
+		methods = methods + list(Place.__dict__.keys())
 
 		for m in methods:
 			if m[0] != '_' and m != 'config' and m != 'configure':
@@ -72,7 +76,7 @@ if __name__=='__main__':
 	sys.path.append('..')
 	from bmidilib import bmidilib
 	
-	class TestApp():
+	class TestApp(object):
 		def __init__(self, root):
 			root.title('Testing list view')
 			Button(root, text='open', command=self.openit).pack()

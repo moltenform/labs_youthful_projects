@@ -1,10 +1,15 @@
+#!/usr/bin/env python2
+
 """
 ScoreView
 Ben Fisher, 2009, GPL
 
 
 """
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
 
 import scoreview_util
 import listview
@@ -13,7 +18,7 @@ import scoreview
 sys.path.append('..')
 from bmidilib import bmidilib, bmiditools
 
-class App:
+class App(object):
 	def __init__(self, root):
 		root.title('Midi Scoreview')
 		
@@ -175,7 +180,7 @@ class App:
 		channelsSeen = {}
 		for note in trackObject.notelist:
 			channelsSeen[note.channel] = 1
-		return channelsSeen.keys()
+		return list(channelsSeen.keys())
 	
 	def openScoreView(self, n):
 		#~ if n in self.scoreviews:

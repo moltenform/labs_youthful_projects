@@ -7,7 +7,7 @@
 baseDivisions = 221760 #7*9*5*11*64
 
 
-class TrBase(): pass
+class TrBase(object): pass
 
 class TrDocument(TrBase):
 	trscore = None
@@ -78,10 +78,10 @@ def simpleToFinaleCmd(d):
 		for notegroup in measure.trlayers[0].trnotegroups:
 			duration=notegroup.endTime-notegroup.startTime
 			ndur=atoms[duration]
-			print notegroup.pitches
+			print(notegroup.pitches)
 			assert len(notegroup.pitches)==1 
-			if notegroup.tied: print 'warning:tied note'
+			if notegroup.tied: print('warning:tied note')
 			if notegroup.pitches[0]==0:nname='r'
 			else: nname = ''.join(map(str,music_util.noteToName(notegroup.pitches[0])))
 			sout += ndur+nname+'; '
-	print sout
+	print(sout)

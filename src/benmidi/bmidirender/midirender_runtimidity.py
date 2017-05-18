@@ -1,4 +1,4 @@
-import exceptions
+
 import os
 import midirender_util
 
@@ -51,7 +51,7 @@ class RenderTimidityMidiPlayer(bmidiplay.TimidityMidiPlayer):
 		
 		try:
 			self.process = subprocess.Popen(args, stdout=subprocess.PIPE, **kwargs)
-		except EnvironmentError, e:
+		except EnvironmentError as e:
 			traceback.print_exc()
 			self.isPlaying = False
 			raise bmidiplay.PlayMidiException('Could not play midi.\n Do you have Timidity installed?\n\n'+str(e))
@@ -79,13 +79,17 @@ def isTimidityInstalled():
 	import subprocess
 	try:
 		process = subprocess.Popen(['timidity'], stdout=subprocess.PIPE) #will just display version info, etc. if suceeds
-	except EnvironmentError, e:
+	except EnvironmentError as e:
 		return False
 	return True
 	
 
 if __name__=='__main__':
-	from Tkinter import *
+	try:
+		from Tkinter import *
+	except ImportError:
+		from tkinter import *
+
 	global mmplayer
 	mmplayer = bmidiplay.TimidityMidiPlayer()
 	

@@ -1,14 +1,15 @@
 
-from Tkinter import *
-import ScrolledText
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
 
+try:
+	import ScrolledText
+except ImportError:
+	from tkinter import scrolledtext as ScrolledText
 
-
-
-from Tkinter import *
-
-
-class BConsoleOutWindow():
+class BConsoleOutWindow(object):
 	def __init__(self, top,callbackRefresh, callbackOnClose=None):
 		top.title('Timidity console output')
 		frameTop = Frame(top, padx='15',pady='15' )

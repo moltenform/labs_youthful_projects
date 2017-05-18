@@ -1,3 +1,11 @@
+
+try:
+	from Tkinter import *
+	import tkSimpleDialog
+except ImportError:
+	from tkinter import *
+	import tkinter.simpledialog as tkSimpleDialog
+
 import notesinterpret
 import tkutil
 
@@ -6,10 +14,10 @@ import os
 clefsfilepath = 'scoreview'+os.sep+'clefs'
 
 from mingus.extra import MusicXML, LilyPond
-from Tkinter import *
+from music_util import old_div
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
-class DlgResultsWindow():
+class DlgResultsWindow(object):
 	def __init__(self):
 		self.nEvents = 0
 	
@@ -17,7 +25,7 @@ class DlgResultsWindow():
 		self.nQuantize = nQuantize
 		try:
 			self.listQuantized = notesinterpret.createQuantizedList(res, nQuantize)
-		except notesinterpret.NotesinterpretException, e:
+		except notesinterpret.NotesinterpretException as e:
 			tkutil.alert(': '+str(e), title='Trilling Recorder')
 			return False
 		
@@ -123,7 +131,6 @@ def testWriteToLilypond(docMingus):
 	f.close()
 	
 if __name__=='__main__':
-	import Tkinter
 	from notesrealtimerecorded import  NotesRealtimeNoteEvent
 	import notesinterpret
 	
@@ -135,9 +142,9 @@ if __name__=='__main__':
 		noteList=[]
 		curtime = 0
 		for n in sampleList:
-			noteList.append(NotesRealtimeNoteEvent([60+curtime%7], curtime, curtime+4*intermed.baseDivisions/n))
+			noteList.append(NotesRealtimeNoteEvent([60+curtime%7], curtime, curtime+old_div(4*intermed.baseDivisions,n)))
 			noteList[-1].isTied = False
-			curtime+=4*intermed.baseDivisions/n
+			curtime+=old_div(4*intermed.baseDivisions,n)
 		intermed.noteList = noteList
 		intermed.bSharps = True
 		return intermed
@@ -152,21 +159,21 @@ if __name__=='__main__':
 			n=rlist[i]
 			pitch=60+i%3
 			if i%2==1: pitch=0 #a rest
-			noteList.append(NotesRealtimeNoteEvent([pitch], curtime, curtime+4*intermed.baseDivisions/n))
+			noteList.append(NotesRealtimeNoteEvent([pitch], curtime, curtime+old_div(4*intermed.baseDivisions,n)))
 			noteList[-1].isTied = False
-			curtime+=4*intermed.baseDivisions/n
+			curtime+=old_div(4*intermed.baseDivisions,n)
 		for i in range(len(rlist)):
 			n=rlist[i]
-			noteList.append(NotesRealtimeNoteEvent([70], curtime, curtime+4*intermed.baseDivisions/n))
+			noteList.append(NotesRealtimeNoteEvent([70], curtime, curtime+old_div(4*intermed.baseDivisions,n)))
 			noteList[-1].isTied = True
-			curtime+=4*intermed.baseDivisions/n
+			curtime+=old_div(4*intermed.baseDivisions,n)
 		intermed.noteList = noteList
 		intermed.bSharps = True
 		return intermed
 	
 	
 	nQuantize = 16
-	top=Tkinter.Tk()
+	top=Tk()
 	app = DlgResultsWindow()
 	
 	#inject this testing method.

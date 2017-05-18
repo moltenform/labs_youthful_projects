@@ -3,15 +3,15 @@ import sys
 import time
 from os import sep as os_sep
 
-import exceptions
-class PlayMidiException(exceptions.Exception): pass
+
+class PlayMidiException(Exception): pass
 
 from ctypes import windll, c_buffer, c_void_p, c_int, byref
 
 #experimental real-time playing. 
 #This works, but I'm not sure of how robust it is (and I might not be doing it in the best way), so maybe I'll use mci for now.
 #so, consider this experimental for now.
-class RealTimePlayer():
+class RealTimePlayer(object):
 	#References:
 	#http://www.sabren.net/rants/2000/01/20000129a.php3  (uses out-of-date libraries)
 	#http://msdn.microsoft.com/en-us/library/ms711632.aspx

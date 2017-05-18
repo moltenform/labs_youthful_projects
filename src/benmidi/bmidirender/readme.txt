@@ -5,5 +5,5 @@ Uses timidity++, a software synthesizer, Masanao Izumo, GPL v2.
 Uses pysf, released to the public domain, Ben Collver.
 
 See downloads, documentation, soundfonts, and more at
-https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
+https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md
 

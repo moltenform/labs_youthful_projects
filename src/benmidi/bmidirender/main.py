@@ -3,14 +3,17 @@
 """
 bmidi to wav
 Ben Fisher, 2009, GPL
-https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md
+https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md
 """
 
 import threading
 import os
 import sys
 import tempfile
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
 
 import midirender_util
 import midirender_mixer
@@ -149,8 +152,8 @@ class App(object):
 		menuView.add_checkbutton(label="Show Barlines in score", variable=self.objOptionsBarlines, underline=5, onvalue=1, offvalue=0)
 		
 		menuHelp = Menu(menubar, tearoff=0)
-		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wav, by Ben Fisher 2009\nA graphical frontend for Timidity and sfubar.\n\nSee the documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md\n\nSource code at https://github.com/moltenform/labs_youthful_projects/tree/master/benmidi/bmidirender','Bmidi to wav')))
-		menuHelp.add_command(label='Documentation', underline=0, command=(lambda: midirender_util.alert('There are many pages of online documentation at https://github.com/moltenform/labs_youthful_projects/blob/master/benmidi/README.md','Bmidi to wav')))
+		menuHelp.add_command(label='About', underline=0, command=(lambda: midirender_util.alert('Bmidi to wav, by Ben Fisher 2009\nA graphical frontend for Timidity and sfubar.\n\nSee the documentation at https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md\n\nSource code at https://github.com/moltenform/labs_youthful_projects/tree/master/benmidi/bmidirender','Bmidi to wav')))
+		menuHelp.add_command(label='Documentation', underline=0, command=(lambda: openOnlineDocs()))
 		menubar.add_cascade(label="Help", menu=menuHelp, underline=0)
 		
 		root.config(menu=menubar)
@@ -660,6 +663,7 @@ class App(object):
 		else:
 			if bRenderWav:
 				# in Linux render 24bit by default (workaround for timidity++ bug 710927)
+				# this bug is now fixed in the distributions I've tested
 				if not sys.platform.startswith('win'):
 					params = ['-Ow2']
 				else:
@@ -712,11 +716,16 @@ class App(object):
 		for note in trackObject.notelist:
 			channelsSeen[note.channel] = 1
 
-		return channelsSeen.keys()
+		return list(channelsSeen.keys())
 
 def pack(o, **kwargs): 
 	o.pack(**kwargs)
 	return o
+
+def openOnlineDocs():
+	import webbrowser
+	url = 'https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md'
+	webbrowser.open(url, new=1)
 
 icon0 = '''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg7AP0JHEiwoEGCABIqXHiwoUODCR82XBhRosWHFAFc9JeRocOKG0OKHLnRY8mOFjuahIhS4kqSMGM+DAgAOw=='''
 icon1 = '''R0lGODlhFAAUAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf///////yH5BAEAAP4ALAAAAAAUABQAQAg9AP0JHEiwoMGCABIKTAjgoMOHECMeZLhQocSLBin60whRI8eHHi1iHEmypMmOFj86DNkwIkuJL0/KnFkwIAA7'''

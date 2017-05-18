@@ -20,13 +20,13 @@ class Wave_bank(Tunescript_bank):
 		del audiodata
 
 	def saveSequence(self, seq, filename):
-		print 'Attempting to save to',filename
+		print('Attempting to save to',filename)
 		if not filename.endswith('.wav'): filename += '.wav'
 		audiodata= self.buildWave(seq)
 		audiodata.save_wave(filename)
 		del audiodata.samples
 		del audiodata
-		print 'Saved to',filename
+		print('Saved to',filename)
 
 	def buildWave(self, seq):
 		assert seq.instrument[0]=='wave'
@@ -59,7 +59,7 @@ class Wave_bank(Tunescript_bank):
 		
 	def renderNote(self, strInstrumentPath, n):
 		# Render a note at a certain pitch
-		print 'Rendering',n, '...'
+		print('Rendering',n, '...')
 		
 		# Get the original pitch and data for fundamental note of the sound.
 		if strInstrumentPath in self.cachedAudioOriginals:
@@ -81,7 +81,7 @@ class Wave_bank(Tunescript_bank):
 		import audio_effects
 		newaudio = audioFundamental.empty_copy()
 		newaudio.samples = (audioFundamental.samples).__deepcopy__()
-		audio_effects.fx_change_pitch(newaudio, desiredFreq/currentFreq)
+		audio_effects.fx_change_pitch(newaudio, float(desiredFreq)/currentFreq)
 		return newaudio
 		
 

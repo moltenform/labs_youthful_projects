@@ -91,7 +91,7 @@ controllerTypes = Enumeration([
 def GM_instruments_lookup(strInstrument):
 	strInstrument = strInstrument.lower()
 	found = None
-	for i in xrange(len(GM_instruments)):
+	for i in range(len(GM_instruments)):
 		if strInstrument in GM_instruments[i].lower(): #inefficient to .lower every setInstrument call, but whatever
 			found = i; break
 	return found

@@ -94,11 +94,10 @@ All Public Methods
 	
 '''
 import bmidilib
-import exceptions
 
 
-class BuilderException(exceptions.Exception): pass
-class BMidiBuilder():
+class BuilderException(Exception): pass
+class BMidiBuilder(object):
 	tempo = 120
 	instrument = None
 	volume=None
@@ -302,7 +301,7 @@ def joinTracks(builderObjects, strFilename):
 	midifileobject.write()
 	midifileobject.close()
 
-class SimpleNote():
+class SimpleNote(object):
 	def __init__(self, pitch, time, duration, velocity,percussion=False):
 		self.pitch=pitch; self.time=time; self.duration=duration; self.velocity = velocity
 		self.percussion = percussion

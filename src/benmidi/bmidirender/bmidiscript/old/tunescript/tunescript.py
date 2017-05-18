@@ -1,4 +1,5 @@
-from yalpsequence import *
+
+from .yalpsequence import *
 
 # There should only be one instance of Midi_bank because it ties the MIDI resources
 bank_midi = None
@@ -26,13 +27,21 @@ def playSequence(seq):
 	bank = get_bank(seq.instrument[0])
 	bank.playSequence(seq)
 
+def raw_in(s):
+	import sys
+	if sys.version_info[0] > 2:
+		return input(s)
+	else:
+		return raw_input(s)
+
 def shell():
 	env = Environment() # Contains state about last duration, etc.
-	currentInstrument = ('midi', 1)
+	# default to synth as it is available on all platforms
+	currentInstrument = ('synth', 1)
 	memory_sequences = {}
 	sequence = None
 	while True:
-		strIn = raw_input('>')
+		strIn = raw_in('>')
 		if strIn == '': continue
 		if strIn == 'exit' or strIn=='q': return
 		
@@ -61,7 +70,7 @@ def shell():
 					# Return format is 'synthname'
 					currentInstrument = ('synth', result)
 			else:
-				print 'Invalid bank type. Choose one of midi,wave, or synth.'
+				print('Invalid bank type. Choose one of midi,wave, or synth.')
 				
 			continue
 			
@@ -70,15 +79,15 @@ def shell():
 		
 		if len(strSplit) > 1 and strSplit[1] == '=':
 			if not _isvalidname(strSplit[0]):
-				print 'Name of seq,',strSplit[0],' not valid.'
+				print('Name of seq,',strSplit[0],' not valid.')
 				continue
 			if len(strSplit)==2:
-				print 'No sequence'
+				print('No sequence')
 				continue
 			strExpression = ' '.join(strSplit[2:])
 			sequence = parse(strExpression, env, currentInstrument)
 			if sequence == -1:
-				print 'Sequence did not parse'
+				print('Sequence did not parse')
 				continue
 			memory_sequences[strSplit[0]] = sequence
 			playSequence(sequence)
@@ -94,7 +103,7 @@ def shell():
 				elif strSplit[1] == '>':
 					strSaveTo = strSplit[2]
 				else:
-					print 'Unknown argument:', strSplit[1]
+					print('Unknown argument:', strSplit[1])
 			import copy
 			newseq = copy.deepcopy(memory_sequences[strSplit[0]])
 			thenotes = copy.deepcopy(memory_sequences[strSplit[0]].notes)
@@ -103,7 +112,7 @@ def shell():
 			playSequence(newseq)
 			
 			if strSaveTo != None:
-				if newseq.instrument[0]=='midi':print 'Cannot save to midi yet'
+				if newseq.instrument[0]=='midi':print('Cannot save to midi yet')
 				elif newseq.instrument[0]=='synth':
 					import instrument_synth
 					instrument_synth.saveSequence(newseq, strSaveTo)
@@ -114,7 +123,7 @@ def shell():
 			strExpression = ' '.join(strSplit)
 			sequence = parse(strExpression, env, currentInstrument)
 			if sequence == -1:
-				print 'Expression did not parse'
+				print('Expression did not parse')
 				continue
 				
 			playSequence(sequence)
@@ -125,7 +134,7 @@ def parse(strIn, env, currentInstrument):
 	seq.notes = []
 	seq.instrument = currentInstrument
 	ret = seq.AddNotes(strIn)
-	print 'notes::::' , strIn
+	print('notes::::' , strIn)
 	if len(seq.notes)==0: return -1
 	else: return seq
 

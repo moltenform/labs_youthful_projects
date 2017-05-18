@@ -5,13 +5,13 @@ import sys
 import time
 if sys.platform == "win32": fntimer = time.clock
 else: fntimer = time.time
-import exceptions
 
-class NotesinterpretException(exceptions.Exception): pass
+
+class NotesinterpretException(Exception): pass
 	
 #structure to hold 
 
-class NotesRealtimeRecordedRaw():
+class NotesRealtimeRecordedRaw(object):
 	#raw results from recording. simple class that is fast to insert into, since done at real time.
 	#here, a note number of -1 refers to a Pulse event.
 	startTime = 0
@@ -65,14 +65,14 @@ class NotesRealtimeRecordedRaw():
 		if not result.listPulses: return NotesinterpretException('no tabs!')
 		return result
 	
-class NotesRealtimeRecorded():
+class NotesRealtimeRecorded(object):
 	listNotes = None #list of NotesRealtimeNoteEvent
 	listPulses = None #list of floats, 
 	def __init__(self):
 		self.listNotes=[]
 		self.listPulses=[]
 
-class NotesRealtimeNoteEvent():
+class NotesRealtimeNoteEvent(object):
 	pitch = 0
 	start = 0
 	end = 0

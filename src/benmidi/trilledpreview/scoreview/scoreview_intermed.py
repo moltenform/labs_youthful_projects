@@ -1,13 +1,16 @@
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
 import scoreview_util
 import os
 import sys
 
 #todo: whole note rests even when not 4/4
-#todo: accidentals are wrong
-#todo: key signatures
+#possible improvement: key signatures, appropriate choice of sharp/flat
 
-class ScoreViewWindow():
+class ScoreViewWindow(object):
 	def __init__(self, top, intermed,bTrebleClef, clefsfilepath, opts):
 		
 		frameTop = Frame(top, height=400)
@@ -29,6 +32,13 @@ class ScoreViewWindow():
 		Button(frbtns, text='^', command=self.score.shiftOctaveUp).pack(side=LEFT)
 		Button(frbtns, text='v', command=self.score.shiftOctaveDown).pack(side=LEFT)
 
+def old_div(a, b):
+    "Equivalent to ``a / b`` on Python 2"
+    import numbers
+    if isinstance(a, numbers.Integral) and isinstance(b, numbers.Integral):
+        return a // b
+    else:
+        return a / b
 
 class ScoreViewFrame(Frame):
 	yScale = 3 # scale, half of distance between two staff lines.
@@ -62,7 +72,7 @@ class ScoreViewFrame(Frame):
 		# calculate x scaling factor
 		visibleWidth = self.defaultWidth # visible width of canvas, in pixels
 		desiredMeasuresVisible = 4
-		fQtrNotesPerMeasure = float(timesig[0]) / (timesig[1]/4)
+		fQtrNotesPerMeasure = float(timesig[0]) / (old_div(timesig[1],4))
 		self.ticksPerMeasure = int( fQtrNotesPerMeasure * self.intermed.baseDivisions)
 		nTimestepsVisible = desiredMeasuresVisible * self.ticksPerMeasure
 		self.pixelsPerTick = float(visibleWidth)/float(nTimestepsVisible)
@@ -128,7 +138,7 @@ class ScoreViewFrame(Frame):
 			assert currentTime<=self.ticksPerMeasure
 			if currentTime==self.ticksPerMeasure:
 				self.drawbarline(currentPos)
-				currentPos += self.intermed.baseDivisions/8; #some extra space for barline
+				currentPos += old_div(self.intermed.baseDivisions,8); #some extra space for barline
 				currentTime=0
 		
 		self.lastTick = currentPos #important change.

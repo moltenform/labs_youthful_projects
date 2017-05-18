@@ -11,8 +11,8 @@ LINESPACE = 3
 
 
 
-class NoteRenderer():
-'''Only intended to have one instance of this'''
+class NoteRenderer(object):
+	'''Only intended to have one instance of this'''
 	scalex = 1.0
 	scaley = 1.0
 	basey = 200 #where to draw middle C
@@ -25,7 +25,8 @@ class NoteRenderer():
 	def setupStaffs(self):
 		self.drawStafflines()
 	
-	def renderNote(self, starttimecode, endtimecode, 
+	def renderNote(self, starttimecode, endtimecode):
+		raise NotImplementedError('renderNote')
 		
 	#middle C is note 60, returns a position of 0
 	def getnoteposition(self,note, shift, prefersharpflat):
@@ -73,12 +74,13 @@ class NoteRenderer():
 	
 	#Private methods
 	def drawStafflines(self):
-		
-		drawLine(cv, 
+		raise NotImplementedError('drawStafflines')
 	
-	def drawNotehead(self, x,y
-		self.cv.create_oval(, fill is black)
-	def drawLedgerline(self
+	def drawNotehead(self, x,y):
+		raise NotImplementedError('drawNotehead')
+		#self.cv.create_oval(fill is black)
+	def drawLedgesrline(self):
+		raise NotImplementedError('drawLedgesrline')
 	def drawSharpsymbol(self, x,y, sharpflat):
 		x = x-(NOTEHEAD_WIDTH)*self.scalex #show it a bit to the left
 		if sharpflat=='#': textToRender = '#'
@@ -86,17 +88,17 @@ class NoteRenderer():
 		self.cv.create_text((x,y),text=textToRender, anchor='NW', font=('Times New Roman',10) )
 	
 	#wrappers for Tkinter
-	def drawLine(
-	def drawDuration 
+	#def drawLine(
+	#def drawDuration 
 
 	
 if __name__=='__main__':
-	print getnoteposition(60, 0, 'b')
-	print getnoteposition(61, 0, 'b')
-	print getnoteposition(61, 0, '#')
-	print getnoteposition(60 + 12, 0, 'b')
-	print getnoteposition(61 + 12, 0, 'b')
-	print getnoteposition(61 + 12, 0, '#')
+	print(getnoteposition(60, 0, 'b'))
+	print(getnoteposition(61, 0, 'b'))
+	print(getnoteposition(61, 0, '#'))
+	print(getnoteposition(60 + 12, 0, 'b'))
+	print(getnoteposition(61 + 12, 0, 'b'))
+	print(getnoteposition(61 + 12, 0, '#'))
 	
 	
 	

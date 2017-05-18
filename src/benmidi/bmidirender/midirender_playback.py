@@ -9,7 +9,7 @@ import tempfile
 from os import sep as os_sep
 tmpfilename = tempfile.gettempdir() + os_sep + 'tmpmid0.mid'
 
-class BMidiRenderPlayback():
+class BMidiRenderPlayback(object):
 	playingState = 'stopped' #or 'paused' or 'playing'.
 	endreason = 'done' # or 'user_pause' or 'user_stop'. keeps track of why the song is not playing. did it end naturally, or did we hit stop? 
 	midiPlayerObject = None

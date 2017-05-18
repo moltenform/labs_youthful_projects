@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 
 """
 bmidilib.py , code for reading/creating midi files in Python
@@ -35,12 +36,16 @@ BNote
 note that channel, here, is 1 based. values 1 through 16 inclusive are valid channels, not 0-15.
 """
 
-import sys, string, types, exceptions
+def cmp(a, b):
+	# python 3 compat
+	return (a > b) - (a < b) 
+
+import sys, string, types
 from midiutil import *
 import bmidiconstants
 
 
-class BMidiFile():
+class BMidiFile(object):
 	def __init__(self):
 		self.file = None
 		self.format = 1
@@ -54,7 +59,7 @@ class BMidiFile():
 	def __repr__(self):
 		r = "<MidiFile %d tracks\n" % len(self.tracks)
 		for t in self.tracks:
-			r = r + "  " + `t` + "\n"
+			r = r + "  " + repr(t) + "\n"
 		return r + ">"
 
 	def close(self):
@@ -103,7 +108,7 @@ class BMidiFile():
 		return str
 
 
-class BMidiTrack():
+class BMidiTrack(object):
 	def __init__(self):
 		self.events = [ ]
 		self.notelist = None
@@ -173,11 +178,11 @@ class BMidiTrack():
 	def __repr__(self):
 		r = "<MidiTrack  -- %d events\n" % ( len(self.events))
 		for e in self.events:
-			r = r + "    " + `e` + "\n"
+			r = r + "    " + repr(e) + "\n"
 		return r + "  >"
 
 	
-class BNote():
+class BNote(object):
 	#NOTE: Modifying instances of this class won't change the midi! To actually, say, change the pitch and duration, the startEvt and endEvts should be modified.
 	channel=None
 	pitch=None
@@ -196,7 +201,7 @@ class BNote():
 # runningStatus appears to want to be an attribute of a MidiTrack. But
 # it doesn't seem to do any harm to implement it as a global.
 runningStatus = None
-class BMidiEvent():
+class BMidiEvent(object):
 	def __init__(self):
 		self.time = None
 		self.channel = self.pitch = self.velocity = self.data = None
@@ -280,7 +285,7 @@ class BMidiEvent():
 
 		elif x == 0xFF:
 			if not bmidiconstants.metaEvents.has_value(z):
-				print "Unknown meta event: FF %02X" % z
+				print("Unknown meta event: FF %02X" % z)
 				sys.stdout.flush()
 				raise "Unknown midi event type"
 			self.type = bmidiconstants.metaEvents.whatis(z)
@@ -309,7 +314,7 @@ class BMidiEvent():
 				 chr(self.data))
 			return x
 
-		elif sysex_event_dict.has_key(self.type):
+		elif self.type in sysex_event_dict:
 			str = chr(sysex_event_dict[self.type])
 			str = str + putVariableLengthNumber(len(self.data))
 			return str + self.data
@@ -343,7 +348,7 @@ def main(argv):
 	
 	#~ print m.ticksPerQuarterNote
 	#~ print m.tracks[2].notelist
-	print m
+	print(m)
 	
 	#~ m.open('..\\midis\\bossa_ben_out.mid', "wb")
 	#~ m.write()

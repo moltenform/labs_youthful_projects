@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 """
 musicpad
 Ben Fisher, 2007
@@ -6,8 +8,14 @@ License: GPL
 Used to use real-time midi output (notesrealtimemidi.py), but there was significant delay.
 Now uses precomputed .wav files.
 """
-from Tkinter import *
-import tkFileDialog
+
+try:
+	from Tkinter import *
+	import tkSimpleDialog
+except ImportError:
+	from tkinter import *
+	import tkinter.simpledialog as tkSimpleDialog
+	
 
 import music_util
 import dlg2
@@ -18,7 +26,7 @@ import tkutil
 
 
 def pack(o, **kwargs): o.pack(**kwargs); return o
-class Gui1():
+class Gui1(object):
 	objNotesRealtime = None
 	isRecording = False
 	

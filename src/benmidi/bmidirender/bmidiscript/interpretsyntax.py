@@ -2,7 +2,6 @@
 Tunescript, by Ben Fisher 2009
 See readme.txt for capabilities.
 The first half of examples.cfg contains examples.
-Only tested with Python 2.5...
 
 Currently unsupported:
 	/c/!
@@ -18,11 +17,11 @@ Careful:
 '''
 
 
-import exceptions
-class InterpException(exceptions.Exception): pass
+
+class InterpException(Exception): pass
 import re
 
-import sys; sys.path.append('..')
+import sys; sys.path.append('..'); sys.path.append('../..')
 from bmidilib import bbuilder
 
 
@@ -40,7 +39,7 @@ def eatChars(s, n=1):
 		
 
 Maxtracks = 16
-class Interp():
+class Interp(object):
 	normalNoteDuration = 4
 	def go(self, s):
 		
@@ -81,7 +80,7 @@ class Interp():
 				#each track keeps track of its own currentTime. At the end, though, we have to sync them all back up.
 				longestTimeSeen = -1
 				for i in range(len(parts)):
-					if Debug: print 'TRACK %d'%i
+					if Debug: print('TRACK %d'%i)
 					_, parts[i] = eatChars(parts[i], 2) #remove the >> characters
 					self.interpretMusicString(parts[i], i)
 					if self.trackObjs[i].currentTime > longestTimeSeen: longestTimeSeen = self.trackObjs[i].currentTime
@@ -107,7 +106,7 @@ class Interp():
 		
 		#join all of the tracks, returning a midifile
 		mfile = bbuilder.build_midi(actualtracks)
-		if Debug: print mfile
+		if Debug: print(mfile)
 		return mfile
 		
 		
@@ -192,7 +191,7 @@ class Interp():
 		s = s.replace(' ','').replace('\t','')
 		
 		while s!='':
-			if Debug: print 'mainloop:::'+s
+			if Debug: print('mainloop:::'+s)
 			result, s = self.pullFullNote(s, track) #a rest counts
 			if result: continue #found something, moving on to next entry
 			result, s = self.pullFullNotePerc(s, track)
@@ -210,7 +209,7 @@ class Interp():
 		return True
 	
 	def pullFullShortenedNote(self,s, track):
-		if Debug: print 'pullFullShortenedNote:::'+s
+		if Debug: print('pullFullShortenedNote:::'+s)
 		if not s or s[0] not in '/':
 			return False, s
 			
@@ -242,7 +241,7 @@ class Interp():
 		
 		#ok, now modify the note that was made to make it half as long.
 		self.trackObjs[track].rewind() #go back to start of note
-		self.trackObjs[track].notes[-1].duration *= (1/scale)
+		self.trackObjs[track].notes[-1].duration *= (1.0/scale)
 		self.trackObjs[track].rest( self.trackObjs[track].notes[-1].duration )  #advance time to end of note
 		
 		return True, remaining
@@ -258,7 +257,7 @@ class Interp():
 		return True, remaining
 		
 	def pullFullNotePerc(self,s, track):
-		if Debug: print 'pullFullNotePerc:::'+s
+		if Debug: print('pullFullNotePerc:::'+s)
 		if not s: return False, s
 			
 		res, remaining = self.pullPitchPercussion(s,track)
@@ -287,7 +286,7 @@ class Interp():
 		
 	
 	def pullFullNote(self,s, track):
-		if Debug: print 'fullnote:::'+s
+		if Debug: print('fullnote:::'+s)
 		if not s or s[0] not in '.abcdefgABCDEFG':
 			return False,s
 			
@@ -312,7 +311,7 @@ class Interp():
 		return True, remaining
 		
 	def pullFullNoteSet(self,s, track):
-		if Debug: print 'pullFullNoteSet:::'+s
+		if Debug: print('pullFullNoteSet:::'+s)
 		if not s or s[0] not in '[':
 			return False, s
 		first, remaining = eatChars(s, 1)
@@ -352,7 +351,7 @@ class Interp():
 		
 	
 	def pullPiecesVolumeDurationOptional(self,s, track, nNotesMultiple=False): #optional, so never 'fails' and returns False
-		if Debug: print 'pullPiecesVolumeDurationOptional:::'+s
+		if Debug: print('pullPiecesVolumeDurationOptional:::'+s)
 		remaining= s
 		def changeLastVolume(n):
 			if not nNotesMultiple:
@@ -392,7 +391,7 @@ class Interp():
 	
 	
 	def pullPiecesPitchBendOptional(self,s, track):
-		if Debug: print 'pullPiecesPitchBendOptional:::'+s
+		if Debug: print('pullPiecesPitchBendOptional:::'+s)
 		remaining= s
 		if not remaining.startswith('~>'): return False, remaining
 		_, remaining = eatChars(remaining, 2)
@@ -430,7 +429,7 @@ class Interp():
 		
 	
 	def pullPitch(self,s, track):
-		if Debug: print 'pullPitch:::'+s
+		if Debug: print('pullPitch:::'+s)
 		if not s or s[0] not in 'abcdefgABCDEFG':
 			return False,s
 			

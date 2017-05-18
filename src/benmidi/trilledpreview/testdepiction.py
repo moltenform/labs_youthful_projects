@@ -1,10 +1,14 @@
+
+
+
+
 import Image, ImageDraw
 import random
-
 import copy
+from music_util import old_div
 
 w,h = (10000, 200)
-class TestDepiction():
+class TestDepiction(object):
 	def __init__(self):
 		pass
 	def addPreQuantize(self,listSteps, listNoteEvents):
@@ -25,7 +29,7 @@ class TestDepiction():
 
 		maxx = listQuantize[-1]
 		def convCoord(x):
-			return int((x/maxx) * w)
+			return int((old_div(x,maxx)) * w)
 		def convCoordQ(x):
 			return convCoord(listQuantize[x])
 		def  convCoordQRegular(x):
@@ -47,19 +51,19 @@ class TestDepiction():
 		
 		for q in listPulses:
 			x= convCoord(q)
-			draw.line( (x,0,x,h/16), fill=0x4444ff, width=4)
+			draw.line( (x,0,x,old_div(h,16)), fill=0x4444ff, width=4)
 		
 		for note in listNotes:
 			start, stop = convCoord(note[1]),convCoord(note[2])
-			y=h/2 - (getnote(note[0])*h/8)  
-			draw.rectangle( (start,y,stop,y+h/8), fill=0x44ff44)
+			y=old_div(h,2) - (old_div(getnote(note[0])*h,8))  
+			draw.rectangle( (start,y,stop,y+old_div(h,8)), fill=0x44ff44)
 		
 		
 		for note in listNotesQuantized:
 			start, stop = convCoordQ(note[1]),convCoordQ(note[2])
-			y=h/2 - (getnote(note[0])*h/8) 
-			y+=h/2
-			draw.rectangle( (start,y,stop,y+h/8), fill=0xff4444)
+			y=old_div(h,2) - (old_div(getnote(note[0])*h,8)) 
+			y+=old_div(h,2)
+			draw.rectangle( (start,y,stop,y+old_div(h,8)), fill=0xff4444)
 		
 		
 		#draw "final" version
@@ -70,8 +74,8 @@ class TestDepiction():
 		for note in listFinal:
 			start, stop = convCoordQRegular(note[1]),convCoordQRegular(note[2])
 			for pitch in note[0]:
-				y=h/2 - (getnote(pitch)*h/8) 
-				draw.rectangle( (start,y + h*2,stop,y+h/8+ h*2), fill=0xffff44)
+				y=old_div(h,2) - (old_div(getnote(pitch)*h,8)) 
+				draw.rectangle( (start,y + h*2,stop,y+old_div(h,8)+ h*2), fill=0xffff44)
 		
 		
 		del draw 

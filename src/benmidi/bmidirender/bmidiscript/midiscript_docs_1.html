@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+		<title>moltenform - bmidi to wav - 'tunescript'</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../github-markdown/github-markdown.css">
+<link rel="stylesheet" href="../../smalltheme.css">
+<link rel="canonical" href="https://moltenform.com/page/bmidi/original-posts/2009-02-22-tunescript.html">
+</head>
+<body>
+
+<div class="smalltheme-uppernavbox"><span class="linktilebuttonhspace"></span><a href="https://moltenform.com/code/"><div class="linktilebutton linktilebutton_narrow linktilebutton_homenarrow"><img class="linktilebuttonicon linktilebuttonicon_home" src="https://moltenform.com/pages/!highlights/moltenformm.png" alt="moltenform" /><br />Home</div></a><a href="https://moltenform.com/page/moltenform-real-time-audio/"><div class="linktilebutton linktilebutton_wide linktilebutton_left"><img class="linktilebuttonicon linktilebuttonicon_nothome" src="https://moltenform.com/pages/!highlights/tier1/ico_moltenform-real-time-audio.png" alt="Previous: Audio" /><br />Previous: Audio</div></a><a href="https://moltenform.com/page/bmidi/doc/"><div class="linktilebutton linktilebutton_wide linktilebutton_middle"><img class="linktilebuttonicon linktilebuttonicon_nothome" src="https://moltenform.com/pages/!highlights/tier1/ico_bmidi.png" alt="MIDI To Wav" /><br />MIDI To Wav</div></a><a href="https://moltenform.com/page/lnzscript/doc/"><div class="linktilebutton linktilebutton_wide linktilebutton_right"><img class="linktilebuttonicon linktilebuttonicon_nothome" src="https://moltenform.com/pages/!highlights/tier1/ico_lnzscript.png" alt="Next: UI Automation" /><br />Next: UI Automation</div></a><span class="linktilebuttonhspace"></span></div>
+<article class="markdown-body">
+
+
+<h2 id="-tunescript-">&#39;tunescript&#39;</h2>
+<p><i>(from a blog post I wrote in 2009, halfhourhacks 2009-02-22-tunescript.html)</i></p>
+<!-- date: '2009-02-22T21:15:00.000-08:00' -->
+<!-- modified_time: '2009-02-22T21:15:00.000-08:00' -->
+<!-- blogger_id: tag:blogger.com,1999:blog-7451330209409602076.post-21704655039202242 -->
+<!-- blogger_orig_url: http://halfhourhacks.blogspot.com/2009/02/midi-part-3-tunescript.html -->
+<!-- categories: articles -->
+<!-- makemoltenuniquepostid: 'db5e3a90-b782-448a-a41f-fa26dee91112' -->
+<!-- 2017 filename:2009-02-22-tunescript.html -->
+
+
+<p><img style="display:block; margin:0px auto 10px; text-align:center;" src="https://moltenform.com/pages/bmidi/moretools/blog_tunescriptshot1.png" border="0" alt="" id="BLOGGER_PHOTO_ID_5305857175110687106" /></a></p>
+<!--date: '2009-02-22T21:15:00.000-08:00'
+blogger_id: tag:blogger.com,1999:blog-7451330209409602076.post-21704655039202242
+blogger_orig_url: http://halfhourhacks.blogspot.com/2009/02/midi-part-3-tunescript.html-->
+<p>Here is another midi project done in my spare time. Tunescript is a musical toy, where you can enter a list of notes to create a song. 
+Unlike other interfaces like this, though, tunescript supports a lot of features like multiple tracks and instruments, chords, percussion, accented notes, and even pitch bends.
+Also, I put much thought into the syntax.
+<br/><br/>
+For a lot of information, many examples, and to download, visit <a href="https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/bmidirender/bmidiscript">this page</a>.
+<br/><br/>
+It is pretty fun to invent a domain specific language. Because the language doesn&#39;t (yet) have nested constructs, I don&#39;t need full parsing. I came up with a nice way to interpret the input. It works kind of like a finite state machine that is receiving a stream of instructions. For example, the character &#39;b&#39; can mean either flat, as in &#39;Ab&#39;, or the note &#39;b&#39;, but there is no ambiguity, because the symbol &#39;A&#39; causes a transition to a state that can accept the &#39;b&#39;.
+Adding multiple tracks ended up being pretty simple, because I just use simple string operations to split the tracks.
+<br/><br/>
+In more detail, the core of my interpreter looks something like this. The use of the while loop isn&#39;t very good and should probably be made into a for loop, but for some reason I was thinking of gotos, perhaps because of the underlying finite-state-machine influence.<br/><br/></p>
+<pre style="font-family: Andale Mono, Lucida Console, Monaco, fixed, monospace; color: #000000; background-color: #eee;font-size: 12px;border: 1px dashed #999999;line-height: 14px;padding: 5px; overflow: auto; width: 100%"><code>...main loop...
+  while s!='':
+    result, s = self.pullFullNote(s, track)
+    if result: continue
+
+    result, s = self.pullFullNoteSet(s, track)
+    if result: continue
+
+    result, s = self.pullFullModOctave(s, track)
+    if result: continue
+
+    #if i get here, i couldn't interpret something, throw an error.
+
+def pullFullNote(self, s, track):
+  if it is not a note,
+    return False, s
+
+  #otherwise, consume some of the characters from s
+  next_s = s[2:]
+
+  #add the note to the track
+  self.trackobjects[track].addnote()...
+
+  return True, next_s
+
+</code></pre><br/><br/>
+<p>What is nice is that this pattern can be followed repeatedly on smaller levels. The pullFullNote() can call pullPitch() or pullVolumeDuration() in just the same way, and those can themselves call pull functions. If pullVolumeDuration() doesn&#39;t see a match, it simply returns False with the original string given. Essentially, the benefit is that there is no need to be explicitly asking &quot;can the next thing be a note?&quot;, because the pullNote style functions will smoothly drop through when the next thing is not a note. I don&#39;t think I&#39;m explaining this well, but it is all there in interpretsyntax.py if you are interested.</p>
+<p><font size="+2"><a href="https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/bmidirender/bmidiscript">Source code on Github</a></font></p>
+<p><font size="+2"><a href="tunescript_docs_2.html">Full list of available TuneScript syntax!</a></font></p>
+<p><a href="https://moltenform.com/page/bmidi/doc/moretools.html">Back</a></p>
+</article>
+</body>
+</html>

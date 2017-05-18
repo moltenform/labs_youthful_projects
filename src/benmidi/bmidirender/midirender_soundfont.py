@@ -1,6 +1,10 @@
 
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
 import os
-from Tkinter import *
 import midirender_util
 import midirender_soundfont_info
 import midirender_runtimidity
@@ -18,7 +22,7 @@ def getDefaultSoundfont():
 	else:
 		return os.path.join(gm_dir, files[0])
 
-class BSoundfontWindow():
+class BSoundfontWindow(object):
 	haveOpenedCustomize = False
 	showCustomize = False
 	def toggleCustomize(self):
@@ -272,7 +276,7 @@ class BSoundfontWindow():
 		try:
 			bank = int(dlg.result.bank)
 			program = int(dlg.result.presetNumber)
-		except ValueError, e:
+		except ValueError as e:
 			midirender_util.alert('Couldn\'t parse bank/preset for some reason.')
 			return
 		

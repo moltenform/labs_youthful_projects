@@ -21,13 +21,13 @@ class Synth_bank(Tunescript_bank):
 		del audiodata
 
 	def saveSequence(self, seq, filename):
-		print 'Attempting to save to',filename
+		print('Attempting to save to',filename)
 		if not filename.endswith('.wav'): filename += '.wav'
 		audiodata = self.buildWave(seq)
 		audiodata.save_wave(filename)
 		del audiodata.samples
 		del audiodata
-		print 'Saved to',filename
+		print('Saved to',filename)
 
 	def buildWave(self, seq):
 		seqaudiodata = WaveFile(nBits=8*self.sampleSize, nSampleRate=self.sampleRate)
@@ -47,7 +47,7 @@ class Synth_bank(Tunescript_bank):
 	def cacheNote(self, strInstrument, n):
 		if (strInstrument, n) in self.cachedAudio:
 			return
-		print 'Caching',n, '...'
+		print('Caching',n, '...')
 		audiodata = WaveFile(nBits=8*self.sampleSize, nSampleRate=self.sampleRate)
 		freq = tunescript_bank.midiToFrequency(n)
 		synthesize(audiodata, strInstrument, freq, 2., 0.5) #2 seconds should be sufficient

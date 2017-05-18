@@ -1,10 +1,14 @@
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
 import scoreview_util
 import os
 
 defaultClefsPath = 'clefs'
 
-class ScoreViewWindow():
+class ScoreViewWindow(object):
 	def __init__(self, top, tracknumber, trackdata, ticksPerQtrNote, opts):
 		top.title('Track %d Score'%tracknumber)
 		
@@ -59,7 +63,7 @@ class ScoreViewFrame(Frame):
 		visibleWidth = self.defaultWidth #600, visible width of canvas, in pixels
 		desiredMeasuresVisible = 4
 		measureInTicks = ticksPerQtrNote * 4
-		measureWidth = visibleWidth/desiredMeasuresVisible
+		measureWidth = visibleWidth // desiredMeasuresVisible
 		self.pixelsPerTick = float(measureWidth)/float(measureInTicks)
 		
 		self.calculateCompleteWidth()
@@ -72,7 +76,7 @@ class ScoreViewFrame(Frame):
 		
 		# if the first note is off screen, scroll until it is in view. (half the screen)
 		if len(self.trackdata.notelist) and self.scaleTicksToPixels(self.trackdata.notelist[0].time) > self.defaultWidth+700 :
-			percentage = (self.scaleTicksToPixels(self.trackdata.notelist[0].time)- (self.defaultWidth/2)) / float(self.completeWidth)
+			percentage = (self.scaleTicksToPixels(self.trackdata.notelist[0].time)- (self.defaultWidth/2.0)) / float(self.completeWidth)
 			self.cv.xview_moveto(percentage)
 			
 

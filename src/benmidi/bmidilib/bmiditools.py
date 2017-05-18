@@ -18,7 +18,7 @@ def getTrackChannels(trackObject):
 	searchFor = {}
 	searchFor['CHANNELS'] = 1
 	results = getTrackInformation(trackObject, searchFor)
-	return results['CHANNELS'].keys()
+	return list(results['CHANNELS'].keys())
 
 def getTrackInstruments(trackObject):
 	searchFor = {}
@@ -48,7 +48,7 @@ def getTrackInformation(trackObject, searchFor):
 	
 	res = {}
 	if bSeeTracknames: res['TRACKNAME'] = currentName
-	if bSeeInstruments: res['INSTRUMENTS'] = currentInstruments.keys()
+	if bSeeInstruments: res['INSTRUMENTS'] = list(currentInstruments.keys())
 	return res
 
 
@@ -64,7 +64,7 @@ def muteTracksMidi(midiObject, trackArr):
 	return newmidi
 	
 
-class BMidiSecondsLength():
+class BMidiSecondsLength(object):
 	def __init__(self, midiObject):
 		tempoChanges = [] #array of tuples, in format (time, tempo value)
 		tempoChanges.append( (0, 500000) )#default tempo
@@ -84,7 +84,7 @@ class BMidiSecondsLength():
 			currentTempo = newarr[i][1]
 			currentTime = newarr[i][0]
 			nextTime = newarr[i+1][0]
-			totalTime += (nextTime-currentTime) * 1.0e-6*currentTempo/self.ticksPerQuarterNote;
+			totalTime += (nextTime-currentTime) * 1.0e-6 * float(currentTempo)/self.ticksPerQuarterNote;
 			if newarr[i+1][1]==-1: #reached the time we are interested in.
 				break
 		return totalTime
@@ -152,7 +152,7 @@ def getMidiExcerpt(midiObject, nTics): #note: is destructive, modifies things
 		track.events = [evt for evt in track.events if not (evt==None)]
 		
 	#re-add the meta events (they're per-channel, not per track)
-	for value in latestMetaEvents.itervalues():
+	for value in latestMetaEvents.values():
 		track, evt = value
 		evt.time = 0 #Important!
 		track.events.insert(0, evt)

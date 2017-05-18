@@ -1,6 +1,12 @@
 
 
-
+def old_div(a, b):
+    "Equivalent to ``a / b`` on Python 2"
+    import numbers
+    if isinstance(a, numbers.Integral) and isinstance(b, numbers.Integral):
+        return a // b
+    else:
+        return a / b
 
 #~ class keySignature():
 	#~ #immutable class. So F major = (1, False) and D major = (2, True)

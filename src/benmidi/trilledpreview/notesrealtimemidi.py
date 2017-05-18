@@ -16,7 +16,7 @@ if sys.platform == "win32": fntimer = time.clock
 else: fntimer = time.time
 
 
-class NotesRealtimeMidi():
+class NotesRealtimeMidi(object):
 	manualbindings = None
 	midiplayerdevice = None
 	keyCodesCurrentlyHeld = None
@@ -119,7 +119,7 @@ class NotesRealtimeMidi():
 				#so this shouldn't happen.
 				#if it does, though, stop all playing notes.
 				#the transposition could have changed, so just stop playing everything
-				print 'warning, unexpected keyrelease', event.state, event.keysym
+				print('warning, unexpected keyrelease', event.state, event.keysym)
 				self.stopallnotes()
 			else:
 				notenumber = self.keyCodesCurrentlyHeld[event.keycode]
@@ -133,7 +133,7 @@ class NotesRealtimeMidi():
 				del self.keyCodesCurrentlyHeld[event.keycode]
 	
 	def _ontab(self):
-		print 't'
+		print('t')
 		if self.bRecordingMode:
 			self.listRecorded.append((-1, fntimer(), None))
 	
@@ -155,7 +155,7 @@ class NotesRealtimeMidi():
 
 	def closeDevice(self):
 		if self.midiplayerdevice != None:
-			print 'closing device'
+			print('closing device')
 			self.midiplayerdevice.closeDevice()
 			self.midiplayerdevice= None
 		

@@ -1,18 +1,23 @@
+#!/usr/bin/env python2
+
 """
 tunescript, a music toy
 Ben Fisher, 2009, GPL
 
 
 """
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
 
 import midiscript_util
 import interpretsyntax
 
-sys.path.append('..')
+sys.path.append('..'); sys.path.append('../..')
 from bmidilib import bbuilder, bmidiplay
 
-class App():
+class App(object):
 	isPlaying = False
 	def __init__(self, root):
 		root.title('tunescript')
@@ -181,7 +186,7 @@ class App():
 		inter = interpretsyntax.Interp()
 		try:
 			mfile = inter.go(txt)
-		except interpretsyntax.InterpException, e:
+		except interpretsyntax.InterpException as e:
 			midiscript_util.alert(str(e))
 			return None
 			

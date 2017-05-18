@@ -1,14 +1,19 @@
-from Tkinter import *
+
+try:
+	from Tkinter import *
+except ImportError:
+	from tkinter import *
+
 import midirender_util
 
 from midirender_util import bmidilib, bmidirenderdirectory
 
-class MixerTrackInfo():
+class MixerTrackInfo(object):
 	def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar,scalevolVar):
 		self.trackNumber = trackNumber; self.enableVar = enableVar; self.volWidget = volWidget; self.panWidget = panWidget; self.transposeVar = transposeVar
 		self.scalevolVar = scalevolVar
 
-class BMixerWindow():
+class BMixerWindow(object):
 	def __init__(self, top, midiObject, opts, callbackOnClose=None):
 		#should only display tracks with note events. that way, solves some problems
 		top.title('Mixer')
@@ -169,7 +174,7 @@ if __name__=='__main__':
 	opts = {}
 	
 	def callback():
-		print 'callback'
+		print('callback')
 		import copy
 		newmidi = copy.deepcopy(midiobj)
 		app.createMixedMidi(newmidi)
