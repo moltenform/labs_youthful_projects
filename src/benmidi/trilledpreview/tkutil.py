@@ -2,14 +2,14 @@
 import os
 
 class Callable(object):
-	def __init__(self, func, *args, **kwds):
-		self.func = func
-		self.args = args
-		self.kwds = kwds
-	def __call__(self, event=None):
-		return self.func(*self.args, **self.kwds)
-	def __str__(self):
-		return self.func.__name__
+    def __init__(self, func, *args, **kwds):
+        self.func = func
+        self.args = args
+        self.kwds = kwds
+    def __call__(self, event=None):
+        return self.func(*self.args, **self.kwds)
+    def __str__(self):
+        return self.func.__name__
 
 gDirectoryHistory = dict()
 def _getFileDialogGui(fn, initialdir, types, title):

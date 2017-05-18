@@ -3,39 +3,39 @@ Copyright (C) Ben Fisher, 2009. GPLv3.
 https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md
 
 Why:
-	It's a musical toy: a fun way to enter in some music.
-	It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.
+    It's a musical toy: a fun way to enter in some music.
+    It can be helpful for expressing rhythms, say to quickly record some rhythm you came up with.
 
 Usage:
-	Open "main.py" in Python
-	Type in something, like 'c d e f g'.
-	Press "play". You should hear some sounds.
-	
-	If you don't hear anything, 
-		check your volume settings, in particular the volume for "SW Synth." 
-		Make sure that it is turned up and try again.
-	In Linux,
-		You may not have the required program "timidity" installed.
-		In a terminal, if you type in "timidity" but do not get a response, you might have to do something along the lines of 
-			sudo apt-get install timidity
-			or 
-			sudo yum install timidity
-		in a terminal to install the timidity package.
-		
+    Open "main.py" in Python
+    Type in something, like 'c d e f g'.
+    Press "play". You should hear some sounds.
+    
+    If you don't hear anything, 
+        check your volume settings, in particular the volume for "SW Synth." 
+        Make sure that it is turned up and try again.
+    In Linux,
+        You may not have the required program "timidity" installed.
+        In a terminal, if you type in "timidity" but do not get a response, you might have to do something along the lines of 
+            sudo apt-get install timidity
+            or 
+            sudo yum install timidity
+        in a terminal to install the timidity package.
+        
 Getting started:
-	Load one of the examples from the Examples menu.
-	Play around with it, and make your own songs.
-	
-	
+    Load one of the examples from the Examples menu.
+    Play around with it, and make your own songs.
+    
+    
 
 There are two modes, "tunescript" mode and "Code" mode. 
-	The tunescript mode is the interesting and fun one
-	Code mode simply evaluates the Python code you provide.
-	See the Examples menu.
+    The tunescript mode is the interesting and fun one
+    Code mode simply evaluates the Python code you provide.
+    See the Examples menu.
 
 
 Index of "tunescript" syntax: 
-	See the end of bmidiconstants.py for a list of all instrument names.
+    See the end of bmidiconstants.py for a list of all instrument names.
 
 Directives. These must occur on their own line.
 ================
@@ -80,8 +80,8 @@ Rhythm
 ,		increases the length of the note, by one unit. "c,," is 3 times longer than "c"
 .		rest for one unit
 /c/		a pitch within forward slashes is played twice as quickly. 
-		These can't have other modifications; /c/! or /c/, are not allowed. 
-		Percussion, like /o/ is supported.
+        These can't have other modifications; /c/! or /c/, are not allowed. 
+        Percussion, like /o/ is supported.
 //c//		played 4 times as quickly
 
 
@@ -93,7 +93,7 @@ c?		quieter
 c??
 
 c~>100		pitch bend all of the way. typically this bends up 2 semitones.
-			bending occurs from the previous "bend amount" to the new amount. 
+            bending occurs from the previous "bend amount" to the new amount. 
 c,,,~>100		same as previous, but slower bending
 
 a!,,		example of multiple modifications
@@ -101,7 +101,7 @@ a!,,		example of multiple modifications
 Harmony
 ================
 [c|e|g]	play the notes c e and g at the same time.
-		can be modified with duration, accent and pitch bend
+        can be modified with duration, accent and pitch bend
 
 >> e f g
 >> c d e
@@ -141,10 +141,10 @@ For cymbals that may be long, duration can be used, as in
 s!
 
 Currently unsupported:
-	/c/!
-	chords like /[c|e]/ 
-	[.|c] is illegal
-	
+    /c/!
+    chords like /[c|e]/ 
+    [.|c] is illegal
+    
 Newly supported:
-	/o/ percussion 
+    /o/ percussion 
 

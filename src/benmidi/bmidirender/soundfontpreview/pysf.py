@@ -191,11 +191,11 @@ Usage: pysf [conversion] [infile] [outfile]
     sys.exit(0)
 
 def ustr(Arg):
-	import sys
-	if sys.version_info[0] > 2:
-		return Arg.decode('utf-8')
-	else:
-		return unicode(str(Arg), 'utf-8')
+    import sys
+    if sys.version_info[0] > 2:
+        return Arg.decode('utf-8')
+    else:
+        return unicode(str(Arg), 'utf-8')
 
 def LogDie(Msg):
     logging.error(Msg)

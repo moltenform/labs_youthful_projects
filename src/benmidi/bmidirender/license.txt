@@ -1,7 +1,7 @@
 
 bmidi to wave, turning midis into wavs
 Copyright (C) Ben Fisher, 2008. GPL v2.
-https://github.com/moltenform/labs_youthful_projects/tree/master/src/benmidi/README.md
+
 Uses timidity++, a software synthesizer, Masanao Izumo, GPL v2.
 Uses sfubar, released in the public domain, Ben Collver.
 

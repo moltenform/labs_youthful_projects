@@ -9,13 +9,13 @@ Click one of the "Score" or "List" buttons to view events for a particular track
 
 From the options menu you can also configure:
 Show Durations
-	A gray dashed line in the score view indicates the duration of notes.
+    A gray dashed line in the score view indicates the duration of notes.
 Show Stems
-	To show note stems.
+    To show note stems.
 Show Barlines
-	At times, the midi song doesn't line up with the measures, and so the barlines are not meaningful. This provides a way to hide them.
+    At times, the midi song doesn't line up with the measures, and so the barlines are not meaningful. This provides a way to hide them.
 Prefer Flats
-	Because this program doesn't know about key signatures, it displays all accidentals as either sharps or flats.
+    Because this program doesn't know about key signatures, it displays all accidentals as either sharps or flats.
 
 Note that at this time, all notes are shown as "quarter notes". To add different symbols for different durations would not add much benefit.
 

@@ -2,23 +2,23 @@
 import os
 
 class Callable(object):
-	def __init__(self, func, *args, **kwds):
-		self.func = func
-		self.args = args
-		self.kwds = kwds
-	def __call__(self, event=None):
-		return self.func(*self.args, **self.kwds)
-	def __str__(self):
-		return self.func.__name__
+    def __init__(self, func, *args, **kwds):
+        self.func = func
+        self.args = args
+        self.kwds = kwds
+    def __call__(self, event=None):
+        return self.func(*self.args, **self.kwds)
+    def __str__(self):
+        return self.func.__name__
 
 def makeThread(fn, args):
-	import threading
-	class MyThread(threading.Thread):
-		"""this is a wrapper for threading.Thread that improves the syntax for creating and starting threads - Allen Downey"""
-		def __init__(self, target, *args):
-			threading.Thread.__init__(self, target=target, args=args)
-			self.start()
-	MyThread(fn, args)
+    import threading
+    class MyThread(threading.Thread):
+        """this is a wrapper for threading.Thread that improves the syntax for creating and starting threads - Allen Downey"""
+        def __init__(self, target, *args):
+            threading.Thread.__init__(self, target=target, args=args)
+            self.start()
+    MyThread(fn, args)
 
 gDirectoryHistory = dict()
 def _getFileDialogGui(fn, initialdir, types, title):
