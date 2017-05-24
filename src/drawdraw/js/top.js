@@ -42,7 +42,7 @@ function setup()
 	if (window.devicePixelRatio !== undefined && window.devicePixelRatio > 1)
 	{
 		// if the devicePixelRatio is more than one, make it even bigger even after compensating
-		g_resizeFactor *= 4
+		g_resizeFactor *= 1
 	}
 	
 	// draw selection handles
@@ -60,7 +60,7 @@ function setup()
 	// draw reference context. not a selectable object.
 	if (g_resizeFactor > 1)
 	{
-		mainContextShape = new CRawShape({type: 'lgen', x1: 40, x2: 40, y1: 200, y2: 100});
+		mainContextShape = new CRawShape({type: 'lgen', x1: 40, x2: 40, y1: 140, y2: 40});
 	}
 	else
 	{
@@ -368,7 +368,7 @@ function doTransformRender()
 	}
 	
 	var contextQueue = [initialContext]
-	var nAdjustX = 300
+	var nAdjustX = (g_resizeFactor == 1) ? 300 : 80;
 
 	if (debugMeasureTiming)
 	{
