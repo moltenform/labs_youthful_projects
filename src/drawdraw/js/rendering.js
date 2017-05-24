@@ -24,7 +24,7 @@ var grcpoolCircles = []
 var ngrcpoolCircles = -1
 function render_hideAllShapes()
 {
-	for (var i=0; i<grcpoolCircles.length; i++) 
+	for (var i=0; i < grcpoolCircles.length; i++) 
 	{
 		grcpoolCircles[i].hide()
 	}
@@ -72,14 +72,17 @@ function drawArrow(domobj, rawShape, noAdd)
 		g_mapObjIdToArrow[domobj.id] = r.path('M1,1,L,1,1' );
 	}
 	
-	var arsize = 6;
-	var angle = Math.atan2(rawShape.x1 - rawShape.x2, rawShape.y2 - rawShape.y1);
-	angle = (angle / (2 * Math.PI)) * 360;
+	var arsize = 6 * g_resizeFactor;
+	var anglerad = Math.atan2(rawShape.x1 - rawShape.x2, rawShape.y2 - rawShape.y1);
+	angle = (anglerad / (2 * Math.PI)) * 360;
+	var locx = rawShape.x2// + 4 * g_resizeFactor * Math.cos(anglerad)
+	var locy = rawShape.y2// + 4 * g_resizeFactor * Math.sin(anglerad)
 	g_mapObjIdToArrow[domobj.id].attr({path:
-		"M" + rawShape.x2 + " " + rawShape.y2 + " L" + (rawShape.x2 - arsize) + " " + (rawShape.y2 - arsize) +
-		" L" + (rawShape.x2-arsize) + " " + (rawShape.y2 + arsize) + " L" + rawShape.x2 + " " + rawShape.y2 });
+		"M" + locx + " " + locy + " L" + (locx - arsize) + " " + (locy - arsize) +
+		" L" + (locx - arsize) + " " + (locy + arsize) + " L" + locx + " " + locy });
 		
-	g_mapObjIdToArrow[domobj.id].attr("fill", "#922").attr("stroke", "#922").rotate((90+angle), rawShape.x2, rawShape.y2);
+	g_mapObjIdToArrow[domobj.id].attr("fill", "#922").attr("stroke", "#922").rotate((90+angle), locx, locy);
+	g_mapObjIdToArrow[domobj.id].attr('stroke-width', g_resizeFactor);
 	
 	//move arrow head behind the line
 	g_mapObjIdToArrow[domobj.id].toBack(); 

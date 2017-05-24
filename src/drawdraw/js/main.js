@@ -110,6 +110,7 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
 		return;
 	} 
 	
+	var centerx = 200, centery = 150
 	var nGeneration=0
 	var nTargetGeneration = nShapeLimit / 25;
 	while (true)
@@ -126,11 +127,10 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
 				
 				if (g_zoomLevel)
 				{
-					//center of it is 200,150
-					currentRawShape.x1 = ((currentRawShape.x1 - 200) * g_zoomLevel) + 200;
-					currentRawShape.x2 = ((currentRawShape.x2 - 200) * g_zoomLevel) + 200;
-					currentRawShape.y1 = ((currentRawShape.y1 - 150) * g_zoomLevel) + 150;
-					currentRawShape.y2 = ((currentRawShape.y2 - 150) * g_zoomLevel) + 150;
+					currentRawShape.x1 = ((currentRawShape.x1 - centerx) * g_zoomLevel) + centerx;
+					currentRawShape.x2 = ((currentRawShape.x2 - centerx) * g_zoomLevel) + centerx;
+					currentRawShape.y1 = ((currentRawShape.y1 - centery) * g_zoomLevel) + centery;
+					currentRawShape.y2 = ((currentRawShape.y2 - centery) * g_zoomLevel) + centery;
 					currentRawShape.rx *= g_zoomLevel
 					
 				}
@@ -138,7 +138,7 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
 				currentRawShape.x1 += adjustX
 				currentRawShape.x2 += adjustX
 				
-				if (currentRawShape.type=='c')
+				if (currentRawShape.type == 'c')
 				{
 					renderCircle(currentRawShape);
 				}

@@ -16,37 +16,68 @@ var g_nShapesToDraw = 300;
 var g_nJustPerimeter = 0; 
 
 // the arrow-head lines for lgen shapes
-var g_mapObjIdToArrow = {}
+var g_mapObjIdToArrow = {};
 
+// compensate for devicePixelRatio
+var g_resizeFactor = 1;
+	
 // holding dom objects is not ideal... we're past the the days of ie memory leaks though.
-var g_shapeSelectA =null
+var g_shapeSelectA = null;
 var g_shapeSelectB = null;
 	
+var mainContextShape = null, mainContext = null
 var g_allLines = [];
-var mainContextShape = new CRawShape({type: 'lgen', x1: 200, x2: 200, y1: 200, y2: 100});
-var mainContext = contextFromRawShape(mainContextShape);
+
 
 function setup()
 {
-	r = Raphael("holder", 800, 600);
+	r = Raphael("holder");
+	
+	// adjust selection handle size on screens with high dpi
+	g_resizeFactor = 1
+	if (window.devicePixelRatio !== undefined)
+	{
+		g_resizeFactor *= window.devicePixelRatio
+	}
+	if (window.devicePixelRatio !== undefined && window.devicePixelRatio > 1)
+	{
+		// if the devicePixelRatio is more than one, make it even bigger even after compensating
+		g_resizeFactor *= 4
+	}
 	
 	// draw selection handles
-	g_shapeSelectA = r.ellipse(1, 1, 4, 4).attr({"stroke-width": 1});
-	g_shapeSelectB = r.ellipse(1, 1, 4, 4).attr({"stroke-width": 1});
+	var handlesize = 4 * g_resizeFactor
+	g_shapeSelectA = r.ellipse(1, 1, handlesize, handlesize).attr({"stroke-width": 1});
+	g_shapeSelectB = r.ellipse(1, 1, handlesize, handlesize).attr({"stroke-width": 1});
 	g_shapeSelectA.attr({fill: "#0f0", opacity: 1});
 	g_shapeSelectB.attr({fill: "#0f0", opacity: 1});
 	
 	g_shapeSelectA.drag(onDragResize_move, onDragResize_start, onDragResize_up);
 	g_shapeSelectB.drag(onDragResize_move, onDragResize_start, onDragResize_up);
 	
-	// draw reference context. not a selectable object.
-	var mainGenPath = r.path('M1,1,L,1,1' ).attr({'stroke-width':6}) 
-	updatePath(mainGenPath, mainContextShape) 
+	var showReference = false
 	
-	// manually draw the main arrow reference. this is not adjustable by the user.
-	var mainArrow = drawArrow(mainGenPath, mainContextShape, true)
-	mainGenPath.attr( {stroke: '#aaf'}); 
-	mainArrow.attr( {stroke: '#aaf', fill:'#aaf'});
+	// draw reference context. not a selectable object.
+	if (g_resizeFactor > 1)
+	{
+		mainContextShape = new CRawShape({type: 'lgen', x1: 40, x2: 40, y1: 200, y2: 100});
+	}
+	else
+	{
+		mainContextShape = new CRawShape({type: 'lgen', x1: 200, x2: 200, y1: 200, y2: 100});
+	}
+	
+	mainContext = contextFromRawShape(mainContextShape);
+	var mainGenPath = r.path('M1,1,L,1,1' ).attr({'stroke-width':6 * g_resizeFactor}) 
+	updatePath(mainGenPath, mainContextShape)
+	mainGenPath.attr( {stroke: '#888'}); 
+		
+	if (showReference)
+	{
+		// manually draw the main arrow reference. this is not adjustable by the user.
+		var mainArrow = drawArrow(mainGenPath, mainContextShape, true)
+		mainArrow.attr( {stroke: '#aaf', fill:'#aaf'});
+	}
 	
 	// create a normal line, as an example
 	createNew('l');
@@ -69,7 +100,7 @@ function setup()
 	
 	// load everything important before loading json, so that if parsing json fails, we still have usable app.
 	var surlparts = document.location.href.split('?')
-	if (surlparts.length==2 && surlparts[1].indexOf('{')!=-1)
+	if (surlparts.length==2 && surlparts[1].indexOf('{') != -1)
 	{
 		// load the url
 		loadJson(surlparts[1])
@@ -83,7 +114,7 @@ function refreshShape(domobj)
 	
 	if (ocoord.type == 'lgen')
 	{
-		drawArrow(domobj, ocoord)
+		drawArrow(domobj, ocoord, false)
 	}
 
 	if (domSelected)
@@ -210,7 +241,7 @@ function createNew(stype)
 	// draw the shape at its initial position
 	refreshShape(newLine);
 	newLine.mousedown(onMouseDownSelectIt);
-	newLine.attr({"stroke-width": 4});
+	newLine.attr({"stroke-width": 4 * g_resizeFactor});
 	domSelected = newLine;
 	showSelect();
 	
@@ -326,12 +357,12 @@ function doTransformRender()
 	var initialContext = mainContext;
 	
 	//convert shapes to be relative to initial context
-	for (var i=0; i<gens.length; i++)
+	for (var i = 0; i < gens.length; i++)
 	{
 		gens[i] = rawShapeToRelativeShape(initialContext, gens[i])
 	}
 	
-	for (var i=0; i<objs.length; i++)
+	for (var i = 0; i < objs.length; i++)
 	{
 		objs[i] = rawShapeToRelativeShape(initialContext, objs[i])
 	}
