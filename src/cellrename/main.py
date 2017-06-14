@@ -84,7 +84,7 @@ class CellRenameMain(wx.Frame):
         addMenuItem(menuEdit, 'Add &Prefix...', self.onMenuEditPrefix, 'Ctrl+Shift+P')
         addMenuItem(menuEdit, 'Add &Suffix...', self.onMenuEditSuffix, 'Ctrl+Shift+S')
         addMenuItem(menuEdit, 'Add &Number...', self.onMenuEditNumber, 'Ctrl+3')
-        addMenuItem(menuEdit, '&Pattern...', self.onMenuEditPattern, 'Ctrl+P')
+        addMenuItem(menuEdit, 'P&attern...', self.onMenuEditPattern, 'Ctrl+P')
         addMenuSeparator(menuEdit)
         addMenuItem(menuEdit, '&Replace in filenames...', self.onMenuEditReplace, 'Ctrl+H')
         addMenuItem(menuEdit, 'Replace r&egexp in filenames...', self.onMenuEditRegexReplace, 'Ctrl+Shift+H')
@@ -200,7 +200,7 @@ class CellRenameMain(wx.Frame):
             wxutil.alertDialog(self, str(ret))
             
     def onMenuEditPattern(self, evt):
-        sPattern = wxutil.inputDialog(self, 'Enter a naming pattern. The following can be used:/n/n/t%n=padded number (i.e. 001, 002)/n/t%N=number/n/t%f=file name/n/t%U=uppercase name/n/t%u=lowercase name'.
+        sPattern = wxutil.inputDialog(self, 'Enter a naming pattern. The following can be used:/n/n/t%n=padded number (i.e. 001, 002)/n/t%N=number/n/t%f=file name/n/t%U=uppercase name/n/t%u=lowercase name/n/t%t=titlecase name'.
             replace('/n',os.linesep).replace('/t','     '),'%f')
         if not sPattern:
             return

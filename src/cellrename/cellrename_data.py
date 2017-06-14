@@ -1,3 +1,7 @@
+
+# cellrename, by Ben Fisher. GPLv3.
+# https://github.com/downpoured/labs_youthful_projects/tree/master/cellrename
+
 import os
 import fnmatch
 
@@ -102,6 +106,16 @@ class CellRenameData():
     # set based on a pattern
     def transformWithPattern(self, sPattern):
         padlength = len(str(len(self.data))) # e.g. if there are 100s of files we should use 3 digits
+        def titlecase(s):
+            result = ''
+            for i, c in enumerate(s):
+                if i == 0 or not s[i - 1].isalpha():
+                    result += c.upper()
+                else:
+                    result += c.lower()
+
+            return result
+        
         def subpattern(s, elem, i):
             name, ext = os.path.splitext(self.data[i].newname)
             s = s.replace('%N', str(i + 1))                       # raw number
@@ -113,10 +127,12 @@ class CellRenameData():
             s = s.replace('%F', self.data[i].newname)           # full name
             s = s.replace('%u', name.lower())                   # to uppercase
             s = s.replace('%U', name.upper())                   # to lowercase
+            s = s.replace('%t', titlecase(name))                # to titlecase
             return s + ext
-        
+
         for i in range(len(self.data)):
             self.data[i].newname = subpattern(sPattern, self.data[i], i)
+
         return True
     
     # replace in filename (case-sensitive!)
