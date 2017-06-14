@@ -1,10 +1,10 @@
-
 import os
 import fnmatch
 
-# the grid ui will load a cellrenamedata object and render it.
 class CellRenameData():
-    data = None # list of cellrenameitem
+    ''' CellRenameData holds a list of cellrenameitems.
+    The grid UI will load an instance of this class and render it. '''
+    data = None
     directory = None
     filter = None
     include_dirs = False
@@ -15,12 +15,17 @@ class CellRenameData():
         self.refresh()
     
     def refresh(self):
-        # load all of the filenames!
+        # load the filenames!
         self.data = []
         aFrom = os.listdir(self.directory)
-        if self.filter: aFrom = self.fnmatch_case_insensitive(aFrom, self.filter)
+        if self.filter:
+            aFrom = self.fnmatch_case_insensitive(aFrom, self.filter)
+        
         for sFilename in aFrom:
-            if sFilename.startswith('.'): continue # don't use hidden files
+            # skip hidden files
+            if sFilename.startswith('.'):
+                continue
+            
             st =  os.stat(os.path.join(self.directory, sFilename))
             isDirectory = os.path.isdir(os.path.join(self.directory, sFilename))
             if isDirectory and not self.include_dirs: 
@@ -28,14 +33,19 @@ class CellRenameData():
             
             elem = CellRenameItem()
             elem.filename = elem.newname = sFilename
-            elem.size = st.st_size if not isDirectory else -1 # for sorting purposes, sort dirs above
-            elem.sizeRendered = renderSize(st.st_size) if not isDirectory else ' ' # if a directory, show space as " "
             elem.modifiedTime = st.st_mtime
             elem.creationTime = st.st_ctime
-            if os.name=='nt':
+            
+            # don't show the "file size" for directories
+            elem.sizeRendered = renderSize(st.st_size) if not isDirectory else ' '
+            
+            # the "filesize" for directories is -1 so that they will sort above files
+            elem.size = st.st_size if not isDirectory else -1
+            
+            if os.name == 'nt':
                 # on Windows, this is a float, let's make it an int
-                elem.modifiedTime = int(10000*elem.modifiedTime)
-                elem.creationTime = int(10000*elem.creationTime)
+                elem.modifiedTime = int(10000 * elem.modifiedTime)
+                elem.creationTime = int(10000 * elem.creationTime)
             
             self.data.append(elem)
     
@@ -44,60 +54,65 @@ class CellRenameData():
     
     def fnmatch_case_insensitive(self, filenames, pattern):
         # by default, fnmatch treats Windows and posix differently, which I'd rather not have.
+        # let's use case-insensitive matching everywhere.
         pattern = pattern.lower()
         return [name for name in filenames if fnmatch.fnmatch(name.lower(), pattern)]
     
     def sort(self, sField, bReverse=False):
-        map = { 'filename': lambda elem: elem.filename,
-          'newname': lambda elem: elem.newname,
-          'size': lambda elem: elem.size,
-          'modifiedTime': lambda elem: elem.modifiedTime,
-          'creationTime': lambda elem: elem.creationTime,
-          }
+        map = dict(filename=lambda elem: elem.filename,
+            newname=lambda elem: elem.newname,
+            size=lambda elem: elem.size,
+            modifiedTime=lambda elem: elem.modifiedTime,
+            creationTime=lambda elem: elem.creationTime)
     
         if sField not in map:
             raise 'Invalid field name.'
+
         self.data.sort(key=map[sField], reverse=bReverse)
-            
+
     # transformations act on the new name, so that transformations can be chained
     # add a suffix or prefix. returns True on success.
     def transformSuffixOrPrefix(self, bPrefix, sAdded):
         for i in range(len(self.data)):
             if bPrefix:
-                self.data[i].newname = sAdded+self.data[i].newname
+                self.data[i].newname = sAdded + self.data[i].newname
             else:
                 # probably want to add this before the file extension.
                 name, ext = os.path.splitext(self.data[i].newname)
-                self.data[i].newname = name+sAdded+ext
+                self.data[i].newname = name + sAdded + ext
+
         return True
                 
     # append a number. returns True on success or errstring on failure.
     def transformAppendNumber(self, sNumberExample):
         if not all((c in '0123456789' for c in sNumberExample)):
             return 'Must consist of numerical digits.'
+
         nNumber = int(sNumberExample, 10)
         for i in range(len(self.data)):
             # if numbers grow to large, we handle it gracefully.
-            sAdded = padn(i+nNumber, len(sNumberExample))
+            sAdded = padn(i + nNumber, len(sNumberExample))
+            
             # probably want to add this before the file extension.
             name, ext = os.path.splitext(self.data[i].newname)
-            self.data[i].newname = name+' '+sAdded+ext
+            self.data[i].newname = name + ' ' + sAdded + ext
+
         return True
         
     # set based on a pattern
     def transformWithPattern(self, sPattern):
-        padlength = len(str(len(self.data))) # e.g. if there are >100 files we should use 3 digits
+        padlength = len(str(len(self.data))) # e.g. if there are 100s of files we should use 3 digits
         def subpattern(s, elem, i):
             name, ext = os.path.splitext(self.data[i].newname)
-            s = s.replace('%N', str(i+1))                       # raw number
-            s = s.replace('%n', padn(i+1,padlength))       # padded number    
-            s = s.replace('%0', padn(i,padlength))           # start with 0.
+            s = s.replace('%N', str(i + 1))                       # raw number
+            s = s.replace('%n', padn(i + 1, padlength))            # padded number    
+            s = s.replace('%0', padn(i, padlength))              # start with 0.
             s = s.replace('%CT', str(self.data[i].creationTime)) # creation time
             s = s.replace('%MT', str(self.data[i].modifiedTime)) # modified time
-            s = s.replace('%f', name)                       # name part
-            s = s.replace('%F', self.data[i].newname)        # full name
-            s = s.replace('%u', name.lower())            # to uppercase
-            s = s.replace('%U', name.upper())            # to lowercase
+            s = s.replace('%f', name)                           # name part
+            s = s.replace('%F', self.data[i].newname)           # full name
+            s = s.replace('%u', name.lower())                   # to uppercase
+            s = s.replace('%U', name.upper())                   # to lowercase
             return s + ext
         
         for i in range(len(self.data)):
@@ -113,7 +128,9 @@ class CellRenameData():
     # replace with regular expression
     def transformRegexReplace(self, sRe, sReplace, bUseRegexSymbols, bCaseSensitive):
         import re
-        if not bUseRegexSymbols: sRe = re.escape(sRe)
+        if not bUseRegexSymbols:
+            sRe = re.escape(sRe)
+
         try:
             objre = re.compile(sRe) if bCaseSensitive else re.compile(sRe, re.IGNORECASE)
         except re.error:
@@ -145,22 +162,22 @@ class CellRenameItem():
         return '\t'.join([self.filename, self.newname, self.sizeRendered])
 
 def renderSize(n):
-    if n==0:
+    if n == 0:
         return '0 Kb'
-    if n<2**10:
+    if n < 2 ** 10:
         return '1 Kb'
-    elif n<2**20:
-        return str(n//(2**10)) + ' Kb'
+    elif n < 2 ** 20:
+        return str(n // (2 ** 10)) + ' Kb'
     else:
-        return str(n//(2**20)) + ' Mb'
+        return str(n // (2 ** 20)) + ' Mb'
 
-def padn(n,digits):
+def padn(n, digits):
     s = str(n)
-    while len(s)<digits:
-        s = '0'+s
+    while len(s) < digits:
+        s = '0' + s
     return s
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import unittests
     unittests.dataunittest_transforms()
     unittests.dataunittest_files()
