@@ -1,5 +1,5 @@
 
-[Back](../addfadeout.md)
+[Back](./addfadeout.md)
 
 ## Lossless fade-out for a mp4/m4a song
 
@@ -9,7 +9,7 @@ Sometimes you'll have a song that goes on for longer than you like. It's an mp4 
 
 Let's say the song is 6:00 long, and we want to keep only the first 4:00, with an 8 second fade-out. We'll re-encode these last 8 seconds, but we can leave the rest of the song untouched.
 
-* Losslessly split the input file into 3 audio files with `ffmpeg`.
+* Losslessly split the input file into 3 audio files with `ffmpeg`
 
     * (0:00 - 4:00), save as "part1.m4a"
     * (4:00 - 4:08), save as "part2.m4a"
@@ -23,7 +23,7 @@ Let's say the song is 6:00 long, and we want to keep only the first 4:00, with a
 
 * Use `ffmpeg` to extract the raw .aac data from `part2_fade.m4a` to `part2_faderaw.aac`
 
-* Strip the priming frames at the beginning of `part2_faderaw.aac` (see "details" section below)
+* Strip priming data at the beginning of `part2_faderaw.aac` (see Details section below)
 
 * Concatenate the contents of `part1raw.aac` and `part2_faderaw.aac` to `output.aac`
 

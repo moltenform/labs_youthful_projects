@@ -6,13 +6,13 @@ Here's how to extract audio from a video,
 
 * Open CsDownloadVid, click Start, click "Separate audio and video"
 
-* Click "Choose..." and select an mp4 video.
+* Click "Choose..." and select an mp4 video
 
 * Click "Extract Audio Channel (lossless)"
 
 ![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/extractaudio.png)
 
-* That's it! You'll now see a file `video.mp4_audio.m4a` alongside your input `video.mp4`.
+* That's it! You'll now see a file `video.mp4_audio.m4a` alongside your input `video.mp4`
 
 ### More information
 

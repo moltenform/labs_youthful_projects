@@ -1,6 +1,6 @@
 [Back](../README.md)
 
-## CsDownloadVid Setup
+## Setup
 
 ### Prereqs
 
@@ -16,7 +16,7 @@ If you don't already have ffmpeg,
 
 If you don't already have Visual Studio,
 
-* Visual Studio Community is free for open source projects, can be downloaded  [here](https://visualstudio.microsoft.com/downloads/).
+* Visual Studio Community is free for open source projects, can be downloaded  [here](https://visualstudio.microsoft.com/downloads/)
 
 In a command line,
 
@@ -26,7 +26,7 @@ In a command line,
 
 * Run `git clone https://github.com/downpoured/labs_youthful_projects.git`
 
-* Use Visual Studio to build `labs_youthful_projects/csdownloadvid/src/csdownloadvid.sln` as Release.
+* Use Visual Studio to build `labs_youthful_projects/csdownloadvid/src/csdownloadvid.sln` as Release
 
 * Run `cd C:\path\to\csdownload`
 
@@ -40,16 +40,16 @@ In a command line,
 
 * Run `robocopy .\labs_coordinate_music\ben_python_common .\output\ben_python_common /e /mir`
 
-You can now open `C:\path\to\csdownload\output` and open `CsDownloadVid.exe`.
+You can now open `C:\path\to\csdownload\output` and open `CsDownloadVid.exe`
 
 ### First run
 
-* Open `CsDownloadVid.exe`, click "Start", and click "Download a video".
+* Open `CsDownloadVid.exe`, click "Start", and click "Download a video"
 
-* If you are running Linux/Mac, use `mono` to start `CsDownloadVid.exe`.
+* If you are running Linux/Mac, use `mono` to start `CsDownloadVid.exe`
 
-* Click the "Get updates" button on the right. You'll need to do this before any videos can be downloaded.
+* Click the "Get updates" button on the right. You'll need to do this before any videos can be downloaded
 
-* The first time you click Download, you might be asked for the location of `python 3` and `ffmpeg`.
+* The first time you click Download, you might be asked for the location of `python 3` and `ffmpeg`
 
 * Done!

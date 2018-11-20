@@ -16,21 +16,21 @@ If you don't have qaac set up:
     
     * Extract the file `AppleApplicationSupport.msi`
     
-    * Run `AppleApplicationSupport.msi`, which will install the x86 aac encoder (smaller than installing all of iTunes).
+    * Run `AppleApplicationSupport.msi`, which will install the x86 aac encoder (smaller than installing all of iTunes)
 
-* Download qaac_2.xx.zip, such as [qaac_2.66.zip](https://sites.google.com/site/qaacpage/cabinet/qaac_2.66.zip?attredirects=0&d=1) from [Google sites](https://sites.google.com/site/qaacpage/cabinet)
+* Download qaac, such as [qaac_2.66.zip](https://sites.google.com/site/qaacpage/cabinet/qaac_2.66.zip?attredirects=0&d=1) from [Google sites](https://sites.google.com/site/qaacpage/cabinet)
 
-* Unzip the qaac zip file.
+* Unzip the qaac zip file
 
 Now that the prereqs are ready,
 
 * Open CsDownloadVid, click Start, click "Split a video or song"
 
-* Click "Choose..." to select the input song.
+* Click "Choose..." to select the input song
 
-* Check the "Add fadeout" box, and type in "8" for an 8-second long fadeout.
+* Check the "Add fadeout" box, and type in "8" for an 8-second long fadeout
 
-* Type 4:00 into the box asking about split points.
+* Type 4:00 into the box asking about split points
 
 ![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/addfadeout.png)
 
@@ -38,7 +38,7 @@ Now that the prereqs are ready,
 
 * If this is the first time, you'll probably be asked for the location of `qaac.exe`
 
-* That's it! You should see a new file "song.m4a_fadeout.m4a" alongside your input "song.m4a".
+* That's it! You should see a new file "song.m4a_fadeout.m4a" alongside your input "song.m4a"
 
-* There will sometimes be a quiet sound artifact heard right at the transition. In my example, if there is a quiet sound at 4:00 in the output, I'll try the process again using 4:01 instead of 4:00.
+There will sometimes be a quiet sound artifact heard right at the transition. In my example, if there is a quiet sound at 4:00 in the output, I'll try the process again using 4:01 instead of 4:00. [Read more about the method used to losslessly add fadeout](addfadeout_theory.md).
 

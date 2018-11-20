@@ -4,11 +4,11 @@
 
 Here's how to download videos in CsDownloadVid,
 
-* Open `CsDownloadVid`, click "Start", and click "Download a video".
+* Open `CsDownloadVid`, click "Start", and click "Download a video"
 
-* Click "Get updates" to ensure you have the latest ytdl.
+* Click "Get updates" to ensure you have the latest ytdl
 
-* Enter a URL and click "Go to next step".
+* Enter a URL and click "Go to next step"
 
 * After a few seconds, you'll see different download quality choices. Select one of the choices and click "Go to next step".
 
