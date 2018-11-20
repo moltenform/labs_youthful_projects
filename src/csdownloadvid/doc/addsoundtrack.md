@@ -1,12 +1,14 @@
 [Back](../README.md)
 
-## Add soundtrack to a video (lossless)
+## Add Soundtrack
+
+Here's how to losslessly add a soundtrack to a video,
 
 * Open CsDownloadVid, click Start, click "Separate audio and video"
 
 * Click the button that says "Combine Audio+Video Channel (lossless)"
 
-(addsoundtrack.png)
+![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/addsoundtrack.png)
 
 * Choose an audio file (typically .m4a, .mp4, or .mp3) 
 
@@ -14,6 +16,6 @@
 
 * That's it! You'll now see an output file alongside the video file.
 
-(Interestingly, the mp4 format doesn't support some common audio types, like flac. The mkv format seems to support many more encodings.)
+(There are a few common audio types that aren't supported in a mp4 video, like flac. The mkv format seems to support many more audio and video encodings.)
 
 

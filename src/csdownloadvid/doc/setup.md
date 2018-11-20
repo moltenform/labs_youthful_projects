@@ -1,8 +1,8 @@
 [Back](../README.md)
 
-## csdownloadvid Setup
+## CsDownloadVid Setup
 
-(These instructions are for Windows, csdownloadvid can be used in Linux via Mono, but this isn't the primary use case).
+### Prereqs
 
 If you don't already have Python 3 installed,
 
@@ -10,17 +10,17 @@ If you don't already have Python 3 installed,
 
 If you don't already have ffmpeg,
 
-* Download compiled ffmpeg binaries from [here](https://ffmpeg.zeranoe.com/builds/). The default "version", "architecture", and "linking" is fine. Save to any directory, you don't have to add to the PATH or add to program files.
+* Download compiled ffmpeg binaries from [here](https://ffmpeg.zeranoe.com/builds/). The default "version", "architecture", and "linking" is fine. Save to any directory you like, you don't have to add to the PATH or add to program files.
 
-## Building from source
+### Build from source
 
 If you don't already have Visual Studio,
 
-* [Visual Studio Community](https://visualstudio.microsoft.com/downloads/) is free as-in beer.
+* Visual Studio Community is free for open source projects, can be downloaded  [here](https://visualstudio.microsoft.com/downloads/).
+
+In a command line,
 
 * Make a destination directory in a writable location, like `C:\path\to\csdownload`
-
-* Open a command line,
 
 * Run `cd C:\path\to\csdownload`
 
@@ -32,20 +32,24 @@ If you don't already have Visual Studio,
 
 * Run `mkdir output`
 
-* Run `copy labs_youthful_projects/csdownloadvid/src/bin/Release/csdownloadvid.exe .\output`
+* Run `copy labs_youthful_projects/csdownloadvid/src/bin/Release/csdownloadvid.exe .\output\CsDownloadVid.exe`
 
-* Run `copy labs_youthful_projects/csdownloadvid/py/benpytwrapper.py .\output`
+* Run `copy labs_youthful_projects/csdownloadvid/py/benpytwrapper.py .\output\benpytwrapper.py`
 
 * Run `git clone https://github.com/downpoured/labs_coordinate_music.git`
 
 * Run `robocopy .\labs_coordinate_music\ben_python_common .\output\ben_python_common /e /mir`
 
-You can now open `C:\path\to\csdownload\output` and run `csdownloadvid.exe`.
+You can now open `C:\path\to\csdownload\output` and open `CsDownloadVid.exe`.
 
-## First run
+### First run
 
-* Run `csdownloadvid.exe`, click "Start", and click "Download a video".
+* Open `CsDownloadVid.exe`, click "Start", and click "Download a video".
 
-* You might be asked for the location of Python 3.
+* If you are running Linux/Mac, use `mono` to start `CsDownloadVid.exe`.
 
 * Click the "Get updates" button on the right. You'll need to do this before any videos can be downloaded.
+
+* The first time you click Download, you might be asked for the location of `python 3` and `ffmpeg`.
+
+* Done!

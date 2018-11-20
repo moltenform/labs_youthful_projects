@@ -1,7 +1,7 @@
 
 ## csdownloadvid
 
-A little GUI wrapper for downloading internet vids (via ytdl)<br/>
+A little GUI wrapper for downloading internet vids (via ytdl and pytube)<br/>
 (this is just one of my "half hour hacks", by no means an exemplar of design).
 
 [Setup/install](./doc/setup.md)
@@ -12,10 +12,10 @@ A little GUI wrapper for downloading internet vids (via ytdl)<br/>
 
 [Add soundtrack to a video (lossless)](./doc/addsoundtrack.md)
 
-[Split mp4/m4a/mp3 audio (lossless)](./doc/splitm4a.md)
+[Split audio (lossless)](./doc/split.md)
 
-[Join mp4/m4a/mp3 audio (lossless)](./doc/joinm4a.md)
+[Join audio (lossless)](./doc/join.md)
 
-[Fade-out a mp4/m4a audio (lossless)](./doc/addfadeout.md)
+[Fade-out audio (lossless)](./doc/addfadeout.md)
 
-(Todo: Screnshot here)
+![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/readme_main.png)
