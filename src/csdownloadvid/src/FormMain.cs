@@ -40,8 +40,8 @@ namespace CsDownloadVid
 
         private void mnuOpenHelpWebsite_Click(object sender = null, EventArgs e = null)
         {
-            Process.Start("https://github.com/moltenjs/labs_youthful_projects/" +
-                "csdownloadvid/README.md");
+            Process.Start("https://github.com/downpoured/labs_youthful_projects/" +
+                "blob/master/csdownloadvid/README.md");
         }
     }
 }

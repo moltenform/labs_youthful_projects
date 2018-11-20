@@ -52,6 +52,13 @@ namespace CsDownloadVid
 
         private ProcessStartInfo MakeTask(bool audioOrVideo, string suggestedFormat, string file)
         {
+            if (suggestedFormat.StartsWith("."))
+            {
+                // let the user type ".m4a" as well as "m4a"
+                suggestedFormat = suggestedFormat.Substring(1);
+            }
+
+            Utils.AssertTrue(suggestedFormat.Length > 0);
             var args = new List<string>();
             args.Add("-nostdin");
             args.Add("-i");
@@ -160,8 +167,8 @@ namespace CsDownloadVid
             }
 
             var outFormat = Path.GetExtension(video);
-            outFormat = outFormat.EndsWith(".m4v") ? ".mp4" : outFormat;
-            var output = video + "_out." + outFormat;
+            outFormat = video.EndsWith(".m4v") ? ".mp4" : outFormat;
+            var output = video + "_out" + outFormat;
             if (File.Exists(output))
             {
                 MessageBox.Show("File already exists " + output);
