@@ -684,6 +684,71 @@ namespace CsDownloadVid
                 _runner.RunProcesses(infos.ToArray(), "Custom encode");
             });
         }
+
+        private void btnDownloadFromWeb_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Go to the Chrome Inspector, go to the Network tab, " + 
+                "and refresh the page. Look for a .mp4, .m3u, or .m3u8 url.");
+            var url = InputBoxForm.GetStrInput("Enter the url that was seen,");
+            if (!String.IsNullOrEmpty(url))
+            {
+                RunToolHelper.RunAndCatch(() =>
+                {
+                    downloadFromWeb(url);
+                });
+            }
+        }
+
+        private void downloadFromWeb(string url)
+        {
+            lblShortStatus.Visible = true;
+            txtStatus.Visible = true;
+            var urlBeforeParam = Utils.SplitByString(url, "?")[0];
+            if (urlBeforeParam.EndsWith(".m3u") || urlBeforeParam.EndsWith(".m3u8"))
+            {
+                var ext = Utils.AskToConfirm(
+                    "Use mp4 (default) or .mkv (more resilient)?") ? ".mp4" : ".mkv";
+                var nameShort = Path.GetFileName(urlBeforeParam);
+                var destName = Path.Combine(txtOutputDir.Text,
+                    Path.GetFileNameWithoutExtension(nameShort) + ext);
+                MessageBox.Show("Downloading video (via m3u) to " + destName + "...");
+                Utils.AssertTrue(!File.Exists(destName), "File already exists here.");
+                var args = new List<string>() { "-i", url, "-c", "copy" };
+                if (ext == ".mp4")
+                {
+                    args.Add("-bsf:a");
+                    args.Add("aac_adtstoasc");
+                }
+
+                args.Add(destName);
+                var info = new ProcessStartInfo();
+                info.FileName = CsDownloadVidFilepaths.GetFfmpeg();
+                info.Arguments = Utils.CombineProcessArguments(args.ToArray());
+                info.CreateNoWindow = true;
+                info.RedirectStandardError = true;
+                info.RedirectStandardOutput = true;
+                info.UseShellExecute = false;
+                _runner.RunInThread(() =>
+                {
+                    _runner.Trace("Downloading...");
+                    _runner.RunProcessSync(info, "Download from web");
+                    _runner.Trace("Download complete, to " + destName);
+                });
+            }
+            else
+            {
+                var destName = Path.Combine(txtOutputDir.Text,
+                    Path.GetFileName(urlBeforeParam));
+                MessageBox.Show("Downloading video to " + destName + "...");
+                Utils.AssertTrue(!File.Exists(destName), "File already exists here.");
+                _runner.RunInThread(() => 
+                {
+                    _runner.Trace("Downloading...");
+                    DownloadLatestPyScriptBase.DownloadFile(url, destName);
+                    _runner.Trace("Download complete, to " + destName);
+                });
+            }
+        }
     }
 
     public class ListBoxItemFormat : IComparable<ListBoxItemFormat>

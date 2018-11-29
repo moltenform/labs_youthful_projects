@@ -58,6 +58,7 @@ namespace CsDownloadVid
             this.lblShortStatus = new System.Windows.Forms.Label();
             this.btnGetUpdates = new System.Windows.Forms.Button();
             this.cbUsePytube = new System.Windows.Forms.CheckBox();
+            this.btnDownloadFromWeb = new System.Windows.Forms.Button();
             this.panelChooseQuality.SuspendLayout();
             this.panelAdvanced.SuspendLayout();
             this.panelChooseOutput.SuspendLayout();
@@ -150,6 +151,7 @@ namespace CsDownloadVid
             // 
             // panelAdvanced
             // 
+            this.panelAdvanced.Controls.Add(this.btnDownloadFromWeb);
             this.panelAdvanced.Controls.Add(this.txtAdditionalArgs);
             this.panelAdvanced.Controls.Add(this.txtWaitBetween);
             this.panelAdvanced.Controls.Add(this.txtFilenamePattern);
@@ -226,19 +228,19 @@ namespace CsDownloadVid
             // 
             // btnEncode
             // 
-            this.btnEncode.Location = new System.Drawing.Point(112, 214);
+            this.btnEncode.Location = new System.Drawing.Point(79, 214);
             this.btnEncode.Name = "btnEncode";
-            this.btnEncode.Size = new System.Drawing.Size(82, 26);
+            this.btnEncode.Size = new System.Drawing.Size(56, 26);
             this.btnEncode.TabIndex = 38;
-            this.btnEncode.Text = "Encode video";
+            this.btnEncode.Text = "Encode";
             this.btnEncode.UseVisualStyleBackColor = true;
             this.btnEncode.Click += new System.EventHandler(this.btnEncode_Click);
             // 
             // btnGetPlaylist
             // 
-            this.btnGetPlaylist.Location = new System.Drawing.Point(19, 214);
+            this.btnGetPlaylist.Location = new System.Drawing.Point(3, 214);
             this.btnGetPlaylist.Name = "btnGetPlaylist";
-            this.btnGetPlaylist.Size = new System.Drawing.Size(82, 26);
+            this.btnGetPlaylist.Size = new System.Drawing.Size(73, 26);
             this.btnGetPlaylist.TabIndex = 38;
             this.btnGetPlaylist.Text = "Get playlist";
             this.btnGetPlaylist.UseVisualStyleBackColor = true;
@@ -356,6 +358,16 @@ namespace CsDownloadVid
             this.cbUsePytube.UseVisualStyleBackColor = true;
             this.cbUsePytube.CheckedChanged += new System.EventHandler(this.chkShowAdvanced_CheckedChanged);
             // 
+            // btnDownloadFromWeb
+            // 
+            this.btnDownloadFromWeb.Location = new System.Drawing.Point(141, 214);
+            this.btnDownloadFromWeb.Name = "btnDownloadFromWeb";
+            this.btnDownloadFromWeb.Size = new System.Drawing.Size(81, 26);
+            this.btnDownloadFromWeb.TabIndex = 42;
+            this.btnDownloadFromWeb.Text = "From Web";
+            this.btnDownloadFromWeb.UseVisualStyleBackColor = true;
+            this.btnDownloadFromWeb.Click += new System.EventHandler(this.btnDownloadFromWeb_Click);
+            // 
             // FormGetVideo
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -418,5 +430,6 @@ namespace CsDownloadVid
         private System.Windows.Forms.CheckBox cbUsePytube;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button btnEncode;
+        private System.Windows.Forms.Button btnDownloadFromWeb;
     }
 }
