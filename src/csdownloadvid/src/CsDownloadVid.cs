@@ -53,7 +53,7 @@ namespace CsDownloadVid
 
         public void Trace(string txt, bool alert = false)
         {
-            Utils.AssertTrue(_tb != null);
+            Utils.AssertTrue(_tb != null, "tb is null");
             _tb.BeginInvoke((MethodInvoker)(() =>
             {
                 if (alert)
@@ -400,11 +400,9 @@ namespace CsDownloadVid
             if (Directory.Exists(pathIncomingDir))
                 Directory.Delete(pathIncomingDir, true);
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var url = this.GetUrl();
             run.Trace("Downloading from " + url);
-            using (var client = new WebClient())
-                client.DownloadFile(url, pathIncomingZip);
+            DownloadFile(url, pathIncomingZip);
 
             if (!File.Exists(pathIncomingZip))
                 throw new CsDownloadVidException("No file was downloaded. " + url);
@@ -441,6 +439,19 @@ namespace CsDownloadVid
             run.Trace("Moving incoming to current");
             File.Move(pathIncomingZip, pathCurrentZip);
             Directory.Move(pathIncomingDir, pathCurrentDir);
+        }
+
+        public static void DownloadFile(string url, string dest)
+        {
+            if (url.StartsWith("https"))
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            }
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(url, dest);
+            }
         }
 
         public abstract string GetPrefix();
@@ -598,7 +609,7 @@ openload.py"; // note: no generic.py since it pulls in a lot. once.py and openlo
 
         public bool TryEnter()
         {
-            Utils.AssertTrue(!this._needToClose);
+            Utils.AssertTrue(!this._needToClose, "Cannot enter when already entered.");
             var entered = Monitor.TryEnter(this._lock);
             if (entered)
             {

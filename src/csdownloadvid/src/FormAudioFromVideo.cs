@@ -58,7 +58,7 @@ namespace CsDownloadVid
                 suggestedFormat = suggestedFormat.Substring(1);
             }
 
-            Utils.AssertTrue(suggestedFormat.Length > 0);
+            Utils.AssertTrue(suggestedFormat.Length > 0, "You did not provide a suggested format.");
             var args = new List<string>();
             args.Add("-nostdin");
             args.Add("-i");

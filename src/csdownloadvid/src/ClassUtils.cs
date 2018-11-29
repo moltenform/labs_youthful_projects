@@ -707,7 +707,7 @@ namespace CsDownloadVid
 #endif
         }
 
-        public static void AssertEq(object expected, object actual)
+        public static void AssertEq(object expected, object actual, string msg = "")
         {
             // use a token to make sure that IsEq(null, null) works.
             expected = expected ?? tokenRepresentingNull;
@@ -716,13 +716,14 @@ namespace CsDownloadVid
             if (!expected.Equals(actual))
             {
                 throw new CsDownloadVidException(
-                    "Assertion failure, expected " + expected + " but got " + actual);
+                    "Assertion failure, " + Utils.NL + Utils.NL + msg +
+                    ", expected " + expected + " but got " + actual);
             }
         }
 
-        public static void AssertTrue(bool actual)
+        public static void AssertTrue(bool actual, string msg = "")
         {
-            AssertEq(true, actual);
+            AssertEq(true, actual, msg);
         }
 
         public static string[] SplitLines(string s)
