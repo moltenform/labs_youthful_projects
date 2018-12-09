@@ -22,12 +22,16 @@ namespace CsDownloadVid
         readonly Func<string, bool> _filterOutput;
         readonly object _lock = new object();
         int _waitBetweenMs = 0;
+        bool _showOutputSooner = false;
         volatile Process _process;
         volatile bool _cancelRequested = false;
-        public RunToolHelper(TextBox tb, Label shortlabel, Func<string, bool> filter)
+        public RunToolHelper(TextBox tb, Label shortlabel,
+            Func<string, bool> filter,
+            bool showOutputSooner = false)
         {
             _tb = tb;
             _shortLabel = shortlabel;
+            _showOutputSooner = showOutputSooner;
             _filterOutput = filter;
         }
 
@@ -35,6 +39,8 @@ namespace CsDownloadVid
         {
             if (e is CsDownloadVidException eOurs)
                 return eOurs.Message;
+            else if (e == null)
+                return "(null)";
             else
                 return e.ToString();
         }
@@ -74,8 +80,10 @@ namespace CsDownloadVid
             var lines = Utils.SplitLines(txt);
             foreach (var line in lines)
             {
-                if (_filterOutput != null && _filterOutput(line))
+                if (_filterOutput == null || _filterOutput(line))
+                {
                     Trace(line);
+                }
             }
         }
 
@@ -84,11 +92,25 @@ namespace CsDownloadVid
             _waitBetweenMs = n;
         }
 
-        private void _process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        private void _process_OnDataReceived(object o, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
-                Trace("output: " + e.Data);
+                var s = Utils.NL + "output: " + e.Data;
+                if (_showOutputSooner)
+                {
+                    _tb.Invoke((MethodInvoker)(() =>
+                    {
+                        _tb.AppendText(s);
+                    }));
+                }
+                else
+                {
+                    _tb.BeginInvoke((MethodInvoker)(() =>
+                    {
+                        _tb.AppendText(s);
+                    }));
+                }
             }
         }
 
@@ -122,7 +144,8 @@ namespace CsDownloadVid
             });
         }
 
-        public void RunProcessSync(ProcessStartInfo info, string actionName)
+        public void RunProcessSync(ProcessStartInfo info, string actionName,
+            bool prioritizeStdErr = true)
         {
             _cancelRequested = false;
             try
@@ -130,8 +153,16 @@ namespace CsDownloadVid
                 _process = new Process();
                 _process.StartInfo = info;
                 _process.Start();
-                _process.ErrorDataReceived += _process_ErrorDataReceived;
-                _process.BeginErrorReadLine();
+                _process.OutputDataReceived += _process_OnDataReceived;
+                if (prioritizeStdErr)
+                {
+                    _process.BeginErrorReadLine();
+                }
+                else 
+                {
+                    _process.BeginOutputReadLine();
+                }
+
                 _process.WaitForExit();
                 Trace("Running: " + info.FileName + " " + info.Arguments);
                 if (_process.ExitCode != 0)
@@ -139,7 +170,8 @@ namespace CsDownloadVid
                     Trace("warning: exited with code " + _process.ExitCode, true);
                 }
 
-                using (StreamReader reader = _process.StandardOutput)
+                var stm = prioritizeStdErr ? _process.StandardOutput : _process.StandardError;
+                using (StreamReader reader = stm)
                 {
                     string stdout = reader.ReadToEnd();
                     TraceFiltered(stdout);
@@ -162,11 +194,12 @@ namespace CsDownloadVid
             Trace(actionName + " " + (_cancelRequested ? "Canceled" : "Complete"));
         }
 
-        public void RunProcess(ProcessStartInfo info, string actionName)
+        public void RunProcess(ProcessStartInfo info, string actionName,
+            bool prioritizeStdErr = true)
         {
             RunInThread(() =>
             {
-                RunProcessSync(info, actionName);
+                RunProcessSync(info, actionName, prioritizeStdErr);
             });
         }
 
