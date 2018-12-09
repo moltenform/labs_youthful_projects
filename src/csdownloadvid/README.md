@@ -18,4 +18,4 @@ A little GUI wrapper for downloading internet vids (via ytdl and pytube)<br/>
 
 * [Losslessly fade-out audio](./doc/addfadeout.md)
 
-<a href="./doc/setup.md">![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/readme_main.png)</a>
+<a href="./doc/setup.md">![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/readme_main.png)</a>

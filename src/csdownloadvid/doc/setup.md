@@ -24,7 +24,7 @@ In a command line,
 
 * Run `cd C:\path\to\csdownload`
 
-* Run `git clone https://github.com/downpoured/labs_youthful_projects.git`
+* Run `git clone https://github.com/moltenjs/labs_youthful_projects.git`
 
 * Use Visual Studio to build `labs_youthful_projects/csdownloadvid/src/csdownloadvid.sln` as Release
 
@@ -36,7 +36,7 @@ In a command line,
 
 * Run `copy labs_youthful_projects/csdownloadvid/py/benpytwrapper.py .\output\benpytwrapper.py`
 
-* Run `git clone https://github.com/downpoured/labs_coordinate_music.git`
+* Run `git clone https://github.com/moltenjs/labs_coordinate_music.git`
 
 * Run `robocopy .\labs_coordinate_music\ben_python_common .\output\ben_python_common /e /mir`
 

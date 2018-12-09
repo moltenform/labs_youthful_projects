@@ -12,7 +12,7 @@ Here is how to join some audio or video files losslessly,
 
 * Click "Join Together (lossless)"
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/joinm4a.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/joinm4a.png)
 
 * That's it! A .m4a output file will appear alongside the input files
 

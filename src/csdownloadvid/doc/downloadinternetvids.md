@@ -12,11 +12,11 @@ Here's how to download videos in CsDownloadVid,
 
 * After a few seconds, you'll see different download quality choices. Select one of the choices and click "Go to next step".
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/downloadinternetvids_1.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/downloadinternetvids_1.png)
 
 * Choose an output directory by clicking "Browse..."
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/downloadinternetvids_2.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/downloadinternetvids_2.png)
 
 * Click "Download"
 
@@ -28,7 +28,7 @@ Here's how to download videos in CsDownloadVid,
 
 * If you click "Advanced options", you can batch-download several videos. You can enter a list of URLs separated by |, or enter the path of a text file with one url per line.
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/downloadinternetvids_advanced.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/downloadinternetvids_advanced.png)
 
 * When downloading an m4a file via DASH, the resulting file has headers that sometimes don't work with some media players. We'll tell ytdl to use ffmpeg to correct the headers.
 

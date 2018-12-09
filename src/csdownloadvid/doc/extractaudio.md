@@ -10,7 +10,7 @@ Here's how to extract audio from a video,
 
 * Click "Extract Audio Channel (lossless)"
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/extractaudio.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/extractaudio.png)
 
 * That's it! You'll now see a file `video.mp4_audio.m4a` alongside your input `video.mp4`
 

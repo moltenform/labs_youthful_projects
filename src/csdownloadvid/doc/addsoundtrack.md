@@ -8,7 +8,7 @@ Here's how to losslessly add a soundtrack to a video,
 
 * Click the button that says "Combine Audio+Video Channel (lossless)"
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/addsoundtrack.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/addsoundtrack.png)
 
 * Choose an audio file (typically .m4a, .mp4, or .mp3) 
 

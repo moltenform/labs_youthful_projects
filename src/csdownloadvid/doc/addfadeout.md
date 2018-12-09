@@ -32,7 +32,7 @@ Now that the prereqs are ready,
 
 * Type 4:00 into the box asking about split points
 
-![Screenshot](https://raw.githubusercontent.com/downpoured/labs_youthful_projects/master/csdownloadvid/doc/addfadeout.png)
+![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/addfadeout.png)
 
 * Click "Split (Lossless)"
 
