@@ -4,18 +4,18 @@
 A little GUI wrapper for downloading internet vids (via ytdl and pytube)<br/>
 (just one of my "half hour hacks", by no means an exemplar of design).
 
-* [Setup/install](./doc/setup.md)
+* [Setup/install](https://moltenjs.com/page/csdownloadvid/doc/setup.html)
 
-* [Download internet videos](./doc/downloadinternetvids.md)
+* [Download internet videos](https://moltenjs.com/page/csdownloadvid/doc/downloadinternetvids.html)
 
-* [Losslessly extract audio from a video](./doc/extractaudio.md)
+* [Losslessly extract audio from a video](https://moltenjs.com/page/csdownloadvid/doc/extractaudio.html)
 
-* [Losslessly add soundtrack to a video](./doc/addsoundtrack.md)
+* [Losslessly add soundtrack to a video](https://moltenjs.com/page/csdownloadvid/doc/addsoundtrack.html)
 
-* [Losslessly split audio](./doc/split.md)
+* [Losslessly split audio](https://moltenjs.com/page/csdownloadvid/doc/split.html)
 
-* [Losslessly join audio](./doc/join.md)
+* [Losslessly join audio](https://moltenjs.com/page/csdownloadvid/doc/join.html)
 
-* [Losslessly fade-out audio](./doc/addfadeout.md)
+* [Losslessly fade-out audio](https://moltenjs.com/page/csdownloadvid/doc/addfadeout.html)
 
-<a href="./doc/setup.md">![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/readme_main.png)</a>
+<a href="https://moltenjs.com/page/csdownloadvid/doc/setup.html">![Screenshot](https://raw.githubusercontent.com/moltenjs/labs_youthful_projects/master/csdownloadvid/doc/readme_main.png)</a>
