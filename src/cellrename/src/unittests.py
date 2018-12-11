@@ -1,43 +1,48 @@
 
 
 import os
-import exceptions
 dir = './unittesttemp'
 join = os.path.join
 exists = os.path.exists
 
+def isString(s):
+    import sys
+    if sys.version_info[0] > 2:
+        return isinstance(s, str)
+    else:
+        return isinstance(s, basestring)
 
 def expectEqual(v, vExpected):
     if v != vExpected:
-        print 'Fail: Expected '+str(vExpected)+' but got '+str(v)
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: Expected '+str(vExpected)+' but got '+str(v))
+        raise RuntimeError('stop')
     else:
-        print 'Pass: '+str(vExpected)+' == '+str(v)
+        print('Pass: '+str(vExpected)+' == '+str(v))
         
 def expectStringContains(s, sExpected):
-    if not isinstance(s, basestring): raise exceptions.RuntimeError, 'not even a string.'
+    if not isString(s): raise RuntimeError('not even a string.')
     if sExpected.lower() not in s.lower():
-        print 'Fail: Expected '+str(sExpected)+' within string '+str(s)
-        raise exceptions.RuntimeError, 'stop'
+        print('Fail: Expected '+str(sExpected)+' within string '+str(s))
+        raise RuntimeError('stop')
     else:
-        print 'Pass: the string "'+str(s)+'" contains "'+str(sExpected)+'"'
+        print('Pass: the string "'+str(s)+'" contains "'+str(sExpected)+'"')
 
-def expectThrow(fn, sExpectedError, exceptionClass=exceptions.RuntimeError):
+def expectThrow(fn, sExpectedError, exceptionClass=RuntimeError):
     try:
         fn()
-    except exceptionClass,e:
+    except exceptionClass as e:
         sError = str(e).split('\n')[-1]
         if sExpectedError.lower() in sError.lower():
-            print 'Pass:', sExpectedError, ' within ', sError
+            print('Pass:', sExpectedError, ' within ', sError)
         else:
-            print 'Fail: expected msg', sExpectedError, 'got', sError
+            print('Fail: expected msg', sExpectedError, 'got', sError)
     else:
-        print 'Fail: expected to throw! '+sExpectedError
+        print('Fail: expected to throw! '+sExpectedError)
 
 
 def unittestsetup():
     if not os.path.exists('unittests.py') and not os.path.exists('cellrename.exe'):
-        print 'Please open with the current directory set to where this file is.'
+        print('Please open with the current directory set to where this file is.')
         assert False
     
     # nuke the unittest directory

@@ -35,8 +35,16 @@ def saveFileDialog(window, text, defaultDirectory=None, defaultFilename=None):
         return None
 
 def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, defaultFilename=None):
-    if bMultiple: style = wx.MULTIPLE
-    else: style = wx.OPEN
+    try:
+        open = wx.OPEN
+    except AttributeError:
+        open = wx.FD_OPEN
+    try:
+        multiple = wx.MULTIPLE
+    except AttributeError:
+        multiple = wx.FD_MULTIPLE
+    if bMultiple: style = multiple
+    else: style = open
     dlg = wx.FileDialog(window, style=style, message=text)
     
     if defaultDirectory!=None: dlg.SetDirectory(defaultDirectory)

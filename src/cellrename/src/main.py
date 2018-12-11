@@ -1,7 +1,6 @@
-#!/usr/bin/env python2
 
 # cellrename, by Ben Fisher. GPLv3.
-# https://github.com/downpoured/labs_youthful_projects/tree/master/cellrename
+# https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
 
 import os
 import sys
@@ -92,6 +91,7 @@ class CellRenameMain(wx.Frame):
         menuHelp = wx.Menu()
         addMenuItem(menuHelp, '&About CellRename', self.onMenuHelpAbout)
         addMenuItem(menuHelp, '&Tips', self.onMenuHelpTips)
+        addMenuItem(menuHelp, '&Documentation', openOnlineDocs)
 
         menubar = wx.MenuBar()
         menubar.Append(menuFile, '&File')
@@ -104,7 +104,11 @@ class CellRenameMain(wx.Frame):
         self.SetStatusText(s, 0)
     
     def onMenuFileOpen(self, evt):
-        dialog = wx.FileDialog(self, style=wx.OPEN, message="Select any file in the target directory:" )
+        try:
+            open = wx.OPEN
+        except AttributeError:
+            open = wx.FD_OPEN
+        dialog = wx.FileDialog(self, style=open, message="Select any file in the target directory:" )
         try:
             if dialog.ShowModal() == wx.ID_OK and dialog.GetPath():
                 sPath, sFilename = os.path.split(dialog.GetPath())
@@ -241,20 +245,21 @@ class CellRenameMain(wx.Frame):
         wxutil.alertDialog(self, '''cellrename: renaming files with a spreadsheet-like UI.
         
 Ben Fisher, 2008, GPL
-https://github.com/downpoured/labs_youthful_projects/tree/master/cellrename
-https://www.moltensyntax.com/articles/cellrename/''', 'About')
+https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
+https://moltenform.com/page/cellrename/doc/''', 'About')
 
     def onMenuHelpTips(self, evt):
-        sTips = r'''Copy a directory path and open CellRename to start in that directory.
+        sTips = r'''Tips
+
+Copy a directory path and open CellRename to start in that directory.
 
 When replacing with regex, capture groups work:
 replacing "(\w+),(\w+)" with "\2,\1" will turn "first,second" into "second,first". 
 
 See also, the documentation at
-https://github.com/downpoured/labs_youthful_projects/tree/master/cellrename
+https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
 '''
         wxutil.alertDialog(self, sTips, 'Tips')
-
     
     # respond to message sent by grid, sField is the name of the column to sort by
     def onSortEvent(self, sField, bReverse):
@@ -337,33 +342,52 @@ def askWithHistory(parent, key, prompt):
     
     return val
 
+def openOnlineDocs(context=None):
+    import webbrowser
+    url = 'https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename/README.md'
+    webbrowser.open(url, new=1)
+
+def isListableDir(s):
+    if not os.path.isdir(s):
+        return False
+    try:
+        os.listdir(s)
+        return True
+    except:
+        return False
+    
 class MyApp(wx.App):
     def OnInit(self):
         # find an appropriate starting directory
         if os.name == 'nt':
-            sDirectory = os.path.join(os.environ['USERPROFILE'], 'Documents')
-            if not os.path.exists(sDirectory):
-                sDirectory = os.path.join(os.environ['USERPROFILE'], 'My Documents')
-            if not os.path.exists(sDirectory):
-                sDirectory = 'c:\\'
+            userprof = os.environ.get('USERPROFILE', '')
+            sDirectory = os.path.join(userprof, 'Documents')
+            if not isListableDir(sDirectory):
+                sDirectory = os.path.join(userprof, 'My Documents')
+            if not isListableDir(sDirectory):
+                sDirectory = u'C:\\'
         else:
-            sDirectory = os.environ['HOME']
-            if not os.path.exists(sDirectory):
-                sDirectory = '~/'
-            if not os.path.exists(sDirectory):
-                sDirectory = '/'
+            sDirectory = os.environ.get('HOME', '/')
+            if not isListableDir(sDirectory):
+                sDirectory = u'/'
         
+        if sys.version_info[0] <= 2:
+            sDirectory = unicode(sDirectory)
         sFilter = '*'
         bIncludeDirs = False
         
         # use a directory from the clipboard if available
-        sclip = wxutil.getClipboardText()
+        try:
+            sclip = wxutil.getClipboardText()
+        except:
+            sclip = None
         if sclip and os.sep in sclip:
-            if os.path.isdir(sclip):
+            if isListableDir(sclip):
                 sDirectory = sclip
             elif os.path.exists(sclip):
                 parent = os.path.split(sclip)[0]
-                if os.path.isdir(parent): sDirectory = parent
+                if isListableDir(parent):
+                    sDirectory = parent
         
         frame = CellRenameMain(None, -1, 'CellRename', sDirectory, sFilter, bIncludeDirs)
         frame.Show(True)
@@ -375,3 +399,4 @@ if getattr(sys, 'frozen', False):
 
 app = MyApp(0)
 app.MainLoop()
+

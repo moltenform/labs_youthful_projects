@@ -1,11 +1,11 @@
 
 # cellrename, by Ben Fisher. GPLv3.
-# https://github.com/downpoured/labs_youthful_projects/tree/master/cellrename
+# https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
 
 import os
 import fnmatch
 
-class CellRenameData():
+class CellRenameData(object):
     ''' CellRenameData holds a list of cellrenameitems.
     The grid UI will load an instance of this class and render it. '''
     data = None
@@ -167,7 +167,7 @@ class CellRenameData():
     def __str__(self):
         return '\n'.join((str(elem) for elem in self.data))
 
-class CellRenameItem():
+class CellRenameItem(object):
     filename = None
     newname = None
     size = None

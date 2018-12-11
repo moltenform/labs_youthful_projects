@@ -1,6 +1,6 @@
 
 # cellrename, by Ben Fisher. GPLv3.
-# https://github.com/downpoured/labs_youthful_projects/tree/master/cellrename
+# https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
 
 import wx
 

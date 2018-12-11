@@ -27,11 +27,12 @@ class CellRenameGrid(gridlib.Grid):
         # set size
         self.SetColSize(0, 175)
         self.SetColSize(1, 175)
-        
-        # make cols read-only
-        attrReadonly = gridlib.GridCellAttr()
-        attrReadonly.SetReadOnly()
-        for c in (COL_FILENAME,COL_SIZE):
+
+        # note: create a new GridCellAttr for each c.
+        # if you reuse a GridCellAttr you get "C++ assertion "m_count > 0" failed" on app exit
+        for c in (COL_FILENAME, COL_SIZE):
+            attrReadonly = gridlib.GridCellAttr()
+            attrReadonly.SetReadOnly()
             self.SetColAttr(c, attrReadonly)
             
         self.EnableDragRowSize(False)
