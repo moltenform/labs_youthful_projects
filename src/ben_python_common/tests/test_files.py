@@ -6,8 +6,8 @@ import tempfile
 import os
 from os.path import join
 from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listchildren,
-    getname, getparent, listfiles, recursedirs, recursefiles, computeHash,
-    ensure_empty_directory, ustr, makedirs, isfile)
+    getname, getparent, listfiles, recursedirs, recursefiles, listfileinfo, recursefileinfo,
+    computeHash, runWithoutWaitUnicode, ensure_empty_directory, ustr, makedirs, isfile)
     
 class TestComputeHash(object):
     def test_computeHashDefaultHash(self, fixture_dir):
@@ -199,6 +199,14 @@ class TestRunProcess(object):
         returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], captureoutput=False)
         assert returncode == 0 and isfile(join(fixture_dir, 'dest.txt'))
 
+    def test_runShellScriptWithUnicodeChars(self, fixture_dir):
+        import time
+        writeall(join(fixture_dir, 'src.txt'), 'contents')
+        writeall(join(fixture_dir, u's\u1101.bat'), 'copy src.txt dest.txt')
+        runWithoutWaitUnicode([join(fixture_dir, u's\u1101.bat')])
+        time.sleep(0.5)
+        assert isfile(join(fixture_dir, 'dest.txt'))
+    
     def test_runGetExitCode(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\nexit /b 123')
         returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False)
