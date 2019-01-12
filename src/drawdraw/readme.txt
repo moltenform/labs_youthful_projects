@@ -4,5 +4,5 @@ drawdraw is released under the GPL v3 license.
 
 See it in action on this demo page!
 
-https://www.moltensyntax.com/pages/drawdraw/
+https://moltenjs.com/pages/drawdraw/
 
