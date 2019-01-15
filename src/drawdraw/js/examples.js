@@ -5,8 +5,8 @@
  * https://www.gnu.org/licenses/gpl-3.0.txt
  * https://github.com/moltenjs/labs_youthful_projects
  */
- 
- 
+
+
 var g_examples = [
     '{vn=0.1,nshapes=300,pm=0,shapes=[{type=lgen,X=218,A=290,Y=233,B=205,rx=0},{type=c,X=200,A=0,Y=150,B=0,rx=50}]}',
     '{vn=0.1,nshapes=300,pm=0,shapes=[{type=l,X=160.5,A=189.5,Y=193,B=98,rx=0},{type=lgen,X=160.5,A=189.5,Y=193,B=98,rx=0},{type=l,X=200,A=221,Y=200,B=131,rx=0}]}',
@@ -54,7 +54,7 @@ var g_examples = [
     '{vn=0.1,nshapes=675,pm=0,shapes=[{type=l,X=200,A=200,Y=200,B=100,rx=0},{type=lgen,X=226,A=243,Y=101,B=74,rx=0},{type=l,X=169,A=230,Y=101,B=100,rx=0},{type=lgen,X=172,A=151,Y=103,B=71,rx=0},{type=lgen,X=228,A=243,Y=101,B=126,rx=0},{type=lgen,X=169,A=147,Y=102,B=124,rx=0}]}',
     '{vn=0.1,nshapes=300,pm=0,shapes=[{type=l,X=200,A=200,Y=200,B=100,rx=0},{type=l,X=200,A=293,Y=100,B=100,rx=0},{type=l,X=202,A=246,Y=164,B=163,rx=0},{type=l,X=244,A=244,Y=197,B=163,rx=0},{type=l,X=256,A=291,Y=137,B=137,rx=0},{type=l,X=254,A=255,Y=100,B=137,rx=0},{type=lgen,X=273,A=273,Y=100,B=120,rx=0},{type=lgen,X=228,A=228,Y=196,B=177,rx=0},{type=lgen,X=283,A=283,Y=137,B=123,rx=0},{type=lgen,X=215,A=215,Y=164,B=177,rx=0}]}',
 ]
-    
+
 // keep separate from g_audioglobal, since we reset g_audioglobal after loading a doc
 g_curExample = 0
 function onLoadExample() {
@@ -62,13 +62,13 @@ function onLoadExample() {
 }
 
 function onLoadExampleImpl(curExample) {
-    curExample+=1
+    curExample += 1
     curExample = Math.abs(curExample)
     curExample = curExample % g_examples.length
     snewdata = g_examples[curExample]
     var ser = tremolo_serializeAndCompress(JSON.parse(snewdata), false /* skipCompressed */)
     var snewurl = document.location.href.split('#')[0] + '#' + ser
-    document.location.href = snewurl	
+    document.location.href = snewurl
     return curExample
 }
 
