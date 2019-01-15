@@ -1,4 +1,30 @@
-//drawdraw, Ben Fisher, 2010. released under the GPLv3
+
+/**
+ * Ben Fisher, 2010
+ * @license GNU General Public License version 3
+ * https://www.gnu.org/licenses/gpl-3.0.txt
+ * https://github.com/moltenjs/labs_youthful_projects
+ */
+ 
+rad = function(a)
+{
+	return (a % 360) * Math.PI / 180
+}
+
+deg = function(a)
+{
+	return (a * 180 / Math.PI) % 360
+}
+
+function degcos(a)
+{
+	return Math.cos((a / 360.0) * 2 * Math.PI);
+}
+
+function degsin(a)
+{
+	return Math.sin((a / 360.0) * 2 * Math.PI); 
+}
 
 alerd = function(s)
 {
@@ -63,3 +89,4 @@ _Timer.prototype.check = function()
 	var nDiff = n.getTime() - this.dt.getTime();
 	return nDiff;
 }
+

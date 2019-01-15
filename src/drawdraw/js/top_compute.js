@@ -1,24 +1,11 @@
-// drawdraw, Ben Fisher, 2010. released under the GPLv3
 
-// a 'context' is a frame of reference. it specifies what is our current 'rotation'. what is the current 'length'
-function CContext()
-{
-	this.startx = 0.0
-	this.starty = 0.0
-	this.rotation = 0.0 // degrees. not used for circles.
-	this.length = 0.0 // for circles, radius size
-}
-
-// a shape, relative to a context. requires a context in order to be drawn. 
-function CRelativeShape()
-{
-	this.type = 'l'
-	this.angleToStart = 0.0 // angle from (start pt of context) to (start pt of shape)
-	this.lengthToStart = 0.0 // distance from (start pt of context) to (start pt of shape)
-	this.rotation = 0.0 // degrees. meaningless for circles.
-	this.length = 0.0 // for circles, radius size
-}
-
+/**
+ * Ben Fisher, 2010
+ * @license GNU General Public License version 3
+ * https://www.gnu.org/licenses/gpl-3.0.txt
+ * https://github.com/moltenjs/labs_youthful_projects
+ */
+ 
 function getNextContext(context, relativeShape, outContext)
 {
 	if (relativeShape.type != 'lgen')
@@ -85,13 +72,11 @@ function rawShapeToRelativeShape(context, rawShape)
 	
 	return newshape
 }
-
+ 
 function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdBeforeDraw, nShapeLimit, adjustX)
 {
 	var currentRawShape = new CRawShape()
 	var arResults = []
-	var rawShapes = []
-	var rawShapesCircles = []
 	var nDrawn = 0
 	
 	render_hideAllShapes()
@@ -121,17 +106,17 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
 		for (var i = 0; i < relativeShapes.length; i++) //we've already filtered out the invisible ones.
 		{
 			nDrawn++;
-			if (nDrawn > g_nJustPerimeter)
+			if (nDrawn > g_classesglobal.nJustPerimeter)
 			{
 				drawShapeRelativeToContext(context, relativeShapes[i], currentRawShape)
 				
-				if (g_zoomLevel)
+				if (g_classesglobal.zoomLevel)
 				{
-					currentRawShape.x1 = ((currentRawShape.x1 - centerx) * g_zoomLevel) + centerx;
-					currentRawShape.x2 = ((currentRawShape.x2 - centerx) * g_zoomLevel) + centerx;
-					currentRawShape.y1 = ((currentRawShape.y1 - centery) * g_zoomLevel) + centery;
-					currentRawShape.y2 = ((currentRawShape.y2 - centery) * g_zoomLevel) + centery;
-					currentRawShape.rx *= g_zoomLevel
+					currentRawShape.x1 = ((currentRawShape.x1 - centerx) * g_classesglobal.zoomLevel) + centerx;
+					currentRawShape.x2 = ((currentRawShape.x2 - centerx) * g_classesglobal.zoomLevel) + centerx;
+					currentRawShape.y1 = ((currentRawShape.y1 - centery) * g_classesglobal.zoomLevel) + centery;
+					currentRawShape.y2 = ((currentRawShape.y2 - centery) * g_classesglobal.zoomLevel) + centery;
+					currentRawShape.rx *= g_classesglobal.zoomLevel
 					
 				}
 				
@@ -175,70 +160,3 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
 	// unreached
 }
 
-rad = function(a)
-{
-	return (a % 360) * Math.PI / 180
-}
-
-deg = function(a)
-{
-	return (a * 180 / Math.PI) % 360
-}
-
-function degcos(a)
-{
-	return Math.cos((a / 360.0) * 2 * Math.PI);
-}
-
-function degsin(a)
-{
-	return Math.sin((a / 360.0) * 2 * Math.PI); 
-}
-
-// raw shape object. used in ui frontend and returned by output.
-// type is mandatory.
-function CRawShape(obj)
-{
-	this.type = 'l';
-	this.x1 = 0;
-	this.x2 = 0;
-	this.y1 = 0;
-	this.y2 = 0;
-	this.rx = 0;
-	
-	// set attributes based on incoming dict.
-	if (obj)
-	{
-		if (!obj.type)
-		{
-			alerd('must pass type to rawShape constructor')
-		}
-		
-		if (!obj.x1 || !obj.y1)
-		{
-			alerd(debugprint(obj));
-			alerd('must pass coords to rawShape constructor')
-		}
-		
-		for (var key in obj)
-		{
-			this[key] = obj[key]
-		}
-	}
-}
-
-function contextFromRawShape(rawShape)
-{
-	if (!rawShape.type.startsWith('l'))
-	{
-		alerd('can only be done for lines')
-	}
-	
-	var context = new CContext()
-	context.startx = rawShape.x1;
-	context.starty = rawShape.y1;
-	context.length = Math.sqrt((rawShape.x2 - rawShape.x1) * (rawShape.x2 - rawShape.x1) + 
-		(rawShape.y2 - rawShape.y1) * (rawShape.y2 - rawShape.y1))
-	context.rotation = deg(Math.atan2(rawShape.y2 - rawShape.y1, rawShape.x2 - rawShape.x1));
-	return context
-}
