@@ -23,12 +23,12 @@ function on_btnaddgen(e) {
 
 function on_btntheta(e) {
     // manually sets coordinates that the user provides
-    if (!domSelected) {
+    if (!g_ui.domSelected) {
         alerd('nothing is selected')
         return;
     }
 
-    var shp = domToCoordObject[domSelected.id]
+    var shp = g_ui.domToCoordObject[g_ui.domSelected.id]
     var newxy = prompt('Move shape by (x,y)', '0,0')
     if (!newxy || newxy.split(',').length != 2) {
         return;
@@ -44,7 +44,7 @@ function on_btntheta(e) {
     shp.x2 += x;
     shp.y1 += y;
     shp.y2 += y;
-    refreshShape(domSelected)
+    refreshShape(g_ui.domSelected)
 
     // reuse code, even if it's a bit unclear
     var newrelshape = rawShapeToRelativeShape(mainContext, shp)
@@ -55,13 +55,13 @@ function on_btntheta(e) {
         return;
     }
 
-    var r = parseFloat(newrl.split(',')[0])
+    var rot = parseFloat(newrl.split(',')[0])
     var l = parseFloat(newrl.split(',')[1])
-    if (isNaN(r) || isNaN(l)) {
+    if (isNaN(rot) || isNaN(l)) {
         return;
     }
 
-    newrelshape.rotation = r;
+    newrelshape.rotation = rot;
     newrelshape.length = l;
     var shpResult = new CRawShape();
     drawShapeRelativeToContext(mainContext, newrelshape, shpResult);
@@ -69,7 +69,7 @@ function on_btntheta(e) {
     shp.y2 = shpResult.y2;
     shp.rx = shpResult.rx;
 
-    refreshShape(domSelected)
+    refreshShape(g_ui.domSelected)
     doTransformRender();
 }
 
@@ -133,7 +133,7 @@ var onDragResize_start = function () {
     // storing original coordinates
     this.ox = this.attr("cx");
     this.oy = this.attr("cy");
-    var oCoord = g_ui.domToCoordObject[domSelected.id];
+    var oCoord = g_ui.g_ui.domToCoordObject[g_ui.domSelected.id];
     if (oCoord.type == 'c' && this === self.shapeSelectB) {
         this.origRadius = oCoord.rx;
     }
@@ -142,7 +142,7 @@ var onDragResize_start = function () {
 }
 
 var onDragResize_move = function (dx, dy) {
-    var oCoord = g_ui.domToCoordObject[domSelected.id];
+    var oCoord = g_ui.g_ui.domToCoordObject[g_ui.domSelected.id];
     if (!oCoord) {
         alerd('no oCoord obj');
         return;
@@ -191,7 +191,7 @@ var onDragResize_move = function (dx, dy) {
         }
     }
 
-    refreshShape(domSelected);
+    refreshShape(g_ui.domSelected);
 
     this.countRefresh++;
     if (this.countRefresh > 1) {

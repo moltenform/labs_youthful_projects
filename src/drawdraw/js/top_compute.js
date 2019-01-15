@@ -70,7 +70,7 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
     var arResults = []
     var nDrawn = 0
 
-    render_hideAllShapes()
+    render_resetAllShapes()
     renderAllLines(false);
     if (relativeGenerators.length == 0) {
         // no work to do.

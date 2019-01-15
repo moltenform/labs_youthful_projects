@@ -9,8 +9,6 @@
 var Ra = null; //main raphael instance
 var g_classesglobal = { inited: false }
 var g_ui = { inited: false }
-var WIDTH = 900
-var HEIGHT = 600
 
 function doesHaveJson() {
     if (document.location.href.indexOf('#') != -1) {
@@ -33,15 +31,10 @@ g_classesglobal.init = function (self) {
     self.model = undefined
     self.shouldDrawReferenceContext = false // we used to draw a "reference" marker. it wasn't a selectable object.
     self.debugMeasureTiming = false;
-
-    var jsonRawObj = doesHaveJson()
-    if (jsonRawObj) {
-        onLoadFromJsonRawObj(jsonRawObj)
-    } else {
-        loadDefaultDoc()
-    }
-
-    showSelect();
+    
+    self.zoomLevel = 1
+    self.nShapesToDraw = 100
+    self.nJustPerimeter = false
 
     self.inited = true
 }
@@ -51,8 +44,7 @@ g_ui.init = function (self) {
         return
     }
 
-    Ra = Raphael("holder", WIDTH, HEIGHT);
-    cd2_setselect(null) //no current selection
+    Ra = Raphael("holder", g_ui.master_w, g_ui.master_h);
 
     self.domSelected = undefined
     self.bIsRendering = false;
@@ -71,10 +63,15 @@ g_ui.init = function (self) {
     self.shapeSelectB = null;
 
     self.allLines = [];
-
-    self.grcpoolCircles = []
-    self.ngrcpoolCircles = -1
-
+    
+    var poolCirclesCreate = function() {
+        return Ra.circle(1, 1, 1)
+    }
+    var poolCirclesReset = function(obj) {
+        obj.hide()
+    }
+    self.poolCircles = new CResourcePool(poolCirclesCreate, poolCirclesReset)
+    
     // adjust selection handle size on screens with high dpi
     self.resizeFactor = 1
     if (window.devicePixelRatio !== undefined) {
@@ -85,6 +82,8 @@ g_ui.init = function (self) {
         // if the devicePixelRatio is more than one, used to make it even bigger even after compensating
         self.resizeFactor *= 1
     }
+    
+    self.oneLineGraphic = Ra.path('M1,1,L,1,1');
 
     // draw selection handles
     var handlesize = 4 * self.resizeFactor
@@ -117,10 +116,16 @@ g_ui.init = function (self) {
     self.inited = true
 }
 
+g_ui.teardown = function (self) {
+    self.poolCircles.clearAll()
+    self.shapeSelectA.hide()
+    self.shapeSelectB.hide()
+}
+
 function loadDefaultDoc() {
     // create a normal line, as an example
     createNew('l');
-    ocoord = domToCoordObject[g_ui.domSelected.id];
+    ocoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     ocoord.x1 = g_ui.mainContextShape.x1;
     ocoord.y1 = g_ui.mainContextShape.y1;
     ocoord.x2 = g_ui.mainContextShape.x2;
@@ -129,7 +134,7 @@ function loadDefaultDoc() {
 
     // create a normal lgen, as an example
     createNew('lgen');
-    ocoord = domToCoordObject[g_ui.domSelected.id];
+    ocoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     ocoord.x1 = g_ui.mainContextShape.x1;
     ocoord.y1 = g_ui.mainContextShape.y1;
     ocoord.x2 = g_ui.mainContextShape.x2 + 40;
@@ -139,9 +144,9 @@ function loadDefaultDoc() {
 
 function on_locationhashchange() {
     // reset the entire ui
-    g_gd2 = new CD2SlideGlobal(); // kill all sliders
-    $('holder').innerHTML = ''
+    g_ui.teardown(g_ui)
     Ra = null; //main raphael instance
+    $('holder').innerHTML = ''
     g_classesglobal.inited = false
     g_ui.inited = false
     initAll()
@@ -172,11 +177,21 @@ function initAll() {
         $("copy").style.top = (h - 30) + 'px'
         $("copy").style.left = (w - 350) + 'px'
         $("copy").style.width = (300) + 'px'
-        $("copy").style.display = ''
+        $("copy").style.display = 'block'
+        g_ui.master_w = w
+        g_ui.master_h = h
     }
 
     g_classesglobal.init(g_classesglobal)
     g_ui.init(g_ui)
+    var jsonRawObj = doesHaveJson()
+    if (jsonRawObj) {
+        onLoadFromJsonRawObj(jsonRawObj)
+    } else {
+        loadDefaultDoc()
+    }
+
+    showSelect();
 }
 
 function refreshShape(domObj) {

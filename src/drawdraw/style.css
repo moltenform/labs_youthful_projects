@@ -22,9 +22,8 @@ body {
     position: absolute;
     top: 1em;
     left: 1em;
-    /* text-align: right; */
     color: #444;
-    /* display: none; */
+    display: none;
 }
 
 
