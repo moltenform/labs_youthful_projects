@@ -1,19 +1,38 @@
 /* Drawdraw is by Ben Fisher, 2010, released under the GPLv3 */
 
 body {
-    background: #999;
+    background: #ddd;
     color: #fff;
     font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
 }
 
-#copy {
-    bottom: 2em;
-    font: 300 1.2em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+#holder {
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
     position: absolute;
-    right: 1em;
-    text-align: right;
+    top: 0px;
+    left: 64px;
+    width: 75%;
+    height: 75%;
+    border: solid 2px #fff;
 }
 
+#copy {
+    font: 300 1.0em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+    position: absolute;
+    top: 1em;
+    left: 1em;
+    /* text-align: right; */
+    color: #444;
+    /* display: none; */
+}
+
+
 #copy a {
-    color: #fff; 
+    color: #444;
+}
+
+#columnOfBtns {
+    width:20em;
+    display:inline
 }

@@ -151,6 +151,7 @@ function initAll() {
     if (!g_ui.wasEverInited) {
         var whenBubbling = false
         window.addEventListener("hashchange", on_locationhashchange, false, whenBubbling);
+        
         $("idbtnaddline").addEventListener("click", on_btnaddline, whenBubbling)
         $("idbtnaddcircle").addEventListener("click", on_btnaddcircle, whenBubbling)
         $("idbtnaddgen").addEventListener("click", on_btnaddgen, whenBubbling)
@@ -163,6 +164,15 @@ function initAll() {
         $("idbtnzoomout").addEventListener("click", on_btnzoomout, whenBubbling)
         $("idbtnopenexample").addEventListener("click", on_btnopenexample, whenBubbling)
         $("idbtnsave").addEventListener("click", on_btnsave, whenBubbling)
+        
+        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
+        $("holder").style.width = (w - 80) + 'px'
+        var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
+        $("holder").style.height = (h - 50) + 'px'
+        $("copy").style.top = (h - 30) + 'px'
+        $("copy").style.left = (w - 350) + 'px'
+        $("copy").style.width = (300) + 'px'
+        $("copy").style.display = ''
     }
 
     g_classesglobal.init(g_classesglobal)

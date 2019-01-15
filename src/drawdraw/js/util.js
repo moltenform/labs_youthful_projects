@@ -30,6 +30,10 @@ alerdbg = function (s) {
     alert(debugprint(s))
 }
 
+$ = function(sId) { 
+    return document.getElementById(sId); 
+}
+
 // credit: stackoverflow
 function debugprint(obj, maxDepth, prefix) {
     var result = '';
@@ -57,8 +61,8 @@ String.prototype.startsWith = function (s) {
     return (this.indexOf(s) === 0);
 }
 
-// use "new" to construct an instance.
 Time = {};
+
 Time.createTimer = function () {
     return new _Timer();
 }
