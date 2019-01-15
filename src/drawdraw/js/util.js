@@ -22,11 +22,11 @@ function degsin(a) {
     return Math.sin((a / 360.0) * 2 * Math.PI);
 }
 
-alerd = function (s) {
+errmsg = function (s) {
     alert(s)
 }
 
-alerdbg = function (s) {
+errmsgdbg = function (s) {
     alert(debugprint(s))
 }
 

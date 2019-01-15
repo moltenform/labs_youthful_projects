@@ -24,7 +24,7 @@ function on_btnaddgen(e) {
 function on_btntheta(e) {
     // manually sets coordinates that the user provides
     if (!g_ui.domSelected) {
-        alerd('nothing is selected')
+        errmsg('nothing is selected')
         return;
     }
 
@@ -133,7 +133,7 @@ var onDragResize_start = function () {
     // storing original coordinates
     this.ox = this.attr("cx");
     this.oy = this.attr("cy");
-    var oCoord = g_ui.g_ui.domToCoordObject[g_ui.domSelected.id];
+    var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     if (oCoord.type == 'c' && this === self.shapeSelectB) {
         this.origRadius = oCoord.rx;
     }
@@ -142,9 +142,9 @@ var onDragResize_start = function () {
 }
 
 var onDragResize_move = function (dx, dy) {
-    var oCoord = g_ui.g_ui.domToCoordObject[g_ui.domSelected.id];
+    var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     if (!oCoord) {
-        alerd('no oCoord obj');
+        errmsg('no oCoord obj');
         return;
     }
 
@@ -160,7 +160,7 @@ var onDragResize_move = function (dx, dy) {
     this.attr({ cx: this.ox + dx, cy: this.oy + dy });
 
     if (this != self.shapeSelectA && this != self.shapeSelectB) {
-        alerd('unknown resizer?');
+        errmsg('unknown resizer?');
         return;
     }
 

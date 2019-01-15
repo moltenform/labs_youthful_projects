@@ -82,7 +82,7 @@ function updatePath(domObj, rawShape) {
         domObj.attr({ cx: rawShape.x1, cy: rawShape.y1, r: rawShape.rx });
     }
     else {
-        alerd('error: unknown shapetype');
+        errmsg('error: unknown shapetype');
     }
 }
 

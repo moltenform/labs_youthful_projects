@@ -8,7 +8,7 @@
 
 function getNextContext(context, relativeShape, outContext) {
     if (relativeShape.type != 'lgen') {
-        alerd('only linegen should produce next context.');
+        errmsg('only linegen should produce next context.');
         return;
     }
 

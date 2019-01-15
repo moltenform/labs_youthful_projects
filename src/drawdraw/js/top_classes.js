@@ -45,12 +45,12 @@ function CRawShape(obj) {
     // set attributes based on incoming dict.
     if (obj) {
         if (!obj.type) {
-            alerd('must pass type to rawShape constructor')
+            errmsg('must pass type to rawShape constructor')
         }
 
         if (!obj.x1 || !obj.y1) {
-            alerd(debugprint(obj));
-            alerd('must pass coords to rawShape constructor')
+            errmsg(debugprint(obj));
+            errmsg('must pass coords to rawShape constructor')
         }
 
         for (var key in obj) {
@@ -61,7 +61,7 @@ function CRawShape(obj) {
 
 function contextFromRawShape(rawShape) {
     if (!rawShape.type.startsWith('l')) {
-        alerd('can only be done for lines')
+        errmsg('can only be done for lines')
     }
 
     var context = new CContext()

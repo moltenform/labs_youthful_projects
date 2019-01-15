@@ -244,7 +244,7 @@ function showSelect() {
     g_ui.shapeSelectB.show();
     var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     if (!oCoord) {
-        alerd('error in showSelect');
+        errmsg('error in showSelect');
         return;
     }
 
@@ -318,7 +318,7 @@ function doTransformRender() {
             objs.push(g_ui.domToCoordObject[objId])
         }
         else {
-            alerd('warning: something else in map')
+            errmsg('warning: something else in map')
         }
     }
 
