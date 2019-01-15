@@ -7,33 +7,35 @@
  */
 
 var Ra = null; //main raphael instance
-var g_classesglobal = { inited: false }
+var g_state = { inited: false }
 var g_ui = { inited: false }
 
 function doesHaveJson() {
     if (document.location.href.indexOf('#') != -1) {
-        var theJson = document.location.href.substring(document.location.href.indexOf('#') + 1)
-        if (theJson && theJson.length > 0 && !theJson.startsWith('blank')) {
-            theJson = decompressLz(theJson)
-            theJson = myDecompress(theJson)
-            return JSON.parse(theJson)
+        var sJson = document.location.href.substring(document.location.href.indexOf('#') + 1)
+        if (sJson && sJson.length > 0 && !sJson.startsWith('blank')) {
+            sJson = decompressLz(sJson)
+            sJson = myDecompress(sJson)
+            return JSON.parse(sJson)
         }
     }
 
     return undefined
 }
 
-g_classesglobal.init = function (self) {
+g_state.init = function (self) {
     if (self.inited) {
         return
     }
 
-    self.model = undefined
     self.shouldDrawReferenceContext = false // we used to draw a "reference" marker. it wasn't a selectable object.
     self.debugMeasureTiming = false;
     
+     // zoom, default to 1
     self.zoomLevel = 1
-    self.nShapesToDraw = 100
+     // number of shapes to draw, can be adjusted by user
+    self.nShapesToDraw = 300
+     // this option can be enabled by the user, where we'll draw just the perimeter.
     self.nJustPerimeter = false
 
     self.inited = true
@@ -47,7 +49,7 @@ g_ui.init = function (self) {
     Ra = Raphael("holder", g_ui.master_w, g_ui.master_h);
 
     self.domSelected = undefined
-    self.bIsRendering = false;
+    self.isRendering = false;
 
     // record what shapes have been created.
     self.domToCoordObject = {}
@@ -63,14 +65,7 @@ g_ui.init = function (self) {
     self.shapeSelectB = null;
 
     self.allLines = [];
-    
-    var poolCirclesCreate = function() {
-        return Ra.circle(1, 1, 1)
-    }
-    var poolCirclesReset = function(obj) {
-        obj.hide()
-    }
-    self.poolCircles = new CResourcePool(poolCirclesCreate, poolCirclesReset)
+    self.initPools(self)
     
     // adjust selection handle size on screens with high dpi
     self.resizeFactor = 1
@@ -79,8 +74,7 @@ g_ui.init = function (self) {
     }
 
     if (window.devicePixelRatio !== undefined && window.devicePixelRatio > 1) {
-        // if the devicePixelRatio is more than one, used to make it even bigger even after compensating
-        self.resizeFactor *= 1
+        // consider multiplying self.resizeFactor here
     }
     
     self.oneLineGraphic = Ra.path('M1,1,L,1,1');
@@ -96,8 +90,7 @@ g_ui.init = function (self) {
 
     if (self.resizeFactor > 1) {
         g_ui.mainContextShape = new CRawShape({ type: 'lgen', x1: 40, x2: 40, y1: 140, y2: 40 });
-    }
-    else {
+    } else {
         g_ui.mainContextShape = new CRawShape({ type: 'lgen', x1: 200, x2: 200, y1: 200, y2: 100 });
     }
 
@@ -106,7 +99,7 @@ g_ui.init = function (self) {
     updatePath(mainGenPath, g_ui.mainContextShape)
     mainGenPath.attr({ stroke: '#888' });
 
-    if (g_classesglobal.shouldDrawReferenceContext) {
+    if (g_state.shouldDrawReferenceContext) {
         // manually draw the main arrow reference. this is not adjustable by the user.
         var mainArrow = drawArrow(mainGenPath, g_ui.mainContextShape, true)
         mainArrow.attr({ stroke: '#aaf', fill: '#aaf' });
@@ -114,6 +107,18 @@ g_ui.init = function (self) {
 
     self.wasEverInited = true
     self.inited = true
+}
+
+g_ui.initPools = function (self) {
+    var poolCirclesCreate = function() {
+        return Ra.circle(1, 1, 1)
+    }
+
+    var poolCirclesReset = function(obj) {
+        obj.hide()
+    }
+
+    self.poolCircles = new CResourcePool(poolCirclesCreate, poolCirclesReset)
 }
 
 g_ui.teardown = function (self) {
@@ -125,20 +130,20 @@ g_ui.teardown = function (self) {
 function loadDefaultDoc() {
     // create a normal line, as an example
     createNew('l');
-    ocoord = g_ui.domToCoordObject[g_ui.domSelected.id];
-    ocoord.x1 = g_ui.mainContextShape.x1;
-    ocoord.y1 = g_ui.mainContextShape.y1;
-    ocoord.x2 = g_ui.mainContextShape.x2;
-    ocoord.y2 = g_ui.mainContextShape.y2;
+    var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
+    oCoord.x1 = g_ui.mainContextShape.x1;
+    oCoord.y1 = g_ui.mainContextShape.y1;
+    oCoord.x2 = g_ui.mainContextShape.x2;
+    oCoord.y2 = g_ui.mainContextShape.y2;
     refreshShape(g_ui.domSelected);
 
     // create a normal lgen, as an example
     createNew('lgen');
-    ocoord = g_ui.domToCoordObject[g_ui.domSelected.id];
-    ocoord.x1 = g_ui.mainContextShape.x1;
-    ocoord.y1 = g_ui.mainContextShape.y1;
-    ocoord.x2 = g_ui.mainContextShape.x2 + 40;
-    ocoord.y2 = g_ui.mainContextShape.y2 + 50;
+    oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
+    oCoord.x1 = g_ui.mainContextShape.x1;
+    oCoord.y1 = g_ui.mainContextShape.y1;
+    oCoord.x2 = g_ui.mainContextShape.x2 + 40;
+    oCoord.y2 = g_ui.mainContextShape.y2 + 50;
     refreshShape(g_ui.domSelected);
 }
 
@@ -147,7 +152,7 @@ function on_locationhashchange() {
     g_ui.teardown(g_ui)
     Ra = null; //main raphael instance
     $('holder').innerHTML = ''
-    g_classesglobal.inited = false
+    g_state.inited = false
     g_ui.inited = false
     initAll()
 }
@@ -171,8 +176,8 @@ function initAll() {
         $("idbtnsave").addEventListener("click", on_btnsave, whenBubbling)
         
         var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
-        $("holder").style.width = (w - 80) + 'px'
         var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
+        $("holder").style.width = (w - 80) + 'px'
         $("holder").style.height = (h - 50) + 'px'
         $("copy").style.top = (h - 30) + 'px'
         $("copy").style.left = (w - 350) + 'px'
@@ -182,7 +187,7 @@ function initAll() {
         g_ui.master_h = h
     }
 
-    g_classesglobal.init(g_classesglobal)
+    g_state.init(g_state)
     g_ui.init(g_ui)
     var jsonRawObj = doesHaveJson()
     if (jsonRawObj) {
@@ -210,22 +215,22 @@ function refreshShape(domObj) {
 function createNew(stype) {
     if (stype == 'l' || stype == 'lgen') {
         var newEntity = Ra.path('M1,1,L,1,1');
-        var newO = new CRawShape({
+        var newRawShape = new CRawShape({
             type: 'l', x1: g_ui.mainContextShape.x2,
             y1: g_ui.mainContextShape.y2, x2: g_ui.mainContextShape.x2 + 30, y2: g_ui.mainContextShape.y2
         });
-        newO.type = stype;
+
+        newRawShape.type = stype;
         if (stype == 'lgen') {
             newEntity.attr({ stroke: '#922', opacity: 1.0 })
         }
-    }
-    else if (stype == 'c') {
+    } else if (stype == 'c') {
         var newEntity = Ra.circle(1, 1, 1)
-        var newO = new CRawShape({ type: 'c', x1: g_ui.mainContextShape.x2, y1: g_ui.mainContextShape.y2, rx: 20 });
+        var newRawShape = new CRawShape({ type: 'c', x1: g_ui.mainContextShape.x2, y1: g_ui.mainContextShape.y2, rx: 20 });
     }
 
     g_ui.allLines.push(newEntity)
-    g_ui.domToCoordObject[newEntity.id] = newO;
+    g_ui.domToCoordObject[newEntity.id] = newRawShape;
 
     // draw the shape at its initial position
     refreshShape(newEntity);
@@ -244,15 +249,14 @@ function showSelect() {
     g_ui.shapeSelectB.show();
     var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     if (!oCoord) {
-        errmsg('error in showSelect');
+        errmsg('in showSelect, nothing selected?');
         return;
     }
 
     if (oCoord.type.startsWith('l')) {
         g_ui.shapeSelectA.attr({ cx: oCoord.x1, cy: oCoord.y1 })
         g_ui.shapeSelectB.attr({ cx: oCoord.x2, cy: oCoord.y2 })
-    }
-    else if (oCoord.type == 'c') {
+    } else if (oCoord.type == 'c') {
         g_ui.shapeSelectA.attr({ cx: oCoord.x1, cy: oCoord.y1 })
         g_ui.shapeSelectB.attr({ cx: oCoord.x1 + oCoord.rx, cy: oCoord.y1 })
     }
@@ -276,7 +280,7 @@ function deleteSelected() {
     }
 
     if (g_ui.domToCoordObject[g_ui.domSelected.id].type == 'lgen') {
-        g_ui.mapObjIdToArrow[g_ui.domSelected.id].remove() //remove arrow
+        g_ui.mapObjIdToArrow[g_ui.domSelected.id].remove() // remove arrow
         delete g_ui.mapObjIdToArrow[g_ui.domSelected.id];
     }
 
@@ -302,22 +306,20 @@ function onMouseDownSelectIt(event) {
 
 function doTransformRender() {
     // prevent reentrance
-    if (g_ui.bIsRendering) {
+    if (g_ui.isRendering) {
         return;
     }
 
-    g_ui.bIsRendering = true;
+    g_ui.isRendering = true;
 
     var gens = [];
     var objs = [];
     for (var objId in g_ui.domToCoordObject) {
         if (g_ui.domToCoordObject[objId].type == 'lgen') {
             gens.push(g_ui.domToCoordObject[objId])
-        }
-        else if (g_ui.domToCoordObject[objId].x1 !== undefined) {
+        } else if (g_ui.domToCoordObject[objId].x1 !== undefined) {
             objs.push(g_ui.domToCoordObject[objId])
-        }
-        else {
+        } else {
             errmsg('warning: something else in map')
         }
     }
@@ -337,16 +339,16 @@ function doTransformRender() {
     var contextQueue = [initialContext]
     var nAdjustX = (g_ui.resizeFactor == 1) ? 300 : 80;
 
-    if (g_classesglobal.debugMeasureTiming) {
+    if (g_state.debugMeasureTiming) {
         oTimer = Time.createTimer()
     }
 
     // it's a bit unclean that we do both the computation and the ui here
-    transform(contextQueue, objs, gens, -1/*nThresholdBeforeDraw*/, g_classesglobal.nShapesToDraw, nAdjustX);
+    transform(contextQueue, objs, gens, -1/*nThresholdBeforeDraw*/, g_state.nShapesToDraw, nAdjustX);
 
-    if (g_classesglobal.debugMeasureTiming) {
+    if (g_state.debugMeasureTiming) {
         console.log(oTimer.check())
     }
 
-    g_ui.bIsRendering = false;
+    g_ui.isRendering = false;
 }

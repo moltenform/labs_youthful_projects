@@ -55,7 +55,7 @@ var g_examples = [
     '{vn=0.1,nshapes=300,pm=0,shapes=[{type=l,X=200,A=200,Y=200,B=100,rx=0},{type=l,X=200,A=293,Y=100,B=100,rx=0},{type=l,X=202,A=246,Y=164,B=163,rx=0},{type=l,X=244,A=244,Y=197,B=163,rx=0},{type=l,X=256,A=291,Y=137,B=137,rx=0},{type=l,X=254,A=255,Y=100,B=137,rx=0},{type=lgen,X=273,A=273,Y=100,B=120,rx=0},{type=lgen,X=228,A=228,Y=196,B=177,rx=0},{type=lgen,X=283,A=283,Y=137,B=123,rx=0},{type=lgen,X=215,A=215,Y=164,B=177,rx=0}]}',
 ]
 
-// keep separate from g_audioglobal, since we reset g_audioglobal after loading a doc
+// keep separate from g_state, since we reset g_state after loading a doc
 g_curExample = 0
 function onLoadExample() {
     g_curExample = onLoadExampleImpl(g_curExample)
@@ -65,10 +65,10 @@ function onLoadExampleImpl(curExample) {
     curExample += 1
     curExample = Math.abs(curExample)
     curExample = curExample % g_examples.length
-    snewdata = g_examples[curExample]
-    var ser = tremolo_serializeAndCompress(JSON.parse(snewdata), false /* skipCompressed */)
-    var snewurl = document.location.href.split('#')[0] + '#' + ser
-    document.location.href = snewurl
+    var sNewData = g_examples[curExample]
+    var serialized = tremolo_serializeAndCompress(JSON.parse(sNewData), false /* skipCompressed */)
+    var sNewUrl = document.location.href.split('#')[0] + '#' + serialized
+    document.location.href = sNewUrl
     return curExample
 }
 

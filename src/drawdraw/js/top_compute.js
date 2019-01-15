@@ -22,47 +22,45 @@ function getNextContext(context, relativeShape, outContext) {
 }
 
 function drawShapeRelativeToContext(context, relativeShape, outRawShape) {
-    var outstartx = context.startx + context.length * relativeShape.lengthToStart *
+    var outStartX = context.startx + context.length * relativeShape.lengthToStart *
         degcos(context.rotation + relativeShape.angleToStart)
-    var outstarty = context.starty + context.length * relativeShape.lengthToStart *
+    var outStartY = context.starty + context.length * relativeShape.lengthToStart *
         degsin(context.rotation + relativeShape.angleToStart)
-    var outrotation = context.rotation + relativeShape.rotation
-    var outlength = context.length * relativeShape.length
+    var outRotation = context.rotation + relativeShape.rotation
+    var outLength = context.length * relativeShape.length
 
     outRawShape.type = relativeShape.type
-    outRawShape.x1 = outstartx
-    outRawShape.y1 = outstarty
+    outRawShape.x1 = outStartX
+    outRawShape.y1 = outStartY
 
     //usually just lines are drawn, but allow linegen because of onsetCoords
     if (relativeShape.type.startsWith('l')) {
-        outRawShape.x2 = outstartx + outlength * degcos(outrotation)
-        outRawShape.y2 = outstarty + outlength * degsin(outrotation)
-    }
-    else if (relativeShape.type == 'c') {
-        outRawShape.rx = outlength
+        outRawShape.x2 = outStartX + outLength * degcos(outRotation)
+        outRawShape.y2 = outStartY + outLength * degsin(outRotation)
+    } else if (relativeShape.type == 'c') {
+        outRawShape.rx = outLength
     }
 
     return outRawShape
 }
 
 function rawShapeToRelativeShape(context, rawShape) {
-    var newshape = new CRelativeShape()
-    newshape.type = rawShape.type
-    newshape.angleToStart = context.rotation + deg(Math.atan2(context.starty - rawShape.y1, context.startx - rawShape.x1))
-    newshape.lengthToStart = Math.sqrt((context.startx - rawShape.x1) * (context.startx - rawShape.x1) +
+    var newShape = new CRelativeShape()
+    newShape.type = rawShape.type
+    newShape.angleToStart = context.rotation + deg(Math.atan2(context.starty - rawShape.y1, context.startx - rawShape.x1))
+    newShape.lengthToStart = Math.sqrt((context.startx - rawShape.x1) * (context.startx - rawShape.x1) +
         (context.starty - rawShape.y1) * (context.starty - rawShape.y1)) / context.length
 
     if (rawShape.type == 'c') {
-        newshape.rotation = 0.0
-        newshape.length = rawShape.rx / context.length
-    }
-    else if (rawShape.type.startsWith('l')) {
-        newshape.rotation = -context.rotation + deg(Math.atan2(rawShape.y2 - rawShape.y1, rawShape.x2 - rawShape.x1))
-        newshape.length = Math.sqrt((rawShape.x2 - rawShape.x1) * (rawShape.x2 - rawShape.x1) +
+        newShape.rotation = 0.0
+        newShape.length = rawShape.rx / context.length
+    } else if (rawShape.type.startsWith('l')) {
+        newShape.rotation = -context.rotation + deg(Math.atan2(rawShape.y2 - rawShape.y1, rawShape.x2 - rawShape.x1))
+        newShape.length = Math.sqrt((rawShape.x2 - rawShape.x1) * (rawShape.x2 - rawShape.x1) +
             (rawShape.y2 - rawShape.y1) * (rawShape.y2 - rawShape.y1)) / context.length
     }
 
-    return newshape
+    return newShape
 }
 
 function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdBeforeDraw, nShapeLimit, adjustX) {
@@ -84,7 +82,7 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
         return;
     }
 
-    var centerx = 200, centery = 150
+    var centerX = 200, centerY = 150
     var nGeneration = 0
     var nTargetGeneration = nShapeLimit / 25;
     while (true) {
@@ -94,15 +92,15 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
         for (var i = 0; i < relativeShapes.length; i++) //we've already filtered out the invisible ones.
         {
             nDrawn++;
-            if (nDrawn > g_classesglobal.nJustPerimeter) {
+            if (nDrawn > g_state.nJustPerimeter) {
                 drawShapeRelativeToContext(context, relativeShapes[i], currentRawShape)
 
-                if (g_classesglobal.zoomLevel) {
-                    currentRawShape.x1 = ((currentRawShape.x1 - centerx) * g_classesglobal.zoomLevel) + centerx;
-                    currentRawShape.x2 = ((currentRawShape.x2 - centerx) * g_classesglobal.zoomLevel) + centerx;
-                    currentRawShape.y1 = ((currentRawShape.y1 - centery) * g_classesglobal.zoomLevel) + centery;
-                    currentRawShape.y2 = ((currentRawShape.y2 - centery) * g_classesglobal.zoomLevel) + centery;
-                    currentRawShape.rx *= g_classesglobal.zoomLevel
+                if (g_state.zoomLevel) {
+                    currentRawShape.x1 = ((currentRawShape.x1 - centerX) * g_state.zoomLevel) + centerX;
+                    currentRawShape.x2 = ((currentRawShape.x2 - centerX) * g_state.zoomLevel) + centerX;
+                    currentRawShape.y1 = ((currentRawShape.y1 - centerY) * g_state.zoomLevel) + centerY;
+                    currentRawShape.y2 = ((currentRawShape.y2 - centerY) * g_state.zoomLevel) + centerY;
+                    currentRawShape.rx *= g_state.zoomLevel
 
                 }
 
@@ -111,8 +109,7 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
 
                 if (currentRawShape.type == 'c') {
                     renderCircle(currentRawShape);
-                }
-                else {
+                } else {
                     arResults.push('M');
                     arResults.push(currentRawShape.x1);
                     arResults.push(currentRawShape.y1);
@@ -128,7 +125,7 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
             }
         }
 
-        //add next contexts to the queue
+        // add next contexts to the queue
         for (var i = 0; i < relativeGenerators.length; i++) {
             // todo: consider pulling from a pool instead instead of allocating.
             var nextcontext = new CContext()
@@ -139,6 +136,6 @@ function transform(contextQueue, relativeShapes, relativeGenerators, nThresholdB
         nGeneration++;
     }
 
-    // unreached
+    console.error("expect not reached.")
 }
 

@@ -6,15 +6,6 @@
  * https://github.com/moltenjs/labs_youthful_projects
  */
 
-function CDrawDrawModel() {
-    // zoom, default to 1
-    this.zoomLevel = 1.0;
-    // number of shapes to draw, can be adjusted by user
-    var g_nShapesToDraw = 300;
-    // this option can be enabled by the user, where we'll draw just the perimeter.
-    var g_nJustPerimeter = 0;
-}
-
 // a 'context' is a frame of reference. it specifies what is our current 'rotation'. what is the current 'length'
 function CContext() {
     this.startx = 0.0

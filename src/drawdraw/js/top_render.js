@@ -16,21 +16,21 @@ function drawArrow(domObj, rawShape, noAdd) {
         g_ui.mapObjIdToArrow[domObj.id] = Ra.path('M1,1,L,1,1');
     }
 
-    var arsize = 6 * g_ui.resizeFactor;
-    var anglerad = Math.atan2(rawShape.x1 - rawShape.x2, rawShape.y2 - rawShape.y1);
-    angle = (anglerad / (2 * Math.PI)) * 360;
-    var locx = rawShape.x2// + 4 * g_ui.resizeFactor * Math.cos(anglerad)
-    var locy = rawShape.y2// + 4 * g_ui.resizeFactor * Math.sin(anglerad)
+    var arSize = 6 * g_ui.resizeFactor;
+    var angleRad = Math.atan2(rawShape.x1 - rawShape.x2, rawShape.y2 - rawShape.y1);
+    var angle = (angleRad / (2 * Math.PI)) * 360;
+    var locx = rawShape.x2 // + 4 * g_ui.resizeFactor * Math.cos(anglerad)
+    var locy = rawShape.y2 // + 4 * g_ui.resizeFactor * Math.sin(anglerad)
     g_ui.mapObjIdToArrow[domObj.id].attr({
         path:
-            "M" + locx + " " + locy + " L" + (locx - arsize) + " " + (locy - arsize) +
-            " L" + (locx - arsize) + " " + (locy + arsize) + " L" + locx + " " + locy
+            "M" + locx + " " + locy + " L" + (locx - arSize) + " " + (locy - arSize) +
+            " L" + (locx - arSize) + " " + (locy + arSize) + " L" + locx + " " + locy
     });
 
     g_ui.mapObjIdToArrow[domObj.id].attr("fill", "#922").attr("stroke", "#922").rotate((90 + angle), locx, locy);
     g_ui.mapObjIdToArrow[domObj.id].attr('stroke-width', g_ui.resizeFactor);
 
-    //move arrow head behind the line
+    // move arrow head behind the line
     g_ui.mapObjIdToArrow[domObj.id].toBack();
     if (noAdd) {
         // don't add to dict

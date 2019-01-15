@@ -28,47 +28,46 @@ function on_btntheta(e) {
         return;
     }
 
-    var shp = g_ui.domToCoordObject[g_ui.domSelected.id]
-    var newxy = prompt('Move shape by (x,y)', '0,0')
-    if (!newxy || newxy.split(',').length != 2) {
+    var shape = g_ui.domToCoordObject[g_ui.domSelected.id]
+    var sMvCoords = prompt('Move shape by (x,y)', '0,0')
+    if (!sMvCoords || sMvCoords.split(',').length != 2) {
         return;
     }
 
-    var x = parseFloat(newxy.split(',')[0]) * mainContext.length
-    var y = parseFloat(newxy.split(',')[1]) * mainContext.length
+    var x = parseFloat(sMvCoords.split(',')[0]) * mainContext.length
+    var y = parseFloat(sMvCoords.split(',')[1]) * mainContext.length
     if (isNaN(x) || isNaN(y)) {
         return;
     }
 
-    shp.x1 += x;
-    shp.x2 += x;
-    shp.y1 += y;
-    shp.y2 += y;
+    shape.x1 += x;
+    shape.x2 += x;
+    shape.y1 += y;
+    shape.y2 += y;
     refreshShape(g_ui.domSelected)
 
     // reuse code, even if it's a bit unclear
-    var newrelshape = rawShapeToRelativeShape(mainContext, shp)
-    var newrl = prompt('Write new (angle in degrees, length)',
-        newrelshape.rotation + ',' + newrelshape.length)
+    var newRelShape = rawShapeToRelativeShape(mainContext, shape)
+    var newRel = prompt('Write new (angle in degrees, length)',
+        newRelShape.rotation + ',' + newRelShape.length)
 
-    if (!newrl || newrl.split(',').length != 2) {
+    if (!newRel || newRel.split(',').length != 2) {
         return;
     }
 
-    var rot = parseFloat(newrl.split(',')[0])
-    var l = parseFloat(newrl.split(',')[1])
+    var rot = parseFloat(newRel.split(',')[0])
+    var l = parseFloat(newRel.split(',')[1])
     if (isNaN(rot) || isNaN(l)) {
         return;
     }
 
-    newrelshape.rotation = rot;
-    newrelshape.length = l;
+    newRelShape.rotation = rot;
+    newRelShape.length = l;
     var shpResult = new CRawShape();
-    drawShapeRelativeToContext(mainContext, newrelshape, shpResult);
-    shp.x2 = shpResult.x2;
-    shp.y2 = shpResult.y2;
-    shp.rx = shpResult.rx;
-
+    drawShapeRelativeToContext(mainContext, newRelShape, shpResult);
+    shape.x2 = shpResult.x2;
+    shape.y2 = shpResult.y2;
+    shape.rx = shpResult.rx;
     refreshShape(g_ui.domSelected)
     doTransformRender();
 }
@@ -79,24 +78,24 @@ function on_btndelete(e) {
 }
 
 function on_btnonlyperim(e) {
-    if (g_classesglobal.nJustPerimeter > 0) {
-        g_classesglobal.nJustPerimeter = 0;
+    if (g_state.nJustPerimeter > 0) {
+        g_state.nJustPerimeter = 0;
         doTransformRender();
     }
     else {
-        g_classesglobal.nJustPerimeter = 250;
-        g_classesglobal.nShapesToDraw = Math.min(g_classesglobal.nShapesToDraw, 500);
+        g_state.nJustPerimeter = 250;
+        g_state.nShapesToDraw = Math.min(g_state.nShapesToDraw, 500);
         doTransformRender();
     }
 }
 
 function on_btndrawmore(e) {
-    g_classesglobal.nShapesToDraw += 25;
+    g_state.nShapesToDraw += 25;
     doTransformRender()
 }
 
 function on_btndrawless(e) {
-    g_classesglobal.nShapesToDraw -= 25;
+    g_state.nShapesToDraw -= 25;
     doTransformRender()
 }
 
@@ -110,10 +109,10 @@ function on_btnzoomout(e) {
 
 function on_btnzoomout(nDir) {
     if (nDir == 1) {
-        g_classesglobal.zoomLevel *= 1.25;
+        g_state.zoomLevel *= 1.25;
     }
     else if (nDir == -1) {
-        g_classesglobal.zoomLevel /= 1.25;
+        g_state.zoomLevel /= 1.25;
     }
 
     doTransformRender();
@@ -126,8 +125,6 @@ function on_btnopenexample(e) {
 function on_btnsave(e) {
 
 }
-
-// ui mouse events
 
 var onDragResize_start = function () {
     // storing original coordinates
@@ -153,7 +150,7 @@ var onDragResize_move = function (dx, dy) {
     }
 
     if (oCoord.type == 'c' && dx + this.origRadius < 1) {
-        //prevent making a circle with < 1 radius
+        // prevent making a circle with < 1 radius
         dx = -this.origRadius + 1;
     }
 
@@ -178,11 +175,11 @@ var onDragResize_move = function (dx, dy) {
     else if (oCoord.type == 'c') // circle
     {
         if (this === self.shapeSelectA) {
-            //moving the center
+            // moving the center
             oCoord.x1 = this.ox + dx;
             oCoord.y1 = this.oy + dy;
 
-            //move other resizer accordingly.
+            // move other resizer accordingly.
             self.shapeSelectB.attr({ cx: oCoord.x1 + oCoord.rx, cy: oCoord.y1 });
         }
         else if (this === self.shapeSelectB) {
