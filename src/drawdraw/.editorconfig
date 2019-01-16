@@ -1,0 +1,14 @@
+
+root = true
+[*.js]
+indent_style = space
+indent_size = 4
+charset = utf-8
+
+prettier.printWidth = 100
+prettier.tabWidth = 4
+prettier.singleQuote = false
+prettier.trailingComma = "none"
+prettier.semi = true
+prettier.useTabs = false
+prettier.endOfLine = "crlf"
