@@ -1,3 +1,4 @@
+
 /**
  * Ben Fisher, 2010
  * @license GNU General Public License version 3
@@ -6,13 +7,13 @@
  */
 
 "use strict";
-rad = function(a) {
+function rad(a) {
     return ((a % 360) * Math.PI) / 180;
-};
+}
 
-deg = function(a) {
+function deg(a) {
     return ((a * 180) / Math.PI) % 360;
-};
+}
 
 function degcos(a) {
     return Math.cos((a / 360.0) * 2 * Math.PI);
@@ -22,17 +23,17 @@ function degsin(a) {
     return Math.sin((a / 360.0) * 2 * Math.PI);
 }
 
-errmsg = function(s) {
+function errmsg(s) {
     alert(s);
-};
+}
 
-errmsgdbg = function(s) {
+function errmsgdbg(s) {
     alert(debugprint(s));
-};
+}
 
-$ = function(sId) {
+function $(sId) {
     return document.getElementById(sId);
-};
+}
 
 // credit: stackoverflow
 function debugprint(obj, maxDepth, prefix) {
@@ -63,15 +64,15 @@ String.prototype.startsWith = function(s) {
     return this.indexOf(s) === 0;
 };
 
-Time = {};
+var Time = {};
 
 Time.createTimer = function() {
     return new _Timer();
 };
 
-_Timer = function() {
+function _Timer() {
     this.dt = new Date();
-};
+}
 
 _Timer.prototype.check = function() {
     var n = new Date();

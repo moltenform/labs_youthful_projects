@@ -1,3 +1,4 @@
+
 /**
  * Ben Fisher, 2010
  * @license GNU General Public License version 3
@@ -15,13 +16,13 @@ function getNextContext(context, relativeShape, outContext) {
     outContext.startx =
         context.startx +
         context.length *
-        relativeShape.lengthToStart *
-        degcos(context.rotation + relativeShape.angleToStart);
+            relativeShape.lengthToStart *
+            degcos(context.rotation + relativeShape.angleToStart);
     outContext.starty =
         context.starty +
         context.length *
-        relativeShape.lengthToStart *
-        degsin(context.rotation + relativeShape.angleToStart);
+            relativeShape.lengthToStart *
+            degsin(context.rotation + relativeShape.angleToStart);
 
     outContext.rotation = context.rotation + relativeShape.rotation;
     outContext.length = context.length * relativeShape.length;
@@ -34,13 +35,13 @@ function drawShapeRelativeToContext(context, relativeShape, outRawShape) {
     var outStartX =
         context.startx +
         context.length *
-        relativeShape.lengthToStart *
-        degcos(context.rotation + relativeShape.angleToStart);
+            relativeShape.lengthToStart *
+            degcos(context.rotation + relativeShape.angleToStart);
     var outStartY =
         context.starty +
         context.length *
-        relativeShape.lengthToStart *
-        degsin(context.rotation + relativeShape.angleToStart);
+            relativeShape.lengthToStart *
+            degsin(context.rotation + relativeShape.angleToStart);
 
     outRawShape.type = relativeShape.type;
     outRawShape.x1 = outStartX;
@@ -178,13 +179,12 @@ function transform(
 
         // add next contexts to the queue
         for (var i = 0; i < relativeGenerators.length; i++) {
-            // todo: consider pulling from a pool instead instead of allocating.
+            // one could use a pool instead instead of allocating a new object here,
+            // but when measured, no measurable benefit, in fact seems a bit slower
             var nextcontext = new CContext();
             getNextContext(context, relativeGenerators[i], nextcontext);
             contextQueue.push(nextcontext);
         }
-
-        nGeneration++;
     }
 
     console.error("expect not reached.");

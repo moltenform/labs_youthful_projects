@@ -1,3 +1,4 @@
+
 /**
  * Ben Fisher, 2010
  * @license GNU General Public License version 3
@@ -26,8 +27,22 @@ function drawArrow(domObj, rawShape, noAdd) {
     var locy = rawShape.y2; // + 4 * g_ui.resizeFactor * Math.sin(anglerad)
     g_ui.mapObjIdToArrow[domObj.id].attr({
         path:
-            "M" + locx + " " + locy + " L" + (locx - arSize) + " " + (locy - arSize) +
-            " L" + (locx - arSize) + " " + (locy + arSize) + " L" + locx + " " + locy
+            "M" +
+            locx +
+            " " +
+            locy +
+            " L" +
+            (locx - arSize) +
+            " " +
+            (locy - arSize) +
+            " L" +
+            (locx - arSize) +
+            " " +
+            (locy + arSize) +
+            " L" +
+            locx +
+            " " +
+            locy
     });
 
     g_ui.mapObjIdToArrow[domObj.id].attr("stroke-width", g_ui.resizeFactor);
@@ -56,11 +71,21 @@ function removeArrows() {
     g_ui.mapObjIdToArrow = {};
 }
 
+// building a string is expensive, but
+// the window.SVGPathSeg interface is deprecated+removed,
+// and the new setPathData interface is not yet implemented
+// https://svgwg.org/specs/paths/#DOMInterfaces
+
 function renderAllLines(arResults) {
     if (!arResults) {
         g_ui.oneLineGraphic.attr("path", "M1,1,L,1,1");
     } else {
         var allpath = arResults.join(" ");
+        if (g_state.checkVeryLargeNumbers && allpath.indexOf("e+") !== -1) {
+            console.log("too large");
+            return;
+        }
+
         g_ui.oneLineGraphic.attr("path", allpath);
     }
 }

@@ -1,3 +1,4 @@
+
 /**
  * Ben Fisher, 2010
  * @license GNU General Public License version 3
@@ -7,7 +8,7 @@
 
 "use strict";
 
-var Ra = null; //main raphael instance
+var Ra = null; // main raphael instance
 var g_state = { inited: false };
 var g_ui = { inited: false };
 
@@ -16,11 +17,9 @@ function doesHaveJson() {
         var sJson = document.location.href.substring(
             document.location.href.indexOf("#") + 1
         );
-        
+
         if (sJson && sJson.length > 0 && !sJson.startsWith("blank")) {
-            sJson = decompressLz(sJson);
-            sJson = myDecompress(sJson);
-            return JSON.parse(sJson);
+            return sJson;
         }
     }
 
@@ -32,16 +31,29 @@ g_state.init = function(self) {
         return;
     }
 
-    self.shouldDrawReferenceContext = false; // we used to draw a "reference" marker. it wasn't a selectable object.
+    // we used to draw a "reference" marker to show the implicit first arrow.
+    self.shouldDrawReferenceContext = false;
+
+    // for perf tests
     self.debugMeasureTiming = false;
+
+    // for perf tests
+    self.debugMeasureTimingTimer = undefined;
+
+    // we could guard against Error: <path> attribute d: Expected number, "…094e+38M500,"
+    // but it seems harmless
+    self.checkVeryLargeNumbers = false;
 
     // zoom, default to 1
     self.zoomLevel = 1;
+
     // number of shapes to draw, can be adjusted by user
     self.nShapesToDraw = 300;
-    // this option can be enabled by the user, where we'll draw just the perimeter.
-    self.nJustPerimeter = false;
 
+    // this option can be enabled by the user, where we'll draw just the perimeter.
+    self.nJustPerimeter = 0;
+
+    self.compression = new CCompressCommonTermsDrawdraw();
     self.inited = true;
 };
 
@@ -105,7 +117,7 @@ g_ui.init = function(self) {
     );
 
     if (self.resizeFactor > 1) {
-        g_ui.mainContextShape = new CRawShape({
+        self.mainContextShape = new CRawShape({
             type: "lgen",
             x1: 40,
             x2: 40,
@@ -113,7 +125,7 @@ g_ui.init = function(self) {
             y2: 40
         });
     } else {
-        g_ui.mainContextShape = new CRawShape({
+        self.mainContextShape = new CRawShape({
             type: "lgen",
             x1: 200,
             x2: 200,
@@ -122,16 +134,15 @@ g_ui.init = function(self) {
         });
     }
 
-    g_ui.mainContext = contextFromRawShape(g_ui.mainContextShape);
     var mainGenPath = Ra.path("M1,1,L,1,1").attr({
         "stroke-width": 6 * self.resizeFactor
     });
-    updatePath(mainGenPath, g_ui.mainContextShape);
+    updatePath(mainGenPath, self.mainContextShape);
     mainGenPath.attr({ stroke: "#888" });
 
     if (g_state.shouldDrawReferenceContext) {
         // manually draw the main arrow reference. this is not adjustable by the user.
-        var mainArrow = drawArrow(mainGenPath, g_ui.mainContextShape, true);
+        var mainArrow = drawArrow(mainGenPath, self.mainContextShape, true);
         mainArrow.attr({ stroke: "#aaf", fill: "#aaf" });
     }
 
@@ -237,6 +248,13 @@ function initAll() {
             whenBubbling
         );
         $("idbtnsave").addEventListener("click", on_btnsave, whenBubbling);
+        $("welcometext").addEventListener(
+            "click",
+            function() {
+                $("welcometext").style.display = "none";
+            },
+            whenBubbling
+        );
 
         var w = Math.max(
             document.documentElement.clientWidth,
@@ -246,23 +264,19 @@ function initAll() {
             document.documentElement.clientHeight,
             window.innerHeight || 0
         );
-        $("holder").style.width = w - 80 + "px";
-        $("holder").style.height = h - 50 + "px";
-        $("copy").style.top = h - 30 + "px";
-        $("copy").style.left = w - 350 + "px";
-        $("copy").style.width = 300 + "px";
-        $("copy").style.display = "block";
-        g_ui.master_w = w;
-        g_ui.master_h = h;
+
+        g_ui.master_w = 1920;
+        g_ui.master_h = 1080;
     }
 
     g_state.init(g_state);
     g_ui.init(g_ui);
-    var jsonRawObj = doesHaveJson();
-    if (jsonRawObj) {
-        onLoadFromJsonRawObj(jsonRawObj);
+    var sJson = doesHaveJson();
+    if (sJson) {
+        onLoadFromJsonRawObj(sJson);
     } else {
         loadDefaultDoc();
+        setTimeout(doTransformRender, 50);
     }
 
     showSelect();
@@ -312,7 +326,7 @@ function createNew(stype) {
     // draw the shape at its initial position
     refreshShape(newEntity);
     newEntity.mousedown(onMouseDownSelectIt);
-    newEntity.attr({ "stroke-width": 4 * self.resizeFactor });
+    newEntity.attr({ "stroke-width": 4 * g_ui.resizeFactor });
     g_ui.domSelected = newEntity;
     showSelect();
 
@@ -324,6 +338,12 @@ function createNew(stype) {
 function showSelect() {
     g_ui.shapeSelectA.show();
     g_ui.shapeSelectB.show();
+    if (!g_ui.domSelected) {
+        g_ui.shapeSelectA.hide();
+        g_ui.shapeSelectB.hide();
+        return;
+    }
+
     var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
     if (!oCoord) {
         errmsg("in showSelect, nothing selected?");
@@ -351,12 +371,44 @@ function hideSelect() {
     g_ui.shapeSelectB.hide();
 }
 
+function countEntities() {
+    var countGens = 0;
+    var countShapes = 0;
+    for (var key in g_ui.domToCoordObject) {
+        if (g_ui.domToCoordObject[key].type === "lgen") {
+            countGens++;
+        } else {
+            countShapes++;
+        }
+    }
+    return [countGens, countShapes];
+}
+
 function deleteSelected() {
     if (!g_ui.domSelected) {
         return;
     }
 
-    if (g_ui.domToCoordObject[g_ui.domSelected.id].type == "lgen") {
+    var a = countEntities();
+    if (
+        g_ui.domToCoordObject[g_ui.domSelected.id].type === "lgen" &&
+        a[0] <= 1
+    ) {
+        alert(
+            "This is the only generator - if you deleted it there wouldn't be a picture to show."
+        );
+        return;
+    } else if (
+        g_ui.domToCoordObject[g_ui.domSelected.id].type !== "lgen" &&
+        a[1] <= 1
+    ) {
+        alert(
+            "This is the only shape - if you deleted it there wouldn't be a picture to show."
+        );
+        return;
+    }
+
+    if (g_ui.domToCoordObject[g_ui.domSelected.id].type === "lgen") {
         g_ui.mapObjIdToArrow[g_ui.domSelected.id].remove(); // remove arrow
         delete g_ui.mapObjIdToArrow[g_ui.domSelected.id];
     }
@@ -403,7 +455,8 @@ function doTransformRender() {
     }
 
     //make main reference into a context
-    var initialContext = g_ui.mainContext;
+    var mainContext = contextFromRawShape(g_ui.mainContextShape);
+    var initialContext = mainContext;
 
     //convert shapes to be relative to initial context
     for (var i = 0; i < gens.length; i++) {
@@ -418,7 +471,7 @@ function doTransformRender() {
     var nAdjustX = g_ui.resizeFactor == 1 ? 300 : 80;
 
     if (g_state.debugMeasureTiming) {
-        oTimer = Time.createTimer();
+        g_state.debugMeasureTimingTimer = Time.createTimer();
     }
 
     // it's a bit unclean that we do both the computation and the ui here
@@ -432,7 +485,7 @@ function doTransformRender() {
     );
 
     if (g_state.debugMeasureTiming) {
-        console.log(oTimer.check());
+        console.log(g_state.debugMeasureTimingTimer.check());
     }
 
     g_ui.isRendering = false;

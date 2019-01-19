@@ -1,3 +1,4 @@
+
 /**
  * Ben Fisher, 2010
  * @license GNU General Public License version 3
@@ -7,64 +8,98 @@
 
 "use strict";
 function on_btnaddline(e) {
+    on_btngeneral();
     createNew("l");
     doTransformRender();
 }
 
 function on_btnaddcircle(e) {
+    on_btngeneral();
     createNew("c");
     doTransformRender();
 }
 
 function on_btnaddgen(e) {
+    on_btngeneral();
     createNew("lgen");
     doTransformRender();
 }
 
+function getFloat(txt, d) {
+    var s = prompt(txt, d);
+    return parseFloat(s);
+}
+
 function on_btntheta(e) {
+    on_btngeneral();
     // manually sets coordinates that the user provides
-    if (!g_ui.domSelected) {
+    if (!g_ui.domSelected && !(e && e.shiftKey)) {
         errmsg("nothing is selected");
         return;
     }
 
+    var msg = e && e.shiftKey ? "Move all shapes " : "Move shape ";
+    var movex = getFloat(msg + "horizontally:", 0.0);
+    if (!isFinite(movex)) {
+        return;
+    }
+
+    var movey = getFloat(msg + "vertically:", 0.0);
+    if (!isFinite(movey)) {
+        return;
+    }
+
+    if (e && e.shiftKey) {
+        // move all the shapes
+        for (var key in g_ui.domToCoordObject) {
+            var sh = g_ui.domToCoordObject[key];
+            sh.x1 += movex;
+            sh.y1 += movey;
+            sh.x2 += movex;
+            sh.y2 += movey;
+        }
+        // move main too...
+        g_ui.mainContextShape.x1 += movex;
+        g_ui.mainContextShape.y1 += movey;
+        g_ui.mainContextShape.x2 += movex;
+        g_ui.mainContextShape.y2 += movey;
+
+        // save and reload
+        var s = saveToJson();
+        var fsturl = document.location.href.split("#")[0];
+        var lnk = fsturl + "#" + s;
+        document.location.href = lnk;
+        return;
+    }
+
     var shape = g_ui.domToCoordObject[g_ui.domSelected.id];
-    var sMvCoords = prompt("Move shape by (x,y)", "0,0");
-    if (!sMvCoords || sMvCoords.split(",").length != 2) {
-        return;
-    }
-
-    var x = parseFloat(sMvCoords.split(",")[0]) * mainContext.length;
-    var y = parseFloat(sMvCoords.split(",")[1]) * mainContext.length;
-    if (isNaN(x) || isNaN(y)) {
-        return;
-    }
-
-    shape.x1 += x;
-    shape.x2 += x;
-    shape.y1 += y;
-    shape.y2 += y;
-    refreshShape(g_ui.domSelected);
-
-    // reuse code, even if it's a bit unclear
+    var mainContext = contextFromRawShape(g_ui.mainContextShape);
     var newRelShape = rawShapeToRelativeShape(mainContext, shape);
-    var newRel = prompt(
-        "Write new (angle in degrees, length)",
-        newRelShape.rotation + "," + newRelShape.length
-    );
+    if (shape.type.startsWith("c")) {
+        var setAngle = 0;
+        var setLength = getFloat("Set radius:", newRelShape.length);
+        if (!isFinite(setLength)) {
+            return;
+        }
+    } else {
+        var setLength = getFloat("Set length:", newRelShape.length);
+        if (!isFinite(setLength)) {
+            return;
+        }
 
-    if (!newRel || newRel.split(",").length != 2) {
-        return;
+        var setAngle = getFloat("Set angle (degrees):", newRelShape.rotation);
+        if (!isFinite(setAngle)) {
+            return;
+        }
     }
 
-    var rot = parseFloat(newRel.split(",")[0]);
-    var l = parseFloat(newRel.split(",")[1]);
-    if (isNaN(rot) || isNaN(l)) {
-        return;
-    }
-
-    newRelShape.rotation = rot;
-    newRelShape.length = l;
+    shape.x1 += movex * mainContext.length;
+    shape.x2 += movex * mainContext.length;
+    shape.y1 += movey * mainContext.length;
+    shape.y2 += movey * mainContext.length;
+    newRelShape = rawShapeToRelativeShape(mainContext, shape);
+    newRelShape.rotation = setAngle;
+    newRelShape.length = setLength;
     var shpResult = new CRawShape();
     drawShapeRelativeToContext(mainContext, newRelShape, shpResult);
     shape.x2 = shpResult.x2;
@@ -75,40 +110,51 @@ function on_btntheta(e) {
 }
 
 function on_btndelete(e) {
+    on_btngeneral();
     deleteSelected();
     doTransformRender();
 }
 
 function on_btnonlyperim(e) {
+    on_btngeneral();
     if (g_state.nJustPerimeter > 0) {
         g_state.nJustPerimeter = 0;
         doTransformRender();
     } else {
         g_state.nJustPerimeter = 250;
-        g_state.nShapesToDraw = Math.min(g_state.nShapesToDraw, 500);
         doTransformRender();
     }
+    refreshBtnPerim();
+}
+
+function refreshBtnPerim() {
+    $("idbtnonlyperim").style.backgroundColor =
+        g_state.nJustPerimeter > 1 ? "#555" : "";
 }
 
 function on_btndrawmore(e) {
+    on_btngeneral();
     g_state.nShapesToDraw += 25;
     doTransformRender();
 }
 
 function on_btndrawless(e) {
+    on_btngeneral();
     g_state.nShapesToDraw -= 25;
     doTransformRender();
 }
 
 function on_btnzoomin(e) {
+    on_btngeneral();
     on_btnzoom(1);
 }
 
 function on_btnzoomout(e) {
+    on_btngeneral();
     on_btnzoom(-1);
 }
 
-function on_btnzoomout(nDir) {
+function on_btnzoom(nDir) {
     if (nDir == 1) {
         g_state.zoomLevel *= 1.25;
     } else if (nDir == -1) {
@@ -119,17 +165,23 @@ function on_btnzoomout(nDir) {
 }
 
 function on_btnopenexample(e) {
+    on_btngeneral();
     onLoadExample();
 }
 
-function on_btnsave(e) {}
+function on_btnsave(e) {
+    on_btngeneral();
+    var skipCompress = e && e.shiftKey;
+    onSave(skipCompress);
+}
 
 var onDragResize_start = function() {
+    on_btngeneral();
     // storing original coordinates
     this.ox = this.attr("cx");
     this.oy = this.attr("cy");
     var oCoord = g_ui.domToCoordObject[g_ui.domSelected.id];
-    if (oCoord.type == "c" && this === self.shapeSelectB) {
+    if (oCoord.type == "c" && this === g_ui.shapeSelectB) {
         this.origRadius = oCoord.rx;
     }
 
@@ -143,7 +195,7 @@ var onDragResize_move = function(dx, dy) {
         return;
     }
 
-    if (oCoord.type == "c" && this === self.shapeSelectB) {
+    if (oCoord.type == "c" && this === g_ui.shapeSelectB) {
         dy = 0;
     }
 
@@ -154,33 +206,33 @@ var onDragResize_move = function(dx, dy) {
 
     this.attr({ cx: this.ox + dx, cy: this.oy + dy });
 
-    if (this != self.shapeSelectA && this != self.shapeSelectB) {
-        errmsg("unknown resizer?");
+    if (this != g_ui.shapeSelectA && this != g_ui.shapeSelectB) {
+        console.error("unknown resizer?");
         return;
     }
 
     if (oCoord.type.startsWith("l")) {
         // line
-        if (this === self.shapeSelectA) {
+        if (this === g_ui.shapeSelectA) {
             oCoord.x1 = this.ox + dx;
             oCoord.y1 = this.oy + dy;
-        } else if (this === self.shapeSelectB) {
+        } else if (this === g_ui.shapeSelectB) {
             oCoord.x2 = this.ox + dx;
             oCoord.y2 = this.oy + dy;
         }
     } else if (oCoord.type == "c") {
         // circle
-        if (this === self.shapeSelectA) {
+        if (this === g_ui.shapeSelectA) {
             // moving the center
             oCoord.x1 = this.ox + dx;
             oCoord.y1 = this.oy + dy;
 
             // move other resizer accordingly.
-            self.shapeSelectB.attr({
+            g_ui.shapeSelectB.attr({
                 cx: oCoord.x1 + oCoord.rx,
                 cy: oCoord.y1
             });
-        } else if (this === self.shapeSelectB) {
+        } else if (this === g_ui.shapeSelectB) {
             // changing the radius!
             oCoord.rx = dx + this.origRadius;
         }
@@ -202,3 +254,7 @@ var onDragResize_up = function() {
     // redraw shapes.
     doTransformRender();
 };
+
+function on_btngeneral() {
+    $("welcometext").style.display = "none";
+}

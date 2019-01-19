@@ -1,3 +1,4 @@
+
 /**
  * Ben Fisher, 2010
  * @license GNU General Public License version 3
@@ -39,7 +40,7 @@ function CRawShape(obj) {
             errmsg("must pass type to rawShape constructor");
         }
 
-        if (!obj.x1 || !obj.y1) {
+        if (Number.isNaN(obj.x1) || Number.isNaN(obj.y1)) {
             errmsg(debugprint(obj));
             errmsg("must pass coords to rawShape constructor");
         }
@@ -62,7 +63,7 @@ function contextFromRawShape(rawShape) {
         (rawShape.x2 - rawShape.x1) * (rawShape.x2 - rawShape.x1) +
             (rawShape.y2 - rawShape.y1) * (rawShape.y2 - rawShape.y1)
     );
-    
+
     context.rotation = deg(
         Math.atan2(rawShape.y2 - rawShape.y1, rawShape.x2 - rawShape.x1)
     );
