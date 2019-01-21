@@ -31,12 +31,6 @@ function jsonToState2018(obj) {
 
     if (obj["main"]) {
         g_ui.mainContextShape = obj["main"];
-        if (self.resizeFactor > 1) {
-            g_ui.mainContextShape.x1 *= 40 / 200;
-            g_ui.mainContextShape.x2 *= 40 / 200;
-            g_ui.mainContextShape.y1 *= 140 / 200;
-            g_ui.mainContextShape.y2 *= 40 / 100;
-        }
     }
 
     if (!obj["shapes"]) {
@@ -93,6 +87,7 @@ function onLoadFromJsonRawObj(s) {
     jsonToState2018(obj);
     g_ui.domSelected = null;
     hideSelect();
+    updatePath(g_ui.mainGenPath, g_ui.mainContextShape);
     doTransformRender();
 }
 

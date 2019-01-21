@@ -126,11 +126,11 @@ function transform(
     while (true) {
         var context = contextQueue.shift();
 
-        //draw all of the shapes
+        // draw all of the shapes
         for (
             var i = 0;
             i < relativeShapes.length;
-            i++ //we've already filtered out the invisible ones.
+            i++ // we've already filtered out the invisible ones.
         ) {
             nDrawn++;
             if (nDrawn > g_state.nJustPerimeter) {

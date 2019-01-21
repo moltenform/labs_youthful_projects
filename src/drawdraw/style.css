@@ -16,13 +16,21 @@ body {
 
 #container {
   width: 100%;
-  overflow: hidden;
 }
 
 #columnOfBtns {
   color: #000;
   width: 3em;
-  overflow: hidden;
+}
+
+#columnOfBtns img {
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;          /* Firefox                        */
+  image-rendering: -o-crisp-edges;            /* Opera                          */
+  image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+  image-rendering: pixelated; /* Chrome */
+  image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+  -ms-interpolation-mode: nearest-neighbor; 
 }
 
 #holder {
@@ -33,12 +41,11 @@ body {
   padding: 10px;
   width: 1920px;
   height: 1080px;
-  overflow: hidden;
 }
 
 #welcometext {
   position: absolute;
-  top: 5em;
+  top: 1.25em;
   left: 7em;
   font: 300 .9em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial,
   sans-serif;

@@ -5,13 +5,13 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src 'self'; style-src 'self'; manifest-src 'self'; media-src 'self'; object-src 'none'; worker-src 'self'; frame-src 'self'; script-src 'self' 'sha256-vPvbslI77HCC5QZeNXqhzLJWx5uwuIGcQtF7HnX2Lj8=' www.googletagmanager.com www.google-analytics.com; connect-src 'self' www.googletagmanager.com www.google-analytics.com; img-src 'self' www.google-analytics.com;">
-    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=10" />
+    <meta name="viewport" content="width=device-width, initial-scale=0.75, maximum-scale=1.0, user-scalable=no" />
     <meta name="HandheldFriendly" content="True" />
     <meta http-equiv="cleartype" content="on" />
     <title>moltenjs - drawdraw</title>
     <link rel="stylesheet" href="style.css" type="text/css" media="screen">
     <script src="../../moltenjs-real-time-audio/lib/lz-string.min.js"></script>
-    <script src="../../moltenjs-real-time-audio/lib/raphael.js"></script>
+    <script src="js/raphael221.min.js"></script>
     <script src="js/util.js"></script>
     <script src="js/top_classes.js"></script>
     <script src="js/top_compute.js"></script>
@@ -27,25 +27,25 @@
     <div id="container">
         <div id="holder"></div>
         <div id="columnOfBtns">
-            <button id="idbtnaddline" title="Add Line"><img alt="Add Line" src="../../moltenjs-real-time-audio/img/l.gif"></button><br />
-            <button id="idbtnaddcircle" title="Add Circle"><img alt="Add Circle" src="../../moltenjs-real-time-audio/img/c.gif"></button><br />
-            <button id="idbtnaddgen" title="Add Generator"><img alt="Add Generator" src="../../moltenjs-real-time-audio/img/lchild.png"></button><br />
-            <button id="idbtntheta" title="Coords"><img alt="Coords" src="../../moltenjs-real-time-audio/img/theta.png"></button><br />
-            <button id="idbtndelete" title="Delete"><img alt="Delete" src="../../moltenjs-real-time-audio/img/bin_closed.png"></button><br />
-            <button id="idbtnonlyperim" title="Only Perimeter"><img alt="Only Perimeter" src="../../moltenjs-real-time-audio/img/bullet_black.png"></button><br />
-            <button id="idbtndrawmore" title="Draw More"><img alt="Draw More" src="../../moltenjs-real-time-audio/img/pencil_add.png"></button><br />
-            <button id="idbtndrawless" title="Draw Less"><img alt="Draw Less" src="../../moltenjs-real-time-audio/img/pencil_delete.png"></button><br />
-            <button id="idbtnzoomin" title="Zoom In"><img alt="Zoom In" src="../../moltenjs-real-time-audio/img/zoom_in.png"></button><br />
-            <button id="idbtnzoomout" title="Zoom Out"><img alt="Zoom Out" src="../../moltenjs-real-time-audio/img/zoom_out.png"></button><br />
-            <button id="idbtnopenexample" title="Open Example"><img alt="Open Example" src="../../moltenjs-real-time-audio/img/folder_picture.png"></button><br />
-            <button id="idbtnsave" title="Save"><img alt="Save" src="../../moltenjs-real-time-audio/img/save.png"></button><br />
+            <button id="idbtnaddline" title="Add Line"><img alt="Add Line" src="../../moltenjs-real-time-audio/img/l.gif" id="idimgl"></button><br />
+            <button id="idbtnaddcircle" title="Add Circle"><img alt="Add Circle" src="../../moltenjs-real-time-audio/img/c.gif" id="idimgc"></button><br />
+            <button id="idbtnaddgen" title="Add Generator"><img alt="Add Generator" src="../../moltenjs-real-time-audio/img/lchild.png" id="idimglchild"></button><br />
+            <button id="idbtntheta" title="Coords"><img alt="Coords" src="../../moltenjs-real-time-audio/img/theta.png" id="idimgtheta"></button><br />
+            <button id="idbtndelete" title="Delete"><img alt="Delete" src="../../moltenjs-real-time-audio/img/bin_closed.png" id="idimgbin_closed"></button><br />
+            <button id="idbtnonlyperim" title="Only Perimeter"><img alt="Only Perimeter" src="../../moltenjs-real-time-audio/img/bullet_black.png" id="idimgbullet_black"></button><br />
+            <button id="idbtndrawmore" title="Draw More"><img alt="Draw More" src="../../moltenjs-real-time-audio/img/pencil_add.png" id="idimgpencil_add"></button><br />
+            <button id="idbtndrawless" title="Draw Less"><img alt="Draw Less" src="../../moltenjs-real-time-audio/img/pencil_delete.png" id="idimgpencil_delete"></button><br />
+            <button id="idbtnzoomin" title="Zoom In"><img alt="Zoom In" src="../../moltenjs-real-time-audio/img/zoom_in.png" id="idimgzoom_in"></button><br />
+            <button id="idbtnzoomout" title="Zoom Out"><img alt="Zoom Out" src="../../moltenjs-real-time-audio/img/zoom_out.png" id="idimgzoom_out"></button><br />
+            <button id="idbtnopenexample" title="Open Example"><img alt="Open Example" src="../../moltenjs-real-time-audio/img/folder_picture.png" id="idimgfolder_picture"></button><br />
+            <button id="idbtnsave" title="Save"><img alt="Save" src="../../moltenjs-real-time-audio/img/save.png" id="idimgsave"></button><br />            
             <br /><br />
             <div id="infotext">
                 by Ben Fisher, 2010</a> <br /><br /><a href="../index.html">back to moltenjs</a>
             </div>
         </div>
         <div id="welcometext">
-            welcome to drawdraw: try tapping and dragging a green circle! 
+            welcome to drawdraw: <br />try tapping and dragging one of the green circles! 
         </div>
     </div>
 </body>

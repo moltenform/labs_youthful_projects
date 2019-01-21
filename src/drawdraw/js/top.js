@@ -31,9 +31,6 @@ g_state.init = function(self) {
         return;
     }
 
-    // we used to draw a "reference" marker to show the implicit first arrow.
-    self.shouldDrawReferenceContext = false;
-
     // for perf tests
     self.debugMeasureTiming = false;
 
@@ -62,16 +59,13 @@ g_ui.init = function(self) {
         return;
     }
 
-    Ra = Raphael("holder", g_ui.master_w, g_ui.master_h);
+    Ra = Raphael("holder");
 
     self.domSelected = undefined;
     self.isRendering = false;
 
     // record what shapes have been created.
     self.domToCoordObject = {};
-
-    // the arrow-head lines for lgen shapes
-    self.mapObjIdToArrow = {};
 
     // compensate for devicePixelRatio
     self.resizeFactor = 1;
@@ -83,7 +77,7 @@ g_ui.init = function(self) {
     self.allLines = [];
     self.initPools(self);
 
-    // adjust selection handle size on screens with high dpi
+    // adjust selection handle size on screens with high dpi (on my lg30 it is "4")
     self.resizeFactor = 1;
     if (window.devicePixelRatio !== undefined) {
         self.resizeFactor *= window.devicePixelRatio;
@@ -134,17 +128,11 @@ g_ui.init = function(self) {
         });
     }
 
-    var mainGenPath = Ra.path("M1,1,L,1,1").attr({
+    self.mainGenPath = Ra.path("M1,1,L,1,1").attr({
         "stroke-width": 6 * self.resizeFactor
     });
-    updatePath(mainGenPath, self.mainContextShape);
-    mainGenPath.attr({ stroke: "#888" });
-
-    if (g_state.shouldDrawReferenceContext) {
-        // manually draw the main arrow reference. this is not adjustable by the user.
-        var mainArrow = drawArrow(mainGenPath, self.mainContextShape, true);
-        mainArrow.attr({ stroke: "#aaf", fill: "#aaf" });
-    }
+    updatePath(self.mainGenPath, self.mainContextShape);
+    self.mainGenPath.attr({ stroke: "#888" });
 
     self.wasEverInited = true;
     self.inited = true;
@@ -191,7 +179,7 @@ function loadDefaultDoc() {
 function on_locationhashchange() {
     // reset the entire ui
     g_ui.teardown(g_ui);
-    Ra = null; //main raphael instance
+    Ra = null; // main raphael instance
     $("holder").innerHTML = "";
     g_state.inited = false;
     g_ui.inited = false;
@@ -256,6 +244,8 @@ function initAll() {
             whenBubbling
         );
 
+        setSizeLeftBtns();
+
         var w = Math.max(
             document.documentElement.clientWidth,
             window.innerWidth || 0
@@ -274,6 +264,7 @@ function initAll() {
     var sJson = doesHaveJson();
     if (sJson) {
         onLoadFromJsonRawObj(sJson);
+        $("welcometext").style.display = "none";
     } else {
         loadDefaultDoc();
         setTimeout(doTransformRender, 50);
@@ -286,8 +277,8 @@ function refreshShape(domObj) {
     var oCoord = g_ui.domToCoordObject[domObj.id];
     updatePath(domObj, oCoord);
 
-    if (oCoord.type == "lgen") {
-        drawArrow(domObj, oCoord, false);
+    if (oCoord.type === "lgen") {
+        domObj.attr({ "arrow-end": "classic-wide-long" });
     }
 
     if (g_ui.domSelected) {
@@ -330,8 +321,6 @@ function createNew(stype) {
     g_ui.domSelected = newEntity;
     showSelect();
 
-    // raphael.js workaround for rendering bug in Safari.
-    Ra.safari();
     return newEntity;
 }
 
@@ -361,9 +350,6 @@ function showSelect() {
     // g_ui.shapeSelectB should be in front, so that circles aren't stuck small
     g_ui.shapeSelectA.toFront();
     g_ui.shapeSelectB.toFront();
-
-    // raphael.js workaround for rendering bug in Safari.
-    Ra.safari();
 }
 
 function hideSelect() {
@@ -408,11 +394,6 @@ function deleteSelected() {
         return;
     }
 
-    if (g_ui.domToCoordObject[g_ui.domSelected.id].type === "lgen") {
-        g_ui.mapObjIdToArrow[g_ui.domSelected.id].remove(); // remove arrow
-        delete g_ui.mapObjIdToArrow[g_ui.domSelected.id];
-    }
-
     delete g_ui.domToCoordObject[g_ui.domSelected.id];
     hideSelect();
     g_ui.domSelected.remove();
@@ -454,11 +435,11 @@ function doTransformRender() {
         }
     }
 
-    //make main reference into a context
+    // make main reference into a context
     var mainContext = contextFromRawShape(g_ui.mainContextShape);
     var initialContext = mainContext;
 
-    //convert shapes to be relative to initial context
+    // convert shapes to be relative to initial context
     for (var i = 0; i < gens.length; i++) {
         gens[i] = rawShapeToRelativeShape(initialContext, gens[i]);
     }
@@ -479,7 +460,7 @@ function doTransformRender() {
         contextQueue,
         objs,
         gens,
-        -1 /*nThresholdBeforeDraw*/,
+        -1, // nThresholdBeforeDraw
         g_state.nShapesToDraw,
         nAdjustX
     );
@@ -489,4 +470,38 @@ function doTransformRender() {
     }
 
     g_ui.isRendering = false;
+}
+
+function setSizeLeftBtns() {
+    if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
+        return;
+    }
+
+    var mult = window.devicePixelRatio / 2;
+    var b = 24;
+    $("idimgl").style.width = b * mult + "px";
+    $("idimgl").style.height = b * mult + "px";
+    $("idimgc").style.width = b * mult + "px";
+    $("idimgc").style.height = b * mult + "px";
+    $("idimglchild").style.width = b * mult + "px";
+    $("idimglchild").style.height = b * mult + "px";
+    var b = 16;
+    $("idimgtheta").style.width = b * mult + "px";
+    $("idimgtheta").style.height = b * mult + "px";
+    $("idimgbin_closed").style.width = b * mult + "px";
+    $("idimgbin_closed").style.height = b * mult + "px";
+    $("idimgbullet_black").style.width = b * mult + "px";
+    $("idimgbullet_black").style.height = b * mult + "px";
+    $("idimgpencil_add").style.width = b * mult + "px";
+    $("idimgpencil_add").style.height = b * mult + "px";
+    $("idimgpencil_delete").style.width = b * mult + "px";
+    $("idimgpencil_delete").style.height = b * mult + "px";
+    $("idimgzoom_in").style.width = b * mult + "px";
+    $("idimgzoom_in").style.height = b * mult + "px";
+    $("idimgzoom_out").style.width = b * mult + "px";
+    $("idimgzoom_out").style.height = b * mult + "px";
+    $("idimgfolder_picture").style.width = b * mult + "px";
+    $("idimgfolder_picture").style.height = b * mult + "px";
+    $("idimgsave").style.width = b * mult + "px";
+    $("idimgsave").style.height = b * mult + "px";
 }
