@@ -53,24 +53,15 @@ function onLoadFromJson_go(s) {
     // undo url-encoding
     s = s.replace(/%27/g, '"');
     s = s.replace(/%22/g, '"');
-    if (s.startsWith('{"')) {
-        return s;
+    if (!s.startsWith('{')) {
+        s = LZString.decompressFromEncodedURIComponent(s);
+    }
+    
+    s = g_state.compression.decompress(s);
+    if (!s.startsWith('{"')) {
+        errmsg("does not look like valid json " + s);
     }
 
-    s = LZString.decompressFromEncodedURIComponent(s);
-    if (s.startsWith('{"')) {
-        return s;
-    }
-
-    if (!s.startsWith("{")) {
-        s = g_state.compression.decompress(s);
-    }
-
-    if (s.startsWith('{"')) {
-        return s;
-    }
-
-    errmsg("does not look like valid json " + s);
     return s;
 }
 
