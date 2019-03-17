@@ -37,6 +37,9 @@ g_state.init = function(self) {
     // for perf tests
     self.debugMeasureTimingTimer = undefined;
 
+    // is the document dirty?
+    self.hasUserChanges = false;
+
     // we could guard against Error: <path> attribute d: Expected number, "…094e+38M500,"
     // but it seems harmless
     self.checkVeryLargeNumbers = false;
@@ -473,12 +476,12 @@ function doTransformRender() {
 }
 
 function setSizeLeftBtns() {
-    if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
-        return;
+    var mult = 1;
+    if (!(!window.devicePixelRatio || window.devicePixelRatio <= 1)) {
+        mult = window.devicePixelRatio / 2;
     }
 
-    var mult = window.devicePixelRatio / 2;
-    var b = 24;
+    var b = 16;
     $("idimgl").style.width = b * mult + "px";
     $("idimgl").style.height = b * mult + "px";
     $("idimgc").style.width = b * mult + "px";

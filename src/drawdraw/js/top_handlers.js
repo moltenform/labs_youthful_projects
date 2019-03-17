@@ -11,18 +11,21 @@ function on_btnaddline(e) {
     on_btngeneral();
     createNew("l");
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function on_btnaddcircle(e) {
     on_btngeneral();
     createNew("c");
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function on_btnaddgen(e) {
     on_btngeneral();
     createNew("lgen");
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function getFloat(txt, d) {
@@ -48,6 +51,8 @@ function on_btntheta(e) {
     if (!isFinite(movey)) {
         return;
     }
+
+    g_state.hasUserChanges = true;
 
     if (e && e.shiftKey) {
         // move all the shapes
@@ -113,6 +118,7 @@ function on_btndelete(e) {
     on_btngeneral();
     deleteSelected();
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function on_btnonlyperim(e) {
@@ -124,7 +130,9 @@ function on_btnonlyperim(e) {
         g_state.nJustPerimeter = 250;
         doTransformRender();
     }
+
     refreshBtnPerim();
+    g_state.hasUserChanges = true;
 }
 
 function refreshBtnPerim() {
@@ -136,12 +144,14 @@ function on_btndrawmore(e) {
     on_btngeneral();
     g_state.nShapesToDraw += 25;
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function on_btndrawless(e) {
     on_btngeneral();
     g_state.nShapesToDraw -= 25;
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function on_btnzoomin(e) {
@@ -162,17 +172,25 @@ function on_btnzoom(nDir) {
     }
 
     doTransformRender();
+    g_state.hasUserChanges = true;
 }
 
 function on_btnopenexample(e) {
     on_btngeneral();
+    if (g_state.hasUserChanges && !confirm("Open an example?")) {
+        // ask this question since we'll wipe out user's state otherwise
+        return;
+    }
+
     onLoadExample();
+    g_state.hasUserChanges = false;
 }
 
 function on_btnsave(e) {
     on_btngeneral();
     var skipCompress = e && e.shiftKey;
     onSave(skipCompress);
+    g_state.hasUserChanges = false;
 }
 
 var onDragResize_start = function() {
@@ -194,6 +212,8 @@ var onDragResize_move = function(dx, dy) {
         errmsg("no oCoord obj");
         return;
     }
+    
+    g_state.hasUserChanges = true;
 
     if (oCoord.type == "c" && this === g_ui.shapeSelectB) {
         dy = 0;
