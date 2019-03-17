@@ -121,8 +121,8 @@ function transform(
         return;
     }
 
-    var centerX = 200,
-        centerY = 150;
+    var centerX = g_ui.offsetInputX;
+    var centerY = g_ui.offsetInputY;
     while (true) {
         var context = contextQueue.shift();
 
@@ -156,8 +156,8 @@ function transform(
                     currentRawShape.rx *= g_state.zoomLevel;
                 }
 
-                currentRawShape.x1 += adjustX;
-                currentRawShape.x2 += adjustX;
+                currentRawShape.x1 += g_ui.offsetOutputX;
+                currentRawShape.x2 += g_ui.offsetOutputX;
 
                 if (currentRawShape.type == "c") {
                     renderCircle(currentRawShape);

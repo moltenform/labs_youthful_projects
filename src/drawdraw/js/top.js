@@ -90,6 +90,15 @@ g_ui.init = function(self) {
         // consider multiplying self.resizeFactor here
     }
 
+    // compensate for screen size
+    self.lastSeenWidth = 1
+    self.lastSeenHeight = 1
+    self.offsetInputX = 2
+    self.offsetInputY = 2
+    self.offsetOutputX = 3
+    self.pendingScreenSizeUpdate = null
+    updateAfterScreenSizeChanges()
+
     self.oneLineGraphic = Ra.path("M1,1,L,1,1");
 
     // draw selection handles
@@ -113,23 +122,13 @@ g_ui.init = function(self) {
         onDragResize_up
     );
 
-    if (self.resizeFactor > 1) {
-        self.mainContextShape = new CRawShape({
-            type: "lgen",
-            x1: 40,
-            x2: 40,
-            y1: 140,
-            y2: 40
-        });
-    } else {
-        self.mainContextShape = new CRawShape({
-            type: "lgen",
-            x1: 200,
-            x2: 200,
-            y1: 200,
-            y2: 100
-        });
-    }
+    self.mainContextShape = new CRawShape({
+        type: "lgen",
+        x1: self.offsetInputX,
+        x2: self.offsetInputX,
+        y1: self.offsetInputY + 50,
+        y2: self.offsetInputY - 50
+    });
 
     self.mainGenPath = Ra.path("M1,1,L,1,1").attr({
         "stroke-width": 6 * self.resizeFactor
@@ -189,13 +188,65 @@ function on_locationhashchange() {
     initAll();
 }
 
+function scheduleUpdateAfterScreenSizeChanges() {
+    if (g_ui.pendingScreenSizeUpdate) {
+        window.clearTimeout(g_ui.pendingScreenSizeUpdate);
+    }
+
+    g_ui.pendingScreenSizeUpdate = window.setTimeout(function() {
+        updateAfterScreenSizeChanges();
+    }, 200);
+}
+
+function updateAfterScreenSizeChanges() {
+    var viewportW = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    var viewportH = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    if (viewportW !== g_ui.lastSeenWidth || viewportH !== g_ui.lastSeenHeight) {
+        // set the actual sizes in the DOM
+        var divW = viewportW - 5 /* canvasholder.left */ - 10 /* margin */
+        var divH = viewportH - 5 /* canvasholder.top */ - 10 /* margin */
+        divW = Math.max(1, divW)
+        divH = Math.max(1, divH)
+        $('canvasholder').style.width = divW + 'px'
+        $('canvasholder').style.height = divH + 'px'
+        Ra.setSize(divW, divH)
+
+        g_ui.lastSeenWidth = viewportW
+        g_ui.lastSeenHeight = viewportH
+
+        // currently slightly hard-coded.
+        // todo: base this on viewportW instead
+        if (g_ui.resizeFactor > 1) {
+            g_ui.offsetInputX = 40
+            g_ui.offsetInputY = 90
+        } else {
+            g_ui.offsetInputX = 200
+            g_ui.offsetInputY = 150
+        }
+
+        // halfway between w and reserveWidthForInput
+        var reserveWidthForInput = g_ui.offsetInputX + 100
+        g_ui.offsetOutputX = Math.round((reserveWidthForInput + viewportW)/2)
+
+        // hide all the current/cached output
+        renderAllLines(false);
+        if (g_ui.poolCircles) {
+            g_ui.poolCircles.clearAll();
+        }
+    }
+}
+
 function initAll() {
     if (!g_ui.wasEverInited) {
         var whenBubbling = false;
         window.addEventListener(
             "hashchange",
             on_locationhashchange,
-            false,
+            whenBubbling
+        );
+        window.addEventListener(
+            "resize",
+            scheduleUpdateAfterScreenSizeChanges,
             whenBubbling
         );
 
@@ -248,18 +299,6 @@ function initAll() {
         );
 
         setSizeLeftBtns();
-
-        var w = Math.max(
-            document.documentElement.clientWidth,
-            window.innerWidth || 0
-        );
-        var h = Math.max(
-            document.documentElement.clientHeight,
-            window.innerHeight || 0
-        );
-
-        g_ui.master_w = 1920;
-        g_ui.master_h = 1080;
     }
 
     g_state.init(g_state);

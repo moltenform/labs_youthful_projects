@@ -16,7 +16,9 @@
 
 function renderAllLines(arResults) {
     if (!arResults) {
-        g_ui.oneLineGraphic.attr("path", "M1,1,L,1,1");
+        if (g_ui.oneLineGraphic) {
+            g_ui.oneLineGraphic.attr("path", "M1,1,L,1,1");
+        }
     } else {
         var allpath = arResults.join(" ");
         if (g_state.checkVeryLargeNumbers && allpath.indexOf("e+") !== -1) {
