@@ -62,7 +62,8 @@ g_ui.init = function(self) {
         return;
     }
 
-    Ra = Raphael("holder");
+    Ra = Raphael("canvasholder");
+    Ra.canvas.style.zIndex = "10"
 
     self.domSelected = undefined;
     self.isRendering = false;
@@ -182,7 +183,7 @@ function on_locationhashchange() {
     // reset the entire ui
     g_ui.teardown(g_ui);
     Ra = null; // main raphael instance
-    $("holder").innerHTML = "";
+    $("canvasholder").innerHTML = "";
     g_state.inited = false;
     g_ui.inited = false;
     initAll();
@@ -226,12 +227,15 @@ function updateAfterScreenSizeChanges() {
 
         // halfway between w and reserveWidthForInput
         var reserveWidthForInput = g_ui.offsetInputX + 100
-        g_ui.offsetOutputX = Math.round((reserveWidthForInput + viewportW)/2)
+        g_ui.offsetOutputX = Math.round((reserveWidthForInput + viewportW)/2) - 300
 
         // hide all the current/cached output
         renderAllLines(false);
         if (g_ui.poolCircles) {
             g_ui.poolCircles.clearAll();
+        }
+        if (g_ui.inited) {
+            doTransformRender();
         }
     }
 }
