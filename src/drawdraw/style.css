@@ -16,7 +16,6 @@ body {
 
 #divmaincolumn {
   color: #000;
-  z-index: 30;
 }
 
 #divmaincolumn img {
@@ -38,7 +37,6 @@ body {
   padding: 10px;
   width: 100px; /* js will update this dynamically */
   height: 100px; /* js will update this dynamically */
-  z-index: 10;
 }
 
 #welcometext {
@@ -48,7 +46,6 @@ body {
   font: 300 .9em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial,
   sans-serif;
   font-style: italic;
-  z-index: 40;
 }
 
 #infotext {

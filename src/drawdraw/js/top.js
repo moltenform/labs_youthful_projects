@@ -63,7 +63,6 @@ g_ui.init = function(self) {
     }
 
     Ra = Raphael("canvasholder");
-    Ra.canvas.style.zIndex = "10"
 
     self.domSelected = undefined;
     self.isRendering = false;
@@ -203,9 +202,15 @@ function updateAfterScreenSizeChanges() {
     var viewportW = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     var viewportH = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
     if (viewportW !== g_ui.lastSeenWidth || viewportH !== g_ui.lastSeenHeight) {
+        setSizeLeftBtns()
+        var marginX = Math.round($("idbtntheta").offsetLeft + $("idbtntheta").offsetWidth)
+        var marginY = 5
+        $('canvasholder').style.left = marginX + 'px'
+        $('canvasholder').style.top = marginY + 'px'
+
         // set the actual sizes in the DOM
-        var divW = viewportW - 5 /* canvasholder.left */ - 10 /* margin */
-        var divH = viewportH - 5 /* canvasholder.top */ - 10 /* margin */
+        var divW = viewportW - (marginX - 10)
+        var divH = viewportH - (marginY - 10)
         divW = Math.max(1, divW)
         divH = Math.max(1, divH)
         $('canvasholder').style.width = divW + 'px'
@@ -550,4 +555,5 @@ function setSizeLeftBtns() {
     $("idimgfolder_picture").style.height = b * mult + "px";
     $("idimgsave").style.width = b * mult + "px";
     $("idimgsave").style.height = b * mult + "px";
+    return b * mult
 }
