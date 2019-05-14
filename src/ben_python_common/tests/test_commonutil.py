@@ -295,117 +295,281 @@ class TestCommonUI(object):
         assert os.path.exists(newlocation)
         assert files.getname(newlocation).startswith('z')
 
-class TestExtractTest(object):
-    def test_extractTextFailsIfNotFound(self):
-        contentsFail = '<tag> Target</b> </tag>'
-        with pytest.raises(AssertionError) as exc:
-            extractText(contentsFail, '<b>', '</b>')
-        exc.match('opener not found')
+class TestEasyExtract(object):
+    def test_basic(self):
+        found = easyExtract(r'<p>abc</p>', r'<p>{content}</p>')
+        assert found.content == 'abc'
+        
+    def test_mustMatchEntire1(self):
+        found = easyExtract(r'a<p>abc</p>', r'<p>{content}</p>')
+        assert found is None
+        
+    def test_mustMatchEntire2(self):
+        found = easyExtract(r'<p>abc</p>a', r'<p>{content}</p>')
+        assert found is None
+        
+    def test_mustMatchEntire3(self):
+        found = easyExtract(r'a<p>abc</p>a', r'<p>{content}</p>')
+        assert found is None
+        
+    def test_mustMatchEntire4(self):
+        found = easyExtract(r'a\n<p>abc</p>', r'<p>{content}</p>')
+        assert found is None
+        
+    def test_mustMatchEntire5(self):
+        found = easyExtract(r'<p>abc</p>\na', r'<p>{content}</p>')
+        assert found is None
+        
+    def test_mustMatchEntire6(self):
+        found = easyExtract(r'a\n<p>abc</p>\na', r'<p>{content}</p>')
+        assert found is None
+    
+    def test_shouldEscapeBackslash(self):
+        found = easyExtract(r'<p>abc</p>a\b', r'<p>{content}</p>a\b')
+        assert found.content == 'abc'
+    
+    def test_shouldEscapeSymbols(self):
+        found = easyExtract(r'<p>abc</p>a??**)b', r'<p>{content}</p>a??**)b')
+        assert found.content == 'abc'
+    
+    def test_shouldEscapeDotStar(self):
+        found = easyExtract(r'<p>abc</p>a.*?', r'<p>{content}</p>a.*?')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsOpen1(self):
+        found = easyExtract(r'{<p>abc</p>', r'{{<p>{content}</p>')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsOpen2(self):
+        found = easyExtract(r'<p>a{bc</p>', r'<p>{content}</p>')
+        assert found.content == 'a{bc'
+        
+    def test_ignoreDoubleBracketsOpen3(self):
+        found = easyExtract(r'<p>abc</p>{', r'<p>{content}</p>{{')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsClose1(self):
+        found = easyExtract(r'}<p>abc</p>', r'}}<p>{content}</p>')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsClose2(self):
+        found = easyExtract(r'<p>a}bc</p>', r'<p>{content}</p>')
+        assert found.content == 'a}bc'
+        
+    def test_ignoreDoubleBracketsClose3(self):
+        found = easyExtract(r'<p>abc</p>}', r'<p>{content}</p>}}')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsBoth1(self):
+        found = easyExtract(r'{}<p>abc</p>', r'{{}}<p>{content}</p>')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsBoth2(self):
+        found = easyExtract(r'<p>a{}bc</p>', r'<p>{content}</p>')
+        assert found.content == 'a{}bc'
+        
+    def test_ignoreDoubleBracketsBoth3(self):
+        found = easyExtract(r'<p>abc</p>{}', r'<p>{content}</p>{{}}')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsBothInside1(self):
+        found = easyExtract(r'1{<p>abc</p>}1', r'1{{<p>{content}</p>}}1')
+        assert found.content == 'abc'
+        
+    def test_ignoreDoubleBracketsBothInside2(self):
+        found = easyExtract(r'{<p>abc</p>}', r'{{<p>{content}</p>}}')
+        assert found.content == 'abc'
+        
+    def test_tripleBrackets1(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'<p>{abc}</p>', r'<p>{{{content}</p>')
+        exc.match("triple brackets not yet supported")
+        
+    def test_tripleBrackets2(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'<p>{abc}</p>', r'<p>{content}}}</p>')
+        exc.match("triple brackets not yet supported")
+        
+    def test_tripleBrackets3(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'<p>{abc}</p>', r'<p>{{{content}}}</p>')
+        exc.match("triple brackets not yet supported")
 
-    def test_extractTextFailsIfCloseNotFound(self):
-        contentsFail = '<tag> <b>Target </tag>'
-        with pytest.raises(AssertionError) as exc:
-            extractText(contentsFail, '<b>', '</b>')
-        exc.match('closer not found')
+    def test_emptyNameIsOk(self):
+        found = easyExtract(r'456|ABC|123', r'{}|{main}|123')
+        assert found.main == 'ABC'
 
-    def test_extractTextFailsIfNeitherFound(self):
-        contentsFail = '<tag> Target </tag>'
-        with pytest.raises(AssertionError) as exc:
-            extractText(contentsFail, '<b>', '</b>')
-        exc.match('opener not found')
+    def test_emptyNamesIsOk(self):
+        found = easyExtract(r'456|ABC|123', r'{}|{main}|{}')
+        assert found.main == 'ABC'
+    
+    def test_cannotRepeatNames1(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'456|ABC|123', r'{main}|{main}')
+        exc.match('field name used twice')
+        
+    def test_cannotRepeatNames2(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'456|ABC|123', r'{}|{main}|{main}')
+        exc.match('field name used twice')
+        
+    def test_cannotRepeatNames3(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'456|ABC|123', r'{main}|{other}|{main}')
+        exc.match('field name used twice')
+        
+    def test_nameMustBeAlphanum1(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'456|ABC|123', r'{}|{bad name}|{}')
+        exc.match('{fieldname} but not')
+        
+    def test_nameMustBeAlphanum2(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'456|ABC|123', r'{}|{bad)name}|{}')
+        exc.match('{fieldname} but not')
 
-    def test_extractTextFailsIfMultipleOpeners(self):
-        contentsFail = '<tag> <b>Target</b>and<b> </tag>'
-        with pytest.raises(AssertionError) as exc:
-            extractText(contentsFail, '<b>', '</b>', allowManyInstancesOfOpener=False)
-        exc.match('allowManyInstancesOfOpener')
-
-    def test_extractTextFailsIfMultipleClosers(self):
-        contentsFail = '<tag> <b>Target</b>and</b> </tag>'
-        with pytest.raises(AssertionError) as exc:
-            extractText(contentsFail, '<b>', '</b>', allowManyInstancesOfCloser=False)
-        exc.match('allowManyInstancesOfCloser')
-
-    def test_extractTextAllowMultipleClosers(self):
-        contents = '<tag> <b>Target</b>and</b> </tag>'
-        s = extractText(contents, '<b>', '</b>', allowManyInstancesOfCloser=True)
-        assert s == 'Target'
-
-    def test_extractTextAllowMultipleBoth(self):
-        contents = '<tag> <b>Target</b>and<b>Second</b> </tag>'
-        s = extractText(contents, '<b>', '</b>', allowManyInstancesOfOpener=True,
-            allowManyInstancesOfCloser=True)
-        assert s == 'Target'
-
-    def test_extractTextSucceeds(self):
-        contents = '<tag> <look>insideTextHere</look>and </tag>'
-        s = extractText(contents, '<look>', '</look>')
-        assert s == 'insideTextHere'
-        s = extractText(contents, '<look>', '</look>', includeMarks=True)
-        assert s == '<look>insideTextHere</look>'
-        contents = '<tag> <b>Target</b>and </tag>'
-        s = extractText(contents, '<b>', '</b>')
-        assert s == 'Target'
-        s = extractText(contents, '<b>', '</b>', includeMarks=True)
-        assert s == '<b>Target</b>'
-
+    def test_nameMustBeAlphanum3(self):
+        with pytest.raises(ValueError) as exc:
+            found = easyExtract(r'456|ABC|123', r'{}|{bad>name}|{}')
+        exc.match('{fieldname} but not')
+    
+    def test_nameCanHaveUnderscore(self):
+        found = easyExtract(r'456|ABC|123', r'{}|{good_name}|{}')
+        assert found.good_name == 'ABC'
+    
+    def test_canReturnEmpty(self):
+        found = easyExtract(r'456||123', r'{}|{good_name}|{}')
+        assert found.good_name == ''
+        
+    def test_unnamedCanBeEmpty(self):
+        found = easyExtract(r'|a|', r'{}|{good_name}|{}')
+        assert found.good_name == 'a'
+    
+    def test_okToHaveConsecutiveEmpty(self):
+        found = easyExtract(r'a|b|', r'{}|{good_name}|{}{}')
+        assert found.good_name == 'b'
+    
+    def test_okToHaveConsecutiveNamedEmpty(self):
+        found = easyExtract(r'a|b|', r'{}|{good_name}|{c1}{c2}')
+        assert found.good_name == 'b'
+        assert found.c1 == ''
+        assert found.c2 == ''
+        
+    def test_hasNewline(self):
+        found = easyExtract('456|a\nb|123', r'{}|{good_name}|{}')
+        assert found.good_name == 'a\nb'
+        
+    def test_hasWindowsNewline(self):
+        found = easyExtract('456|a\r\nb|123', r'{}|{good_name}|{}')
+        assert found.good_name == 'a\r\nb'
+        
+    def test_multipleFields2(self):
+        found = easyExtract(r'a|b', r'{c1}|{c2}')
+        assert found.c1 == 'a'
+        assert found.c2 == 'b'
+        
+    def test_multipleFields3(self):
+        found = easyExtract(r'a|b|c', r'{c1}|{c2}|{c3}')
+        assert found.c1 == 'a'
+        assert found.c2 == 'b'
+        assert found.c3 == 'c'
+        
+    def test_multipleFields4(self):
+        found = easyExtract(r'a|b|c|d', r'{c1}|{c2}|{c3}|{c4}')
+        assert found.c1 == 'a'
+        assert found.c2 == 'b'
+        assert found.c3 == 'c'
+        assert found.c4 == 'd'
+        
+    def test_multipleFieldsNotEnough(self):
+        found = easyExtract(r'a|b|c', r'{c1}|{c2}|{c3}|{c4}')
+        assert found == None
+        
+    def test_multipleFieldsDemo(self):
+        found = easyExtract(r'<first>ff</first><second>ss</second>', 
+            r'<first>{c1}</first><second>{c2}</second>')
+        assert found.c1 == 'ff'
+        assert found.c2 == 'ss'
+    
     def test_replaceTextFailsIfNotExists(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contentsFail = '<tag> Target</b> </tag>'
         files.writeall(path, contentsFail)
-        with pytest.raises(AssertionError) as exc:
-            extractAndReplaceTextInFile('NewTarget', path, '<b>', '</b>')
-        exc.match('opener not found')
+        with pytest.raises(RuntimeError) as exc:
+            easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}',
+                's', 'o')
+        exc.match('pattern not found')
 
     def test_replaceTextFailsIfMultiple(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contentsFail = '<tag> <b>Target</b> <b>Other</b></tag>'
         files.writeall(path, contentsFail)
-        with pytest.raises(AssertionError) as exc:
-            extractAndReplaceTextInFile('NewTarget', path, '<b>', '</b>',
-                allowManyInstancesOfOpener=False)
-        exc.match('allowManyInstancesOfOpener')
+        with pytest.raises(RuntimeError) as exc:
+            easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}',
+                's', 'o', allowDelimsOnlyOnce=True)
+        exc.match('not found only once')
+
+    def test_replaceTextFailsIfMultipleOpen(self, fixture_dir):
+        path = files.join(fixture_dir, 'testreplace.txt')
+        contentsFail = '<tag> <b>Target</b> <b>Other</tag>'
+        files.writeall(path, contentsFail)
+        with pytest.raises(RuntimeError) as exc:
+            easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}',
+                's', 'o', allowDelimsOnlyOnce=True)
+        exc.match('not found only once')
+
+    def test_replaceTextFailsIfMultipleClose(self, fixture_dir):
+        path = files.join(fixture_dir, 'testreplace.txt')
+        contentsFail = '<tag> <b>Target</b> Other</b></tag>'
+        files.writeall(path, contentsFail)
+        with pytest.raises(RuntimeError) as exc:
+            easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}',
+                's', 'o', allowDelimsOnlyOnce=True)
+        exc.match('not found only once')
 
     def test_replaceTextAppendsIfNotExists(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contents = '<tag>Target</b> </tag>'
         files.writeall(path, contents)
-        extractAndReplaceTextInFile('NewTarget', path, '<b>', '</b>',
-            appendWithThisIfNotExists=':append:')
+        easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}',
+            's', 'o', appendIfNotFound=':append:')
+
         newContents = files.readall(path)
-        assert newContents == '<tag>Target</b> </tag>:append:NewTarget'
+        assert newContents == '<tag>Target</b> </tag>:append:'
 
     def test_replaceTextSucceeds(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contents = '<tag> <b>Target</b> </tag>'
         files.writeall(path, contents)
-        extractAndReplaceTextInFile('NewTarget', path, '<b>', '</b>')
+        easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}',
+            's', 'out', appendIfNotFound=':append:')
         newContents = files.readall(path)
-        assert newContents == '<tag> <b>NewTarget</b> </tag>'
+        assert newContents == '<tag> <b>out</b> </tag>'
 
     def test_replaceTextSucceedsManyClosers(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contents = '<tag> <b>Target</b> and</b></tag>'
         files.writeall(path, contents)
-        extractAndReplaceTextInFile('NewTarget', path, '<b>', '</b>')
+        easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}', 's', 'o')
         newContents = files.readall(path)
-        assert newContents == '<tag> <b>NewTarget</b> and</b></tag>'
+        assert newContents == '<tag> <b>o</b> and</b></tag>'
 
     def test_replaceTextSucceedsManyBoth(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contents = '<tag> <b>Target</b> <b>other</b></tag>'
         files.writeall(path, contents)
-        extractAndReplaceTextInFile('NewTarget', path, '<b>', '</b>')
+        easyExtractInsertIntoFile(path, '{before}<b>{s}</b>{after}', 's', 'o')
         newContents = files.readall(path)
-        assert newContents == '<tag> <b>NewTarget</b> <b>other</b></tag>'
+        assert newContents == '<tag> <b>o</b> <b>other</b></tag>'
 
     def test_replaceTextSucceedsLonger(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contents = '<tag> <look>LongerTextIsHere</look> </tag>'
         files.writeall(path, contents)
-        extractAndReplaceTextInFile('Short', path, '<look>', '</look>')
+        easyExtractInsertIntoFile(path, 
+            '{before}<look>{s}</look>{after}', 's', 'o')
         newContents = files.readall(path)
-        assert newContents == '<tag> <look>Short</look> </tag>'
+        assert newContents == '<tag> <look>o</look> </tag>'
 
 class TestCustomAsserts(object):
     def raisevalueerr(self):
