@@ -134,30 +134,30 @@ class TestOtherUtils(object):
         assert 'b4fa1177' == computeHash(join(fixture_dir, 'a.txt'), 'crc32')
 
     def test_extensionPossiblyExecutableNoExt(self, fixture_dir):
-        assert False == extensionPossiblyExecutable('noext')
-        assert False == extensionPossiblyExecutable('/path/noext')
+        assert extensionPossiblyExecutable('noext') is False
+        assert extensionPossiblyExecutable('/path/noext') is False
 
     def test_extensionPossiblyExecutableExt(self, fixture_dir):
-        assert False == extensionPossiblyExecutable('ext.jpg')
-        assert False == extensionPossiblyExecutable('/path/ext.jpg')
+        assert extensionPossiblyExecutable('ext.jpg') is False
+        assert extensionPossiblyExecutable('/path/ext.jpg') is False
 
     def test_extensionPossiblyExecutableDirsep(self, fixture_dir):
-        assert False == extensionPossiblyExecutable('dirsep/')
-        assert False == extensionPossiblyExecutable('/path/dirsep/')
+        assert extensionPossiblyExecutable('dirsep/') is False
+        assert extensionPossiblyExecutable('/path/dirsep/') is False
 
     def test_extensionPossiblyExecutablePeriod(self, fixture_dir):
         assert 'exe' == extensionPossiblyExecutable('test.jpg.exe')
         assert 'exe' == extensionPossiblyExecutable('/path/test.jpg.exe')
     
     def test_extensionPossiblyExecutablePeriodOk(self, fixture_dir):
-        assert False == extensionPossiblyExecutable('test.exe.jpg')
-        assert False == extensionPossiblyExecutable('/path/test.exe.jpg')
+        assert extensionPossiblyExecutable('test.exe.jpg') is False
+        assert extensionPossiblyExecutable('/path/test.exe.jpg') is False
         
     def test_extensionPossiblyExecutableOk(self, fixture_dir):
-        assert False == extensionPossiblyExecutable('ext.c')
-        assert False == extensionPossiblyExecutable('/path/ext.c')
-        assert False == extensionPossiblyExecutable('ext.longer')
-        assert False == extensionPossiblyExecutable('/path/ext.longer')
+        assert extensionPossiblyExecutable('ext.c') is False
+        assert extensionPossiblyExecutable('/path/ext.c') is False
+        assert extensionPossiblyExecutable('ext.longer') is False
+        assert extensionPossiblyExecutable('/path/ext.longer') is False
     
     def test_extensionPossiblyExecutableExe(self, fixture_dir):
         assert 'exe' == extensionPossiblyExecutable('ext.exe')

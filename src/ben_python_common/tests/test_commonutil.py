@@ -106,7 +106,7 @@ class TestStringHelpers(object):
     # getClipboardText
     def test_getClipboardTextWithNoUnicode(self):
         # let's check that pyperclip is installed
-        import pyperclip
+        import pyperclip  # NOQA
         prev = getClipboardText()
         try:
             setClipboardText('normal ascii')
@@ -116,7 +116,7 @@ class TestStringHelpers(object):
     
     def test_getClipboardTextWithUnicode(self):
         # let's check that pyperclip is installed
-        import pyperclip
+        import pyperclip  # NOQA
         prev = getClipboardText()
         try:
             setClipboardText(u'\u1E31\u1E77\u1E53\u006E')
@@ -382,17 +382,17 @@ class TestEasyExtract(object):
         
     def test_tripleBrackets1(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'<p>{abc}</p>', r'<p>{{{content}</p>')
+            easyExtract(r'<p>{abc}</p>', r'<p>{{{content}</p>')
         exc.match("triple brackets not yet supported")
         
     def test_tripleBrackets2(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'<p>{abc}</p>', r'<p>{content}}}</p>')
+            easyExtract(r'<p>{abc}</p>', r'<p>{content}}}</p>')
         exc.match("triple brackets not yet supported")
         
     def test_tripleBrackets3(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'<p>{abc}</p>', r'<p>{{{content}}}</p>')
+            easyExtract(r'<p>{abc}</p>', r'<p>{{{content}}}</p>')
         exc.match("triple brackets not yet supported")
 
     def test_emptyNameIsOk(self):
@@ -405,32 +405,32 @@ class TestEasyExtract(object):
     
     def test_cannotRepeatNames1(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'456|ABC|123', r'{main}|{main}')
+            easyExtract(r'456|ABC|123', r'{main}|{main}')
         exc.match('field name used twice')
         
     def test_cannotRepeatNames2(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'456|ABC|123', r'{}|{main}|{main}')
+            easyExtract(r'456|ABC|123', r'{}|{main}|{main}')
         exc.match('field name used twice')
         
     def test_cannotRepeatNames3(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'456|ABC|123', r'{main}|{other}|{main}')
+            easyExtract(r'456|ABC|123', r'{main}|{other}|{main}')
         exc.match('field name used twice')
         
     def test_nameMustBeAlphanum1(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'456|ABC|123', r'{}|{bad name}|{}')
+            easyExtract(r'456|ABC|123', r'{}|{bad name}|{}')
         exc.match('{fieldname} but not')
         
     def test_nameMustBeAlphanum2(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'456|ABC|123', r'{}|{bad)name}|{}')
+            easyExtract(r'456|ABC|123', r'{}|{bad)name}|{}')
         exc.match('{fieldname} but not')
 
     def test_nameMustBeAlphanum3(self):
         with pytest.raises(ValueError) as exc:
-            found = easyExtract(r'456|ABC|123', r'{}|{bad>name}|{}')
+            easyExtract(r'456|ABC|123', r'{}|{bad>name}|{}')
         exc.match('{fieldname} but not')
     
     def test_nameCanHaveUnderscore(self):
@@ -483,10 +483,10 @@ class TestEasyExtract(object):
         
     def test_multipleFieldsNotEnough(self):
         found = easyExtract(r'a|b|c', r'{c1}|{c2}|{c3}|{c4}')
-        assert found == None
+        assert found is None
         
     def test_multipleFieldsDemo(self):
-        found = easyExtract(r'<first>ff</first><second>ss</second>', 
+        found = easyExtract(r'<first>ff</first><second>ss</second>',
             r'<first>{c1}</first><second>{c2}</second>')
         assert found.c1 == 'ff'
         assert found.c2 == 'ss'
@@ -566,7 +566,7 @@ class TestEasyExtract(object):
         path = files.join(fixture_dir, 'testreplace.txt')
         contents = '<tag> <look>LongerTextIsHere</look> </tag>'
         files.writeall(path, contents)
-        easyExtractInsertIntoFile(path, 
+        easyExtractInsertIntoFile(path,
             '{before}<look>{s}</look>{after}', 's', 'o')
         newContents = files.readall(path)
         assert newContents == '<tag> <look>o</look> </tag>'

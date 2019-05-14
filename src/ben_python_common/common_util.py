@@ -217,7 +217,7 @@ class RecentlyUsedList(object):
     def indexOf(self, s):
         try:
             return self.list.index(s)
-        except:
+        except ValueError:
             return -1
     
     def add(self, s):
@@ -341,12 +341,12 @@ def easyExtractInsertIntoText(s, needle, key, newValue,
         raise ValueError('pattern must start with {before}' + example)
     if not needle.endswith('{after}'):
         raise ValueError('pattern must end with {after}' + example)
-    if not keyWithBrackets in needle:
+    if keyWithBrackets not in needle:
         raise ValueError('pattern did not contain ' + keyWithBrackets)
     
     withoutDoubles = needle.replace('{{', '').replace('}}', '')
     if len(withoutDoubles.split('{')) != 4 or \
-        len(withoutDoubles.split('}')) != 4:
+            len(withoutDoubles.split('}')) != 4:
         raise ValueError('pattern should only contain 3 fields' + example)
 
     found = easyExtract(s, needle)
@@ -373,7 +373,7 @@ def easyExtractInsertIntoFile(path, needle, key, newValue,
         appendIfNotFound=None, allowDelimsOnlyOnce=False):
     from .files import readall, writeall
     if isPy3OrNewer:
-        s = readall(path, encoding='utf-8') 
+        s = readall(path, encoding='utf-8')
     else:
         s = readall(path)
 

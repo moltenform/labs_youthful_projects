@@ -176,9 +176,9 @@ def writeall(s, txt, mode='w', unicodetype=None, encoding=None):
     with getF() as f:
         f.write(txt)
 
+_enforceExplicitlyNamedParameters = object()
 # use this to make the caller pass argument names,
 # allowing foo(param=False) but preventing foo(False)
-_enforceExplicitlyNamedParameters = object()
 
 def _checkNamedParameters(obj):
     if obj is not _enforceExplicitlyNamedParameters:
@@ -294,7 +294,7 @@ def getFileLastModifiedTime(filepath):
 def setFileLastModifiedTime(filepath, lmt):
     curtimes = os.stat(filepath)
     newtimes = (curtimes.st_atime, lmt)
-    with open(filepath, 'ab') as f:
+    with open(filepath, 'ab'):
         _os.utime(filepath, newtimes)
 
 # processes
@@ -334,6 +334,7 @@ def openUrl(s):
     s = s.replace(' ', '%20')
     s = prefix + s
     webbrowser.open(s, new=2)
+
 
 exeExt = {'.action': 1, '.apk': 1, '.app': 1, '.bat': 1, '.bin': 1, '.cmd': 1, '.com': 1,
     '.command': 1, '.cpl': 1, '.csh': 1, '.exe': 1, '.gadget': 1, '.inf1': 1, '.ins': 1, '.inx': 1,
@@ -427,7 +428,7 @@ def windowsUrlFileWrite(path, url):
     assertTrue(len(url) > 0)
     assertTrue(not files.exists(path), 'file already exists at', path)
     try:
-        testUrl = url.encode('ascii')
+        url.encode('ascii')
     except e:
         if isinstance(e, UnicodeEncodeError):
             raise RuntimeError('can\'t support a non-ascii url' + url + ' ' + path)
