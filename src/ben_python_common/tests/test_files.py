@@ -8,22 +8,8 @@ from os.path import join
 from ..common_util import isPy3OrNewer
 from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listchildren,
     getname, getparent, listfiles, recursedirs, recursefiles, listfileinfo, recursefileinfo,
-    computeHash, runWithoutWaitUnicode, ensure_empty_directory, ustr, makedirs, isfile)
-    
-class TestComputeHash(object):
-    def test_computeHashDefaultHash(self, fixture_dir):
-        writeall(join(fixture_dir, 'a.txt'), 'contents')
-        assert '4a756ca07e9487f482465a99e8286abc86ba4dc7' == computeHash(join(fixture_dir, 'a.txt'))
-    
-    def test_computeHashMd5(self, fixture_dir):
-        import hashlib
-        hasher = hashlib.md5()
-        writeall(join(fixture_dir, 'a.txt'), 'contents')
-        assert '98bf7d8c15784f0a3d63204441e1e2aa' == computeHash(join(fixture_dir, 'a.txt'), hasher)
-    
-    def test_computeHashCrc(self, fixture_dir):
-        writeall(join(fixture_dir, 'a.txt'), 'contents')
-        assert 'b4fa1177' == computeHash(join(fixture_dir, 'a.txt'), 'crc32')
+    computeHash, runWithoutWaitUnicode, ensure_empty_directory, ustr, makedirs,
+    isfile, extensionPossiblyExecutable)
 
 class TestDirectoryList(object):
     def test_listChildren(self, fixture_fulldir):
@@ -131,7 +117,64 @@ class TestDirectoryList(object):
         with pytest.raises(ValueError) as exc:
             list(listchildren(fixture_dir, True))
         exc.match('please name parameters')
+
+class TestOtherUtils(object):
+    def test_computeHashDefaultHash(self, fixture_dir):
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        assert '4a756ca07e9487f482465a99e8286abc86ba4dc7' == computeHash(join(fixture_dir, 'a.txt'))
+    
+    def test_computeHashMd5(self, fixture_dir):
+        import hashlib
+        hasher = hashlib.md5()
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        assert '98bf7d8c15784f0a3d63204441e1e2aa' == computeHash(join(fixture_dir, 'a.txt'), hasher)
+    
+    def test_computeHashCrc(self, fixture_dir):
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        assert 'b4fa1177' == computeHash(join(fixture_dir, 'a.txt'), 'crc32')
+
+    def test_extensionPossiblyExecutableNoExt(self, fixture_dir):
+        assert False == extensionPossiblyExecutable('noext')
+        assert False == extensionPossiblyExecutable('/path/noext')
+
+    def test_extensionPossiblyExecutableExt(self, fixture_dir):
+        assert False == extensionPossiblyExecutable('ext.jpg')
+        assert False == extensionPossiblyExecutable('/path/ext.jpg')
+
+    def test_extensionPossiblyExecutableDirsep(self, fixture_dir):
+        assert False == extensionPossiblyExecutable('dirsep/')
+        assert False == extensionPossiblyExecutable('/path/dirsep/')
+
+    def test_extensionPossiblyExecutablePeriod(self, fixture_dir):
+        assert 'exe' == extensionPossiblyExecutable('test.jpg.exe')
+        assert 'exe' == extensionPossiblyExecutable('/path/test.jpg.exe')
+    
+    def test_extensionPossiblyExecutablePeriodOk(self, fixture_dir):
+        assert False == extensionPossiblyExecutable('test.exe.jpg')
+        assert False == extensionPossiblyExecutable('/path/test.exe.jpg')
         
+    def test_extensionPossiblyExecutableOk(self, fixture_dir):
+        assert False == extensionPossiblyExecutable('ext.c')
+        assert False == extensionPossiblyExecutable('/path/ext.c')
+        assert False == extensionPossiblyExecutable('ext.longer')
+        assert False == extensionPossiblyExecutable('/path/ext.longer')
+    
+    def test_extensionPossiblyExecutableExe(self, fixture_dir):
+        assert 'exe' == extensionPossiblyExecutable('ext.exe')
+        assert 'exe' == extensionPossiblyExecutable('/path/ext.exe')
+        assert 'exe' == extensionPossiblyExecutable('ext.com')
+        assert 'exe' == extensionPossiblyExecutable('/path/ext.com')
+        assert 'exe' == extensionPossiblyExecutable('ext.vbScript')
+        assert 'exe' == extensionPossiblyExecutable('/path/ext.vbScript')
+
+    def test_extensionPossiblyExecutableWarn(self, fixture_dir):
+        assert 'warn' == extensionPossiblyExecutable('ext.Url')
+        assert 'warn' == extensionPossiblyExecutable('/path/ext.Url')
+        assert 'warn' == extensionPossiblyExecutable('ext.doCM')
+        assert 'warn' == extensionPossiblyExecutable('/path/ext.doCM')
+        assert 'warn' == extensionPossiblyExecutable('ext.EXOPC')
+        assert 'warn' == extensionPossiblyExecutable('/path/ext.EXOPC')
+
 class TestCopyingFiles(object):
     def test_copyOverwrite_srcNotExist(self, fixture_dir):
         with pytest.raises(IOError):
