@@ -304,6 +304,8 @@ def _easyExtractPatternToRegex(needle):
     needle = '^' + needle + '$'
     # escape will make { into \{, so go back to {
     needle = needle.replace('\\{', '{').replace('\\}', '}')
+    # in py2, escape will make _ into \_, so go back to _
+    needle = needle.replace('\\_', '_')
     reGetBrackets = r'(?<!{){(?P<name>[^{}]*?)}'
     fields = {}
     if '{{{' in needle or '}}}' in needle:
