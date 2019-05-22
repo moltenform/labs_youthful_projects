@@ -390,7 +390,40 @@ def findBinaryOnPath(binaryName):
 
     return None
 
-def computeHash(path, hasher=None, buffersize=0x40000):
+def hasherFromString(s):
+    import hashlib
+    if s == 'sha1':
+        return hashlib.sha1()
+    elif s == 'sha224':
+        return hashlib.sha224()
+    elif s == 'sha256':
+        return hashlib.sha256()
+    elif s == 'sha384':
+        return hashlib.sha384()
+    elif s == 'sha512':
+        return hashlib.sha512()
+    elif s == 'blake2b':
+        return hashlib.blake2b()
+    elif s == 'blake2s':
+        return hashlib.blake2s()
+    elif s == 'md5':
+        return hashlib.md5()
+    elif s == 'sha3_224':
+        return hashlib.sha3_224()
+    elif s == 'sha3_256':
+        return hashlib.sha3_256()
+    elif s == 'sha3_384':
+        return hashlib.sha3_384()
+    elif s == 'sha3_512':
+        return hashlib.sha3_512()
+    elif s == 'shake_128':
+        return hashlib.shake_128()
+    elif s == 'shake_256':
+        return hashlib.shake_256()
+    else:
+        return None
+
+def computeHash(path, hasher='sha1', buffersize=0x40000):
     if hasher == 'crc32':
         import zlib
         crc = zlib.crc32(bytes(), 0)
@@ -404,8 +437,8 @@ def computeHash(path, hasher=None, buffersize=0x40000):
         crc = crc & 0xffffffff
         return '%08x' % crc
     else:
-        import hashlib
-        hasher = hasher or hashlib.sha1()
+        checkFromString = hasherFromString(hasher)
+        hasher = checkFromString if checkFromString else hasher
         with open(path, 'rb') as f:
             while True:
                 # update the hash with the contents of the file
