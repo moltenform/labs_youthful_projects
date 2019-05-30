@@ -1,8 +1,8 @@
 
-drawdraw is an interactive art tool, designed and written by moltenjs (Ben Fisher)
+drawdraw is an interactive art tool, designed and written by moltenform (Ben Fisher)
 
-[click here to start drawdraw!](https://moltenjs.com/page/drawdraw/drawdraw/index.html)
+[click here to start drawdraw!](https://moltenform.com/page/drawdraw/drawdraw/index.html)
 
-<a href="https://moltenjs.com/page/drawdraw/drawdraw/index.html">![Screenshot](https://moltenjs.com/page/drawdraw/figure/166_c.png)</a>
+<a href="https://moltenform.com/page/drawdraw/drawdraw/index.html">![Screenshot](https://moltenform.com/page/drawdraw/figure/166_c.png)</a>
 
 (released under the GPL v3 license.)

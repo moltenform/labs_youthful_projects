@@ -5,7 +5,7 @@
 # wraps pytube and makes it look/act like ytdl does
 
 # ben_python_common is available from
-# https://github.com/moltenjs/labs_coordinate_music
+# https://github.com/moltenform/labs_coordinate_music
 
 from ben_python_common import *
 import os
