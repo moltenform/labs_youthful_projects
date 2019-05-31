@@ -176,6 +176,24 @@ def writeall(s, txt, mode='w', unicodetype=None, encoding=None):
     with getF() as f:
         f.write(txt)
 
+def writeallunlessalreadythere(path, txt, mode='w', encoding='utf-8'):
+    ret = False
+    if mode == 'wb':
+        current = readall(path, 'rb') if exists(path) else False
+        if current != txt:
+            writeall(path, txt, 'wb')
+            ret = True
+    elif mode == 'w':
+        assertTrue(isPy3OrNewer)
+        current = readall(path, 'r', encoding=encoding) if \
+            exists(path) else False
+        if current != txt:
+            writeall(path, txt, 'w', encoding=encoding)
+            ret = True
+    else:
+        raise ValueError('please use a mode of "w" or "wb"')
+    return ret
+
 _enforceExplicitlyNamedParameters = object()
 # use this to make the caller pass argument names,
 # allowing foo(param=False) but preventing foo(False)

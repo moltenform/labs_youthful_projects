@@ -9,7 +9,7 @@ from ..common_util import isPy3OrNewer
 from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listchildren,
     getname, getparent, listfiles, recursedirs, recursefiles, listfileinfo, recursefileinfo,
     computeHash, runWithoutWaitUnicode, ensure_empty_directory, ustr, makedirs,
-    isfile, extensionPossiblyExecutable)
+    isfile, extensionPossiblyExecutable, writeallunlessalreadythere)
 
 class TestDirectoryList(object):
     def test_listChildren(self, fixture_fulldir):
@@ -112,11 +112,55 @@ class TestDirectoryList(object):
             got = [(getname(getparent(o.path)), o.short(), o.size())
                 for o in recursefileinfo(fixture_fulldir, filesOnly=False)]
             assert expected == sorted(got)
-    
+
     def test_checkNamedParameters(self, fixture_dir):
         with pytest.raises(ValueError) as exc:
             list(listchildren(fixture_dir, True))
         exc.match('please name parameters')
+
+class TestWriteUnlessThere(object):
+    def test_writeallunlessthereNewFile(self, fixture_dir):
+        path = join(fixture_dir, 'a.dat')
+        ret = writeallunlessalreadythere(path, b'abc', mode='wb')
+        assert ret == True
+        assert b'abc' == readall(path, 'rb')
+
+    def test_writeallunlessthereChangedFile(self, fixture_dir):
+        path = join(fixture_dir, 'a.dat')
+        writeall(path, b'abcd', 'wb')
+        ret = writeallunlessalreadythere(path, b'abc', mode='wb')
+        assert ret == True
+        assert b'abc' == readall(path, 'rb')
+
+    def test_writeallunlessthereSameFile(self, fixture_dir):
+        path = join(fixture_dir, 'a.dat')
+        writeall(path, b'abc', 'wb')
+        ret = writeallunlessalreadythere(path, b'abc', mode='wb')
+        assert ret == False
+        assert b'abc' == readall(path, 'rb')
+
+    def test_writeallunlessthereNewTxtFile(self, fixture_dir):
+        if isPy3OrNewer:
+            path = join(fixture_dir, 'a.txt')
+            ret = writeallunlessalreadythere(path, 'abc', mode='w')
+            assert ret == True
+            assert 'abc' == readall(path)
+
+    def test_writeallunlessthereChangedTxtFile(self, fixture_dir):
+        if isPy3OrNewer:
+            path = join(fixture_dir, 'a.txt')
+            writeall(path, 'abcd')
+            ret = writeallunlessalreadythere(path, 'abc', mode='w')
+            assert ret == True
+            assert 'abc' == readall(path)
+
+    def test_writeallunlessthereSameTxtFile(self, fixture_dir):
+        if isPy3OrNewer:
+            path = join(fixture_dir, 'a.txt')
+            writeall(path, 'abc')
+            ret = writeallunlessalreadythere(path, 'abc', mode='w')
+            assert ret == False
+            assert 'abc' == readall(path)
 
 class TestOtherUtils(object):
     def test_computeHashDefaultHash(self, fixture_dir):
