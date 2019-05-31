@@ -103,7 +103,10 @@ def warn(s, flushOutput=True):
     
 def getInputBoolGui(prompt):
     "Ask yes or no. Returns True on yes and False on no."
-    import tkMessageBox
+    if isPy3OrNewer:
+        from tkinter import messagebox as tkMessageBox
+    else:
+        import tkMessageBox
     return tkMessageBox.askyesno(title=' ', message=prompt)
     
 def getInputYesNoCancelGui(prompt):
@@ -116,19 +119,29 @@ def getInputYesNoCancelGui(prompt):
         return 'No'
     else:
         return 'Cancel'
-    
-def getInputFloatGui(prompt, default=None, min=0.0, max=100.0, title=''):
-    "validated to be an float (decimal number). Returns None on cancel."
-    import tkSimpleDialog
-    kwargs = dict(initialvalue=default) if default is not None else dict()
-    return tkSimpleDialog.askfloat(' ', prompt, minvalue=min, maxvalue=max, **kwargs)
-    
-# returns '' on cancel
-def getInputStringGui(prompt, initialvalue=None, title=' '):
-    import Tkinter
-    import tkSimpleDialog
+
+def createTkSimpleDialog():
+    if isPy3OrNewer:
+        import tkinter as Tkinter
+        from tkinter import simpledialog as tkSimpleDialog
+    else:
+        import Tkinter
+        import tkSimpleDialog
+    # need to create a root window or we'll fail on simpledialog.py", line 137
+    # "if parent.winfo_viewable():" because parent is none.
     root = Tkinter.Tk()
     root.withdraw()
+    return Tkinter, tkSimpleDialog, root
+
+def getInputFloatGui(prompt, default=None, min=0.0, max=100.0, title=''):
+    "validated to be an float (decimal number). Returns None on cancel."
+    Tkinter, tkSimpleDialog, root = createTkSimpleDialog()
+    options = dict(initialvalue=default) if default is not None else dict()
+    return tkSimpleDialog.askfloat(' ', prompt, minvalue=min, maxvalue=max, **options)
+    
+def getInputStringGui(prompt, initialvalue=None, title=' '):
+    "returns '' on cancel"
+    Tkinter, tkSimpleDialog, root = createTkSimpleDialog()
     options = dict(initialvalue=initialvalue) if initialvalue else dict()
     s = tkSimpleDialog.askstring(title, prompt, **options)
     return '' if s is None else s
@@ -200,19 +213,27 @@ def getInputFromChoicesGui(prompt, arOptions):
         return result, arOptions[result]
 
 def errGui(s=''):
-    import tkMessageBox
+    if isPy3OrNewer:
+        from tkinter import messagebox as tkMessageBox
+    else:
+        import tkMessageBox
     tkMessageBox.showerror(title='Error', message=getPrintable(s))
     raise RuntimeError('fatal error\n' + getPrintable(s))
     
 def alertGui(s):
-    import tkMessageBox
+    if isPy3OrNewer:
+        from tkinter import messagebox as tkMessageBox
+    else:
+        import tkMessageBox
     tkMessageBox.showinfo(title=' ', message=getPrintable(s))
     
 def warnGui(s):
-    import tkMessageBox
+    if isPy3OrNewer:
+        from tkinter import messagebox as tkMessageBox
+    else:
+        import tkMessageBox
     if not tkMessageBox.askyesno(title='Warning', message=getPrintable(s) + '\nContinue?', icon='warning'):
         raise RuntimeError('user chose not to continue after warning')
-        
 
 gDirectoryHistory = dict()
 def _getFileDialogGui(fn, initialdir, types, title):
