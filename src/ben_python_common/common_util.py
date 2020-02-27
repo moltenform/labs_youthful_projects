@@ -473,6 +473,16 @@ def downloadUrl(url, toFile=None, timeout=30, asText=False):
     else:
         return resp.content
 
+def stripHtmlTags(s, removeRepeatedWhitespace=True):
+    import re
+    reTags = re.compile(r'<[^>]+>', re.DOTALL)
+    s = reTags.sub(' ', s)
+    if removeRepeatedWhitespace:
+        regNoDblSpace = re.compile(r'\s+')
+        s = regNoDblSpace.sub(' ', s)
+        s = s.strip()
+    return s
+
 def assertTrue(condition, *messageArgs):
     if not condition:
         msg = ' '.join(map(getPrintable, messageArgs)) if messageArgs else ''
