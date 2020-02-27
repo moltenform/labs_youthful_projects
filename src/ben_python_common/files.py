@@ -400,6 +400,8 @@ warnExt = {'.0xe': 1, '.73k': 1, '.89k': 1, '.a6p': 1, '.ac': 1, '.acc': 1, '.ac
     '.widget': 1, '.wiz': 1, '.wpk': 1, '.wpm': 1, '.xap': 1, '.xbap': 1, '.xlam': 1, '.xlm': 1,
     '.xlsm': 1, '.xltm': 1, '.xqt': 1, '.xys': 1, '.zl9': 1}
 
+# from Duplicati's default_compressed_extensions.txt
+# GNU Lesser General Public License v2.1
 alreadyCompressedExt = {'.7z': 1, '.alz': 1, '.bz': 1, '.bz2': 1, '.cab': 1, '.cbr': 1, '.cbz': 1,
     '.deb': 1, '.dl_': 1, '.dsft': 1, '.ex_': 1, '.gz': 1, '.jar': 1, '.lzma': 1, '.mpkg': 1,
     '.msi': 1, '.msp': 1, '.msu': 1, '.pet': 1, '.rar': 1, '.rpm': 1, '.sft': 1, '.sfx': 1,
@@ -629,3 +631,27 @@ def runWithoutWaitUnicode(listArgs):
         ht.Close()
         handle.Close()
         return pid
+
+def runWithTimeout(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoWindow=True,
+                  throwOnFailure=True, captureoutput=True, timeout=None, addArgs=None):
+    addArgs = addArgs if addArgs else {}
+    # todo: consolidate with run()
+    assertTrue(throwOnFailure is True or throwOnFailure is False or throwOnFailure is None,
+        "we don't yet support custom exception types set here, you can use CalledProcessError")
+
+    retcode = -1
+    stdout = None
+    stderr = None
+    if sys.platform.startswith('win') and createNoWindow:
+        kwargs['creationflags'] = 0x08000000
+
+    import subprocess
+    ret = subprocess.run(args, capture_output=captureoutput, shell=shell, timeout=timeout,
+        check=throwOnFailure, **addArgs)
+
+    retcode = ret.returncode
+    if captureoutput:
+        stdout = ret.stdout
+        stderr = ret.stderr
+    return retcode, stdout, stderr
+
