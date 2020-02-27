@@ -73,8 +73,8 @@ def ensure_empty_directory(d):
         _os.makedirs(d)
 
 def copy(srcfile, destfile, overwrite, traceToStdout=False):
-    if not exists(srcfile):
-        raise IOError('source path does not exist')
+    if not isfile(srcfile):
+        raise IOError('source path does not exist or is not a file')
 
     if traceToStdout:
         trace('copy()', srcfile, destfile)
@@ -97,9 +97,12 @@ def copy(srcfile, destfile, overwrite, traceToStdout=False):
 
     assertTrue(exists(destfile))
         
-def move(srcfile, destfile, overwrite, warn_between_drives=False, traceToStdout=False):
+def move(srcfile, destfile, overwrite, warn_between_drives=False,
+    traceToStdout=False, allowDirs=False):
     if not exists(srcfile):
         raise IOError('source path does not exist')
+    if not allowDirs and not isfile(srcfile):
+        raise IOError('source path does not exist or is not a file')
 
     if traceToStdout:
         trace('move()', srcfile, destfile)
