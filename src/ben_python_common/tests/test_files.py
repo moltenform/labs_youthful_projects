@@ -315,7 +315,7 @@ class TestRunProcess(object):
     def test_runShellScriptWithoutCapture(self, fixture_dir):
         writeall(join(fixture_dir, 'src.txt'), 'contents')
         writeall(join(fixture_dir, 's.bat'), 'copy src.txt dest.txt')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], captureoutput=False)
+        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], captureOutput=False)
         assert returncode == 0 and isfile(join(fixture_dir, 'dest.txt'))
 
     def test_runShellScriptWithUnicodeChars(self, fixture_dir):
@@ -333,7 +333,7 @@ class TestRunProcess(object):
     
     def test_runGetExitCodeWithoutCapture(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\nexit /b 123')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False, captureoutput=False)
+        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False, captureOutput=False)
         assert 123 == returncode
     
     def test_runNonZeroExitShouldThrow(self, fixture_dir):
@@ -344,7 +344,7 @@ class TestRunProcess(object):
     def test_runNonZeroExitShouldThrowWithoutCapture(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\nexit /b 123')
         with pytest.raises(RuntimeError):
-            run([join(fixture_dir, 's.bat')], captureoutput=False)
+            run([join(fixture_dir, 's.bat')], captureOutput=False)
     
     def test_runSendArgument(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\n@echo off\necho %1')

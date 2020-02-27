@@ -364,7 +364,7 @@ def openDirectoryInExplorer(dir):
             path = findBinaryOnPath(candidate)
             if path:
                 args = [path, dir]
-                run(args, shell=False, createNoWindow=False, throwOnFailure=False, captureoutput=False, wait=False)
+                run(args, shell=False, createNoWindow=False, throwOnFailure=False, captureOutput=False, wait=False)
                 return
         raise RuntimeError('unable to open directory.')
 
@@ -588,7 +588,7 @@ def windowsUrlFileWrite(path, url):
 
 # returns tuple (returncode, stdout, stderr)
 def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoWindow=True,
-        throwOnFailure=RuntimeError, stripText=True, captureoutput=True, silenceoutput=False,
+        throwOnFailure=RuntimeError, stripText=True, captureOutput=True, silenceoutput=False,
         wait=True):
     import subprocess
     _checkNamedParameters(_ind)
@@ -597,8 +597,8 @@ def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoW
     if sys.platform.startswith('win') and createNoWindow:
         kwargs['creationflags'] = 0x08000000
     
-    if captureoutput and not wait:
-        raise ValueError('captureoutput implies wait')
+    if captureOutput and not wait:
+        raise ValueError('captureOutput implies wait')
     
     if throwOnFailure and not wait:
         raise ValueError('throwing on failure implies wait')
@@ -607,7 +607,7 @@ def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoW
     stdout = None
     stderr = None
     
-    if captureoutput:
+    if captureOutput:
         sp = subprocess.Popen(listArgs, shell=shell,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         
@@ -680,7 +680,7 @@ def runWithoutWaitUnicode(listArgs):
         return pid
 
 def runWithTimeout(args, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoWindow=True,
-                  throwOnFailure=True, captureoutput=True, timeout=None, addArgs=None):
+                  throwOnFailure=True, captureOutput=True, timeout=None, addArgs=None):
     addArgs = addArgs if addArgs else {}
     # todo: consolidate with run()
     assertTrue(throwOnFailure is True or throwOnFailure is False or throwOnFailure is None,
@@ -693,11 +693,11 @@ def runWithTimeout(args, _ind=_enforceExplicitlyNamedParameters, shell=False, cr
         addArgs['creationflags'] = 0x08000000
 
     import subprocess
-    ret = subprocess.run(args, capture_output=captureoutput, shell=shell, timeout=timeout,
+    ret = subprocess.run(args, capture_output=captureOutput, shell=shell, timeout=timeout,
         check=throwOnFailure, **addArgs)
 
     retcode = ret.returncode
-    if captureoutput:
+    if captureOutput:
         stdout = ret.stdout
         stderr = ret.stderr
     return retcode, stdout, stderr
