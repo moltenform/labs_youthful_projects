@@ -4,10 +4,6 @@
 import tempfile
 from .common_util import *
 from . import files
-try:
-    from . import nocpy_get_delete_location as get_delete_location
-except ImportError:
-    get_delete_location = None
 
 def getInputBool(prompt, flushOutput=True):
     prompt += ' '
@@ -273,23 +269,32 @@ def registerDebughook(b=True):
         sys.excepthook = _dbgHookCallback
     else:
         sys.excepthook = sys.__excepthook__
-    
-def softDeleteFileFull(s, destination):
+
+def softDeleteFileFull(s, destination, allowDirs=False, doTrace=False):
     # as a prefix, the first 2 chars of the parent directory
     prefix = files.getname(files.getparent(s))[0:2] + '_'
     newname = destination + files.sep + prefix + files.split(s)[1] + getRandomString()
     if files.exists(newname):
         raise Exception('already exists ' + newname +
             '. is this directory full of files, or was the random seed reused?')
+    
+    if doTrace:
+        trace('softDeleteFile()', s, '|to|', newname)
 
-    files.move(s, newname, overwrite=False, warn_between_drives=True)
+    files.move(s, newname, overwrite=False, 
+        warn_between_drives=True, allowDirs=allowDirs)
     return newname
 
-def softDeleteFile(s):
-    if get_delete_location:
-        destination = get_delete_location.get_delete_location(s)
+def softDeleteFile(s, allowDirs=False, doTrace=False):
+    try:
+        from . import nocpy_get_delete_location
+    except ImportError:
+        nocpy_get_delete_location = None
+    
+    if nocpy_get_delete_location:
+        destination = nocpy_get_delete_location.get_delete_location(s)
     else:
         destination = files.join(tempfile.gettempdir(), 'ben_python_common_trash')
         files.makedirs(destination)
     
-    return softDeleteFileFull(s, destination)
+    return softDeleteFileFull(s, destination, allowDirs=allowDirs, doTrace=doTrace)
