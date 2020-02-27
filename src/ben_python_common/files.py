@@ -147,20 +147,35 @@ def copyFilePosixWithoutOverwrite(srcfile, destfile):
                     break
                 fdest.write(buffer)
 
-def getModTimeNs(path):
-    return _os.stat(path).st_mtime_ns
+# "millistime" is number of milliseconds past epoch (unix time * 1000)
 
-def getCTimeNs(path):
-    return _os.stat(path).st_ctime_ns
+def getModTimeNs(path, asMillisTime=False):
+    t = _os.stat(path).st_mtime_ns
+    if asMillisTime:
+        t = int(t / 1.0e6)
+    return t
 
-def getATimeNs(path):
-    return _os.stat(path).st_atime_ns
+def getCTimeNs(path, asMillisTime=False):
+    t = _os.stat(path).st_ctime_ns
+    if asMillisTime:
+        t = int(t / 1.0e6)
+    return t
 
-def setModTimeNs(path, mtime):
+def getATimeNs(path, asMillisTime=False):
+    t = _os.stat(path).st_atime_ns
+    if asMillisTime:
+        t = int(t / 1.0e6)
+    return t
+
+def setModTimeNs(path, mtime, asMillisTime=False):
+    if asMillisTime:
+        mtime *= 1e6
     atime = getATimeNs(path)
     _os.utime(path, ns=(atime, mtime))
 
-def setATimeNs(path, atime):
+def setATimeNs(path, atime, asMillisTime=False):
+    if asMillisTime:
+        atime *= 1e6
     mtime = getModTimeNs(path)
     _os.utime(path, ns=(atime, mtime))
 
@@ -664,7 +679,7 @@ def runWithoutWaitUnicode(listArgs):
         handle.Close()
         return pid
 
-def runWithTimeout(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoWindow=True,
+def runWithTimeout(args, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoWindow=True,
                   throwOnFailure=True, captureoutput=True, timeout=None, addArgs=None):
     addArgs = addArgs if addArgs else {}
     # todo: consolidate with run()
@@ -675,7 +690,7 @@ def runWithTimeout(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False
     stdout = None
     stderr = None
     if sys.platform.startswith('win') and createNoWindow:
-        kwargs['creationflags'] = 0x08000000
+        addArgs['creationflags'] = 0x08000000
 
     import subprocess
     ret = subprocess.run(args, capture_output=captureoutput, shell=shell, timeout=timeout,

@@ -73,15 +73,30 @@ def safefilename(s):
         .replace(u'"', u"'").replace(u'<', u'[').replace(u'>', u']') \
         .replace(u'\r\n', u' ').replace(u'\r', u' ').replace(u'\n', u' ')
         
-def getRandomString():
+def getRandomString(max=100 * 1000):
     import random
-    return '%s' % random.randrange(99999)
-        
-def warnWithOptionToContinue(s):
-    import common_ui
-    trace('WARNING ' + s)
-    if not common_ui.getInputBool('continue?'):
-        raise RuntimeError()
+    return '%s' % random.randrange(max)
+
+def genGuid(asBase64=False):
+    import uuid
+    u = uuid.uuid4()
+    if asBase64:
+        import base64
+        b = base64.urlsafe_b64encode(u.bytes_le)
+        return b.decode('utf8')
+    else:
+        return str(u)
+
+# "millistime" is number of milliseconds past epoch (unix time * 1000)
+def renderMillisTime(millisTime):
+    t = millisTime / 1000.0
+    import time
+    return time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(t))
+
+def getNowAsMillisTime():
+    import time
+    t = time.time()
+    return int(t * 1000)
 
 def splice(s, insertionpoint, lenToDelete, newtext):
     return s[0:insertionpoint] + newtext + s[insertionpoint + lenToDelete:]
