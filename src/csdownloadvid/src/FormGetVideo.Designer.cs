@@ -188,7 +188,7 @@ namespace CsDownloadVid
             this.txtFilenamePattern.Name = "txtFilenamePattern";
             this.txtFilenamePattern.Size = new System.Drawing.Size(203, 20);
             this.txtFilenamePattern.TabIndex = 40;
-            this.txtFilenamePattern.Text = "%(uploader)s %(title)s [%(id)s].%(ext)s";
+            this.txtFilenamePattern.Text = "%(uploader)s @ %(title)s [%(id)s].%(ext)s";
             // 
             // label5
             // 
