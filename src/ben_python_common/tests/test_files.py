@@ -167,6 +167,10 @@ class TestOtherUtils(object):
         writeall(join(fixture_dir, 'a.txt'), 'contents')
         assert '4a756ca07e9487f482465a99e8286abc86ba4dc7' == computeHash(join(fixture_dir, 'a.txt'))
     
+    def test_computeHashMd5Specified(self, fixture_dir):
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        assert '4a756ca07e9487f482465a99e8286abc86ba4dc7' == computeHash(join(fixture_dir, 'a.txt'), 'sha1')
+    
     def test_computeHashMd5(self, fixture_dir):
         import hashlib
         hasher = hashlib.md5()
@@ -176,6 +180,11 @@ class TestOtherUtils(object):
     def test_computeHashCrc(self, fixture_dir):
         writeall(join(fixture_dir, 'a.txt'), 'contents')
         assert 'b4fa1177' == computeHash(join(fixture_dir, 'a.txt'), 'crc32')
+    
+    def test_computeHashNotExist(self, fixture_dir):
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        with pytest.raises(ValueError):
+            computeHash(join(fixture_dir, 'a.txt'), 'no_such_hash')
 
     def test_extensionPossiblyExecutableNoExt(self, fixture_dir):
         assert extensionPossiblyExecutable('noext') is False
