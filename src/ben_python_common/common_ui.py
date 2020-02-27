@@ -85,18 +85,21 @@ def getRawInput(prompt, flushOutput=True):
     else:
         return input(getPrintable(''))
 
-def err(s=''):
+def err(s='', s2=None, s3=None):
+    s = _combinePrintableStrings(s, s2, s3)
     raise RuntimeError('fatal error\n' + getPrintable(s))
     
-def alert(s, flushOutput=True):
+def alert(s, s2=None, s3=None, flushOutput=True):
+    s = _combinePrintableStrings(s, s2, s3)
     trace(s)
     getRawInput('press Enter to continue', flushOutput)
     
-def warn(s, flushOutput=True):
+def warn(s, s2=None, s3=None, flushOutput=True):
+    s = _combinePrintableStrings(s, s2, s3)
     trace('warning\n' + getPrintable(s))
     if not getInputBool('continue?', flushOutput):
         raise RuntimeError('user chose not to continue after warning')
-    
+
 def getInputBoolGui(prompt):
     "Ask yes or no. Returns True on yes and False on no."
     if isPy3OrNewer:
@@ -208,7 +211,8 @@ def getInputFromChoicesGui(prompt, arOptions):
     else:
         return result, arOptions[result]
 
-def errGui(s=''):
+def errGui(s='', s2=None, s3=None):
+    s = _combinePrintableStrings(s, s2, s3)
     if isPy3OrNewer:
         from tkinter import messagebox as tkMessageBox
     else:
@@ -216,20 +220,32 @@ def errGui(s=''):
     tkMessageBox.showerror(title='Error', message=getPrintable(s))
     raise RuntimeError('fatal error\n' + getPrintable(s))
     
-def alertGui(s):
+def alertGui(s, s2=None, s3=None):
+    s = _combinePrintableStrings(s, s2, s3)
     if isPy3OrNewer:
         from tkinter import messagebox as tkMessageBox
     else:
         import tkMessageBox
     tkMessageBox.showinfo(title=' ', message=getPrintable(s))
     
-def warnGui(s):
+def warnGui(s, s2=None, s3=None):
+    s = _combinePrintableStrings(s, s2, s3)
     if isPy3OrNewer:
         from tkinter import messagebox as tkMessageBox
     else:
         import tkMessageBox
     if not tkMessageBox.askyesno(title='Warning', message=getPrintable(s) + '\nContinue?', icon='warning'):
         raise RuntimeError('user chose not to continue after warning')
+
+def _combinePrintableStrings(s, s2, s3):
+    s = str(s)
+    if s2:
+        s += ' ' + str(s2)
+    if s3:
+        s += ' '+ str(s3)
+
+    return s
+
 
 gDirectoryHistory = dict()
 def _getFileDialogGui(fn, initialdir, types, title):
