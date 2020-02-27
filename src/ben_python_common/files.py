@@ -146,7 +146,33 @@ def copyFilePosixWithoutOverwrite(srcfile, destfile):
                 if not buffer:
                     break
                 fdest.write(buffer)
-    
+
+def getModTimeNs(path):
+    return _os.stat(path).st_mtime_ns
+
+def getCTimeNs(path):
+    return _os.stat(path).st_ctime_ns
+
+def getATimeNs(path):
+    return _os.stat(path).st_atime_ns
+
+def setModTimeNs(path, mtime):
+    atime = getATimeNs(path)
+    _os.utime(path, ns=(atime, mtime))
+
+def setATimeNs(path, atime):
+    mtime = getModTimeNs(path)
+    _os.utime(path, ns=(atime, mtime))
+
+def getFileLastModifiedTime(filepath):
+    return _os.path.getmtime(filepath)
+
+def setFileLastModifiedTime(filepath, lmt):
+    curtimes = _os.stat(filepath)
+    newtimes = (curtimes.st_atime, lmt)
+    with open(filepath, 'ab'):
+        _os.utime(filepath, newtimes)
+
 # unicodetype can be utf-8, utf-8-sig, etc.
 def readall(s, mode='r', unicodetype=None, encoding=None):
     if encoding:
@@ -196,6 +222,7 @@ def writeallunlessalreadythere(path, txt, mode='w', encoding='utf-8'):
     else:
         raise ValueError('please use a mode of "w" or "wb"')
     return ret
+
 
 _enforceExplicitlyNamedParameters = object()
 # use this to make the caller pass argument names,
@@ -308,15 +335,6 @@ def isemptydir(dir):
 def fileContentsEqual(f1, f2):
     import filecmp
     return filecmp.cmp(f1, f2, shallow=False)
-
-def getFileLastModifiedTime(filepath):
-    return _os.path.getmtime(filepath)
-
-def setFileLastModifiedTime(filepath, lmt):
-    curtimes = os.stat(filepath)
-    newtimes = (curtimes.st_atime, lmt)
-    with open(filepath, 'ab'):
-        _os.utime(filepath, newtimes)
 
 # processes
 def openDirectoryInExplorer(dir):
