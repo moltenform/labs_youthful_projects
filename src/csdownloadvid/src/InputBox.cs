@@ -28,6 +28,10 @@ namespace CsDownloadVid
             this.Text = " ";
             this.AllowDrop = true;
             this._comboBox.Focus();
+
+            // we don't use autocomplete, we just enable it
+            // to get the Ctrl+Backspace shortcut
+            this._comboBox.AutoCompleteMode = AutoCompleteMode.Append;
         }
 
         // add MRU history, suggestions, and clipboard contents to the list of examples.
@@ -118,8 +122,7 @@ namespace CsDownloadVid
             string s = GetStrInput(message, defaultInt.ToString(), historyKey,
                 useClipboard: clipboardContainsInt);
 
-            int result = 0;
-            if (string.IsNullOrEmpty(s) || !int.TryParse(s, out result))
+            if (string.IsNullOrEmpty(s) || !int.TryParse(s, out int result))
             {
                 return null;
             }
