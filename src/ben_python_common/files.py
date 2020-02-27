@@ -515,6 +515,38 @@ def computeHash(path, hasher='sha1', buffersize=0x40000):
                 hasher.update(buffer)
         return hasher.hexdigest()
 
+def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
+    pathPrefix='', recurse=True, **kwargs):
+    import zipfile
+    methodDict = dict(store=zipfile.ZIP_STORED, deflate=zipfile.ZIP_DEFLATED,
+        lzma=zipfile.ZIP_LZMA)
+    def getMethod(s):
+        if alreadyCompressedAsStore and getext(s, False) in alreadyCompressedExt:
+            trace(s, 'store')
+            trace(s, getext(s, False), alreadyCompressedExt[getext(s, False) ])
+            return zipfile.ZIP_STORED
+        elif isinstance(method, anystringtype):
+            trace(s, methodDict[method])
+            return methodDict[method]
+        else:
+            return method
+
+    assertTrue(not root.endswith('/') and not root.endswith('\\'))
+    with zipfile.ZipFile(zipPath, 'a') as zip:
+        if isfile(root):
+            thisMethod = getMethod(root)
+            zip.write(root, pathPrefix + files.getname(root), compress_type=thisMethod)
+        elif isdir(root):
+            itr = recursefiles(root, **kwargs) if recurse else listfiles(root, **kwargs)
+            for f, short in itr:
+                assertTrue(f.startswith(root))
+                shortname = f[len(root)+1:]
+                thisMethod = getMethod(f)
+                assertTrue(shortname)
+                zip.write(f, pathPrefix + shortname, compress_type=thisMethod)
+        else:
+            raise RuntimeError("not found: " + root)
+
 def windowsUrlFileGet(path):
     assertEq('.url', _os.path.splitext(path)[1].lower())
     s = readall(path, mode='r', encoding='latin1')
