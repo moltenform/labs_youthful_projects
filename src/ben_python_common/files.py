@@ -460,7 +460,7 @@ def hasherFromString(s):
     elif s == 'shake_256':
         return hashlib.shake_256()
     else:
-        return None
+        raise ValueError('Unknown hash type ' + s)
 
 def computeHash(path, hasher='sha1', buffersize=0x40000):
     if hasher == 'crc32':
@@ -476,8 +476,9 @@ def computeHash(path, hasher='sha1', buffersize=0x40000):
         crc = crc & 0xffffffff
         return '%08x' % crc
     else:
-        checkFromString = hasherFromString(hasher)
-        hasher = checkFromString if checkFromString else hasher
+        if isinstance(hasher, str):
+            hasher = hasherFromString(hasher)
+
         with open(path, 'rb') as f:
             while True:
                 # update the hash with the contents of the file
