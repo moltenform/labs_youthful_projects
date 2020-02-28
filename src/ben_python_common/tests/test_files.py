@@ -5,11 +5,12 @@ import pytest
 import tempfile
 import os
 from os.path import join
-from ..common_util import isPy3OrNewer
+from ..common_util import isPy3OrNewer, renderMillisTime, getNowAsMillisTime
 from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listchildren,
     getname, getparent, listfiles, recursedirs, recursefiles, listfileinfo, recursefileinfo,
     computeHash, runWithoutWaitUnicode, ensure_empty_directory, ustr, makedirs,
-    isfile, extensionPossiblyExecutable, writeallunlessalreadythere)
+    isfile, isdir, rmdir, extensionPossiblyExecutable, writeallunlessalreadythere,
+    getModTimeNs, setModTimeNs)
 
 class TestDirectoryList(object):
     def test_listChildren(self, fixture_fulldir):
@@ -263,6 +264,16 @@ class TestCopyingFiles(object):
             copy(join(fixture_dir, u'1\u1101.txt'), join(fixture_dir, u'2\u1101.txt'), False)
         assert 'new' == readall(join(fixture_dir, u'1\u1101.txt'))
         assert 'old' == readall(join(fixture_dir, u'2\u1101.txt'))
+    
+    def test_shouldNotCopyDir(self, fixture_dir):
+        # by default, copy is for copying files, not dirs
+        makedirs(join(fixture_dir, 'tmpdir1'))
+        assert isdir(join(fixture_dir, 'tmpdir1'))
+        try:
+            with pytest.raises(IOError):
+                copy(join(fixture_dir, 'tmpdir1'), join(fixture_dir, 'tmpdir2'), False)
+        finally:
+            rmdir(join(fixture_dir, 'tmpdir1'))
 
 class TestMovingFiles(object):
     def test_moveOverwrite_srcNotExist(self, fixture_dir):
@@ -300,6 +311,16 @@ class TestMovingFiles(object):
         assert 'new' == readall(join(fixture_dir, u'1\u1101.txt'))
         assert 'old' == readall(join(fixture_dir, u'2\u1101.txt'))
 
+    def test_shouldNotMoveDir(self, fixture_dir):
+        # by default, move is for moving files, not dirs
+        makedirs(join(fixture_dir, 'tmpdir1'))
+        assert isdir(join(fixture_dir, 'tmpdir1'))
+        try:
+            with pytest.raises(IOError):
+                move(join(fixture_dir, 'tmpdir1'), join(fixture_dir, 'tmpdir2'), False)
+        finally:
+            rmdir(join(fixture_dir, 'tmpdir1'))
+
 class TestMakeDirectories(object):
     def test_makeDirectoriesAlreadyExists(self, fixture_dir):
         makedirs(fixture_dir)
@@ -312,6 +333,50 @@ class TestMakeDirectories(object):
     def test_makeDirectoriesTwoLevels(self, fixture_dir):
         makedirs(fixture_dir + sep + 'a' + sep + 'a')
         assert isemptydir(fixture_dir + sep + 'a' + sep + 'a')
+
+class TestFiletimes(object):
+    @pytest.mark.skipif('not isPy3OrNewer')
+    def test_modtimeIsUpdated(self, fixture_dir):
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        curtime1 = getModTimeNs(join(fixture_dir, 'a.txt'))
+        curtime2 = getModTimeNs(join(fixture_dir, 'a.txt'))
+        assert curtime1 == curtime2
+
+        # update the time by changing the file
+        import time
+        time.sleep(2)
+        with open(join(fixture_dir, 'a.txt'), 'a') as f:
+            f.write('changed')
+        curtime3 = getModTimeNs(join(fixture_dir, 'a.txt'))
+        curtime4 = getModTimeNs(join(fixture_dir, 'a.txt'))
+        assert curtime3 == curtime4
+        assert curtime3 > curtime2
+
+        # update the time manually
+        setModTimeNs(join(fixture_dir, 'a.txt'), curtime3 // 100)
+        curtime5 = getModTimeNs(join(fixture_dir, 'a.txt'))
+        assert curtime5 < curtime4
+
+    @pytest.mark.skipif('not isPy3OrNewer')
+    def test_modtimeRendered(self, fixture_dir):
+        writeall(join(fixture_dir, 'a.txt'), 'contents')
+        curtimeWritten = getModTimeNs(join(fixture_dir, 'a.txt'), asMillisTime=True)
+        curtimeNow = getNowAsMillisTime()
+
+        # we expect it to be at least within 1 day
+        dayMilliseconds = 24 * 60 * 60 * 1000
+        assert abs(curtimeWritten - curtimeNow) < dayMilliseconds
+
+        # so we expect at least the date to match
+        nCharsInDate = 10
+        scurtimeWritten = renderMillisTime(curtimeWritten)
+        scurtimeNow = renderMillisTime(curtimeNow)
+        assert scurtimeWritten[0:nCharsInDate] == scurtimeNow[0:nCharsInDate]
+
+    def test_renderTime(self):
+        t = getNowAsMillisTime()
+        s = renderMillisTime(t)
+        assert len(s) > 16
 
 @pytest.mark.skipif('not sys.platform.startswith("win")')
 class TestRunProcess(object):
