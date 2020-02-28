@@ -120,6 +120,7 @@ def stripHtmlTags(s, removeRepeatedWhitespace=True):
     s = s.replace('<', '?').replace('>', '?')
     return s
 
+
 '''
 re.search(pattern, string, flags=0)
     look for at most one match starting anywhere

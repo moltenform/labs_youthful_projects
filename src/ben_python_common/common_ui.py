@@ -242,7 +242,7 @@ def _combinePrintableStrings(s, s2, s3):
     if s2:
         s += ' ' + str(s2)
     if s3:
-        s += ' '+ str(s3)
+        s += ' ' + str(s3)
 
     return s
 
@@ -297,7 +297,7 @@ def softDeleteFileFull(s, destination, allowDirs=False, doTrace=False):
     if doTrace:
         trace('softDeleteFile()', s, '|to|', newname)
 
-    files.move(s, newname, overwrite=False, 
+    files.move(s, newname, overwrite=False,
         warn_between_drives=True, allowDirs=allowDirs)
     return newname
 

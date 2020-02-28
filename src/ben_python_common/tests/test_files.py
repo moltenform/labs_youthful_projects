@@ -123,28 +123,28 @@ class TestWriteUnlessThere(object):
     def test_writeallunlessthereNewFile(self, fixture_dir):
         path = join(fixture_dir, 'a.dat')
         ret = writeallunlessalreadythere(path, b'abc', mode='wb')
-        assert ret == True
+        assert ret is True
         assert b'abc' == readall(path, 'rb')
 
     def test_writeallunlessthereChangedFile(self, fixture_dir):
         path = join(fixture_dir, 'a.dat')
         writeall(path, b'abcd', 'wb')
         ret = writeallunlessalreadythere(path, b'abc', mode='wb')
-        assert ret == True
+        assert ret is True
         assert b'abc' == readall(path, 'rb')
 
     def test_writeallunlessthereSameFile(self, fixture_dir):
         path = join(fixture_dir, 'a.dat')
         writeall(path, b'abc', 'wb')
         ret = writeallunlessalreadythere(path, b'abc', mode='wb')
-        assert ret == False
+        assert ret is False
         assert b'abc' == readall(path, 'rb')
 
     @pytest.mark.skipif('not isPy3OrNewer')
     def test_writeallunlessthereNewTxtFile(self, fixture_dir):
         path = join(fixture_dir, 'a.txt')
         ret = writeallunlessalreadythere(path, 'abc', mode='w')
-        assert ret == True
+        assert ret is True
         assert 'abc' == readall(path)
 
     @pytest.mark.skipif('not isPy3OrNewer')
@@ -152,7 +152,7 @@ class TestWriteUnlessThere(object):
         path = join(fixture_dir, 'a.txt')
         writeall(path, 'abcd')
         ret = writeallunlessalreadythere(path, 'abc', mode='w')
-        assert ret == True
+        assert ret is True
         assert 'abc' == readall(path)
 
     @pytest.mark.skipif('not isPy3OrNewer')
@@ -160,7 +160,7 @@ class TestWriteUnlessThere(object):
         path = join(fixture_dir, 'a.txt')
         writeall(path, 'abc')
         ret = writeallunlessalreadythere(path, 'abc', mode='w')
-        assert ret == False
+        assert ret is False
         assert 'abc' == readall(path)
 
 class TestOtherUtils(object):

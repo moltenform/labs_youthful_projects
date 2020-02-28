@@ -98,7 +98,7 @@ def copy(srcfile, destfile, overwrite, traceToStdout=False):
     assertTrue(exists(destfile))
         
 def move(srcfile, destfile, overwrite, warn_between_drives=False,
-    traceToStdout=False, allowDirs=False):
+        traceToStdout=False, allowDirs=False):
     if not exists(srcfile):
         raise IOError('source path does not exist')
     if not allowDirs and not isfile(srcfile):
@@ -260,6 +260,7 @@ if sys.platform.startswith('win'):
     listchildren = listchildrenUnsorted
 else:
     exeSuffix = ''
+
     def listchildren(*args, **kwargs):
         return sorted(listchildrenUnsorted(*args, **kwargs))
 
@@ -531,13 +532,13 @@ def computeHash(path, hasher='sha1', buffersize=0x40000):
         return hasher.hexdigest()
 
 def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
-    pathPrefix='', recurse=True, **kwargs):
+        pathPrefix='', recurse=True, **kwargs):
     import zipfile
     methodDict = dict(store=zipfile.ZIP_STORED, deflate=zipfile.ZIP_DEFLATED)
     try:
         methodDict['lzma'] = zipfile.ZIP_LZMA
     except AttributeError:
-        pass # lzma isn't always available, e.g. python 2.7
+        pass  # lzma isn't always available, e.g. python 2.7
     def getMethod(s):
         if alreadyCompressedAsStore and getext(s, False) in alreadyCompressedExt:
             return zipfile.ZIP_STORED
@@ -555,7 +556,7 @@ def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
             itr = recursefiles(root, **kwargs) if recurse else listfiles(root, **kwargs)
             for f, short in itr:
                 assertTrue(f.startswith(root))
-                shortname = f[len(root)+1:]
+                shortname = f[len(root) + 1:]
                 thisMethod = getMethod(f)
                 assertTrue(shortname)
                 zip.write(f, pathPrefix + shortname, compress_type=thisMethod)
@@ -701,4 +702,3 @@ def runWithTimeout(args, _ind=_enforceExplicitlyNamedParameters, shell=False, cr
         stdout = ret.stdout
         stderr = ret.stderr
     return retcode, stdout, stderr
-
