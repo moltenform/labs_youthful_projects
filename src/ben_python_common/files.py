@@ -533,15 +533,15 @@ def computeHash(path, hasher='sha1', buffersize=0x40000):
 def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
     pathPrefix='', recurse=True, **kwargs):
     import zipfile
-    methodDict = dict(store=zipfile.ZIP_STORED, deflate=zipfile.ZIP_DEFLATED,
-        lzma=zipfile.ZIP_LZMA)
+    methodDict = dict(store=zipfile.ZIP_STORED, deflate=zipfile.ZIP_DEFLATED)
+    try:
+        methodDict['lzma'] = zipfile.ZIP_LZMA
+    except AttributeError:
+        pass # lzma isn't always available, e.g. python 2.7
     def getMethod(s):
         if alreadyCompressedAsStore and getext(s, False) in alreadyCompressedExt:
-            trace(s, 'store')
-            trace(s, getext(s, False), alreadyCompressedExt[getext(s, False) ])
             return zipfile.ZIP_STORED
         elif isinstance(method, anystringtype):
-            trace(s, methodDict[method])
             return methodDict[method]
         else:
             return method

@@ -10,7 +10,7 @@ from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listch
     getname, getparent, listfiles, recursedirs, recursefiles, listfileinfo, recursefileinfo,
     computeHash, runWithoutWaitUnicode, ensure_empty_directory, ustr, makedirs,
     isfile, isdir, rmdir, extensionPossiblyExecutable, writeallunlessalreadythere,
-    getModTimeNs, setModTimeNs)
+    getModTimeNs, setModTimeNs, addAllToZip)
 
 class TestDirectoryList(object):
     def test_listChildren(self, fixture_fulldir):
@@ -82,7 +82,7 @@ class TestDirectoryList(object):
         def filter(d):
             return getname(d) != 's1'
         assert expected == sorted(list(recursedirs(fixture_fulldir, filenamesOnly=True, fnFilterDirs=filter)))
-    
+
     def test_listFileInfo(self, fixture_fulldir):
         if isPy3OrNewer:
             expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8)]
@@ -228,6 +228,47 @@ class TestOtherUtils(object):
         assert 'warn' == extensionPossiblyExecutable('/path/ext.doCM')
         assert 'warn' == extensionPossiblyExecutable('ext.EXOPC')
         assert 'warn' == extensionPossiblyExecutable('/path/ext.EXOPC')
+
+    def test_addAllToZip(self, fixture_dir):
+        import zipfile
+        def makeZip(**kwargs):
+            ensure_empty_directory(fixture_dir)
+            makedirs(join(fixture_dir, 'a/b'))
+            writeall(join(fixture_dir, 'a/b.bmp'), 'contents111')
+            writeall(join(fixture_dir, 'a/noext'), 'contents2')
+            writeall(join(fixture_dir, 'a/b/im.png'), 'contents3')
+            writeall(join(fixture_dir, 'a/b/te.txt'), 'contents4')
+            outname = join(fixture_dir, 'a.zip')
+            addAllToZip(join(fixture_dir, 'a'), outname, **kwargs)
+            with zipfile.ZipFile(outname) as z:
+                lst = z.infolist()
+                lst.sort(key=lambda o: o.filename)
+            return outname, lst
+
+        # defaults to deflate method
+        outname, lst = makeZip()
+        assert 4 == len(lst)
+        assert ('b.bmp', zipfile.ZIP_DEFLATED, 11) == (lst[0].filename, lst[0].compress_type, lst[0].file_size)
+        assert ('b/im.png', zipfile.ZIP_DEFLATED, 9) == (lst[1].filename, lst[1].compress_type, lst[1].file_size)
+        assert ('b/te.txt', zipfile.ZIP_DEFLATED, 9) == (lst[2].filename, lst[2].compress_type, lst[2].file_size)
+        assert ('noext', zipfile.ZIP_DEFLATED, 9) == (lst[3].filename, lst[3].compress_type, lst[3].file_size)
+
+        # use deflate+store
+        outname, lst = makeZip(method='deflate', alreadyCompressedAsStore=True)
+        assert 4 == len(lst)
+        assert ('b.bmp', zipfile.ZIP_DEFLATED, 11) == (lst[0].filename, lst[0].compress_type, lst[0].file_size)
+        assert ('b/im.png', zipfile.ZIP_STORED, 9) == (lst[1].filename, lst[1].compress_type, lst[1].file_size)
+        assert ('b/te.txt', zipfile.ZIP_DEFLATED, 9) == (lst[2].filename, lst[2].compress_type, lst[2].file_size)
+        assert ('noext', zipfile.ZIP_DEFLATED, 9) == (lst[3].filename, lst[3].compress_type, lst[3].file_size)
+
+        # use lzma
+        if isPy3OrNewer:
+            outname, lst = makeZip(method='lzma')
+            assert 4 == len(lst)
+            assert ('b.bmp', zipfile.ZIP_LZMA, 11) == (lst[0].filename, lst[0].compress_type, lst[0].file_size)
+            assert ('b/im.png', zipfile.ZIP_LZMA, 9) == (lst[1].filename, lst[1].compress_type, lst[1].file_size)
+            assert ('b/te.txt', zipfile.ZIP_LZMA, 9) == (lst[2].filename, lst[2].compress_type, lst[2].file_size)
+            assert ('noext', zipfile.ZIP_LZMA, 9) == (lst[3].filename, lst[3].compress_type, lst[3].file_size)
 
 class TestCopyingFiles(object):
     def test_copyOverwrite_srcNotExist(self, fixture_dir):
