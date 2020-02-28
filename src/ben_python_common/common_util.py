@@ -106,6 +106,19 @@ def spliceSpan(s, span, newtext):
     assertEq(len(span), 2)
     return splice(s, span[0], span[1] - span[0], newtext)
 
+def stripHtmlTags(s, removeRepeatedWhitespace=True):
+    import re
+    # a (?:) is a non-capturing group
+    reTags = re.compile(r'<[^>]+(?:>|$)', re.DOTALL)
+    s = reTags.sub(' ', s)
+    if removeRepeatedWhitespace:
+        regNoDblSpace = re.compile(r'\s+')
+        s = regNoDblSpace.sub(' ', s)
+        s = s.strip()
+
+    # malformed tags like "<a<" with no close, replace with ?
+    s = s.replace('<', '?').replace('>', '?')
+    return s
 
 '''
 re.search(pattern, string, flags=0)
@@ -487,16 +500,6 @@ def downloadUrl(url, toFile=None, timeout=30, asText=False):
         return resp.text
     else:
         return resp.content
-
-def stripHtmlTags(s, removeRepeatedWhitespace=True):
-    import re
-    reTags = re.compile(r'<[^>]+>', re.DOTALL)
-    s = reTags.sub(' ', s)
-    if removeRepeatedWhitespace:
-        regNoDblSpace = re.compile(r'\s+')
-        s = regNoDblSpace.sub(' ', s)
-        s = s.strip()
-    return s
 
 def assertTrue(condition, *messageArgs):
     if not condition:

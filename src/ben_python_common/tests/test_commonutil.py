@@ -103,12 +103,51 @@ class TestStringHelpers(object):
         assert 'ab123def' == splice('abcdef', 2, 1, '123')
         assert 'ab123cdef' == splice('abcdef', 2, 0, '123')
 
+    # stripHtmlTags
+    def test_stripHtmlTags(self):
+        assert 'a b c' == stripHtmlTags('a b c')
+        assert '' == stripHtmlTags('')
+        assert '' == stripHtmlTags('<a b c>')
+        assert '1 2' == stripHtmlTags('1<a b c>2')
+        
+        # nested
+        assert '1 c?2' == stripHtmlTags('1<a <b> c>2')
+        assert '1 2' == stripHtmlTags('1<a <b c>2')
+        assert '1 c?2' == stripHtmlTags('1<a b> c>2')
+        assert '1 c?2' == stripHtmlTags('1<a <b> c>2')
+        
+        # unclosed
+        assert 'open?' == stripHtmlTags('open>')
+        assert 'open? abc' == stripHtmlTags('open> abc')
+        assert '?open abc' == stripHtmlTags('>open abc')
+        assert '' == stripHtmlTags('<close')
+        assert 'abc' == stripHtmlTags('abc<close')
+        assert 'abc close?' == stripHtmlTags('abc close<')
+        
+        # many tags, repeated space
+        assert 'a b c d e', stripHtmlTags('a b c<abc> d </abc>e')
+        assert 'a b c d e', stripHtmlTags('a b c<abc>d</abc>e')
+        assert 'a b c d e', stripHtmlTags('a b c<abc><b>d</abc>e')
+
     # getRandomString
     def test_getRandomString(self):
         s1 = getRandomString()
         s2 = getRandomString()
         assert all((c in '0123456789' for c in s1))
         assert all((c in '0123456789' for c in s2))
+        assert s1 != s2
+    
+    # genGuid
+    def test_genGuid(self):
+        s1 = genGuid()
+        s2 = genGuid()
+        assert 36 == len(s1)
+        assert 36 == len(s2)
+        assert s1 != s2
+        s1 = genGuid(asBase64=True)
+        s2 = genGuid(asBase64=True)
+        assert 24 == len(s1)
+        assert 24 == len(s2)
         assert s1 != s2
     
     # getClipboardText
