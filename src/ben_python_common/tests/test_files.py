@@ -83,36 +83,36 @@ class TestDirectoryList(object):
             return getname(d) != 's1'
         assert expected == sorted(list(recursedirs(fixture_fulldir, filenamesOnly=True, fnFilterDirs=filter)))
 
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_listFileInfo(self, fixture_fulldir):
-        if isPy3OrNewer:
-            expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8)]
-            got = [(getname(getparent(o.path)), o.short(), o.size()) for o in listfileinfo(fixture_fulldir)]
-            assert expected == sorted(got)
+        expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8)]
+        got = [(getname(getparent(o.path)), o.short(), o.size()) for o in listfileinfo(fixture_fulldir)]
+        assert expected == sorted(got)
     
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_listFileInfoIncludeDirs(self, fixture_fulldir):
-        if isPy3OrNewer:
-            expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8),
-                ('full', 's1', 0), ('full', 's2', 0)]
-            got = [(getname(getparent(o.path)), o.short(), o.size())
-                for o in listfileinfo(fixture_fulldir, filesOnly=False)]
-            assert expected == sorted(got)
+        expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8),
+            ('full', 's1', 0), ('full', 's2', 0)]
+        got = [(getname(getparent(o.path)), o.short(), o.size())
+            for o in listfileinfo(fixture_fulldir, filesOnly=False)]
+        assert expected == sorted(got)
             
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_recurseFileInfo(self, fixture_fulldir):
-        if isPy3OrNewer:
-            expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8),
-                ('s2', 'other.txt', 8), ('ss1', 'file.txt', 8)]
-            got = [(getname(getparent(o.path)), o.short(), o.size())
-                for o in recursefileinfo(fixture_fulldir)]
-            assert expected == sorted(got)
+        expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8),
+            ('s2', 'other.txt', 8), ('ss1', 'file.txt', 8)]
+        got = [(getname(getparent(o.path)), o.short(), o.size())
+            for o in recursefileinfo(fixture_fulldir)]
+        assert expected == sorted(got)
     
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_recurseFileInfoIncludeDirs(self, fixture_fulldir):
-        if isPy3OrNewer:
-            expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8),
-                ('full', 's1', 0), ('full', 's2', 0), ('s1', 'ss1', 0), ('s1', 'ss2', 0),
-                ('s2', 'other.txt', 8), ('ss1', 'file.txt', 8)]
-            got = [(getname(getparent(o.path)), o.short(), o.size())
-                for o in recursefileinfo(fixture_fulldir, filesOnly=False)]
-            assert expected == sorted(got)
+        expected = [('full', 'P1.PNG', 8), ('full', 'a1.txt', 8), ('full', 'a2png', 8),
+            ('full', 's1', 0), ('full', 's2', 0), ('s1', 'ss1', 0), ('s1', 'ss2', 0),
+            ('s2', 'other.txt', 8), ('ss1', 'file.txt', 8)]
+        got = [(getname(getparent(o.path)), o.short(), o.size())
+            for o in recursefileinfo(fixture_fulldir, filesOnly=False)]
+        assert expected == sorted(got)
 
     def test_checkNamedParameters(self, fixture_dir):
         with pytest.raises(ValueError) as exc:
@@ -140,28 +140,28 @@ class TestWriteUnlessThere(object):
         assert ret == False
         assert b'abc' == readall(path, 'rb')
 
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_writeallunlessthereNewTxtFile(self, fixture_dir):
-        if isPy3OrNewer:
-            path = join(fixture_dir, 'a.txt')
-            ret = writeallunlessalreadythere(path, 'abc', mode='w')
-            assert ret == True
-            assert 'abc' == readall(path)
+        path = join(fixture_dir, 'a.txt')
+        ret = writeallunlessalreadythere(path, 'abc', mode='w')
+        assert ret == True
+        assert 'abc' == readall(path)
 
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_writeallunlessthereChangedTxtFile(self, fixture_dir):
-        if isPy3OrNewer:
-            path = join(fixture_dir, 'a.txt')
-            writeall(path, 'abcd')
-            ret = writeallunlessalreadythere(path, 'abc', mode='w')
-            assert ret == True
-            assert 'abc' == readall(path)
+        path = join(fixture_dir, 'a.txt')
+        writeall(path, 'abcd')
+        ret = writeallunlessalreadythere(path, 'abc', mode='w')
+        assert ret == True
+        assert 'abc' == readall(path)
 
+    @pytest.mark.skipif('not isPy3OrNewer')
     def test_writeallunlessthereSameTxtFile(self, fixture_dir):
-        if isPy3OrNewer:
-            path = join(fixture_dir, 'a.txt')
-            writeall(path, 'abc')
-            ret = writeallunlessalreadythere(path, 'abc', mode='w')
-            assert ret == False
-            assert 'abc' == readall(path)
+        path = join(fixture_dir, 'a.txt')
+        writeall(path, 'abc')
+        ret = writeallunlessalreadythere(path, 'abc', mode='w')
+        assert ret == False
+        assert 'abc' == readall(path)
 
 class TestOtherUtils(object):
     def test_computeHashDefaultHash(self, fixture_dir):
