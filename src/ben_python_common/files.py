@@ -587,6 +587,86 @@ def windowsUrlFileWrite(path, url):
     f.write('URL=%s\n' % url)
     f.close()
 
+def runRsync(srcDir, destDir, deleteExisting, excludeFiles=None, excludeDirs=None, throwOnFailure=True):
+    if not excludeFiles:
+        excludeFiles = []
+    if not excludeDirs:
+        excludeDirs = []
+    args = []
+    assertTrue(isdir(srcDir), "not a dir", srcDir)
+    assertTrue(isdir(destDir), "not a dir", destDir)
+    if sys.platform.startswith('win'):
+        args.append('robocopy')
+        args.append(srcDir)
+        args.append(destDir)
+        if deleteExisting:
+            args.append('/MIR')
+        args.append('/E')
+        for ex in excludeFiles:
+            args.append('/XF')
+            args.append(ex)
+        for ex in excludeDirs:
+            args.append('/XD')
+            args.append(ex)
+    else:
+        args.append('rsync')
+        args.append('-az')
+        args.append(srcDir)
+        args.append(destDir)
+        if deleteExisting:
+            args.append('--delete-after')
+        for ex in excludeFiles + excludeDirs:
+            args.append('--exclude')
+            args.append(ex)
+    
+    retcode, stdout, stderr = run(args, throwOnFailure=False)
+    isOk, status = runRsyncErrMap(retcode)
+    if throwOnFailure and not isOk:
+        trace(retcode, stdout, stderr, status)
+        raise Exception("Could not copy. " + str(stderr) + " " + status)
+    return retcode, stdout, stderr, status
+
+def runRsyncErrMap(code):
+    if sys.platform.startswith('win'):
+        status = ''
+        if code & 0x1: 
+            status += "One or more files were copied successfully (that is, new files have arrived). "
+            code = code & ~0x1
+        if code & 0x2:
+            status += "Extra files or directories were detected."
+            code = code & ~0x2
+        if code & 0x4:
+            status += "Mismatched files or directories were detected."
+            code = code & ~0x4
+        if code & 0x8: 
+            status += "Some files or directories could not be copied"
+        if code & 0x10:
+            status += "Serious error."
+        isOk = code == 0
+        return (isOk, status)
+    else:
+        mapCode[0] = (True, '')
+        mapCode[1] = (False, "Syntax or usage error")
+        mapCode[2] = (False, "Protocol incompatibility")
+        mapCode[3] = (False, "Errors selecting input/output files, dirs")
+        mapCode[4] = (False, "Action not supported, maybe by the client and not server")
+        mapCode[5] = (False, "Error starting client-server protocol")
+        mapCode[6] = (False, "Daemon unable to append to log-file")
+        mapCode[10] = (False, "Error in socket I/O")
+        mapCode[11] = (False, "Error in file I/O")
+        mapCode[12] = (False, "Error in rsync protocol data stream")
+        mapCode[13] = (False, "Errors with program diagnostics")
+        mapCode[14] = (False, "Error in IPC code")
+        mapCode[20] = (False, "Received SIGUSR1 or SIGINT")
+        mapCode[21] = (False, "Some error returned by waitpid()")
+        mapCode[22] = (False, "Error allocating core memory buffers")
+        mapCode[23] = (False, "Partial transfer due to error")
+        mapCode[24] = (False, "Partial transfer due to vanished source files")
+        mapCode[25] = (False, "The --max-delete limit stopped deletions")
+        mapCode[30] = (False, "Timeout in data send/receive")
+        mapCode[35] = (False, "Timeout waiting for daemon connection")
+        return mapCode.get(code, (False, "Unknown"))
+
 # returns tuple (returncode, stdout, stderr)
 def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoWindow=True,
         throwOnFailure=RuntimeError, stripText=True, captureOutput=True, silenceoutput=False,
