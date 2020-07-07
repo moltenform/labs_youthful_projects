@@ -96,7 +96,7 @@ def downloadIt(chosenObj, outdir, ffmpegPath, url, format):
     else:
         newName += os.path.splitext(writtenFile)[1]
 
-    newName = safefilename(getPrintable(newName))
+    newName = toValidFilename(getPrintable(newName))
     newName = files.join(outdir, newName)
     trace(f'wrote to {writtenFile}, moving to \r\n {newName}')
     files.move(writtenFile, newName, False)
