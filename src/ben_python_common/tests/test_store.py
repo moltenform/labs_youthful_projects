@@ -4,7 +4,7 @@
 import pytest
 import tempfile
 from ..store import Store, StoreException
-from ..files import join, getsize, writeall, ensure_empty_directory
+from ..files import join, getsize, writeall, ensureEmptyDirectory
 
 class TestStorage(object):
     def test_that_schema_version_is_set(self, fixture_temp_db):
@@ -80,7 +80,7 @@ class StoreDemo(Store):
 @pytest.fixture()
 def fixture_temp_db():
     basedir = join(tempfile.gettempdir(), u'ben_python_common_test', u'empty')
-    ensure_empty_directory(basedir)
+    ensureEmptyDirectory(basedir)
     db = StoreDemo()
     dbpath = join(basedir, 'test.db')
     db.connect_or_create(dbpath)
@@ -89,4 +89,4 @@ def fixture_temp_db():
     # ensure that the db connection is closed after test.
     db.close()
     db = None
-    ensure_empty_directory(basedir)
+    ensureEmptyDirectory(basedir)

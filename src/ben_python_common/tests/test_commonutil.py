@@ -5,12 +5,61 @@ import os
 import pytest
 from os.path import join
 from collections import OrderedDict
+from .. import files
 from ..common_ui import *
 from .test_files import fixture_dir as fixture_dir_
 fixture_dir = fixture_dir_
 
-class TestStringHelpers(object):
+class TestBucket(object):
+    def test_bucket(self):
+        a = Bucket()
+        a.f1 = 'abc'
+        assert a.f1 == 'abc'
+        a.f1 = 'def'
+        assert a.f1 == 'def'
+        a.f2 = 'abc'
+        assert a.f1 == 'def'
+        assert a.f2 == 'abc'
+
+    def test_bucketCtor(self):
+        a = Bucket(f1='start1', f2='start2')
+        a.f3 = 'start3'
+        assert a.f1 == 'start1'
+        assert a.f2 == 'start2'
+        assert a.f3 == 'start3'
+        
+    def test_bucketRepr(self):
+        a = Bucket()
+        a.f1 = 'abc'
+        a.f2 = 'def'
+        assert 'f1=abc\n\n\nf2=def' == repr(a)
+    
+class TestSimpleEnum(object):
+    def test_simpleEnum(self):
+        a = SimpleEnum(['item1', 'item2'])
+        assert a.item1 == 'item1'
+        assert a.item2 == 'item2'
+        with pytest.raises(AttributeError):
+            test = a.item3
+        with pytest.raises(RuntimeError):
+            a.item3 = 1
+        with pytest.raises(RuntimeError):
+            del a.item1
+
+    def test_simpleEnumUnderscore(self):
+        a = SimpleEnum(['item1', 'item2'])
+        a._other = 1
+        assert 1 == a._other
+
+    def test_simpleEnumShouldNotAcceptString(self):
+        with pytest.raises(AssertionError):
+            a = SimpleEnum('item1|item2')
+
+class TestStringHelpersSimple(object):
     # getPrintable
+    def test_getPrintableEmpty(self):
+        assert '' == getPrintable('')
+
     def test_getPrintableNormalAscii(self):
         assert 'normal ascii' == getPrintable('normal ascii')
 
@@ -23,15 +72,66 @@ class TestStringHelpers(object):
     def test_getPrintableWithUniCompositeSequence(self):
         assert 'k?u?o??n' == getPrintable(u'\u006B\u0301\u0075\u032D\u006F\u0304\u0301\u006E')
 
-    # replacewholeword
-    def test_replacewholeword(self):
-        assert 'w,n,w other,wantother,w.other' == re_replacewholeword('want,n,want other,wantother,want.other', 'want', 'w')
+    # toValidFilename
+    def test_toValidFilenameEmpty(self):
+        assert '' == toValidFilename('')
 
-    def test_replacewholewordWithPunctation(self):
-        assert 'w,n,w other,w??|tother,w.other' == re_replacewholeword('w??|t,n,w??|t other,w??|tother,w??|t.other', 'w??|t', 'w')
+    def test_toValidFilenameAFew(self):
+        assert 'a-b c' == toValidFilename('a:b\nc')
 
-    def test_replacewholewordWithCasing(self):
-        assert 'and A fad pineapple A da' == re_replacewholeword('and a fad pineapple a da', 'a', 'A')
+    def test_toValidFilenameWindowsNewline(self):
+        assert 'a c' == toValidFilename('a\r\nc')
+    
+    # splice
+    def test_splice(self):
+        assert 'abef' == splice('abcdef', 2, 2, '')
+        assert 'ab1ef' == splice('abcdef', 2, 2, '1')
+        assert 'ab123ef' == splice('abcdef', 2, 2, '123')
+        assert 'ab123def' == splice('abcdef', 2, 1, '123')
+        assert 'ab123cdef' == splice('abcdef', 2, 0, '123')
+
+    # stripHtmlTags
+    def test_stripHtmlTagsBasic(self):
+        assert 'a b c' == stripHtmlTags('a b c')
+        assert '' == stripHtmlTags('')
+        assert '' == stripHtmlTags('<a b c>')
+        assert '1 2' == stripHtmlTags('1<a b c>2')
+
+    def test_stripHtmlTagsNested(self):
+        assert '1 c?2' == stripHtmlTags('1<a <b> c>2')
+        assert '1 2' == stripHtmlTags('1<a <b c>2')
+        assert '1 c?2' == stripHtmlTags('1<a b> c>2')
+        assert '1 c?2' == stripHtmlTags('1<a <b> c>2')
+
+    def test_stripHtmlTagsUnclosed(self):
+        assert 'open?' == stripHtmlTags('open>')
+        assert 'open? abc' == stripHtmlTags('open> abc')
+        assert '?open abc' == stripHtmlTags('>open abc')
+        assert '' == stripHtmlTags('<close')
+        assert 'abc' == stripHtmlTags('abc<close')
+        assert 'abc close?' == stripHtmlTags('abc close<')
+
+    def test_stripHtmlTagsManyTagsRepeatedSpace(self):
+        assert 'a b c d e', stripHtmlTags('a b c<abc> d </abc>e')
+        assert 'a b c d e', stripHtmlTags('a b c<abc>d</abc>e')
+        assert 'a b c d e', stripHtmlTags('a b c<abc><b>d</abc>e')
+
+    # replaceMustExist
+    def test_replaceMustExist(self):
+        assert 'abc DEF ghi' == replaceMustExist('abc def ghi', 'def', 'DEF')
+        assert 'ABC def ABC' == replaceMustExist('abc def abc', 'abc', 'ABC')
+        with pytest.raises(AssertionError):
+            replaceMustExist('abc def abc', 'abcd', 'ABC')
+
+    # replaceWholeWord
+    def test_replaceWholeWord(self):
+        assert 'w,n,w other,wantother,w.other' == reReplaceWholeWord('want,n,want other,wantother,want.other', 'want', 'w')
+
+    def test_replaceWholeWordWithPunctation(self):
+        assert 'w,n,w other,w??|tother,w.other' == reReplaceWholeWord('w??|t,n,w??|t other,w??|tother,w??|t.other', 'w??|t', 'w')
+
+    def test_replaceWholeWordWithCasing(self):
+        assert 'and A fad pineapple A da' == reReplaceWholeWord('and a fad pineapple a da', 'a', 'A')
 
     # truncateWithEllipsis
     def test_truncateWithEllipsisEmptyString(self):
@@ -94,82 +194,7 @@ class TestStringHelpers(object):
     
     def test_formatSizeZeroB(self):
         assert '0b' == formatSize(0)
-    
-    # splice
-    def test_splice(self):
-        assert 'abef' == splice('abcdef', 2, 2, '')
-        assert 'ab1ef' == splice('abcdef', 2, 2, '1')
-        assert 'ab123ef' == splice('abcdef', 2, 2, '123')
-        assert 'ab123def' == splice('abcdef', 2, 1, '123')
-        assert 'ab123cdef' == splice('abcdef', 2, 0, '123')
 
-    # stripHtmlTags
-    def test_stripHtmlTags(self):
-        assert 'a b c' == stripHtmlTags('a b c')
-        assert '' == stripHtmlTags('')
-        assert '' == stripHtmlTags('<a b c>')
-        assert '1 2' == stripHtmlTags('1<a b c>2')
-        
-        # nested
-        assert '1 c?2' == stripHtmlTags('1<a <b> c>2')
-        assert '1 2' == stripHtmlTags('1<a <b c>2')
-        assert '1 c?2' == stripHtmlTags('1<a b> c>2')
-        assert '1 c?2' == stripHtmlTags('1<a <b> c>2')
-        
-        # unclosed
-        assert 'open?' == stripHtmlTags('open>')
-        assert 'open? abc' == stripHtmlTags('open> abc')
-        assert '?open abc' == stripHtmlTags('>open abc')
-        assert '' == stripHtmlTags('<close')
-        assert 'abc' == stripHtmlTags('abc<close')
-        assert 'abc close?' == stripHtmlTags('abc close<')
-        
-        # many tags, repeated space
-        assert 'a b c d e', stripHtmlTags('a b c<abc> d </abc>e')
-        assert 'a b c d e', stripHtmlTags('a b c<abc>d</abc>e')
-        assert 'a b c d e', stripHtmlTags('a b c<abc><b>d</abc>e')
-
-    # getRandomString
-    def test_getRandomString(self):
-        s1 = getRandomString()
-        s2 = getRandomString()
-        assert all((c in '0123456789' for c in s1))
-        assert all((c in '0123456789' for c in s2))
-        assert s1 != s2
-    
-    # genGuid
-    def test_genGuid(self):
-        s1 = genGuid()
-        s2 = genGuid()
-        assert 36 == len(s1)
-        assert 36 == len(s2)
-        assert s1 != s2
-        s1 = genGuid(asBase64=True)
-        s2 = genGuid(asBase64=True)
-        assert 24 == len(s1)
-        assert 24 == len(s2)
-        assert s1 != s2
-    
-    # getClipboardText
-    def test_getClipboardTextWithNoUnicode(self):
-        # let's check that pyperclip is installed
-        import pyperclip  # NOQA
-        prev = getClipboardText()
-        try:
-            setClipboardText('normal ascii')
-            assert 'normal ascii' == getClipboardText()
-        finally:
-            setClipboardText(prev)
-    
-    def test_getClipboardTextWithUnicode(self):
-        # let's check that pyperclip is installed
-        import pyperclip  # NOQA
-        prev = getClipboardText()
-        try:
-            setClipboardText(u'\u1E31\u1E77\u1E53\u006E')
-            assert u'\u1E31\u1E77\u1E53\u006E' == getClipboardText()
-        finally:
-            setClipboardText(prev)
 
 class TestDataStructures(object):
     # takeBatch
@@ -222,61 +247,6 @@ class TestDataStructures(object):
                 raise IOError()
         assert [[1, 2]] == log
     
-    def test_memoizeCountNumberOfCalls_RepeatedCall(self):
-        if sys.version_info[0] <= 2:
-            countCalls = Bucket(count=0)
-            
-            @BoundedMemoize
-            def addTwoNumbers(a, b, countCalls=countCalls):
-                countCalls.count += 1
-                return a + b
-            assert 20 == addTwoNumbers(10, 10)
-            assert 20 == addTwoNumbers(10, 10)
-            assert 40 == addTwoNumbers(20, 20)
-            assert 2 == countCalls.count
-    
-    def test_memoizeCountNumberOfCalls_InterleavedCall(self):
-        if sys.version_info[0] <= 2:
-            countCalls = Bucket(count=0)
-            
-            @BoundedMemoize
-            def addTwoNumbers(a, b, countCalls=countCalls):
-                countCalls.count += 1
-                return a + b
-            assert 20 == addTwoNumbers(10, 10)
-            assert 40 == addTwoNumbers(20, 20)
-            assert 20 == addTwoNumbers(10, 10)
-            assert 2 == countCalls.count
-    
-    def test_checkOrderedDictEqualitySame(self):
-        d1 = OrderedDict()
-        d1['a'] = 1
-        d1['b'] = 2
-        d1same = OrderedDict()
-        d1same['a'] = 1
-        d1same['b'] = 2
-        assert d1 == d1
-        assert d1 == d1same
-        assert d1same == d1
-    
-    def test_checkOrderedDictEqualityDifferentOrder(self):
-        d1 = OrderedDict()
-        d1['a'] = 1
-        d1['b'] = 2
-        d2 = OrderedDict()
-        d2['b'] = 2
-        d2['a'] = 1
-        assert d1 != d2
-    
-    def test_checkOrderedDictEqualityDifferentValues(self):
-        d1 = OrderedDict()
-        d1['a'] = 1
-        d1['b'] = 2
-        d2 = OrderedDict()
-        d2['a'] = 1
-        d2['b'] = 3
-        assert d1 != d2
-    
     def test_recentlyUsedList_MaxNotExceeded(self):
         mruTest = RecentlyUsedList(maxSize=5)
         mruTest.add('abc')
@@ -306,436 +276,171 @@ class TestDataStructures(object):
         mruTest.add('ccc')
         mruTest.add('ddd')
         assert ['ddd', 'ccc'] == mruTest.getList()
-
-class TestCommonUI(object):
-    def test_checkIsDigit(self):
-        # make sure isdigit behaves as expected
-        assert not ''.isdigit()
-        assert '0'.isdigit()
-        assert '123'.isdigit()
-        assert not '123 '.isdigit()
-        assert not '123a'.isdigit()
-        assert not 'a123'.isdigit()
-
-    def test_findUnusedLetterMaintainsUsedLetterState(self):
-        d = dict()
-        assert 0 == findUnusedLetter(d, 'abc')
-        assert 1 == findUnusedLetter(d, 'abc')
-        assert 2 == findUnusedLetter(d, 'abc')
-        assert None is findUnusedLetter(d, 'abc')
-        assert None is findUnusedLetter(d, 'ABC')
-        assert None is findUnusedLetter(d, 'a b c!@#')
-
-    def test_softDeleteFileShouldMakeFileNotExist(self, fixture_dir):
-        path = join(fixture_dir, 'testdelfile1.txt')
-        files.writeall(path, 'contents')
-        assert os.path.exists(path)
-        newlocation = softDeleteFile(path)
-        assert not os.path.exists(path)
-        assert os.path.exists(newlocation)
-
-    def test_softDeleteFileShouldRenameFirstCharOfFile(self, fixture_dir):
-        path = join(fixture_dir, 'zzzz', 'testdelfile2.txt')
-        files.makedirs(files.getparent(path))
-        files.writeall(path, 'contents')
-        newlocation = softDeleteFile(path)
-        assert os.path.exists(newlocation)
-        assert files.getname(newlocation).startswith('z')
-
-class TestParsePlus(object):
-    def runBasicParse(self, s, pattern):
-        parser = ParsePlus(pattern)
-        return parser.match(s)
-
-    def test_basic(self):
-        found = self.runBasicParse(r'<p>abc</p>', r'<p>{content}</p>')
-        assert found.content == 'abc'
-
-    def test_mustMatchEntire1(self):
-        found = self.runBasicParse(r'a<p>abc</p>', r'<p>{content}</p>')
-        assert found is None
-
-    def test_mustMatchEntire2(self):
-        found = self.runBasicParse(r'<p>abc</p>a', r'<p>{content}</p>')
-        assert found is None
-
-    def test_mustMatchEntire3(self):
-        found = self.runBasicParse(r'a<p>abc</p>a', r'<p>{content}</p>')
-        assert found is None
-
-    def test_mustMatchEntire4(self):
-        found = self.runBasicParse(r'a\n<p>abc</p>', r'<p>{content}</p>')
-        assert found is None
-
-    def test_mustMatchEntire5(self):
-        found = self.runBasicParse(r'<p>abc</p>\na', r'<p>{content}</p>')
-        assert found is None
-
-    def test_mustMatchEntire6(self):
-        found = self.runBasicParse(r'a\n<p>abc</p>\na', r'<p>{content}</p>')
-        assert found is None
-
-    def test_shouldEscapeBackslash(self):
-        found = self.runBasicParse(r'<p>abc</p>a\b', r'<p>{content}</p>a\b')
-        assert found.content == 'abc'
-
-    def test_shouldEscapeSymbols(self):
-        found = self.runBasicParse(r'<p>abc</p>a??**)b', r'<p>{content}</p>a??**)b')
-        assert found.content == 'abc'
-
-    def test_shouldEscapeDotStar(self):
-        found = self.runBasicParse(r'<p>abc</p>a.*?', r'<p>{content}</p>a.*?')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsOpen1(self):
-        found = self.runBasicParse(r'{<p>abc</p>', r'{{<p>{content}</p>')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsOpen2(self):
-        found = self.runBasicParse(r'<p>a{bc</p>', r'<p>{content}</p>')
-        assert found.content == 'a{bc'
-
-    def test_ignoreDoubleBracketsOpen3(self):
-        found = self.runBasicParse(r'<p>abc</p>{', r'<p>{content}</p>{{')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsClose1(self):
-        found = self.runBasicParse(r'}<p>abc</p>', r'}}<p>{content}</p>')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsClose2(self):
-        found = self.runBasicParse(r'<p>a}bc</p>', r'<p>{content}</p>')
-        assert found.content == 'a}bc'
-
-    def test_ignoreDoubleBracketsClose3(self):
-        found = self.runBasicParse(r'<p>abc</p>}', r'<p>{content}</p>}}')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsBoth1(self):
-        found = self.runBasicParse(r'{}<p>abc</p>', r'{{}}<p>{content}</p>')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsBoth2(self):
-        found = self.runBasicParse(r'<p>a{}bc</p>', r'<p>{content}</p>')
-        assert found.content == 'a{}bc'
-
-    def test_ignoreDoubleBracketsBoth3(self):
-        found = self.runBasicParse(r'<p>abc</p>{}', r'<p>{content}</p>{{}}')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsBothInside1(self):
-        found = self.runBasicParse(r'1{<p>abc</p>}1', r'1{{<p>{content}</p>}}1')
-        assert found.content == 'abc'
-
-    def test_ignoreDoubleBracketsBothInside2(self):
-        found = self.runBasicParse(r'{<p>abc</p>}', r'{{<p>{content}</p>}}')
-        assert found.content == 'abc'
-
-    def test_emptyNameIsOk1(self):
-        found = self.runBasicParse(r'456|ABC|123', r'{}|{main}|123')
-        assert found.main == 'ABC'
-
-    def test_emptyNamesIsOk2(self):
-        found = self.runBasicParse(r'456|ABC|123', r'{}|{main}|{}')
-        assert found.main == 'ABC'
-        
-    def test_nameMustBeAlphanum1(self):
-        found = self.runBasicParse(r'456|ABC|123', r'{}|{bad name}|{}')
-        assert found is None
-        
-    def test_nameMustBeAlphanum2(self):
-        found = self.runBasicParse(r'456|ABC|123', r'{}|{bad)name}|{}')
-        assert found is None
-
-    def test_nameMustBeAlphanum3(self):
-        found = self.runBasicParse(r'456|ABC|123', r'{}|{bad>name}|{}')
-        assert found is None
     
-    def test_nameCanHaveUnderscore(self):
-        found = self.runBasicParse(r'456|ABC|123', r'{}|{good_name}|{}')
-        assert found.good_name == 'ABC'
+    def test_memoizeCountNumberOfCalls_RepeatedCall(self):
+        if sys.version_info[0] <= 2:
+            countCalls = Bucket(count=0)
+            
+            @BoundedMemoize
+            def addTwoNumbers(a, b, countCalls=countCalls):
+                countCalls.count += 1
+                return a + b
+            assert 20 == addTwoNumbers(10, 10)
+            assert 20 == addTwoNumbers(10, 10)
+            assert 40 == addTwoNumbers(20, 20)
+            assert 2 == countCalls.count
     
-    def test_canNoteReturnEmpty(self):
-        found = self.runBasicParse(r'456||123', r'{}|{fld}|{}')
-        assert found is None
-        
-    def test_unnamedCanNotBeEmpty(self):
-        found = self.runBasicParse(r'|a|', r'{}|{fld}|{}')
-        assert found is None
-        
-    def test_hasNewline(self):
-        found = self.runBasicParse('456|a\nb|123', r'{}|{fld}|{}')
-        assert found.fld == 'a\nb'
-        
-    def test_hasWindowsNewline(self):
-        found = self.runBasicParse('456|a\r\nb|123', r'{}|{fld}|{}')
-        assert found.fld == 'a\r\nb'
-        
-    def test_hasNewlineRestricted(self):
-        found = self.runBasicParse('456|a\nb|123', r'{}|{ss:NoNewlines}|{}')
-        assert found is None
-        
-    def test_hasWindowsNewlineRestricted(self):
-        found = self.runBasicParse('456|a\nb|123', r'{}|{ss:NoNewlines}|{}')
-        assert found is None
-        
-    def test_hasSpaces(self):
-        found = self.runBasicParse('456|a  b|123', r'{}|{ss}|{}')
-        assert found.ss == 'a  b'
-        
-    def test_hasSpacesRestricted(self):
-        found = self.runBasicParse('456|a  b|123', r'{}|{ss:NoSpaces}|{}')
-        assert found is None
-        
-    def test_multipleFields2(self):
-        found = self.runBasicParse(r'a|b', r'{c1}|{c2}')
-        assert found.c1 == 'a'
-        assert found.c2 == 'b'
-        
-    def test_multipleFields3(self):
-        found = self.runBasicParse(r'a|b|c', r'{c1}|{c2}|{c3}')
-        assert found.c1 == 'a'
-        assert found.c2 == 'b'
-        assert found.c3 == 'c'
-        
-    def test_multipleFields4(self):
-        found = self.runBasicParse(r'a|b|c|d', r'{c1}|{c2}|{c3}|{c4}')
-        assert found.c1 == 'a'
-        assert found.c2 == 'b'
-        assert found.c3 == 'c'
-        assert found.c4 == 'd'
-        
-    def test_multipleFields5(self):
-        found = self.runBasicParse(r'aa|bb|cc|dd', r'{c1}|{c2}|{c3}|{c4}')
-        assert found.c1 == 'aa'
-        assert found.c2 == 'bb'
-        assert found.c3 == 'cc'
-        assert found.c4 == 'dd'
-        
-    def test_multipleFieldsNotEnough(self):
-        found = self.runBasicParse(r'a|b|c', r'{c1}|{c2}|{c3}|{c4}')
-        assert found is None
-        
-    def test_multipleFieldsDemo(self):
-        found = self.runBasicParse(r'<first>ff</first><second>ss</second>',
-            r'<first>{c1}</first><second>{c2}</second>')
-        assert found.c1 == 'ff'
-        assert found.c2 == 'ss'
+    def test_memoizeCountNumberOfCalls_InterleavedCall(self):
+        if sys.version_info[0] <= 2:
+            countCalls = Bucket(count=0)
+            
+            @BoundedMemoize
+            def addTwoNumbers(a, b, countCalls=countCalls):
+                countCalls.count += 1
+                return a + b
+            assert 20 == addTwoNumbers(10, 10)
+            assert 40 == addTwoNumbers(20, 20)
+            assert 20 == addTwoNumbers(10, 10)
+            assert 2 == countCalls.count
     
-    def test_replaceTextFailsIfNotExists(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contentsFail = '<tag> Target</b> </tag>'
-        files.writeall(path, contentsFail)
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path,
-                's', 'o')
-        exc.match('pattern not found')
+    @pytest.mark.skipif('not isPy3OrNewer')
+    def test_modtimeRendered(self, fixture_dir):
+        files.writeall(join(fixture_dir, 'a.txt'), 'contents')
+        curtimeWritten = files.getModTimeNs(join(fixture_dir, 'a.txt'), asMillisTime=True)
+        curtimeNow = getNowAsMillisTime()
 
-    def test_replaceTextFailsIfMultiple(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contentsFail = '<tag> <b>Target</b> <b>Other</b></tag>'
-        files.writeall(path, contentsFail)
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path,
-                's', 'o', allowOnlyOnce=True)
-        exc.match('only once')
+        # we expect it to be at least within 1 day
+        dayMilliseconds = 24 * 60 * 60 * 1000
+        assert abs(curtimeWritten - curtimeNow) < dayMilliseconds
 
-    def test_replaceTextFailsIfMultipleOpen(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contentsFail = '<tag> <b>Target</b> <b>Other</tag></b>'
-        files.writeall(path, contentsFail)
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path,
-                's', 'o', allowOnlyOnce=True)
-        exc.match('only once')
+        # so we expect at least the date to match
+        nCharsInDate = 10
+        scurtimeWritten = renderMillisTime(curtimeWritten)
+        scurtimeNow = renderMillisTime(curtimeNow)
+        assert scurtimeWritten[0:nCharsInDate] == scurtimeNow[0:nCharsInDate]
 
-    def test_replaceTextFailsIfMultipleClose(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contentsFail = '<tag> <b>Target</b> Othe<b>r</b></tag>'
-        files.writeall(path, contentsFail)
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path,
-                's', 'o', allowOnlyOnce=True)
-        exc.match('only once')
+    def test_renderTime(self):
+        t = getNowAsMillisTime()
+        s = renderMillisTime(t)
+        assert len(s) > 16
 
-    def test_replaceTextAppendsIfNotExists(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contents = '<tag>Target</b> </tag>'
-        files.writeall(path, contents)
-        ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path,
-            's', 'o', appendIfNotFound=':append:')
+    def test_checkOrderedDictEqualitySame(self):
+        d1 = OrderedDict()
+        d1['a'] = 1
+        d1['b'] = 2
+        d1same = OrderedDict()
+        d1same['a'] = 1
+        d1same['b'] = 2
+        assert d1 == d1
+        assert d1 == d1same
+        assert d1same == d1
+    
+    def test_checkOrderedDictEqualityDifferentOrder(self):
+        d1 = OrderedDict()
+        d1['a'] = 1
+        d1['b'] = 2
+        d2 = OrderedDict()
+        d2['b'] = 2
+        d2['a'] = 1
+        assert d1 != d2
+    
+    def test_checkOrderedDictEqualityDifferentValues(self):
+        d1 = OrderedDict()
+        d1['a'] = 1
+        d1['b'] = 2
+        d2 = OrderedDict()
+        d2['a'] = 1
+        d2['b'] = 3
+        assert d1 != d2
 
-        newContents = files.readall(path)
-        assert newContents == '<tag>Target</b> </tag>:append:'
+try:
+    import dateparser
+    hasDateparser = True
+except ImportError:
+    hasDateparser = False
 
-    def test_replaceTextSucceeds(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contents = '<tag> <b>Target</b> </tag>'
-        files.writeall(path, contents)
-        ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path,
-            's', 'out', appendIfNotFound=':append:')
-        newContents = files.readall(path)
-        assert newContents == '<tag> <b>out</b> </tag>'
-
-    def test_replaceTextSucceedsManyClosers(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contents = '<tag> <b>Target</b> and</b></tag>'
-        files.writeall(path, contents)
-        ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path, 's', 'o')
-        newContents = files.readall(path)
-        assert newContents == '<tag> <b>o</b> and</b></tag>'
-
-    def test_replaceTextSucceedsManyBoth(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contents = '<tag> <b>Target</b> <b>other</b></tag>'
-        files.writeall(path, contents)
-        ParsePlus('<b>{s}</b>').replaceFieldWithTextIntoFile(path, 's', 'o')
-        newContents = files.readall(path)
-        assert newContents == '<tag> <b>o</b> <b>other</b></tag>'
-
-    def test_replaceTextSucceedsLonger(self, fixture_dir):
-        path = files.join(fixture_dir, 'testreplace.txt')
-        contents = '<tag> <look>LongerTextIsHere</look> </tag>'
-        files.writeall(path, contents)
-        ParsePlus('<look>{s}</look>').replaceFieldWithTextIntoFile(path,
-            's', 'o')
-        newContents = files.readall(path)
-        assert newContents == '<tag> <look>o</look> </tag>'
-
-    def test_isCaseSensitive(self):
-        found = ParsePlus('aa {s} bb').match('aA 123 bB')
-        assert found is None
-
-    def test_isNotCaseSensitive(self):
-        found = ParsePlus('aa {s} bb', case_sensitive=False).match('aA 123 bB')
-        assert found.s == '123'
-
-    def parseCsvWithThreeFields(self, s):
-        if not s.endswith('\n'):
-            s += '\n'
-        p = ParsePlus('1{f1:NoNewlines},{f2:NoNewlines},{f3:NoNewlines}\n',
-            escapeSequences=['\\,', '\\\n'])
-        return list(p.findall(s))
-
-    def test_findAllNotFound(self):
-        found = self.parseCsvWithThreeFields('1a,b\n1c,d')
-        assert len(found) == 0
-
-    def test_findFalsePositive(self):
-        # currently it detects it as one long string
-        # I might consider finding a more elegant way around this sometime
-        found = self.parseCsvWithThreeFields('1a,b,c|d,e,f|g,h,i')
-        assert len(found) == 1
-
-    def test_findFindFull(self):
-        sInput = '1aa,bb,cc\n'
-        found = self.parseCsvWithThreeFields(sInput)
-        assert len(found) == 1
-        assert found[0].f1 == 'aa'
-        assert found[0].f2 == 'bb'
-        assert found[0].f3 == 'cc'
-        assert found[0].spans['f1'] == (1, 3)
-        assert found[0].spans['f2'] == (4, 6)
-        assert found[0].spans['f3'] == (7, 9)
-        assert found[0].getTotalSpan() == (0, 10)
-        assert sInput[1:3] == 'aa'
-        assert sInput[4:6] == 'bb'
-        assert sInput[7:9] == 'cc'
-        assert sInput[0:10] == sInput
-
-    def test_findFindOne(self):
-        sInput = 'AAA1aa,bb,cc\nZZ'
-        found = self.parseCsvWithThreeFields(sInput)
-        assert len(found) == 1
-        assert found[0].f1 == 'aa'
-        assert found[0].f2 == 'bb'
-        assert found[0].f3 == 'cc'
-        assert found[0].spans['f1'] == (3 + 1, 3 + 3)
-        assert found[0].spans['f2'] == (3 + 4, 3 + 6)
-        assert found[0].spans['f3'] == (3 + 7, 3 + 9)
-        assert found[0].getTotalSpan() == (3 + 0, 3 + 10)
-        assert sInput[3 + 0: 3 + 10] == '1aa,bb,cc\n'
-
-    def test_findFindThree(self):
-        sInput = 'AAA1aa,bb,cc\n1ddd,eee,ff\n1gg,hh,iii\nZ'
-        found = self.parseCsvWithThreeFields(sInput)
-        assert len(found) == 3
-        assert found[0].f1 == 'aa'
-        assert found[0].f2 == 'bb'
-        assert found[0].f3 == 'cc'
-        assert found[0].spans['f1'] == (3 + 1, 3 + 3)
-        assert found[0].spans['f2'] == (3 + 4, 3 + 6)
-        assert found[0].spans['f3'] == (3 + 7, 3 + 9)
-        assert found[0].getTotalSpan() == (3 + 0, 3 + 10)
-        assert sInput[3 + 0: 3 + 10] == '1aa,bb,cc\n'
-        assert found[1].f1 == 'ddd'
-        assert found[1].f2 == 'eee'
-        assert found[1].f3 == 'ff'
-        assert found[1].spans['f1'] == (13 + 1, 13 + 4)
-        assert found[1].spans['f2'] == (13 + 5, 13 + 8)
-        assert found[1].spans['f3'] == (13 + 9, 13 + 11)
-        assert found[1].getTotalSpan() == (13 + 0, 13 + 12)
-        assert sInput[13 + 0: 13 + 12] == '1ddd,eee,ff\n'
-        assert found[2].f1 == 'gg'
-        assert found[2].f2 == 'hh'
-        assert found[2].f3 == 'iii'
-        assert found[2].spans['f1'] == (25 + 1, 25 + 3)
-        assert found[2].spans['f2'] == (25 + 4, 25 + 6)
-        assert found[2].spans['f3'] == (25 + 7, 25 + 10)
-        assert found[2].getTotalSpan() == (25 + 0, 25 + 11)
-        assert sInput[25 + 0: 25 + 11] == '1gg,hh,iii\n'
-
-    def test_oneEscapeSequence(self):
-        sInput = 'AAA1aa,bb,cc\n1dd\\\nd\\\n,eee,ff\nZ'
-        found = self.parseCsvWithThreeFields(sInput)
-        assert len(found) == 2
-        assert found[0].f1 == 'aa'
-        assert found[0].f2 == 'bb'
-        assert found[0].f3 == 'cc'
-        assert found[0].getTotalSpan() == (3, 13)
-        assert found[1].f1 == 'dd\\\nd\\\n'
-        assert found[1].f2 == 'eee'
-        assert found[1].f3 == 'ff'
-        assert found[1].getTotalSpan() == (13, 29)
-
-    def test_twoEscapeSequences(self):
-        sInput = 'AAA1aa,\\,,cc\n1\\,dd\\\nd\\\n,eee,ff\nZ'
-        found = self.parseCsvWithThreeFields(sInput)
-        assert len(found) == 2
-        assert found[0].f1 == 'aa'
-        assert found[0].f2 == '\\,'
-        assert found[0].f3 == 'cc'
-        assert found[0].getTotalSpan() == (3, 13)
-        assert found[1].f1 == '\\,dd\\\nd\\\n'
-        assert found[1].f2 == 'eee'
-        assert found[1].f3 == 'ff'
-        assert found[1].getTotalSpan() == (13, 31)
-
-    def test_inputStringContainsRareChar1(self):
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('{}', escapeSequences=['11', '22']).match('a\x01')
-        exc.match('input string contains')
-
-    def test_inputStringContainsRareChar2(self):
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('{}', escapeSequences=['11', '22']).match('a\x02')
-        exc.match('input string contains')
-
-    def test_cannotYetSupportLotsOfSequences(self):
-        with pytest.raises(ValueError) as exc:
-            ParsePlus('{}', escapeSequences=['11', '22', '33', '44', '55', '66']).match('a')
-        exc.match('a max of')
-
-    def test_cannotYetSupportGetTotalSpanIfOpenBraces(self):
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('{s}is {{').search('bis {').getTotalSpan()
-        exc.match("don't yet support")
-
-    def test_cannotYetSupportGetTotalSpanIfCloseBraces(self):
-        with pytest.raises(RuntimeError) as exc:
-            ParsePlus('{s}is }}').search('bis }').getTotalSpan()
-        exc.match("don't yet support")
-
+if hasDateparser:
+    class TestDateParsing(object):
+        def test_cannotYetSupportGetTotalSpanIfOpenBraces(self):
+            def test_spanish_dates_should_not_parsed():
+                uu = EnglishDateParserWrapper()
+                assert None == uu.parse(u'Martes 21 de Octubre de 2014')
+            
+            def test_spanish_dates_will_parse_if_we_hack_it_and_give_it_a_different_parser():
+                uu = EnglishDateParserWrapper()
+                uu.p = dateparser.date.DateDataParser()
+                parsed = uu.parse(u'Martes 21 de Octubre de 2014')
+                assert 2014 == parsed.year
+            
+            def test_incomplete_dates_should_not_parsed():
+                uu = EnglishDateParserWrapper()
+                assert None == uu.parse(u'December 2015')
+            
+            def test_incomplete_dates_will_parse_if_we_hack_it_and_give_it_a_different_parser():
+                uuu = EnglishDateParserWrapper()
+                uuu.p = dateparser.date.DateDataParser()
+                parsed = uuu.parse(u'December 2015')
+                assert 2015 == parsed.year
+            
+            def test_dates_can_get_this():
+                uu = EnglishDateParserWrapper()
+                got = uu.parse('30 Jan 2018')
+                assert 30 == got.day
+                assert 1 == got.month
+                assert 2018 == got.year
+            
+            def test_and_confirm_MDY():
+                uu = EnglishDateParserWrapper()
+                got = uu.parse('4/5/2016')
+                assert 5 == got.day
+                assert 4 == got.month
+                assert 2016 == got.year
+                
+                got = uu.parse('18 feb 12')
+                assert 18 == got.day
+                assert 2 == got.month
+                assert 2012 == got.year
+                
+                got = uu.parse('August 24 2018')
+                assert 24 == got.day
+                assert 8 == got.month
+                assert 2018 == got.year
+                
+                got = uu.parse('2016-04-11 21:07:47.763957')
+                assert 11 == got.day
+                assert 4 == got.month
+                assert 2016 == got.year
+                
+                got = uu.parse('Mar 31, 2011 17:41:41 GMT')
+                assert 31 == got.day
+                assert 3 == got.month
+                assert 2011 == got.year
+            
+            def test_twitter_api_format_we_needed_to_tweak_it_a_bit():
+                uu = EnglishDateParserWrapper()
+                assert "Wed Nov 07 04:01:10 2018 +0000" == uu.fromFullWithTimezone("Wed Nov 07 04:01:10 +0000 2018")
+                got = uu.parse(uu.fromFullWithTimezone("Wed Nov 07 04:01:10 +0000 2018"))
+                assert 7 == got.day
+                assert 11 == got.month
+                assert 2018 == got.year
+                
+                assert "Wed Nov 07 04:01:10 2018" == uu.fromFullWithTimezone("Wed Nov 07 04:01:10 2018")
+                got = uu.parse(uu.fromFullWithTimezone("Wed Nov 07 04:01:10 2018"))
+                assert 7 == got.day
+                assert 11 == got.month
+                assert 2018 == got.year
+            
+            def test_ensure_month_day_year():
+                # 1362456244 is 3(month)/5(day)/2013
+                fhhfghfghfgh
+                uu = EnglishDateParserWrapper()
+                test1 = uu.getDaysBeforeInMilliseconds('3/5/2013 4:04:04 GMT', 0)
+                assert 1362456244000 == test1
+                test2 = uu.getDaysBeforeInMilliseconds('3/5/2013 4:04:04 GMT', 1)
+                assert 1362456244000 - 86400000 == test2
+                test3 = uu.getDaysBeforeInMilliseconds('3/5/2013 4:04:04 GMT', 100)
+                assert 1362456244000 - 100*86400000 == test3
+    
 class TestCustomAsserts(object):
     def raisevalueerr(self):
         raise ValueError('msg')
