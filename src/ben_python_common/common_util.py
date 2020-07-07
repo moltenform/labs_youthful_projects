@@ -109,6 +109,7 @@ def reReplace(starget, sre, srep):
     import re
     return re.sub(sre, srep, starget)
 
+
 '''
 re.search(pattern, string, flags=0)
     look for at most one match starting anywhere
@@ -244,7 +245,7 @@ class EnglishDateParserWrapper(object):
         import dateparser
         self.p = dateparser.date.DateDataParser(languages=['en'], settings={
             'STRICT_PARSING': True,
-            'DATE_ORDER' : 'MDY'}) # month-day-year
+            'DATE_ORDER': 'MDY'})  # month-day-year
             
     def parse(self, s):
         return self.p.get_date_data(s)['date_obj']
@@ -264,11 +265,13 @@ class EnglishDateParserWrapper(object):
         return ' '.join(newpts) + isTimeZone
         
     def getDaysBefore(self, baseDate, n):
+        import datetime
         assertTrue(isinstance(n, int))
         diff = datetime.timedelta(days=n)
         return baseDate - diff
         
     def getDaysBeforeInMilliseconds(self, sBaseDate, nDaysBefore):
+        import datetime
         dObj = self.parse(sBaseDate)
         diff = datetime.timedelta(days=nDaysBefore)
         dBefore = dObj - diff

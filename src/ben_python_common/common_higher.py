@@ -90,6 +90,7 @@ class PersistedDict(object):
     handle = None
     counter = 0
     persistEveryNWrites = 1
+
     def __init__(self, filename, warnIfCreatingNew=True,
             keepHandle=False, persistEveryNWrites=5):
         from .files import exists, writeall
@@ -326,4 +327,3 @@ class ParsePlus(object):
             allowOnlyOnce=allowOnlyOnce)
         
         writeall(path, newS, 'w', encoding=encoding, skipIfSameContent=True)
-

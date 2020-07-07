@@ -5,18 +5,17 @@ import pytest
 import tempfile
 import os
 import sys
-import shutil
 from os.path import join
 from ..common_ui import alert
 from ..common_util import isPy3OrNewer
-from ..common_higher import renderMillisTime, getNowAsMillisTime
+from ..common_higher import getNowAsMillisTime
 from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listchildren,
     getname, getparent, listfiles, recursedirs, recursefiles, listfileinfo, recursefileinfo,
     computeHash, runWithoutWaitUnicode, ensureEmptyDirectory, ustr, makedirs,
     isfile, isdir, rmdir, extensionPossiblyExecutable, getext, exists, deletesure,
     windowsUrlFileGet, windowsUrlFileWrite, runRsync, runRsyncErrMap,
-    setFileLastModifiedTime, getsize,
-    getModTimeNs, setModTimeNs, addAllToZip, findBinaryOnPath)
+    setFileLastModifiedTime, getsize, getModTimeNs, setModTimeNs,
+    addAllToZip, findBinaryOnPath)
 
 class TestWrappers(object):
     def test_getparent(self):
@@ -58,7 +57,7 @@ class TestWrappers(object):
         # attempt delete while held should fail
         if sys.platform.startswith("win"):
             hold = open(join(fixture_dir, 'file'), 'w')
-            with pytest.raises(Exception) as exc:
+            with pytest.raises(Exception):
                 deletesure(join(fixture_dir, 'file'))
             hold.close()
     
@@ -80,12 +79,14 @@ class TestWrappers(object):
     def test_ensureEmptyDirectory(self, fixture_fulldir):
         # recursively delete
         assert 5 == len(list(listchildren(fixture_fulldir)))
+        assert not isemptydir(fixture_fulldir)
         ensureEmptyDirectory(fixture_fulldir)
         assert 0 == len(list(listchildren(fixture_fulldir)))
+        assert isemptydir(fixture_fulldir)
 
         # can't delete a file
         writeall(join(fixture_fulldir, 'file'), b'a', 'wb')
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception):
             ensureEmptyDirectory(join(fixture_dir, 'file'))
         
         # will create directory if not exists

@@ -1,7 +1,6 @@
 # BenPythonCommon,
 # 2015 Ben Fisher, released under the GPLv3 license.
 
-import os
 import pytest
 from os.path import join
 from collections import OrderedDict
@@ -40,7 +39,7 @@ class TestSimpleEnum(object):
         assert a.item1 == 'item1'
         assert a.item2 == 'item2'
         with pytest.raises(AttributeError):
-            test = a.item3
+            a.item3
         with pytest.raises(RuntimeError):
             a.item3 = 1
         with pytest.raises(RuntimeError):
@@ -53,7 +52,7 @@ class TestSimpleEnum(object):
 
     def test_simpleEnumShouldNotAcceptString(self):
         with pytest.raises(AssertionError):
-            a = SimpleEnum('item1|item2')
+            SimpleEnum('item1|item2')
 
 class TestStringHelpersSimple(object):
     # getPrintable
@@ -353,6 +352,7 @@ class TestDataStructures(object):
         d2['b'] = 3
         assert d1 != d2
 
+
 try:
     import dateparser
     hasDateparser = True
@@ -364,7 +364,7 @@ if hasDateparser:
         def test_cannotYetSupportGetTotalSpanIfOpenBraces(self):
             def test_spanish_dates_should_not_parsed():
                 uu = EnglishDateParserWrapper()
-                assert None == uu.parse(u'Martes 21 de Octubre de 2014')
+                assert uu.parse(u'Martes 21 de Octubre de 2014') is None
             
             def test_spanish_dates_will_parse_if_we_hack_it_and_give_it_a_different_parser():
                 uu = EnglishDateParserWrapper()
@@ -374,7 +374,7 @@ if hasDateparser:
             
             def test_incomplete_dates_should_not_parsed():
                 uu = EnglishDateParserWrapper()
-                assert None == uu.parse(u'December 2015')
+                assert uu.parse(u'December 2015') is None
             
             def test_incomplete_dates_will_parse_if_we_hack_it_and_give_it_a_different_parser():
                 uuu = EnglishDateParserWrapper()
@@ -439,7 +439,7 @@ if hasDateparser:
                 test2 = uu.getDaysBeforeInMilliseconds('3/5/2013 4:04:04 GMT', 1)
                 assert 1362456244000 - 86400000 == test2
                 test3 = uu.getDaysBeforeInMilliseconds('3/5/2013 4:04:04 GMT', 100)
-                assert 1362456244000 - 100*86400000 == test3
+                assert 1362456244000 - 100 * 86400000 == test3
     
 class TestCustomAsserts(object):
     def raisevalueerr(self):

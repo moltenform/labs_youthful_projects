@@ -599,14 +599,14 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFiles=None,
         # we could use /r:0 to eliminate retries, but an
         # apparent bug in robocopy gives a success exit code,
         # so it's better to leave the current repeat-million-times
-        # because at least it doesn't silently fail 
+        # because at least it doesn't silently fail
         # (example: open a file for write with the same name as incoming directory)
         args.append('robocopy')
         args.append(srcDir)
         args.append(destDir)
         if deleteExisting:
             args.append('/MIR')
-        args.append('/E') # copy all, including empty dirs
+        args.append('/E')  # copy all, including empty dirs
         for ex in excludeFiles:
             args.append('/XF')
             args.append(ex)
@@ -638,7 +638,7 @@ def runRsyncErrMap(code, platform=None):
 
     if platform.startswith('win'):
         status = ''
-        if code & 0x1: 
+        if code & 0x1:
             status += "One or more files were copied successfully (that is, new files have arrived).\n"
             code = code & ~0x1
         if code & 0x2:
@@ -647,7 +647,7 @@ def runRsyncErrMap(code, platform=None):
         if code & 0x4:
             status += "Mismatched files or directories were detected.\n"
             code = code & ~0x4
-        if code & 0x8: 
+        if code & 0x8:
             status += "Some files or directories could not be copied.\n"
         if code & 0x10:
             status += "Serious error.\n"

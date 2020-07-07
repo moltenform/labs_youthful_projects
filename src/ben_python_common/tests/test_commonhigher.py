@@ -25,7 +25,7 @@ class TestCommonHigher(object):
         assert s1 != s2
 
     # genGuid, as base 64
-    def test_genGuid(self):
+    def test_genGuidBase64(self):
         s1 = genGuid(asBase64=True)
         assert 24 == len(s1)
         s2 = genGuid(asBase64=True)
@@ -102,7 +102,7 @@ class TestPersistedDict(object):
         objRead = PersistedDict(path, warnIfCreatingNew=True)
         assert 123 == objRead.data['testInt']
         assert 'abc' == objRead.data['testString']
-        assert True == objRead.data['testBool']
+        assert True is objRead.data['testBool']
         assert [12, 34, 56] == objRead.data['testList']
         assertFloatEq(1.2345, objRead.data['testFloat'])
         
@@ -592,4 +592,3 @@ class TestCommonUI(object):
         newlocation = softDeleteFile(path)
         assert os.path.exists(newlocation)
         assert files.getname(newlocation).startswith('z')
-
