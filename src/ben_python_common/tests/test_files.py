@@ -345,18 +345,23 @@ class TestDirectoryList(object):
         def filter(d):
             return getname(d) != 's1'
         assert expected == sorted(list(recursedirs(fixture_fulldir, filenamesOnly=True, fnFilterDirs=filter)))
+    
+    def tupleFromObj(self, o):
+        # x-platform differences in what is the size of a directory
+        size = 0 if isdir(o.path) else o.size()
+        return (getname(getparent(o.path)), o.short(), size)
 
     @pytest.mark.skipif('not isPy3OrNewer')
     def test_listFileInfo(self, fixture_fulldir):
         expected = [('full', 'P1.PNG', 15), ('full', 'a1.txt', 15), ('full', 'a2png', 14)]
-        got = [(getname(getparent(o.path)), o.short(), o.size()) for o in listfileinfo(fixture_fulldir)]
+        got = [self.tupleFromObj(o) for o in listfileinfo(fixture_fulldir)]
         assert expected == sorted(got)
     
     @pytest.mark.skipif('not isPy3OrNewer')
     def test_listFileInfoIncludeDirs(self, fixture_fulldir):
         expected = [('full', 'P1.PNG', 15), ('full', 'a1.txt', 15), ('full', 'a2png', 14),
             ('full', 's1', 0), ('full', 's2', 0)]
-        got = [(getname(getparent(o.path)), o.short(), o.size())
+        got = [self.tupleFromObj(o)
             for o in listfileinfo(fixture_fulldir, filesOnly=False)]
         assert expected == sorted(got)
             
@@ -364,7 +369,7 @@ class TestDirectoryList(object):
     def test_recurseFileInfo(self, fixture_fulldir):
         expected = [('full', 'P1.PNG', 15), ('full', 'a1.txt', 15), ('full', 'a2png', 14),
             ('s2', 'other.txt', 18), ('ss1', 'file.txt', 17)]
-        got = [(getname(getparent(o.path)), o.short(), o.size())
+        got = [self.tupleFromObj(o)
             for o in recursefileinfo(fixture_fulldir)]
         assert expected == sorted(got)
     
@@ -373,7 +378,7 @@ class TestDirectoryList(object):
         expected = [('full', 'P1.PNG', 15), ('full', 'a1.txt', 15), ('full', 'a2png', 14),
             ('full', 's1', 0), ('full', 's2', 0), ('s1', 'ss1', 0), ('s1', 'ss2', 0),
             ('s2', 'other.txt', 18), ('ss1', 'file.txt', 17)]
-        got = [(getname(getparent(o.path)), o.short(), o.size())
+        got = [self.tupleFromObj(o)
             for o in recursefileinfo(fixture_fulldir, filesOnly=False)]
         assert expected == sorted(got)
 
@@ -544,7 +549,6 @@ URL=https://example.net/
         assert expected.replace('\r\n', '\n') == readall(join(fixture_dir, 'a.url'))
         assert 'https://example.net/' == windowsUrlFileGet(join(fixture_dir, 'a.url'))
 
-@pytest.mark.skipif('not sys.platform.startswith("win")')
 class TestRunRSync(object):
     def test_normal(self, fixture_fulldir, fixture_dir):
         # typical usage
@@ -646,19 +650,79 @@ class TestRunRSync(object):
         res = runRsyncErrMap(0x20, 'windows')
         assert res[0] is False and res[1] == ''
 
-@pytest.mark.skipif('not sys.platform.startswith("win")')
+@pytest.mark.skipif('sys.platform.startswith("win")')
 class TestRunProcess(object):
     def test_runShellScript(self, fixture_dir):
         writeall(join(fixture_dir, 'src.txt'), 'contents')
+        writeall(join(fixture_dir, 's.sh'), 'cp src.txt dest.txt')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh')])
+        assert retcode == 0 and isfile(join(fixture_dir, 'dest.txt'))
+    
+    def test_runShellScriptWithoutCapture(self, fixture_dir):
+        writeall(join(fixture_dir, 'src.txt'), 'contents')
+        writeall(join(fixture_dir, 's.sh'), 'cp src.txt dest.txt')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh')], captureOutput=False)
+        assert retcode == 0 and isfile(join(fixture_dir, 'dest.txt'))
+
+    def test_runShellScriptWithUnicodeChars(self, fixture_dir):
+        import time
+        writeall(join(fixture_dir, 'src.txt'), 'contents')
+        writeall(join(fixture_dir, u's\u1101.sh'), 'cp src.txt dest.txt')
+        runWithoutWaitUnicode(['/bin/bash', join(fixture_dir, u's\u1101.sh')])
+        time.sleep(0.5)
+        assert isfile(join(fixture_dir, 'dest.txt'))
+    
+    def test_runGetExitCode(self, fixture_dir):
+        writeall(join(fixture_dir, 's.sh'), '\nexit 123')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh')], throwOnFailure=False)
+        assert 123 == retcode
+    
+    def test_runGetExitCodeWithoutCapture(self, fixture_dir):
+        writeall(join(fixture_dir, 's.sh'), '\nexit 123')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh')], throwOnFailure=False, captureOutput=False)
+        assert 123 == retcode
+    
+    def test_runNonZeroExitShouldThrow(self, fixture_dir):
+        writeall(join(fixture_dir, 's.sh'), '\nexit 123')
+        with pytest.raises(RuntimeError):
+            run(['/bin/bash', join(fixture_dir, 's.sh')])
+    
+    def test_runNonZeroExitShouldThrowWithoutCapture(self, fixture_dir):
+        writeall(join(fixture_dir, 's.sh'), '\nexit 123')
+        with pytest.raises(RuntimeError):
+            run(['/bin/bash', join(fixture_dir, 's.sh')], captureOutput=False)
+    
+    def test_runSendArgument(self, fixture_dir):
+        writeall(join(fixture_dir, 's.sh'), '\n@echo off\necho $1')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh'), 'testarg'])
+        assert retcode == 0 and stdout == b'testarg'
+    
+    def test_runSendArgumentContainingSpaces(self, fixture_dir):
+        writeall(join(fixture_dir, 's.sh'), '\n@echo off\necho $1')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh'), 'test arg'])
+        assert retcode == 0 and stdout == b'test arg'
+    
+    def test_runGetOutput(self, fixture_dir):
+        # the subprocess module uses threads to capture both stderr and stdout without deadlock
+        writeall(join(fixture_dir, 's.sh'), 'echo testecho\necho testechoerr 1>&2')
+        retcode, stdout, stderr = run(['/bin/bash', join(fixture_dir, 's.sh')])
+        assert retcode == 0
+        assert stdout == b'testecho'
+        assert stderr == b'testechoerr'
+
+@pytest.mark.skipif('not sys.platform.startswith("win")')
+class TestRunProcessWin(object):
+    def test_runShellScript(self, fixture_dir):
+        writeall(join(fixture_dir, 'src.txt'), 'contents')
         writeall(join(fixture_dir, 's.bat'), 'copy src.txt dest.txt')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')])
-        assert returncode == 0 and isfile(join(fixture_dir, 'dest.txt'))
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat')])
+        assert retcode == 0 and isfile(join(fixture_dir, 'dest.txt'))
     
     def test_runShellScriptWithoutCapture(self, fixture_dir):
         writeall(join(fixture_dir, 'src.txt'), 'contents')
         writeall(join(fixture_dir, 's.bat'), 'copy src.txt dest.txt')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], captureOutput=False)
-        assert returncode == 0 and isfile(join(fixture_dir, 'dest.txt'))
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat')], captureOutput=False)
+        assert retcode == 0 and isfile(join(fixture_dir, 'dest.txt'))
 
     def test_runShellScriptWithUnicodeChars(self, fixture_dir):
         import time
@@ -670,13 +734,13 @@ class TestRunProcess(object):
     
     def test_runGetExitCode(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\nexit /b 123')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False)
-        assert 123 == returncode
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False)
+        assert 123 == retcode
     
     def test_runGetExitCodeWithoutCapture(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\nexit /b 123')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False, captureOutput=False)
-        assert 123 == returncode
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat')], throwOnFailure=False, captureOutput=False)
+        assert 123 == retcode
     
     def test_runNonZeroExitShouldThrow(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\nexit /b 123')
@@ -690,19 +754,19 @@ class TestRunProcess(object):
     
     def test_runSendArgument(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\n@echo off\necho %1')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat'), 'testarg'])
-        assert returncode == 0 and stdout == b'testarg'
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat'), 'testarg'])
+        assert retcode == 0 and stdout == b'testarg'
     
     def test_runSendArgumentContainingSpaces(self, fixture_dir):
         writeall(join(fixture_dir, 's.bat'), '\n@echo off\necho %1')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat'), 'test arg'])
-        assert returncode == 0 and stdout == b'"test arg"'
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat'), 'test arg'])
+        assert retcode == 0 and stdout == b'"test arg"'
     
     def test_runGetOutput(self, fixture_dir):
         # the subprocess module uses threads to capture both stderr and stdout without deadlock
         writeall(join(fixture_dir, 's.bat'), '@echo off\necho testecho\necho testechoerr 1>&2')
-        returncode, stdout, stderr = run([join(fixture_dir, 's.bat')])
-        assert returncode == 0
+        retcode, stdout, stderr = run([join(fixture_dir, 's.bat')])
+        assert retcode == 0
         assert stdout == b'testecho'
         assert stderr == b'testechoerr'
 
@@ -740,7 +804,6 @@ def modifyDirectoryContents(basedir):
     
     # renamed file
     move(join(basedir, 'a1.txt'), join(basedir, 'a2.txt'), True)
-        
 
 def listDirectoryToString(basedir):
     out = []
@@ -748,7 +811,8 @@ def listDirectoryToString(basedir):
         s = f.replace(basedir, '').replace(os.sep, '/').lstrip('/')
         if s:
             # don't include the root
-            out.append(s + ',' + str(getsize(f)))
+            size = 0 if isdir(f) else getsize(f)
+            out.append(s + ',' + str(size))
     return '|'.join(sorted(out))
 
 @pytest.fixture()
