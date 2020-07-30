@@ -3,9 +3,9 @@
 
 Make new rhythms and sounds in a web browser!
 
-* [Drum Circles](https://moltenform.com/page/moltenform-real-time-audio/html_drumcircles/index.html)
-* [Tremolo Machine](https://moltenform.com/page/moltenform-real-time-audio/html_tremolo/index.html)
-* [Laser Sounds](https://moltenform.com/page/moltenform-real-time-audio/html_lasers/index.html)
+* [Drum Circles](https://moltenform.com/page/moltenform-real-time-audio/html_drumcircles/)
+* [Tremolo Machine](https://moltenform.com/page/moltenform-real-time-audio/html_tremolo/)
+* [Laser Sounds](https://moltenform.com/page/moltenform-real-time-audio/html_lasers/)
 
 Updated in 2018: works in both Firefox and Chrome, on a laptop/desktop
 

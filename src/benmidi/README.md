@@ -6,6 +6,6 @@ use bmidi to wav to:
 
 a graphical frontend for sfubar and timidity++, written by Ben Fisher, GPLv3.
 
-<a href="https://moltenform.com/page/bmidi/doc/index.html">documentation, examples, and more</a>
+<a href="https://moltenform.com/page/bmidi/doc/">documentation, examples, and more</a>
 
-<a href="https://moltenform.com/page/bmidi/doc/index.html">![Screenshot](https://moltenform.com/page/bmidi/shot.png)</a>
+<a href="https://moltenform.com/page/bmidi/doc/">![Screenshot](https://moltenform.com/page/bmidi/shot.png)</a>
