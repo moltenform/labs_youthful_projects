@@ -275,33 +275,33 @@ class TestDataStructures(object):
         mruTest.add('ccc')
         mruTest.add('ddd')
         assert ['ddd', 'ccc'] == mruTest.getList()
-    
+
     def test_memoizeCountNumberOfCalls_RepeatedCall(self):
-        if sys.version_info[0] <= 2:
-            countCalls = Bucket(count=0)
-            
-            @BoundedMemoize
-            def addTwoNumbers(a, b, countCalls=countCalls):
-                countCalls.count += 1
-                return a + b
-            assert 20 == addTwoNumbers(10, 10)
-            assert 20 == addTwoNumbers(10, 10)
-            assert 40 == addTwoNumbers(20, 20)
-            assert 2 == countCalls.count
+        countCalls = Bucket(count=0)
+
+        @BoundedMemoize
+        def addTwoNumbers(a, b, countCalls=countCalls):
+            countCalls.count += 1
+            return a + b
+        assert 20 == addTwoNumbers(10, 10)
+        assert 1 == countCalls.count
+        assert 20 == addTwoNumbers(10, 10)
+        assert 40 == addTwoNumbers(20, 20)
+        assert 2 == countCalls.count
     
     def test_memoizeCountNumberOfCalls_InterleavedCall(self):
-        if sys.version_info[0] <= 2:
-            countCalls = Bucket(count=0)
-            
-            @BoundedMemoize
-            def addTwoNumbers(a, b, countCalls=countCalls):
-                countCalls.count += 1
-                return a + b
-            assert 20 == addTwoNumbers(10, 10)
-            assert 40 == addTwoNumbers(20, 20)
-            assert 20 == addTwoNumbers(10, 10)
-            assert 2 == countCalls.count
-    
+        countCalls = Bucket(count=0)
+
+        @BoundedMemoize
+        def addTwoNumbers(a, b, countCalls=countCalls):
+            countCalls.count += 1
+            return a + b
+        assert 20 == addTwoNumbers(10, 10)
+        assert 1 == countCalls.count
+        assert 40 == addTwoNumbers(20, 20)
+        assert 20 == addTwoNumbers(10, 10)
+        assert 2 == countCalls.count
+
     @pytest.mark.skipif('not isPy3OrNewer')
     def test_modtimeRendered(self, fixture_dir):
         files.writeall(join(fixture_dir, 'a.txt'), 'contents')
