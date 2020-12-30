@@ -11,7 +11,7 @@ class Bucket(object):
 
     def __repr__(self):
         return '\n\n\n'.join(('%s=%s'%(ustr(key), ustr(self.__dict__[key])) for key in sorted(self.__dict__)))
-            
+
 class SimpleEnum(object):
     "simple enum; prevents modification after creation."
     _set = None
@@ -36,7 +36,7 @@ class SimpleEnum(object):
 
     def __delattr__(self, name):
         raise RuntimeError
-    
+
 def getPrintable(s, okToIgnore=False):
     if not isPy3OrNewer:
         if not isinstance(s, unicode):
@@ -60,10 +60,10 @@ def getPrintable(s, okToIgnore=False):
             return s.encode('ascii', 'ignore').decode('ascii')
         else:
             return s.encode('ascii', 'replace').decode('ascii')
-        
+
 def trace(*args):
     print(' '.join(map(getPrintable, args)))
-        
+
 def toValidFilename(s):
     return s.replace(u'\u2019', u"'").replace(u'?', u'').replace(u'!', u'') \
         .replace(u'\\ ', u', ').replace(u'\\', u'-') \
@@ -121,7 +121,7 @@ re.findall(pattern, string, flags=0)
     returns list of strings
 re.finditer(pattern, string, flags=0)
     returns iterator of match objects
-    
+
 re.IGNORECASE, re.MULTILINE, re.DOTALL
 '''
 
@@ -156,7 +156,7 @@ def takeBatchOnArbitraryIterable(iterable, size):
 def takeBatch(itr, n):
     """ Yield successive n-sized chunks from l."""
     return list(takeBatchOnArbitraryIterable(itr, n))
-    
+
 class TakeBatch(object):
     def __init__(self, batchSize, callback):
         self.batch = []
@@ -183,22 +183,22 @@ class RecentlyUsedList(object):
     def __init__(self, maxSize=None, startList=None):
         self.list = startList or []
         self.maxSize = maxSize
-    
+
     def getList(self):
         return self.list
-        
+
     def indexOf(self, s):
         try:
             return self.list.index(s)
         except ValueError:
             return -1
-    
+
     def add(self, s):
         # if it's also elsewhere in the list, remove that one
         index = self.indexOf(s)
         if index != -1:
             self.list.pop(index)
-        
+
         # insert new entry at the top
         self.list.insert(0, s)
 
@@ -206,7 +206,7 @@ class RecentlyUsedList(object):
         if self.maxSize:
             while len(self.list) > self.maxSize:
                 self.list.pop()
-    
+
 # inspired by http://code.activestate.com/recipes/496879-memoize-decorator-function-with-cache-size-limit/
 def BoundedMemoize(fn):
     from collections import OrderedDict
@@ -253,7 +253,7 @@ class EnglishDateParserWrapper(object):
 
     def parse(self, s):
         return self.p.get_date_data(s)['date_obj']
-        
+
     def fromFullWithTimezone(self, s):
         # compensate for +0000
         # Wed Nov 07 04:01:10 +0000 2018
@@ -267,20 +267,20 @@ class EnglishDateParserWrapper(object):
             else:
                 newpts.append(pt)
         return ' '.join(newpts) + isTimeZone
-        
+
     def getDaysBefore(self, baseDate, n):
         import datetime
         assertTrue(isinstance(n, int))
         diff = datetime.timedelta(days=n)
         return baseDate - diff
-        
+
     def getDaysBeforeInMilliseconds(self, sBaseDate, nDaysBefore):
         import datetime
         dObj = self.parse(sBaseDate)
         diff = datetime.timedelta(days=nDaysBefore)
         dBefore = dObj - diff
         return int(dBefore.timestamp() * 1000)
-        
+
     def toUnixMilliseconds(self, s):
         assertTrue(isPy3OrNewer, 'requires python 3 or newer')
         dt = self.parse(s)
@@ -298,7 +298,7 @@ def assertTrue(condition, *messageArgs):
     if not condition:
         msg = ' '.join(map(getPrintable, messageArgs)) if messageArgs else ''
         raise AssertionError(msg)
-    
+
 def assertEq(expected, received, *messageArgs):
     if expected != received:
         import pprint
@@ -352,7 +352,7 @@ def assertException(fn, excType, excTypeExpectedString=None, msg='', regexp=Fals
         fn()
     except:
         e = sys.exc_info()[1]
-    
+
     assertTrue(e is not None, 'did not throw ' + msg)
     if excType:
         assertTrue(isinstance(e, excType), 'exception type check failed ' + msg +
@@ -374,22 +374,22 @@ if sys.version_info[0] <= 2:
     BytesIO = StringIO
     from cStringIO import StringIO as cBytesIO
     from itertools import izip  # noqa: F401
-    
+
     def endswith(a, b):
         return a.endswith(b)
-    
+
     def startswith(a, b):
         return a.startswith(b)
-    
+
     def iterbytes(b):
         return iter(b)
-    
+
     def bytes_to_string(b):
         return b
-    
+
     def asbytes(s):
         return s
-    
+
     rinput = raw_input
     ustr = unicode
     uchr = unichr
@@ -402,7 +402,7 @@ else:
     StringIO = StringIO
     from io import BytesIO
     cBytesIO = BytesIO
-    
+
     def endswith(a, b):
         # use with either str or bytes
         if isinstance(a, str):
@@ -412,7 +412,7 @@ else:
             if not isinstance(b, bytes):
                 b = b.encode("ascii")
         return a.endswith(b)
-    
+
     def startswith(a, b):
         # use with either str or bytes
         if isinstance(a, str):
@@ -422,16 +422,16 @@ else:
             if not isinstance(b, bytes):
                 b = b.encode("ascii")
         return a.startswith(b)
-    
+
     def iterbytes(b):
         return (bytes([v]) for v in b)
-    
+
     def bytes_to_string(b):
         return b.decode('utf-8')
-    
+
     def asbytes(s, encoding='ascii'):
         return bytes(s, encoding)
-    
+
     rinput = input
     ustr = str
     uchr = chr

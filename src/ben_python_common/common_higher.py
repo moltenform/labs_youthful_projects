@@ -22,7 +22,7 @@ def getNowAsMillisTime():
     import time
     t = time.time()
     return int(t * 1000)
-    
+
 def DBG(obj=None):
     import pprint
     if obj is None:
@@ -79,13 +79,13 @@ def getClipboardTextPyperclip():
 def setClipboardTextPyperclip(s):
     import pyperclip
     pyperclip.copy(s)
-    
+
 def getClipboardText():
     try:
         return getClipboardTextPyperclip()
     except ImportError:
         return getClipboardTextTk()
-    
+
 def setClipboardText(s):
     try:
         setClipboardTextPyperclip(s)
@@ -112,13 +112,13 @@ class PersistedDict(object):
         if keepHandle:
             self.handle = open(filename, 'w')
             self.persist()
-        
+
     def load(self):
         import json
         from .files import readall
         txt = readall(self.filename, encoding='utf-8')
         self.data = json.loads(txt)
-    
+
     def close(self):
         if self.handle:
             self.handle.close()
@@ -134,12 +134,12 @@ class PersistedDict(object):
             self.handle.truncate()
         else:
             writeall(self.filename, txt, encoding='utf-8')
-    
+
     def afterUpdate(self):
         self.counter += 1
         if self.counter % self.persistEveryNWrites == 0:
             self.persist()
-    
+
     def set(self, key, value):
         self.data[key] = value
         self.afterUpdate()
@@ -177,7 +177,7 @@ def startThread(fn, args=None):
 class ParsePlus(object):
     '''
     ParsePlus, by Ben Fisher 2019
-    
+
     Adds the following features to the "parse" module:
         {s:NoNewlines} field type
         {s:NoSpaces} works like {s:S}
@@ -212,12 +212,12 @@ class ParsePlus(object):
         self._escapeSequencesMap = {}
         if len(self.escapeSequences) > 5:
             raise ValueError('we support a max of 5 escape sequences')
-    
+
         sTransformed = s
         for i, seq in enumerate(self.escapeSequences):
             assertTrue(len(seq) > 1, "an escape-sequence only makes sense if " +
                 "it is at least two characters")
-            
+
             # use rarely-occurring ascii chars like
             # \x01 (start of heading)
             rareChar = chr(i + 1)
@@ -232,7 +232,7 @@ class ParsePlus(object):
             repl = rareChar * len(seq)
             self._escapeSequencesMap[repl] = seq
             sTransformed = sTransformed.replace(seq, repl)
-            
+
         assertEq(len(s), len(sTransformed), 'internal error: len(s) changed.')
         return sTransformed
 
@@ -262,7 +262,7 @@ class ParsePlus(object):
         if locationOfFirstOpen == -1 or locationOfLastClose == -1:
             # pattern contained no fields?
             return None
-        
+
         if not len(parseResult.spans):
             # pattern contained no fields?
             return None
@@ -272,11 +272,11 @@ class ParsePlus(object):
             lower, upper = parseResult.spans[key]
             smallestSpanStart = min(smallestSpanStart, lower)
             largestSpanEnd = max(largestSpanEnd, upper)
-        
+
         # ex.: for the pattern aaa{field}bbb, widen by len('aaa') and len('bbb')
         smallestSpanStart -= locationOfFirstOpen
         largestSpanEnd += len(self.pattern) - (locationOfLastClose + len('}'))
-        
+
         # sanity check that the bounds make sense
         assertTrue(0 <= smallestSpanStart <= lenS,
             'internal error: span outside bounds')
@@ -285,7 +285,7 @@ class ParsePlus(object):
         assertTrue(largestSpanEnd >= smallestSpanStart,
             'internal error: invalid span')
         return (smallestSpanStart, largestSpanEnd)
-    
+
     def match(self, s):
         # entire string must match
         import parse
@@ -323,7 +323,7 @@ class ParsePlus(object):
                 raise RuntimeError("pattern not found.")
             else:
                 return s + appendIfNotFound
-    
+
     def replaceFieldWithTextIntoFile(self, path, key, newValue,
             appendIfNotFound=None, allowOnlyOnce=False, encoding=None):
         from .files import readall, writeall
@@ -332,5 +332,5 @@ class ParsePlus(object):
         newS = self.replaceFieldWithText(s, key, newValue,
             appendIfNotFound=appendIfNotFound,
             allowOnlyOnce=allowOnlyOnce)
-        
+
         writeall(path, newS, 'w', encoding=encoding, skipIfSameContent=True)

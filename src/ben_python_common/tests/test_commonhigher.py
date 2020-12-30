@@ -15,7 +15,7 @@ class TestCommonHigher(object):
         s2 = getRandomString()
         assert all((c in '0123456789' for c in s2))
         assert s1 != s2
-    
+
     # genGuid
     def test_genGuid(self):
         s1 = genGuid()
@@ -31,7 +31,7 @@ class TestCommonHigher(object):
         s2 = genGuid(asBase64=True)
         assert 24 == len(s2)
         assert s1 != s2
-    
+
     # getClipboardText
     def test_getClipboardTextWithNoUnicode(self):
         # let's check that pyperclip is installed
@@ -42,7 +42,7 @@ class TestCommonHigher(object):
             assert 'normal ascii' == getClipboardText()
         finally:
             setClipboardText(prev)
-    
+
     def test_getClipboardTextWithUnicode(self):
         # let's check that pyperclip is installed
         import pyperclip  # NOQA
@@ -74,7 +74,7 @@ class TestPersistedDict(object):
         assertEq(5, len(objRead.data))
         for i in range(5):
             assert 'val%d' % i == objRead.data['key%d' % i]
-    
+
     def test_canLoadEmpty(self, fixture_dir):
         path = join(fixture_dir, 'test.json')
         obj = PersistedDict(path, warnIfCreatingNew=False, persistEveryNWrites=5)
@@ -105,7 +105,7 @@ class TestPersistedDict(object):
         assert True is objRead.data['testBool']
         assert [12, 34, 56] == objRead.data['testList']
         assertFloatEq(1.2345, objRead.data['testFloat'])
-        
+
     def test_canWriteDataTypesAsKeys(self, fixture_dir):
         path = join(fixture_dir, u'test.json')
         obj = PersistedDict(path, warnIfCreatingNew=False, persistEveryNWrites=1)
@@ -260,11 +260,11 @@ class TestParsePlus(object):
     def test_emptyNamesIsOk2(self):
         found = self.runBasicParse(r'456|ABC|123', r'{}|{main}|{}')
         assert found.main == 'ABC'
-        
+
     def test_nameMustBeAlphanum1(self):
         found = self.runBasicParse(r'456|ABC|123', r'{}|{bad name}|{}')
         assert found is None
-        
+
     def test_nameMustBeAlphanum2(self):
         found = self.runBasicParse(r'456|ABC|123', r'{}|{bad)name}|{}')
         assert found is None
@@ -272,78 +272,78 @@ class TestParsePlus(object):
     def test_nameMustBeAlphanum3(self):
         found = self.runBasicParse(r'456|ABC|123', r'{}|{bad>name}|{}')
         assert found is None
-    
+
     def test_nameCanHaveUnderscore(self):
         found = self.runBasicParse(r'456|ABC|123', r'{}|{good_name}|{}')
         assert found.good_name == 'ABC'
-    
+
     def test_canNoteReturnEmpty(self):
         found = self.runBasicParse(r'456||123', r'{}|{fld}|{}')
         assert found is None
-        
+
     def test_unnamedCanNotBeEmpty(self):
         found = self.runBasicParse(r'|a|', r'{}|{fld}|{}')
         assert found is None
-        
+
     def test_hasNewline(self):
         found = self.runBasicParse('456|a\nb|123', r'{}|{fld}|{}')
         assert found.fld == 'a\nb'
-        
+
     def test_hasWindowsNewline(self):
         found = self.runBasicParse('456|a\r\nb|123', r'{}|{fld}|{}')
         assert found.fld == 'a\r\nb'
-        
+
     def test_hasNewlineRestricted(self):
         found = self.runBasicParse('456|a\nb|123', r'{}|{ss:NoNewlines}|{}')
         assert found is None
-        
+
     def test_hasWindowsNewlineRestricted(self):
         found = self.runBasicParse('456|a\nb|123', r'{}|{ss:NoNewlines}|{}')
         assert found is None
-        
+
     def test_hasSpaces(self):
         found = self.runBasicParse('456|a  b|123', r'{}|{ss}|{}')
         assert found.ss == 'a  b'
-        
+
     def test_hasSpacesRestricted(self):
         found = self.runBasicParse('456|a  b|123', r'{}|{ss:NoSpaces}|{}')
         assert found is None
-        
+
     def test_multipleFields2(self):
         found = self.runBasicParse(r'a|b', r'{c1}|{c2}')
         assert found.c1 == 'a'
         assert found.c2 == 'b'
-        
+
     def test_multipleFields3(self):
         found = self.runBasicParse(r'a|b|c', r'{c1}|{c2}|{c3}')
         assert found.c1 == 'a'
         assert found.c2 == 'b'
         assert found.c3 == 'c'
-        
+
     def test_multipleFields4(self):
         found = self.runBasicParse(r'a|b|c|d', r'{c1}|{c2}|{c3}|{c4}')
         assert found.c1 == 'a'
         assert found.c2 == 'b'
         assert found.c3 == 'c'
         assert found.c4 == 'd'
-        
+
     def test_multipleFields5(self):
         found = self.runBasicParse(r'aa|bb|cc|dd', r'{c1}|{c2}|{c3}|{c4}')
         assert found.c1 == 'aa'
         assert found.c2 == 'bb'
         assert found.c3 == 'cc'
         assert found.c4 == 'dd'
-        
+
     def test_multipleFieldsNotEnough(self):
         found = self.runBasicParse(r'a|b|c', r'{c1}|{c2}|{c3}|{c4}')
         assert found is None
-        
+
     def test_multipleFieldsDemo(self):
         found = self.runBasicParse(r'<first>ff</first><second>ss</second>',
             r'<first>{c1}</first><second>{c2}</second>')
         assert found.c1 == 'ff'
         assert found.c2 == 'ss'
-    
+
     def test_replaceTextFailsIfNotExists(self, fixture_dir):
         path = files.join(fixture_dir, 'testreplace.txt')
         contentsFail = '<tag> Target</b> </tag>'

@@ -26,28 +26,28 @@ rmtree = _shutil.rmtree
 # simple wrappers
 def getparent(s):
     return _os.path.split(s)[0]
-    
+
 def getname(s):
     return _os.path.split(s)[1]
-    
+
 def modtime(s):
     return _os.stat(s).st_mtime
-    
+
 def createdtime(s):
     return _os.stat(s).st_ctime
-    
+
 def getext(s, removeDot=True):
     a, b = splitext(s)
     if removeDot and len(b) > 0 and b[0] == '.':
         return b[1:].lower()
     else:
         return b.lower()
-    
+
 def deletesure(s):
     if exists(s):
         delete(s)
     assert not exists(s)
-    
+
 def makedirs(s):
     try:
         _os.makedirs(s)
@@ -60,7 +60,7 @@ def makedirs(s):
 def ensureEmptyDirectory(d):
     if isfile(d):
         raise IOError('file exists at this location ' + d)
-    
+
     if isdir(d):
         # delete all existing files in the directory
         for s in _os.listdir(d):
@@ -68,7 +68,7 @@ def ensureEmptyDirectory(d):
                 _shutil.rmtree(join(d, s))
             else:
                 _os.unlink(join(d, s))
-        
+
         assertTrue(isemptydir(d))
     else:
         _os.makedirs(d)
@@ -76,7 +76,7 @@ def ensureEmptyDirectory(d):
 def copy(srcfile, destfile, overwrite, traceToStdout=False, useDestModifiedTime=False):
     if not isfile(srcfile):
         raise IOError('source path does not exist or is not a file')
-    
+
     toSetModTime = None
     if useDestModifiedTime and exists(destfile):
         assertTrue(isfile(destfile), 'not supported for directories')
@@ -100,7 +100,7 @@ def copy(srcfile, destfile, overwrite, traceToStdout=False, useDestModifiedTime=
             _shutil.copy(srcfile, destfile)
         else:
             copyFilePosixWithoutOverwrite(srcfile, destfile)
-    
+
     assertTrue(exists(destfile))
     if toSetModTime:
         setModTimeNs(destfile, toSetModTime)
@@ -111,7 +111,7 @@ def move(srcfile, destfile, overwrite, warnBetweenDrives=False,
         raise IOError('source path does not exist')
     if not allowDirs and not isfile(srcfile):
         raise IOError('source path does not exist or is not a file')
-    
+
     toSetModTime = None
     if useDestModifiedTime and exists(destfile):
         assertTrue(isfile(destfile), 'not supported for directories')
@@ -135,10 +135,10 @@ def move(srcfile, destfile, overwrite, warnBetweenDrives=False,
                 rinput('Note: moving file from one drive to another. ' +
                     '%s %s Press Enter to continue.\r\n'%(srcfile, destfile))
                 return move(srcfile, destfile, overwrite, warnBetweenDrives=False)
-                
+
             raise IOError('MoveFileExW failed (maybe dest already exists?) err=%d' % err +
                 getPrintable(srcfile + '->' + destfile))
-        
+
     elif sys.platform.startswith('linux') and overwrite:
         _os.rename(srcfile, destfile)
     else:
@@ -275,20 +275,20 @@ def recursefiles(root, _ind=_enforceExplicitlyNamedParameters, filenamesOnly=Fal
         fnFilterDirs=None, includeFiles=True, includeDirs=False, topdown=True, followSymlinks=False):
     _checkNamedParameters(_ind)
     assert isdir(root)
-    
+
     for (dirpath, dirnames, filenames) in _os.walk(root, topdown=topdown, followlinks=followSymlinks):
         if fnFilterDirs:
             newdirs = [dir for dir in dirnames if fnFilterDirs(join(dirpath, dir))]
             dirnames[:] = newdirs
-        
+
         if includeFiles:
             for filename in (filenames if sys.platform.startswith('win') else sorted(filenames)):
                 if not allowedexts or getext(filename) in allowedexts:
                     yield filename if filenamesOnly else (dirpath + _os.path.sep + filename, filename)
-        
+
         if includeDirs:
             yield getname(dirpath) if filenamesOnly else (dirpath, getname(dirpath))
-    
+
 def recursedirs(root, _ind=_enforceExplicitlyNamedParameters, filenamesOnly=False, fnFilterDirs=None,
         topdown=True, followSymlinks=False):
     _checkNamedParameters(_ind)
@@ -299,33 +299,33 @@ class FileInfoEntryWrapper(object):
     def __init__(self, obj):
         self.obj = obj
         self.path = obj.path
-        
+
     def is_dir(self, *args):
         return self.obj.is_dir(*args)
-        
+
     def is_file(self, *args):
         return self.obj.is_file(*args)
-        
+
     def short(self):
         return _os.path.split(self.path)[1]
-        
+
     def size(self):
         return self.obj.stat().st_size
-        
+
     def mtime(self):
         return self.obj.stat().st_mtime
-    
+
     def metadatachangetime(self):
         assertTrue(not sys.platform.startswith('win'))
         return self.obj.stat().st_ctime
-    
+
     def createtime(self):
         assertTrue(sys.platform.startswith('win'))
         return self.obj.stat().st_ctime
 
 def recursefileinfo(root, recurse=True, followSymlinks=False, filesOnly=True):
     assertTrue(isPy3OrNewer)
-    
+
     # scandir's resources are released in destructor,
     # do not create circular references holding it
     for entry in _os.scandir(root):
@@ -336,7 +336,7 @@ def recursefileinfo(root, recurse=True, followSymlinks=False, filesOnly=True):
                 for subentry in recursefileinfo(entry.path, recurse=recurse,
                         followSymlinks=followSymlinks, filesOnly=filesOnly):
                     yield subentry
-        
+
         if entry.is_file():
             yield FileInfoEntryWrapper(entry)
 
@@ -346,7 +346,7 @@ def listfileinfo(root, followSymlinks=False, filesOnly=True):
 
 def isemptydir(dir):
     return len(_os.listdir(dir)) == 0
-    
+
 def fileContentsEqual(f1, f2):
     import filecmp
     return filecmp.cmp(f1, f2, shallow=False)
@@ -374,7 +374,7 @@ def openUrl(s, filter=True):
         prefix = 'https://'
     else:
         assertTrue(False, 'url did not start with http')
-    
+
     if filter:
         s = s[len(prefix):]
         s = s.replace('%', '%25')
@@ -467,7 +467,7 @@ def findBinaryOnPath(name):
             if _os.path.isfile(f + '.bat'):
                 return f + '.bat'
         return None
-    
+
     # handle "./binaryname"
     if _os.sep in name:
         return existsAsExe('.', name) if existsAsExe('.', name) else None
@@ -553,6 +553,7 @@ def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
         methodDict['lzma'] = zipfile.ZIP_LZMA
     except AttributeError:
         pass  # lzma isn't always available, e.g. python 2.7
+
     def getMethod(s):
         if alreadyCompressedAsStore and getext(s, False) in alreadyCompressedExt:
             return zipfile.ZIP_STORED
@@ -643,7 +644,7 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFiles=None,
         for ex in excludeFiles + excludeDirs:
             args.append('--exclude')
             args.append(ex)
-    
+
     retcode, stdout, stderr = run(args, throwOnFailure=False)
     isOk, status = runRsyncErrMap(retcode)
     if throwOnFailure and not isOk:
@@ -703,24 +704,24 @@ def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoW
     import subprocess
     _checkNamedParameters(_ind)
     kwargs = {}
-    
+
     if sys.platform.startswith('win') and createNoWindow:
         kwargs['creationflags'] = 0x08000000
-    
+
     if captureOutput and not wait:
         raise ValueError('captureOutput implies wait')
-    
+
     if throwOnFailure and not wait:
         raise ValueError('throwing on failure implies wait')
-    
+
     retcode = -1
     stdout = None
     stderr = None
-    
+
     if captureOutput:
         sp = subprocess.Popen(listArgs, shell=shell,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-        
+
         comm = sp.communicate()
         stdout = comm[0]
         stderr = comm[1]
@@ -736,12 +737,12 @@ def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoW
         else:
             stdoutArg = None
             stderrArg = None
-        
+
         if wait:
             retcode = subprocess.call(listArgs, stdout=stdoutArg, stderr=stderrArg, shell=shell, **kwargs)
         else:
             subprocess.Popen(listArgs, stdout=stdoutArg, stderr=stderrArg, shell=shell, **kwargs)
-        
+
     if throwOnFailure and retcode != 0:
         if throwOnFailure is True:
             throwOnFailure = RuntimeError
@@ -751,13 +752,13 @@ def run(listArgs, _ind=_enforceExplicitlyNamedParameters, shell=False, createNoW
             '\nstdout was ' + str(stdout) + \
             '\nstderr was ' + str(stderr)
         raise throwOnFailure(getPrintable(exceptionText))
-    
+
     return retcode, stdout, stderr
-    
+
 def runWithoutWaitUnicode(listArgs):
     # in Windows in Python2, non-ascii characters cause subprocess.Popen to fail.
     # https://bugs.python.org/issue1759845
-    
+
     import subprocess
     if isPy3OrNewer or not sys.platform.startswith('win') or all(isinstance(arg, str) for arg in listArgs):
         # no workaround needed in Python3
@@ -770,7 +771,7 @@ def runWithoutWaitUnicode(listArgs):
             combinedArgs = listArgs
         else:
             combinedArgs = subprocess.list2cmdline(listArgs)
-            
+
         combinedArgs = unicode(combinedArgs)
         executable = None
         close_fds = False

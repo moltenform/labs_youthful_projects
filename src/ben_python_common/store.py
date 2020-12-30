@@ -25,25 +25,25 @@ class StoreException(Exception):
 
 class Store(object):
     conn = None
-    
+
     def add_schema(self, cursor):
         raise NotImplementedError('please inherit from Store and implement this method')
-    
+
     def currrent_schema_version_number(self):
         raise NotImplementedError('please inherit from Store and implement this method')
-    
+
     def stamp_schema_version(self, cursor):
         if self.currrent_schema_version_number() is None:
             return
-        
+
         cursor.execute('CREATE TABLE ben_python_common_store_properties(schema_version INT)')
         cursor.execute('INSERT INTO ben_python_common_store_properties(schema_version) VALUES(?)',
             [self.currrent_schema_version_number()])
-    
+
     def verify_schema_version(self):
         if self.currrent_schema_version_number() is None:
             return
-        
+
         cursor = self.conn.cursor()
         try:
             valid = False
@@ -52,7 +52,7 @@ class Store(object):
                 got = int(version[0])
                 if got == int(self.currrent_schema_version_number()):
                     valid = True
-            
+
             if not valid:
                 raise StoreException('DB is empty or comes from a different version. Expected schema version %s, got %s' %
                     (int(self.currrent_schema_version_number()), got))
@@ -62,15 +62,15 @@ class Store(object):
                     '\n\nSchema version table not found, maybe this is a 0kb empty db. Please delete the db and try again.')
             else:
                 raise
-        
+
     def cursor(self):
         return self.conn.cursor()
-    
+
     def row_exists(self, cursor, *args):
         for row in cursor.execute(*args):
             return True
         return False
-    
+
     def connect_or_create(self, dbpath, flags=None):
         if flags is None:
             flags = apsw.SQLITE_OPEN_NOMUTEX | apsw.SQLITE_OPEN_READWRITE | apsw.SQLITE_OPEN_CREATE
@@ -86,28 +86,28 @@ class Store(object):
                 cursor = self.conn.cursor()
                 self.add_schema(cursor)
                 self.stamp_schema_version(cursor)
-        
+
         self.verify_schema_version()
-            
+
     def txn_begin(self):
         self.cursor().execute('BEGIN TRANSACTION')
-    
+
     def txn_rollback(self):
         self.cursor().execute('ROLLBACK TRANSACTION')
-    
+
     def txn_commit(self):
         self.cursor().execute('COMMIT TRANSACTION')
-    
+
     def close(self):
         if self.conn:
             self.conn.close()
             self.conn = None
-    
+
     def __enter__(self):
         # begin txn
         self.conn.__enter__()
         return self
-    
+
     def __exit__(self, *args):
         # rollback if exception occurred, otherwise commit
         self.conn.__exit__(*args)
