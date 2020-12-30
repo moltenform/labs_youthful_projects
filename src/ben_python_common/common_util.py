@@ -242,13 +242,15 @@ def renderMillisTime(millisTime):
     return time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(t))
 
 class EnglishDateParserWrapper(object):
-    def __init__(self):
+    def __init__(self, dateOrder='MDY'):
+        # default to month-day-year
         # restrict to English, less possibility of accidentally parsing a non-date string
         import dateparser
-        self.p = dateparser.date.DateDataParser(languages=['en'], settings={
-            'STRICT_PARSING': True,
-            'DATE_ORDER': 'MDY'})  # month-day-year
-            
+        settings = {'STRICT_PARSING': True}
+        if dateOrder:
+            settings['DATE_ORDER'] = dateOrder
+        self.p = dateparser.date.DateDataParser(languages=['en'], settings=settings)
+
     def parse(self, s):
         return self.p.get_date_data(s)['date_obj']
         
