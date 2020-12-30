@@ -53,13 +53,15 @@ def getInputString(prompt, bConfirm=True, flushOutput=True):
                 return ustr(s)
 
 # returns -1, 'Cancel' on cancel
-def getInputFromChoices(prompt, arrChoices, fnOtherCommands=None, otherCommandsContext=None, flushOutput=True):
-    trace('0) cancel')
+def getInputFromChoices(prompt, arrChoices, fnOtherCommands=None,
+        otherCommandsContext=None, flushOutput=True, cancelString='0) cancel'):
+    if cancelString:
+        trace(cancelString)
     for i, choice in enumerate(arrChoices):
         trace('%d) %s'%(i + 1, choice))
     while True:
         s = getRawInput(prompt, flushOutput).strip()
-        if s == '0':
+        if s == '0' and cancelString:
             return -1, 'Cancel'
         if s == 'BRK':
             raise KeyboardInterrupt()
@@ -307,7 +309,7 @@ def softDeleteFileFull(s, destination, allowDirs=False, doTrace=False):
         trace('softDeleteFile()', s, '|to|', newname)
 
     files.move(s, newname, overwrite=False,
-        warn_between_drives=True, allowDirs=allowDirs)
+        warnBetweenDrives=True, allowDirs=allowDirs)
     return newname
 
 def softDeleteFile(s, allowDirs=False, doTrace=False):

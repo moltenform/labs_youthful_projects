@@ -73,9 +73,14 @@ def ensureEmptyDirectory(d):
     else:
         _os.makedirs(d)
 
-def copy(srcfile, destfile, overwrite, traceToStdout=False):
+def copy(srcfile, destfile, overwrite, traceToStdout=False, useDestModifiedTime=False):
     if not isfile(srcfile):
         raise IOError('source path does not exist or is not a file')
+    
+    toSetModTime = None
+    if useDestModifiedTime and exists(destfile):
+        assertTrue(isfile(destfile), 'not supported for directories')
+        toSetModTime = getModTimeNs(destfile)
 
     if traceToStdout:
         trace('copy()', srcfile, destfile)
@@ -95,15 +100,22 @@ def copy(srcfile, destfile, overwrite, traceToStdout=False):
             _shutil.copy(srcfile, destfile)
         else:
             copyFilePosixWithoutOverwrite(srcfile, destfile)
-
+    
     assertTrue(exists(destfile))
-        
-def move(srcfile, destfile, overwrite, warn_between_drives=False,
-        traceToStdout=False, allowDirs=False):
+    if toSetModTime:
+        setModTimeNs(destfile, toSetModTime)
+
+def move(srcfile, destfile, overwrite, warnBetweenDrives=False,
+        traceToStdout=False, allowDirs=False, useDestModifiedTime=False):
     if not exists(srcfile):
         raise IOError('source path does not exist')
     if not allowDirs and not isfile(srcfile):
         raise IOError('source path does not exist or is not a file')
+    
+    toSetModTime = None
+    if useDestModifiedTime and exists(destfile):
+        assertTrue(isfile(destfile), 'not supported for directories')
+        toSetModTime = getModTimeNs(destfile)
 
     if traceToStdout:
         trace('move()', srcfile, destfile)
@@ -115,14 +127,14 @@ def move(srcfile, destfile, overwrite, warn_between_drives=False,
         ERROR_NOT_SAME_DEVICE = 17
         flags = 0
         flags |= 1 if overwrite else 0
-        flags |= 0 if warn_between_drives else 2
+        flags |= 0 if warnBetweenDrives else 2
         res = windll.kernel32.MoveFileExW(c_wchar_p(srcfile), c_wchar_p(destfile), c_int(flags))
         if not res:
             err = GetLastError()
-            if err == ERROR_NOT_SAME_DEVICE and warn_between_drives:
+            if err == ERROR_NOT_SAME_DEVICE and warnBetweenDrives:
                 rinput('Note: moving file from one drive to another. ' +
                     '%s %s Press Enter to continue.\r\n'%(srcfile, destfile))
-                return move(srcfile, destfile, overwrite, warn_between_drives=False)
+                return move(srcfile, destfile, overwrite, warnBetweenDrives=False)
                 
             raise IOError('MoveFileExW failed (maybe dest already exists?) err=%d' % err +
                 getPrintable(srcfile + '->' + destfile))
@@ -132,12 +144,10 @@ def move(srcfile, destfile, overwrite, warn_between_drives=False,
     else:
         copy(srcfile, destfile, overwrite)
         _os.unlink(srcfile)
-    
-    assertTrue(exists(destfile))
 
-def copyTrace(srcfile, destfile, overwrite):
-    if not isfile(srcfile):
-        raise IOError('source path does not exist or is not a file')
+    assertTrue(exists(destfile))
+    if toSetModTime:
+        setModTimeNs(destfile, toSetModTime)
 
 def copyFilePosixWithoutOverwrite(srcfile, destfile):
     # fails if destination already exist. O_EXCL prevents other files from writing to location.
@@ -502,30 +512,37 @@ def hasherFromString(s):
     else:
         raise ValueError('Unknown hash type ' + s)
 
+def computeHashBytes(b, hasher='sha1', buffersize=0x40000):
+    import io
+    with io.BytesIO(b) as f:
+        return computeHashImpl(f, hasher, buffersize)
+
 def computeHash(path, hasher='sha1', buffersize=0x40000):
+    with open(path, 'rb') as f:
+        return computeHashImpl(f, hasher, buffersize)
+
+def computeHashImpl(f, hasher, buffersize):
     if hasher == 'crc32':
         import zlib
         crc = zlib.crc32(bytes(), 0)
-        with open(path, 'rb') as f:
-            while True:
-                # update the hash with the contents of the file
-                buffer = f.read(buffersize)
-                if not buffer:
-                    break
-                crc = zlib.crc32(buffer, crc)
+        while True:
+            # update the hash with the contents of the file
+            buffer = f.read(buffersize)
+            if not buffer:
+                break
+            crc = zlib.crc32(buffer, crc)
         crc = crc & 0xffffffff
         return '%08x' % crc
     else:
         if isinstance(hasher, str):
             hasher = hasherFromString(hasher)
 
-        with open(path, 'rb') as f:
-            while True:
-                # update the hash with the contents of the file
-                buffer = f.read(buffersize)
-                if not buffer:
-                    break
-                hasher.update(buffer)
+        while True:
+            # update the hash with the contents of the file
+            buffer = f.read(buffersize)
+            if not buffer:
+                break
+            hasher.update(buffer)
         return hasher.hexdigest()
 
 def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
