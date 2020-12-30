@@ -6,7 +6,6 @@ import tempfile
 import os
 import sys
 from os.path import join
-from ..common_ui import alert
 from ..common_util import isPy3OrNewer
 from ..common_higher import getNowAsMillisTime
 from ..files import (readall, writeall, copy, move, sep, run, isemptydir, listchildren,

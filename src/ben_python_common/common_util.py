@@ -73,7 +73,7 @@ def toValidFilename(s):
         .replace(u'*', u'') \
         .replace(u'"', u"'").replace(u'<', u'[').replace(u'>', u']') \
         .replace(u'\r\n', u' ').replace(u'\r', u' ').replace(u'\n', u' ')
-        
+
 def splice(s, insertionpoint, lenToDelete, newtext):
     return s[0:insertionpoint] + newtext + s[insertionpoint + lenToDelete:]
 
@@ -95,7 +95,9 @@ def stripHtmlTags(s, removeRepeatedWhitespace=True):
     # malformed tags like "<a<" with no close, replace with ?
     s = s.replace('<', '?').replace('>', '?')
     return s
-    
+
+# see also: html.escape, html.unescape
+
 def replaceMustExist(s, search, replace):
     assertTrue(search in s, "not found", search)
     return s.replace(search, replace)
@@ -151,9 +153,9 @@ def takeBatchOnArbitraryIterable(iterable, size):
         yield item
         item = list(itertools.islice(it, size))
 
-def takeBatch(l, n):
+def takeBatch(itr, n):
     """ Yield successive n-sized chunks from l."""
-    return list(takeBatchOnArbitraryIterable(l, n))
+    return list(takeBatchOnArbitraryIterable(itr, n))
     
 class TakeBatch(object):
     def __init__(self, batchSize, callback):
