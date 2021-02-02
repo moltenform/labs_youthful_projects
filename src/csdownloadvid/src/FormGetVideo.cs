@@ -51,7 +51,7 @@ namespace CsDownloadVid
 
         private void NextStepIsToChooseQuality()
         {
-            if (CsDownloadVidFilepaths.GetYtdlPath(cbUsePytube.Checked, 
+            if (CsDownloadVidFilepaths.GetYtdlPath(cbUsePytube.Checked,
                 required: false) == null)
             {
                 return;
@@ -128,6 +128,16 @@ namespace CsDownloadVid
                 }
 
                 AddGenericFormatsToListbox();
+                for (int i = 0; i < listBoxFmts.Items.Count; i++)
+                {
+                    if (listBoxFmts.Items[i].ToString().Contains(" (140) mp4a") ||
+                    listBoxFmts.Items[i].ToString().Contains("\"140\" \"m4a\""))
+                    {
+                        listBoxFmts.SelectedIndices.Add(i);
+                        break;
+                    }
+                }
+
                 btnNextStepIsToChooseOutput.Text = "Go to next step";
                 btnNextStepIsToChooseOutput.Enabled = true;
             }));
@@ -264,7 +274,7 @@ namespace CsDownloadVid
         {
             RunToolHelper.RunAndCatch(() =>
             {
-                if (chkDashToM4a.Checked)
+                if (chkDashToM4a.Checked || chkAutoCombineAV.Checked)
                 {
                     CsDownloadVidFilepaths.GetFfmpeg();
                 }
@@ -272,12 +282,12 @@ namespace CsDownloadVid
                 GetOptionsFromUI(out List<string> urlsRet, out int waitBetween,
                     out string filenamePattern, out string outDir);
 
-                var format = GetChosenFormat();
-                if (string.IsNullOrEmpty(format))
+                var formats = GetFormatsFromUI();
+                if (formats == null || formats.Length == 0)
                 {
                     throw new CsDownloadVidException("No format chosen.");
                 }
-                else if (cbUsePytube.Checked != format.StartsWith("<Stream:"))
+                else if (formats.Any((fmt) => cbUsePytube.Checked != fmt.StartsWith("<Stream:")))
                 {
                     throw new CsDownloadVidException("It looks like you've clicked " +
                         "'use pytube instead of ytdl' half-way through-- when you change " +
@@ -289,11 +299,77 @@ namespace CsDownloadVid
                 List<ProcessStartInfo> listInfos = new List<ProcessStartInfo>();
                 foreach (var url in urlsRet)
                 {
-                    listInfos.Add(GetStartInfo(url, format, false));
+                    foreach (var fmt in formats)
+                    {
+                        listInfos.Add(GetStartInfo(url, fmt, false));
+                    }
                 }
 
-                _runner.RunProcesses(listInfos.ToArray(), "downloading");
+                _runner.RunProcesses(listInfos.ToArray(), "downloading", () =>
+                {
+                    if (chkAutoCombineAV.Checked && Directory.Exists(txtOutputDir.Text))
+                    {
+                        // Pre-emptively check, since we are in the main thread and can open a dialog
+                        Utils.AssertTrue(txtOutputDir.InvokeRequired, "Expected to be on main thread");
+                        Utils.GetSoftDeleteDestination("");
+                        runAutocombineAVAll(txtOutputDir.Text);
+                    }
+                });
             });
+        }
+
+        private void runAutocombineAVAll(string dir)
+        {
+            var vidExts = new string[] { ".mp4", ".webm", ".3gp", ".3gpp" };
+            foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.TopDirectoryOnly))
+            {
+                var asAudio = dir + "/" + Path.GetFileNameWithoutExtension(file) + ".m4a";
+                var isVid = vidExts.Any((v) => file.ToLowerInvariant().EndsWith(v));
+                if (isVid && File.Exists(asAudio))
+                {
+                    // we won't run runAutocombineAV on temp results because there won't be an m4a
+                    runAutocombineAV(file, asAudio);
+                }
+            }
+        }
+
+        private void runAutocombineAV(string vid, string aud)
+        {
+            var vidOnly = Path.GetDirectoryName(vid) + "/" + Path.GetFileNameWithoutExtension(vid) +
+                "_{vidonly}" + Path.GetExtension(vid);
+            var outFile = Path.GetDirectoryName(vid) + "/" + Path.GetFileNameWithoutExtension(vid) +
+                "_{out}" + Path.GetExtension(vid);
+            if (File.Exists(outFile))
+            {
+                Utils.SoftDelete(outFile);
+            }
+
+            var args = Utils.SplitByString("-i|" + vid + "|-an|-c:v|copy|" + vidOnly, "|");
+            var info = new ProcessStartInfo();
+            info.FileName = CsDownloadVidFilepaths.GetFfmpeg();
+            info.Arguments = Utils.CombineProcessArguments(args.ToArray());
+            info.CreateNoWindow = true;
+            info.RedirectStandardError = true;
+            info.RedirectStandardOutput = true;
+            info.UseShellExecute = false;
+            _runner.RunProcessSync(info, "AutocombineAV: 1) Ensuring video-only version " + vid);
+            Utils.AssertTrue(File.Exists(vidOnly) && new FileInfo(vidOnly).Length > 0, "Did not write to " + vidOnly);
+
+            args = Utils.SplitByString("-i|" + vidOnly + "|-i|" + aud + "|-c:a|copy|-c:v|copy|" + outFile, "|");
+            info = new ProcessStartInfo();
+            info.FileName = CsDownloadVidFilepaths.GetFfmpeg();
+            info.Arguments = Utils.CombineProcessArguments(args.ToArray());
+            info.CreateNoWindow = true;
+            info.RedirectStandardError = true;
+            info.RedirectStandardOutput = true;
+            info.UseShellExecute = false;
+            _runner.RunProcessSync(info, "AutocombineAV: 2) Putting A+V together " + vid);
+            Utils.AssertTrue(File.Exists(outFile) && new FileInfo(outFile).Length > 0, "Did not write to " + outFile);
+
+            _runner.Trace("AutocombineAV: 3) Deleting temporaries");
+            Utils.SoftDelete(vidOnly);
+            Utils.SoftDelete(vid);
+            Utils.SoftDelete(aud);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -399,12 +475,20 @@ namespace CsDownloadVid
             }
         }
 
-        public string GetChosenFormat()
+        public string[] GetFormatsFromUI()
         {
-            if (listBoxFmts.Items.Count == 0 || listBoxFmts.SelectedIndex == -1)
-                return null;
+            var ret = new List<string>();
+            foreach (var itemRaw in listBoxFmts.SelectedItems)
+            {
+                var item = itemRaw as ListBoxItemFormat;
+                ret.Add(displayFmtToChosenFormat(item));
+            }
 
-            var item = listBoxFmts.SelectedItem as ListBoxItemFormat;
+            return ret.ToArray();
+        }
+
+        private string displayFmtToChosenFormat(ListBoxItemFormat item)
+        {
             if (cbUsePytube.Checked)
             {
                 return item._displayText;
@@ -687,7 +771,7 @@ namespace CsDownloadVid
 
         private void btnDownloadFromWeb_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Go to the Chrome Inspector, go to the Network tab, " + 
+            MessageBox.Show("Go to the Chrome Inspector, go to the Network tab, " +
                 "and refresh the page. Look for a .mp4, .m3u, or .m3u8 url.");
             var url = InputBoxForm.GetStrInput("Enter the url that was seen,");
             if (!String.IsNullOrEmpty(url))
@@ -741,7 +825,7 @@ namespace CsDownloadVid
                     Path.GetFileName(urlBeforeParam));
                 MessageBox.Show("Downloading video to " + destName + "...");
                 Utils.AssertTrue(!File.Exists(destName), "File already exists here.");
-                _runner.RunInThread(() => 
+                _runner.RunInThread(() =>
                 {
                     _runner.Trace("Downloading...");
                     DownloadLatestPyScriptBase.DownloadFile(url, destName);

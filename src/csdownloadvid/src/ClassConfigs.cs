@@ -25,6 +25,7 @@ namespace CsDownloadVid
         PathToQaac,
         PathToYtdl,
         SaveVideosTo,
+        SoftDeleteDir,
         FilepathAudioPlayer, // not currently set
         EnableVerboseLogging, // not currently set
         MRUOpenImageDirectory,

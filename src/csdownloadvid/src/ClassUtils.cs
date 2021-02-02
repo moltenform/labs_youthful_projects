@@ -20,7 +20,6 @@ namespace CsDownloadVid
     public static class Utils
     {
         // differences from LabsCoordinatePictures 1be22cd489b58e4
-        //      remove SoftDelete
         //      rename CoordinatePicturesException to CsDownloadVidException, don't prepend
         //      add AssertTrue, SplitLines
         public static readonly string Sep = Path.DirectorySeparatorChar.ToString();
@@ -222,9 +221,43 @@ namespace CsDownloadVid
                 !s2.StartsWith(s1, comparison);
         }
 
-        public static string GetRandomDigits()
+        // "soft delete" just means moving to a designated 'trash' location.
+        public static string GetSoftDeleteDestination(string path)
+        {
+            var deleteDir = Configs.Current.Get(ConfigKey.SoftDeleteDir);
+            if (!Directory.Exists(deleteDir))
+            {
+                while(true)
+                {
+                    var got = Utils.AskOpenFileDialog("Please choose a file in the 'trash' " + 
+                        "directory where we'll send deleted files.");
+                    if (!string.IsNullOrEmpty(got) && Directory.Exists(Path.GetDirectoryName(got)))
+                    {
+                        deleteDir = Path.GetDirectoryName(got);
+                        Configs.Current.Set(ConfigKey.SoftDeleteDir, deleteDir);
+                        break;
+                    }
+                }
+            }
+
+            // as a prefix, the first 2 chars of the parent directory
+            var prefix = FirstTwoChars(Path.GetFileName(Path.GetDirectoryName(path))) + "_";
+            return Path.Combine(deleteDir, prefix + Path.GetFileName(path) + GetRandomDigits());
+        }
+
+        public static string GetRandomDigits() 
         {
             return random.Next().ToString();
+        }
+
+        public static void SoftDelete(string path)
+        {
+            var newPath = GetSoftDeleteDestination(path);
+            if (newPath != null)
+            {
+                SimpleLog.Current.WriteLog("Moving (" + path + ") to (" + newPath + ")");
+                File.Move(path, newPath);
+            }
         }
 
         public static string CombineProcessArguments(string[] args)
