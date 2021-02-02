@@ -114,7 +114,7 @@ namespace CsDownloadVid
             }
         }
 
-        public void RunProcesses(ProcessStartInfo[] infos, string actionName)
+        public void RunProcesses(ProcessStartInfo[] infos, string actionName, Action doAfterRun=null)
         {
             RunInThread(() =>
             {
@@ -139,6 +139,7 @@ namespace CsDownloadVid
 
                 _tb.Invoke((MethodInvoker)(() =>
                 {
+                    doAfterRun?.Invoke();
                     _shortLabel.Text = _cancelRequested ? "Canceled" : "Complete";
                 }));
             });
@@ -516,6 +517,7 @@ namespace CsDownloadVid
 
     public class DownloadLatestYtdl : DownloadLatestPyScriptBase
     {
+        bool trimRareScripts = false;
         public override string GetPrefix()
         {
             return "ytmaster";
@@ -528,6 +530,15 @@ namespace CsDownloadVid
 
         public override void DoPostProcessing(string dir, string pathIncomingDir)
         {
+            var pathMain = pathIncomingDir + "/youtube-dl-master/youtube_dl/__main__.py";
+            if (!File.Exists(pathMain))
+                throw new CsDownloadVidException("no main.py found, expected at " + pathMain);
+
+            if (!trimRareScripts)
+            {
+                return;
+            }
+
             if (Directory.Exists(dir))
             {
                 // let's delete most of the python scripts in Ytdl -- there are 100s of scripts for 
@@ -624,10 +635,6 @@ openload.py"; // note: no generic.py since it pulls in a lot. once.py and openlo
                              hasGenericIE(line) ? "# " + line : line;
                 File.WriteAllLines(Path.Combine(dir, "__init__.py"), codeNew);
             }
-
-            var pathMain = pathIncomingDir + "/youtube-dl-master/youtube_dl/__main__.py";
-            if (!File.Exists(pathMain))
-                throw new CsDownloadVidException("no main.py found, expected at " + pathMain);
         }
     }
 
