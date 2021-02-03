@@ -383,6 +383,26 @@ class TestDirectoryList(object):
             for o in recursefileinfo(fixture_fulldir, filesOnly=False)]
         assert expected == sorted(got)
 
+    @pytest.mark.skipif('not isPy3OrNewer')
+    def test_recurseFilesMany(self, fixture_dir_with_many):
+        # no filter
+        expected = 'foobar/a/baz/aa.txt|foobar/a/baz/bb.txt|foobar/a/baz/foobar/cc.txt|' + \
+            'foobar/a/baz/zz.txt|foobar/a/foobar/a.txt|foobar/a/foobar/b.txt|foobar/a/foobar' + \
+            '/c/c0.txt|foobar/a/foobar/c/c1.txt|foobar/a/r1.txt|foobar/foobar/cc.txt|foobar/r2.txt|r3.txt'
+        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many, True, {})
+        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many, False, {})
+
+        # filter out nearly everything
+        def filter(p):
+            return getname(p) != 'foobar'
+        assert 'r3.txt' == listDirectoryToStringFileInfo(fixture_dir_with_many, True, {'fnFilterDirs': filter })
+        assert 'r3.txt' == listDirectoryToStringFileInfo(fixture_dir_with_many, False, {'fnFilterDirs': filter })
+
+        # intentionally can't filter out root dir
+        expected = 'a/baz/aa.txt|a/baz/bb.txt|a/baz/zz.txt|a/r1.txt|r2.txt'
+        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many + '/foobar', True, {'fnFilterDirs': filter })
+        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many + '/foobar', False, {'fnFilterDirs': filter })
+
     def test_checkNamedParameters(self, fixture_dir):
         with pytest.raises(ValueError) as exc:
             list(listchildren(fixture_dir, True))
@@ -816,6 +836,43 @@ def listDirectoryToString(basedir):
             size = 0 if isdir(f) else getsize(f)
             out.append(s + ',' + str(size))
     return '|'.join(sorted(out))
+
+def listDirectoryToStringFileInfo(basedir, useFileInfo, kwargs):
+    iter = recursefileinfo(basedir, **kwargs) if useFileInfo else recursefiles(basedir, **kwargs)
+    out = []
+    for item in iter:
+        if useFileInfo:
+            out.append(item.path.replace(basedir, '').replace(os.sep, '/').lstrip('/'))
+        else:
+            out.append(item[0].replace(basedir, '').replace(os.sep, '/').lstrip('/'))
+    return '|'.join(sorted(out))
+
+@pytest.fixture()
+def fixture_dir_with_many():
+    basedir = join(tempfile.gettempdir(), 'ben_python_common_test', 'many')
+    basedir = ustr(basedir)
+    ensureEmptyDirectory(basedir)
+    lst = [
+        'foobar/a/foobar/a.txt', 
+        'foobar/a/foobar/b.txt', 
+        'foobar/a/foobar/c/c0.txt', 
+        'foobar/a/foobar/c/c1.txt', 
+        'foobar/a/baz/aa.txt', 
+        'foobar/a/baz/bb.txt', 
+        'foobar/a/baz/foobar/cc.txt', 
+        'foobar/a/baz/zz.txt', 
+        'foobar/a/r1.txt', 
+        'foobar/foobar/cc.txt', 
+        'foobar/r2.txt',
+        'r3.txt'
+    ]
+    for item in lst:
+        fullpath = os.path.join(basedir, item)
+        makedirs(getparent(fullpath))
+        writeall(fullpath, 'test')
+        
+    yield basedir
+    ensureEmptyDirectory(basedir)
 
 @pytest.fixture()
 def fixture_dir():

@@ -323,7 +323,8 @@ class FileInfoEntryWrapper(object):
         assertTrue(sys.platform.startswith('win'))
         return self.obj.stat().st_ctime
 
-def recursefileinfo(root, recurse=True, followSymlinks=False, filesOnly=True):
+def recursefileinfo(root, recurse=True, followSymlinks=False, filesOnly=True,
+        fnFilterDirs=None, fnDirectExceptionsTo=None):
     assertTrue(isPy3OrNewer)
 
     # scandir's resources are released in destructor,
@@ -332,10 +333,18 @@ def recursefileinfo(root, recurse=True, followSymlinks=False, filesOnly=True):
         if entry.is_dir(follow_symlinks=followSymlinks):
             if not filesOnly:
                 yield FileInfoEntryWrapper(entry)
-            if recurse:
-                for subentry in recursefileinfo(entry.path, recurse=recurse,
-                        followSymlinks=followSymlinks, filesOnly=filesOnly):
-                    yield subentry
+            if recurse and (not fnFilterDirs or fnFilterDirs(entry.path)):
+                try:
+                    for subentry in recursefileinfo(entry.path, recurse=recurse,
+                            followSymlinks=followSymlinks, filesOnly=filesOnly,
+                            fnFilterDirs=fnFilterDirs, fnDirectExceptionsTo=fnDirectExceptionsTo):
+                        yield subentry
+                except:
+                    e = sys.exc_info()[1]
+                    if fnDirectExceptionsTo and isinstance(e, OSError):
+                        fnDirectExceptionsTo(entry.path, e)
+                    else:
+                        raise
 
         if entry.is_file():
             yield FileInfoEntryWrapper(entry)
