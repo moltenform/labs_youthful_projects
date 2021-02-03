@@ -5,6 +5,12 @@ import tempfile
 from .common_higher import *
 from . import files
 
+# get better arrowkey history in macos
+try:
+    import gnureadline
+except:
+    pass
+
 def getInputBool(prompt, flushOutput=True):
     prompt += ' '
     while True:
