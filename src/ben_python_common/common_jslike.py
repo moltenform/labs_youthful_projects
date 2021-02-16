@@ -60,35 +60,15 @@ def times(n, fn):
     # return a list with n items, values from calling fn
     return [fn() for _ in range(n)]
 
-# by Josh Branchaud, https://hashrocket.com/
-# ported to python by moltenform
 notProvided = object()
 
 def reduce(lst, fn, initialVal=notProvided):
+    # callback should have 2 parameters
     import functools
     if initialVal == notProvided:
         return functools.reduce(fn, lst)
     else:
         return functools.reduce(fn, lst, initialVal)
-
-def oldReduce(lst, fn, initialVal=notProvided):
-    return reduceImpl(lst, fn, initialVal, origList=None, index=0)
-
-def reduceImpl(lst, fn, initialVal, origList, index):
-    if origList is None:
-        origList = lst
-    if not lst:
-        if index == 0 and initialVal == notProvided:
-            raise TypeError("reduce on empty array requires an initialVal")
-        else:
-            return initialVal
-    else:
-        if initialVal == notProvided:
-            initialVal = 0
-        head = lst[0]
-        rest = lst[1:]
-        val = fn(initialVal, head, index, origList)
-        return reduceImpl(rest, fn, val, origList, index + 1)
 
 # string manipulation
 

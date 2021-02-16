@@ -173,6 +173,7 @@ def getInputFromChoicesGui(prompt, arOptions):
         retval[0] = v
 
     # http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
+    #what _findUnusedLetter
     class ChoiceDialog(object):
         def __init__(self, parent):
             top = self.top = Tkinter.Toplevel(parent)

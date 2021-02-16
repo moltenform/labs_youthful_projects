@@ -311,13 +311,14 @@ class ParsePlus(object):
 
     def replaceFieldWithText(self, s, key, newValue,
             appendIfNotFound=None, allowOnlyOnce=False):
+        from . import jslike
         # example: <title>{title}</title>
         results = list(self.findall(s))
         if allowOnlyOnce and len(results) > 1:
             raise RuntimeError('we were told to allow pattern only once.')
         if len(results):
             span = results[0].spans[key]
-            return spliceSpan(s, span, newValue)
+            return jslike.spliceSpan(s, span, newValue)
         else:
             if appendIfNotFound is None:
                 raise RuntimeError("pattern not found.")
@@ -334,3 +335,18 @@ class ParsePlus(object):
             allowOnlyOnce=allowOnlyOnce)
 
         writeall(path, newS, 'w', encoding=encoding, skipIfSameContent=True)
+
+typeConverters = dict() 
+
+#~ knownTypes=dict(
+    #~ str:'Expected a string',
+    #~ int:'Expected an integer number',
+    #~ float:'Expected a floating point number',
+    #~ boolean:'Expected a floating point number',
+#~ )
+
+#~ class CheckedConfigParser
+
+
+
+

@@ -81,13 +81,16 @@ class TestStringHelpersSimple(object):
     def test_toValidFilenameWindowsNewline(self):
         assert 'a c' == toValidFilename('a\r\nc')
 
-    # splice
-    def test_splice(self):
-        assert 'abef' == splice('abcdef', 2, 2, '')
-        assert 'ab1ef' == splice('abcdef', 2, 2, '1')
-        assert 'ab123ef' == splice('abcdef', 2, 2, '123')
-        assert 'ab123def' == splice('abcdef', 2, 1, '123')
-        assert 'ab123cdef' == splice('abcdef', 2, 0, '123')
+    def test_toValidFilenameWithSeps(self):
+        assert 'a-b-c' == toValidFilename('a\\b/c')
+
+    def test_toValidFilenameAndKeepSeps(self):
+        import os
+        currentSep = os.path.sep
+        otherSep = '\\' if currentSep == '/' else '/'
+        test = 'a%sb%sc%sd%se' % (currentSep, otherSep, currentSep, otherSep)
+        expect = 'a-b%sc-d%se' % (otherSep, otherSep)
+        assert expect == toValidFilename(test, dirsepOk=True)
 
     # stripHtmlTags
     def test_stripHtmlTagsBasic(self):

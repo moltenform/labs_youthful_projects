@@ -64,23 +64,19 @@ def getPrintable(s, okToIgnore=False):
 def trace(*args):
     print(' '.join(map(getPrintable, args)))
 
-def toValidFilename(s):
+def toValidFilename(s, dirsepOk=False):
+    import os
+    if not (os.path.sep == '/' and dirsepOk):
+        s = s.replace(u'/ ', u', ').replace(u'/', u'-')
+    if not (os.path.sep == '\\' and dirsepOk):
+        s = s.replace(u'\\ ', u', ').replace(u'\\', u'-')
+
     return s.replace(u'\u2019', u"'").replace(u'?', u'').replace(u'!', u'') \
-        .replace(u'\\ ', u', ').replace(u'\\', u'-') \
-        .replace(u'/ ', u', ').replace(u'/', u'-') \
         .replace(u': ', u', ').replace(u':', u'-') \
         .replace(u'| ', u', ').replace(u'|', u'-') \
         .replace(u'*', u'') \
         .replace(u'"', u"'").replace(u'<', u'[').replace(u'>', u']') \
         .replace(u'\r\n', u' ').replace(u'\r', u' ').replace(u'\n', u' ')
-
-def splice(s, insertionpoint, lenToDelete, newtext):
-    return s[0:insertionpoint] + newtext + s[insertionpoint + lenToDelete:]
-
-def spliceSpan(s, span, newtext):
-    assertTrue(span[1] >= span[0])
-    assertEq(len(span), 2)
-    return splice(s, span[0], span[1] - span[0], newtext)
 
 def stripHtmlTags(s, removeRepeatedWhitespace=True):
     import re
