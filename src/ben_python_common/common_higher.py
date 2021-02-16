@@ -336,17 +336,119 @@ class ParsePlus(object):
 
         writeall(path, newS, 'w', encoding=encoding, skipIfSameContent=True)
 
-typeConverters = dict() 
 
-#~ knownTypes=dict(
-    #~ str:'Expected a string',
-    #~ int:'Expected an integer number',
-    #~ float:'Expected a floating point number',
-    #~ boolean:'Expected a floating point number',
-#~ )
+'''
+Example:
+schema = CheckedConfigParserSchema(
+    [
+        CheckedConfigParserSchemaSection('main', [
+            CheckedConfigParserSchemaEntry(re.compile('n[0-9]'), type=int, min=1, max=5, fallback=4),
+            CheckedConfigParserSchemaEntry('path', type=str),
+            CheckedConfigParserSchemaEntry('custom', type=myConverter),
+            CheckedConfigParserSchemaEntry('isEnabled', type=bool, fallback=True),
+        ],
+        optional=False)
+    ]
+)
 
-#~ class CheckedConfigParser
+Example input:
+key=value
+spaces in keys=allowed
+spaces in values=allowed as well
+emptystring=
+example=a multi-line
+    string that continues across strings
+# comment
+; comment
+
+Potential future additions:
+Writing
+Regular-expression identifiers
+
+'''
 
 
+class CheckedConfigParserException(Exception):
+    pass
 
+class _CheckedConfigParserMarkSeen(object):
+    def __init__(self, count):
+        self.wasSeen = [False] * count
 
+    def idMatches(self, s):
+        if isinstance(self.identifier, anystringtype):
+            return self.identifier == s
+        else:
+            match = self.identifier.match(s)
+            return match and match.end() == len(s)
+
+class CheckedConfigParserSchemaEntry(object):
+    def __init__(self, identifier, type=str, fallback=None, min=None, max=None):
+        assertTrue(identifier is not None, 'identifier cannot be None')
+        self.identifier = identifier
+        self.type = type
+        self.fallback = fallback
+        self.min = min
+        self.max = max
+        self.knownTypes=dict(
+            str='Expected a string',
+            int='Expected an integer number',
+            float='Expected a floating point number',
+            bool='Expected a floating point number',
+        )
+
+    def parseInput(self, s, sContext):
+        if self.type == bool:
+            if s.lower() == 'true':
+                return True
+            elif s.lower() == 'false':
+                return False
+            else:
+                msg = '%s%s' % (sContext, self.knownTypes[self.type.__name__])
+                raise CheckedConfigParserException(msg)
+        elif '__name__' in dir(self.type) and self.type.__name__ in self.knownTypes:
+            try:
+                return self.type(s)
+            except:
+                msg = '%s%s' % (sContext, self.knownTypes[self.type.__name__])
+                raise CheckedConfigParserException(msg)
+        else:
+            return self.type(s, sContext)
+
+class _CheckedConfigParserSchemaResults(object):
+    pass
+
+class CheckedConfigParserSchemaSection(object):
+    def __init__(self, identifier, entries, optional=True):
+        assertTrue(all(isinstance(o, CheckedConfigParserSchemaEntry) for o in entries))
+        self.identifier = identifier
+        self.entries = entries
+        self.optional = optional
+
+class CheckedConfigParserSchema(object):
+    def __init__(self, sections):
+        assertTrue(all(isinstance(o, CheckedConfigParserSchemaSection) for o in sections))
+        self.sections = sections
+
+def checkedConfigParserPath(path, **kwargs):
+    with open(path, 'r', encoding='utf-8') as f:
+        return checkedConfigParser(f.read(), **kwargs)
+
+# wrapper around ConfigParser that 1) doesn't need main section 2) validates schema 3) has better defaults.
+def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsertDefaultSection=True,
+    interpolation=None):
+    assertTrue(False, 'feature is still under development')
+    assertTrue(isPy3OrNewer, 'Py2 not supported, it might have different behavior in ConfigParser')
+    from configparser import ConfigParser
+    expectSection = '[' + defaultSectionName + ']\n'
+    if not (text.startswith(expectSection) or ('\n' + expectSection) in text):
+        text = expectSection + text
+    
+    ret = Bucket()
+    p = ConfigParser(strict=True, empty_lines_in_values=True, interpolation=interpolation)
+    p.read_string(text)
+    
+    # check that sections exist
+    p.has_section()
+    
+    return ret

@@ -173,7 +173,6 @@ def getInputFromChoicesGui(prompt, arOptions):
         retval[0] = v
 
     # http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
-    #what _findUnusedLetter
     class ChoiceDialog(object):
         def __init__(self, parent):
             top = self.top = Tkinter.Toplevel(parent)
@@ -188,7 +187,7 @@ def getInputFromChoicesGui(prompt, arOptions):
                 opts['width'] = 10
                 opts['command'] = lambda which=i: self.onbtn(which)
 
-                whichToUnderline = _findUnusedLetter(lettersUsed, text)
+                whichToUnderline = findUnusedLetter(lettersUsed, text)
                 if whichToUnderline is not None:
                     opts['underline'] = whichToUnderline
 
