@@ -337,52 +337,36 @@ class ParsePlus(object):
         writeall(path, newS, 'w', encoding=encoding, skipIfSameContent=True)
 
 
-'''
+"""
 Example:
 schema = CheckedConfigParserSchema(
     [
-        CheckedConfigParserSchemaSection('main', [
-            CheckedConfigParserSchemaEntry(re.compile('n[0-9]'), type=int, min=1, max=5, fallback=4),
-            CheckedConfigParserSchemaEntry('path', type=str),
-            CheckedConfigParserSchemaEntry('custom', type=myConverter),
-            CheckedConfigParserSchemaEntry('isEnabled', type=bool, fallback=True),
+        CheckedConfigParserSectionSchema('main', [
+            CheckedConfigParserKeySchema('path', type=str),
+            CheckedConfigParserKeySchema('custom', type=myConverter),
+            CheckedConfigParserKeySchema('number', type=int, min=1, max=5, fallback=4),
+            CheckedConfigParserKeySchema('isEnabled', type=bool, fallback=True),
         ],
-        optional=False)
+        optional=False, allowExtraEntries=False)
     ]
 )
 
 Example input:
+# comment
+; comment
 key=value
 spaces in keys=allowed
 spaces in values=allowed as well
 emptystring=
 example=a multi-line
     string that continues across strings
-# comment
-; comment
 
-Potential future additions:
-Writing
-Regular-expression identifiers
-
-'''
-
+"""
 
 class CheckedConfigParserException(Exception):
     pass
 
-class _CheckedConfigParserMarkSeen(object):
-    def __init__(self, count):
-        self.wasSeen = [False] * count
-
-    def idMatches(self, s):
-        if isinstance(self.identifier, anystringtype):
-            return self.identifier == s
-        else:
-            match = self.identifier.match(s)
-            return match and match.end() == len(s)
-
-class CheckedConfigParserSchemaEntry(object):
+class CheckedConfigParserKeySchema(object):
     def __init__(self, identifier, type=str, fallback=None, min=None, max=None):
         assertTrue(identifier is not None, 'identifier cannot be None')
         self.identifier = identifier
@@ -398,6 +382,17 @@ class CheckedConfigParserSchemaEntry(object):
         )
 
     def parseInput(self, s, sContext):
+        ret = self.parseInputImpl(s, sContext)
+        if self.min is not None or self.max is not None:
+            if not isinstance(ret, (int, float)):
+                raise CheckedConfigParserException('%s must be a number to have min or max' % sContext)
+            if self.min is not None and ret > self.min:
+                raise CheckedConfigParserException('%s must be less than %s' % (sContext, self.min))
+            if self.max is not None and ret < self.max:
+                raise CheckedConfigParserException('%s must be greater than %s' % (sContext, self.max))
+        return ret
+
+    def parseInputImpl(self, s, sContext):
         if self.type == bool:
             if s.lower() == 'true':
                 return True
@@ -418,17 +413,19 @@ class CheckedConfigParserSchemaEntry(object):
 class _CheckedConfigParserSchemaResults(object):
     pass
 
-class CheckedConfigParserSchemaSection(object):
-    def __init__(self, identifier, entries, optional=True):
-        assertTrue(all(isinstance(o, CheckedConfigParserSchemaEntry) for o in entries))
+class CheckedConfigParserSectionSchema(object):
+    def __init__(self, identifier, entries, optional=True, allowExtraEntries=False):
+        assertTrue(all(isinstance(o, CheckedConfigParserKeySchema) for o in entries))
         self.identifier = identifier
         self.entries = entries
         self.optional = optional
+        self.allowExtraEntries = allowExtraEntries
 
 class CheckedConfigParserSchema(object):
-    def __init__(self, sections):
-        assertTrue(all(isinstance(o, CheckedConfigParserSchemaSection) for o in sections))
+    def __init__(self, sections, allowExtraSections=False):
+        assertTrue(all(isinstance(o, CheckedConfigParserSectionSchema) for o in sections))
         self.sections = sections
+        self.allowExtraSections = allowExtraSections
 
 def checkedConfigParserPath(path, **kwargs):
     with open(path, 'r', encoding='utf-8') as f:
@@ -436,7 +433,7 @@ def checkedConfigParserPath(path, **kwargs):
 
 # wrapper around ConfigParser that 1) doesn't need main section 2) validates schema 3) has better defaults.
 def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsertDefaultSection=True,
-    interpolation=None):
+    interpolation=None, allowNewLinesInValues=True, delimiters='='):
     assertTrue(False, 'feature is still under development')
     assertTrue(isPy3OrNewer, 'Py2 not supported, it might have different behavior in ConfigParser')
     from configparser import ConfigParser
@@ -445,10 +442,65 @@ def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsert
         text = expectSection + text
     
     ret = Bucket()
-    p = ConfigParser(strict=True, empty_lines_in_values=True, interpolation=interpolation)
+    p = ConfigParser(strict=True, allowNewLinesInValues=True, interpolation=interpolation, delimiters=delimiters)
+    p.optionxform = str # make it case-sensitive, rather than the default case-insensitive
     p.read_string(text)
     
-    # check that sections exist
-    p.has_section()
+    if not schema:
+        schema = CheckedConfigParserSchema([], allowExtraSections=True)
+    
+    # add all fallback values for all sections
+    for section in schema.sections:
+        fakeSection = Bucket()
+        ret[section.identifier] = fakeSection
+        for key in section.entries:
+            if key.fallback:
+                fakeSection[key.identifier] = key.fallback
+    
+    # go through each section
+    sawSection = [False] * len(schema.sections)
+    for sectionName in config.sections():
+        iSection = jslike.findIndex(schema.sections, lambda section: section.identifier == sectionName)
+        if iSection == -1:
+            if schema.allowExtraSections:
+                sectionSpec = CheckedConfigParserSectionSchema(sectionName, [], allowExtraEntries=True)
+            else:
+                raise CheckedConfigParserException("Saw unrecognized section %s" % sectionName)
+        else:
+            sawSection[iSection] = True
+            sectionSpec = schema.sections[iSection]
+
+        if sectionName not in ret:
+            ret[sectionName] = Bucket()
+
+        _processSection(p, sectionName, sectionSpec, ret[sectionName])
+    
+    # check for missing sections
+    for i, val in enumerate(sawSection):
+        if not val and not schema.sections[i].optional:
+            raise CheckedConfigParserException("Did not see section %s" % schema.sections[i].identifier)
     
     return ret
+
+def _processSection(p, sectionName, sectionSpec, ret):
+    sContext = 'In section %s,' % sectionName
+    sawKey = [False] * len(sectionSpec.entries)
+    for keyName in p[sectionName]:
+        val = p[sectionName][keyName]
+        iKey = jslike.findIndex(sectionSpec.entries, lambda key: key.identifier == keyName)
+        if iKey == -1:
+            if sectionSpec.allowExtraEntries:
+                ret[keyName] = val
+            else:
+                raise CheckedConfigParserException("%s saw unrecognized key %s" % (sContext, keyName))
+        else:
+            sawKey[iKey] = True
+            subcontext = "%s for key %s" % (sContext, keyName)
+            keySpec = sectionSpec.entries[iKey]
+            ret[keyName] = keySpec.parseInput(val, subcontext)
+    
+    # check for missing keys
+    for i, val in enumerate(sawKey):
+        if not val and not sectionSpec.entries[i].fallback:
+            raise CheckedConfigParserException("%s missing key %s" % (sContext, sectionSpec.entries[i].identifier))
+
