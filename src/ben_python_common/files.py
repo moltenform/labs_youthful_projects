@@ -46,8 +46,8 @@ def getext(s, removeDot=True):
 def deletesure(s):
     if exists(s):
         delete(s)
-    assert not exists(s)
-
+    assertTrue(not exists(s))
+    
 def makedirs(s):
     try:
         _os.makedirs(s)
@@ -611,12 +611,14 @@ def windowsUrlFileWrite(path, url):
     s += 'URL=%s\n' % url
     writeall(path, s)
 
-def runRsync(srcDir, destDir, deleteExisting, excludeFiles=None,
-        excludeDirs=None, throwOnFailure=True, checkExist=True):
-    if not excludeFiles:
-        excludeFiles = []
-    if not excludeDirs:
-        excludeDirs = []
+def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsRel=None,
+        excludeFilesAbs=None, excludeDirsAbs=None,
+        excludeFilesWithName=None, excludeDirsWithName=None,
+        throwOnFailure=True, checkExist=True):
+    # excludeFilesRel: relative paths to file (or a pattern matching files)
+    # excludeFilesAbs: absolute paths to file (or a pattern matching files)
+    # excludeFilesWithName: exclude files with this name, regardless of dir
+    emptyIfNone = lambda lst: list(lst) if lst else []
     if checkExist:
         assertTrue(isdir(srcDir), "not a dir", srcDir)
         assertTrue(isdir(destDir), "not a dir", destDir)
@@ -634,26 +636,33 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFiles=None,
         if deleteExisting:
             args.append('/MIR')
         args.append('/E')  # copy all, including empty dirs
-        for ex in excludeFiles:
+        for ex in emptyIfNone(excludeFilesRel) + emptyIfNone(excludeFilesAbs):
             args.append('/XF')
             args.append(ex)
-        for ex in excludeDirs:
+        for ex in emptyIfNone(excludeDirsRel) + emptyIfNone(excludeDirsAbs):
             args.append('/XD')
             args.append(ex)
+        assertTrue(not excludeFilesWithName and not excludeDirsWithName, "Not yet supported")
     else:
-        args.append('rsync')
+        bin = '/usr/local/bin/rsync' if isfile('/usr/local/bin/rsync') else 'rsync'
+        args.append(bin)
         args.append('-az')
         if not srcDir.endswith('/'):
             # so that rsync won't put files into a subdir
             srcDir += '/'
-        args.append(srcDir)
-        args.append(destDir)
         if deleteExisting:
             args.append('--delete-after')
-        for ex in excludeFiles + excludeDirs:
-            args.append('--exclude')
-            args.append(ex)
+        for ex in emptyIfNone(excludeFilesRel) + emptyIfNone(excludeDirsRel):
+            assertTrue(not _os.path.isabs(ex), ex)
+            args.append(f'--exclude=/{ex}')
+        for ex in emptyIfNone(excludeFilesWithName) + emptyIfNone(excludeDirsWithName):
+            assertTrue(not _os.path.isabs(ex), ex)
+            args.append(f'--exclude={ex}')
 
+        assertTrue(not excludeFilesAbs and not excludeDirsAbs, "Not yet supported")
+        args.append(srcDir)
+        args.append(destDir)
+    
     retcode, stdout, stderr = run(args, throwOnFailure=False)
     isOk, status = runRsyncErrMap(retcode)
     if throwOnFailure and not isOk:
