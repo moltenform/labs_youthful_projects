@@ -8,7 +8,6 @@ from .common_higher import *
 from .common_util import *
 
 rename = _os.rename
-delete = _os.unlink
 exists = _os.path.exists
 join = _os.path.join
 split = _os.path.split
@@ -43,9 +42,14 @@ def getext(s, removeDot=True):
     else:
         return b.lower()
 
-def deletesure(s):
+def delete(s, traceToStdout=False):
+    if traceToStdout:
+        trace('delete()', s)
+    _os.unlink(s)
+
+def deletesure(s, traceToStdout=False):
     if exists(s):
-        delete(s)
+        delete(s, traceToStdout)
     assertTrue(not exists(s))
     
 def makedirs(s):
@@ -575,7 +579,7 @@ def addAllToZip(root, zipPath, method='deflate', alreadyCompressedAsStore=False,
     with zipfile.ZipFile(zipPath, 'a') as zip:
         if isfile(root):
             thisMethod = getMethod(root)
-            zip.write(root, pathPrefix + files.getname(root), compress_type=thisMethod)
+            zip.write(root, pathPrefix + getname(root), compress_type=thisMethod)
         elif isdir(root):
             itr = recursefiles(root, **kwargs) if recurse else listfiles(root, **kwargs)
             for f, short in itr:

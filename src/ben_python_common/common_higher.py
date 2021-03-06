@@ -459,7 +459,7 @@ def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsert
     
     # go through each section
     sawSection = [False] * len(schema.sections)
-    for sectionName in config.sections():
+    for sectionName in p.sections():
         iSection = jslike.findIndex(schema.sections, lambda section: section.identifier == sectionName)
         if iSection == -1:
             if schema.allowExtraSections:
