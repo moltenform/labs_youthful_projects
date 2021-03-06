@@ -23,11 +23,11 @@ def askSetting(settingName):
         raise Exception('Server did not reply to the setting ' + settingName)
 
 def _sendPost(endpoint, s):
-    return requests.post(url=endpoint, data=data.encode('utf-8'),
+    return requests.post(url=endpoint, data=s.encode('utf-8'),
         headers={'Content-Type': 'text/plain; charset=utf-8'})
 
 def getUniqueId():
-    return ''.join(random.choice(string.ascii_letters) for i in range(10))
+    return ''.join(random.choice(string.ascii_letters) for i in range(3))
 
 clientId = getUniqueId()
 

@@ -13,12 +13,9 @@ ENCODING = 'utf-8'
 # provide a value in response if certain text appears in the post.
 # can be useful for toggling behavior and not needing to compile your app.
 
-RESPONSES = {
-    'exampleSetting': 'currentValue'
-}
-
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
+import json
 from datetime import datetime
 
 class LocalhostLoggerServer(BaseHTTPRequestHandler):
@@ -30,13 +27,13 @@ class LocalhostLoggerServer(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
         self._complete_response()
         self.wfile.write(" ".encode('utf-8'))
-    
+
     # Overriding parent: called when a get request arrives
     def do_GET(self):
         self.send_response(200)
         self._complete_response()
         self.wfile.write("Welcome to localhostlogger. To use, send a post to '/log'.".encode('utf-8'))
-        
+
     # Overriding parent: called when a post request arrives
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
@@ -53,12 +50,12 @@ class LocalhostLoggerServer(BaseHTTPRequestHandler):
             self.send_response(404)
         self._complete_response()
         self.wfile.write(response.encode('utf-8'))
-    
+
     # call this to indicate success
     def _complete_response(self):
         self.send_header('Content-type', 'text/plain; charset=utf-8')
         self.end_headers()
-    
+
     # Overriding parent: finish sending headers
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -66,19 +63,22 @@ class LocalhostLoggerServer(BaseHTTPRequestHandler):
 
     # caller is asking for a setting
     def onAskSetting(self, post_data):
+        with open(ASKSETTINGSFILE, encoding='utf-8') as f:
+           allSettings = f.read()
+        allSettings = json.loads(allSettings)
         val = ''
         parts = post_data.split('$$$')
         if len(parts) == 3:
             key = parts[1]
-            val = RESPONSES.get(key, '')
-        
+            val = allSettings.get(key, '')
+
         return '$$$' + val + '$$$'
-        
+
     # caller is asking to log text
     def onLog(self, text):
         text = text.replace('\n', '\n                ')
         current_time = datetime.now().strftime("%H:%M:%S")
-        logging.info(f"[{current_time}]{text}")
+        logging.info(f"[{current_time}] {text}")
         return 'Logged.'
 
 def run(port):
@@ -88,7 +88,8 @@ def run(port):
         level=logging.INFO)
     server_address = ('', port)
     httpd = HTTPServer(server_address, LocalhostLoggerServer)
-    logging.info(f'Starting httpd on port {port}...\n')
+    current_time = datetime.now().strftime("%H:%M:%S")
+    logging.info(f'[{current_time}] Starting httpd on port {port}...\n')
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

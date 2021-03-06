@@ -1,17 +1,17 @@
 // write_to_log_browser.ts
 // 2020 Ben Fisher, released under the MIT license.
 
-const writeToLog = async (...strings:Array<string>) => {
+export const writeToLog = async (...strings:Array<any>) => {
     const endpoint = 'http://localhost:9123/log';
-    const joined = strings.join('; ');
+    const joined = strings.map(o => o.toString()).join('; ');
     const text = clientId + ': ' + joined;
     return _sendPost(text, endpoint);
 }
 
-const askSetting = async (settingName: string) => {
+export const askSetting = async (settingName: string) => {
     const endpoint = 'http://localhost:9123/asksetting';
     const text = '$$$' + settingName + '$$$';
-    const ret = await _sendPost(s, endpoint);
+    const ret = await _sendPost(text, endpoint);
     const parts = ret.split(/\$\$\$/g);
     if (parts.length == 3) {
         return parts[1];
