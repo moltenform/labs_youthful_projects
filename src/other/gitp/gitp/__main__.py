@@ -7,6 +7,7 @@ from typing import OrderedDict
 from .gitp_impl import *
 
 def main(argv):
+    sawGitpException = False
     try:
         checkOtherInstancesWhenStarting()
         cmds = OrderedDict(
@@ -16,9 +17,11 @@ def main(argv):
             slowcopytoaltrepo=gitpTop_SlowCopyToAltRepo,
             pack=gitpTop_Pack,
             apply=gitpTop_Apply_ApplyAndCheck,
+            cdalt=gitpTop_CdAltRepo,
             recent=gitpTop_ViewRecent,
             runprettier=gitpTop_RunCommitHook,
             updatebasis=gitpTop_UpdateBasis,
+            resethardall=gitpTop_ResetHardAll,
             seepacketdiff=gitpTop_ShowPacketDiff,
             seepacketinfo=lambda: gitpTop_ShowDescription(False),
             seepacketinfoverbose=lambda: gitpTop_ShowDescription(True),
@@ -46,9 +49,13 @@ def main(argv):
             trace(help)
     except GitPacketException as e:
         # we'll raise GitPacketException when stopping the script intentionally.
-        trace(str(e))
+        sys.stderr.write(str(e) + '\n')
+        sawGitpException = True
+        
     # having a GitPacketException currently still counts as a clean exit.
     markCleanExitWhenEnding()
+    if sawGitpException:
+        sys.exit(1)
 
 if __name__ == '__main__':
     main(sys.argv)

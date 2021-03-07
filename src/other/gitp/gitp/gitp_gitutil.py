@@ -59,19 +59,28 @@ def findCommitInTheLast10OrThrow(searchFor, nCommits=10):
     lastCommits, lastCommitTexts = getLast10Commits()
     foundIndex = jslike.findIndex(lastCommits, lambda val: shasMatch(val, searchFor))
     if foundIndex == -1:
-        assertGitPacket(False, f"basis not found in the last {nCommits} of {os.getcd()}, wrong basis? wrong branch?")
+        assertGitPacket(False, f"basis not found in the last {nCommits} of {os.getcwd()}, wrong basis? wrong branch? {searchFor}")
     return lastCommits[0: foundIndex+1], lastCommitTexts[0: foundIndex+1]
 
 def allFilesModifiedInCommit(commitId):
     # includes modifications, new files, deleted files
     assertTrue(commitId and len(commitId) > 5)
+    hasNoFiles = False
     ret = getGitResults(f'git_show_--name-only', [commitId])
     pts = ret.strip().split('\n\n')
-    if len(pts) != 3:
-        trace('expected 3 sections separated by \\n\\n when looking for files in commit', commitId, ret)
-        assertGitPacket(False, f"We don't yet support empty commits.")
-    filesList = pts[2].strip()
-    return filesList.split('\n')
+    if len(pts) < 2:
+        assertGitPacket(False, 'expected 3 sections separated by \\n\\n when looking for files in commit', commitId, ret)
+    if len(pts) < 3:
+        hasNoFiles = True
+        pts.append('')
+    for i, part in enumerate(pts):
+        hasIndent = i != 0 and i != len(pts)-1
+        sublines = part.split('\n')
+        assertGitPacket(jslike.every(sublines, lambda line: line.startswith('    ') == hasIndent),
+            "the results of git show were different than we thought", commitId, ret)
+
+    filesList = pts[-1].strip()
+    return [] if hasNoFiles else filesList.split('\n')
 
 def allFilesModifiedInCommits(arrCommits):
     filesMod = {}
@@ -126,8 +135,10 @@ def makeDestLookExactlyLikeSrc(src, dest, pathsPossiblyModified):
         assertTrue(not files.isdir(p1), 'dir?', p1)
         assertTrue(not files.isdir(p2), 'dir?', p2)
         if files.isfile(p1) and files.isfile(p2):
+            files.makedirs(files.getparent(p2))
             files.copy(p1, p2, True)
         elif files.isfile(p1) and not files.isfile(p2):
+            files.makedirs(files.getparent(p2))
             files.copy(p1, p2, True)
         elif not files.isfile(p1) and files.isfile(p2):
             files.delete(p2)
@@ -163,7 +174,7 @@ def determineRootPaths(checkTempRepo=True):
     assertGitPacket(dir in workingRepos, f'dir {dir} not found in workingRepos, please add to gitp_util.py')
     assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {dir}?')
     curBranch = getGitResults('git_branch_--show-current')
-    assertGitPacket(curBranch == 'gpworking', f'please create a branch called "gpworking" off of basis-commit {basisCommits[dir]} from {mainBranch(dir)}')
+    assertGitPacket(curBranch == 'gpworking', f'please create a branch called "gpworking" off of basis-commit {basisCommits.get(dir, "")} from {mainBranch(dir)}')
     curCommit = currentCommitId()
     assertGitPacket(dir in basisCommits, f'no corresponding entry in basisCommits for {dir}, please add to gitp_util.py')
     assertGitPacket(shasMatch(basisCommits[dir], curCommit), f'expected to be at commit {basisCommits[dir]} but is {curCommit}, please update gitp_util.py or go to that commit')

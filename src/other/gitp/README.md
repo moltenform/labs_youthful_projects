@@ -42,7 +42,15 @@ The file /example/path/gitp/gitp_util.py should exist.
 3) add
 gitp() {
     saveddir=$(pwd)
-    (cd /example/path && python3 -m gitp $saveddir $@)
+    gitpdir=/example/path
+    gitptmp=/example/path/changedir.txt
+    
+    rm -f $gitptmp
+    (cd $gitpdir && python3 -m gitp $saveddir $@)
+    if [ -f $gitptmp ]; then
+        saveddir=`cat $gitptmp`
+        cd $saveddir
+    fi
 }
 
 alias ddd='gitp diffdev'

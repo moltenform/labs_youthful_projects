@@ -12,7 +12,7 @@ def showGitkAndReset():
     files.run('git_add_-A'.split('_')) # stage them so new files show up
     files.run('git_commit_--no-verify_-m_(Temporary commit for diffing)'.split('_')) # commit them so gitk shows it first
     showInSeparateThreadAndContinue(['gitk'], 10)
-    files.deletesure(outDir + '/gitp_is_prob_running')
+    files.deletesure(getTrueTmp() + '/gitp_is_prob_running')
     files.run('git_reset_HEAD~'.split('_'))
 
 def gitpTop_DiffPrev():
@@ -171,24 +171,35 @@ def moveAllChangesLeftToRight(root, tmproot, basis):
     makeDestLookExactlyLikeSrc(root, tmproot, list(filesMod.keys()))
 
 def gitpTop_SlowCopyToAltRepo():
-    dir = os.path.abspath(os.getcwd())
-    src, dest = dir, None
-    if dir in workingRepos:
-        src, dest = determineRootPaths(checkTempRepo=True)
-    else:
-        for k, v in tempRepos:
-            if dir == v:
-                dest = k
-                break
-    if not dest:
-        dest = rinput('Enter full path to a destination dir:\n')
-        assertGitPacket(files.isdir(dest) and os.path.isabs(dest), "Not full path to dir")
-    elif not getInputBool(f'Move files from\n{src}\nto\n{dest}\n?'):
-        return
-
+    defaultSrc, defaultDest = getDirPairWithoutValidating()
+    src = rinput(f'Enter full path to a source dir:\ndefault={defaultSrc}\n')
+    src = src if src else defaultSrc
+    dest = rinput(f'Enter full path to a dest dir:\ndefault={defaultDest}\n')
+    dest = dest if dest else defaultDest
+    if not files.exists(dest) and getInputBool('create dest directory?'):
+        files.makedirs(dest)
     files.runRsync(src, dest, deleteExisting=True, excludeDirsRel=[
-        '.git', 'node_modules',
+        '.git', 'node_modules', 'dist'
     ])
+
+def getDirPairWithoutValidating():
+    dir = os.path.abspath(os.getcwd())
+
+    defaultSrc = dir
+    defaultDest = ''
+    isADestWithMainRepo = ''
+    for k in tempRepos:
+        if dir == k:
+            defaultDest = tempRepos[k]
+        elif dir == tempRepos[k]:
+            # we're in an alt repo sending to main
+            defaultDest = k
+    return defaultSrc, defaultDest
+
+def gitpTop_CdAltRepo():
+    defaultSrc, defaultDest = getDirPairWithoutValidating()
+    assertGitPacket(defaultSrc and defaultDest, "directory not found")
+    files.writeall(getTrueTmp() + '/changedir.txt', defaultDest)
 
 def gitpTop_CopyToAltRepo():
     root, tmproot = determineRootPaths(checkTempRepo=True)
@@ -283,6 +294,14 @@ def gitpTop_ViewRecent():
     fls = jslike.map(fls, lambda s: s[1])[0:10]
     trace("We've recently made patches:\n\t" + '\n\t'.join(fls))
     trace("We've recently made patches for these projects:\n\t" + '\n\t'.join(getProjs(outDir)))
+
+def gitpTop_ResetHardAll():
+    assertGitPacket(not areThereStagedFiles(), "did not expect staged files, please git reset them", os.getcwd())
+    if getInputBool('Are you sure you want to delete unsaved changes?'):
+        getGitResults('git_reset_--hard')
+        fls = getUnstagedFiles()
+        for k in fls.added:
+            files.delete(k, traceToStdout=True)
 
 def gitpTop_UpdateBasis():
     root, tmproot = determineRootPaths(checkTempRepo=True)

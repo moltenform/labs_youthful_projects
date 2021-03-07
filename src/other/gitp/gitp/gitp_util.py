@@ -142,21 +142,22 @@ def getLatestProjCount(proj, shortdesc):
 
 def checkOtherInstancesWhenStarting():
     import atexit
-    outDir, tmpDir = getOutDirs()
-    if files.exists(outDir + '/gitp_is_prob_running'):
+    if files.exists(getTrueTmp() + '/gitp_is_prob_running'):
         warn('It looks like gitp is still running, please wait for it to stop if it is still running.')
         return
-    if files.exists(outDir + '/gitp_is_not_clean_exit'):
+    if files.exists(getTrueTmp() + '/gitp_is_not_clean_exit'):
         warn('It looks like gitp did not exit cleanly, please fix up the repos first.')
         return
     
-    atexit.register(lambda: files.deletesure(outDir + '/gitp_is_prob_running'))
-    files.writeall(outDir + '/gitp_is_prob_running', '')
-    files.writeall(outDir + '/gitp_is_not_clean_exit', '')
+    atexit.register(lambda: files.deletesure(getTrueTmp() + '/gitp_is_prob_running'))
+    files.writeall(getTrueTmp() + '/gitp_is_prob_running', '')
+    files.writeall(getTrueTmp() + '/gitp_is_not_clean_exit', '')
 
 def markCleanExitWhenEnding():
-    outDir, tmpDir = getOutDirs()
-    files.deletesure(outDir + '/gitp_is_not_clean_exit')
+    files.deletesure(getTrueTmp() + '/gitp_is_not_clean_exit')
+
+def getTrueTmp():
+    return '/Users/bf/Documents/temp/'
 
 def showInSeparateThreadAndContinue(args, continueAfterSec, shell=False):
     # Desired behavior:
