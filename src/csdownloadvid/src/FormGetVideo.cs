@@ -309,9 +309,6 @@ namespace CsDownloadVid
                 {
                     if (chkAutoCombineAV.Checked && Directory.Exists(txtOutputDir.Text))
                     {
-                        // Pre-emptively check, since we are in the main thread and can open a dialog
-                        Utils.AssertTrue(txtOutputDir.InvokeRequired, "Expected to be on main thread");
-                        Utils.GetSoftDeleteDestination("");
                         runAutocombineAVAll(txtOutputDir.Text);
                     }
                 });
@@ -729,46 +726,6 @@ namespace CsDownloadVid
             }));
         }
 
-        private void btnEncode_Click(object sender, EventArgs e)
-        {
-            var files = Utils.AskOpenFilesDialog("Input file(s):");
-            if (files == null || files.Length == 0)
-            {
-                return;
-            }
-
-            var example = "-i \"%in%\" -c:v libx264 -crf 23 -preset slower \"%in%.mp4\"";
-            var cmd = InputBoxForm.GetStrInput("Command for the ffmpeg encoder:", example,
-                InputBoxHistory.CustomEncode);
-            if (String.IsNullOrEmpty(cmd))
-            {
-                return;
-            }
-            else if (!cmd.Contains("%in%") && !Utils.AskToConfirm("Did not see '%in%', " +
-                "won't process input files. Continue?"))
-            {
-                return;
-            }
-
-            RunToolHelper.RunAndCatch(() =>
-            {
-                var infos = new List<ProcessStartInfo>();
-                foreach (var file in files)
-                {
-                    var info = new ProcessStartInfo();
-                    info.FileName = CsDownloadVidFilepaths.GetFfmpeg();
-                    info.Arguments = cmd.Replace("%in%", file);
-                    info.CreateNoWindow = true;
-                    info.RedirectStandardError = true;
-                    info.RedirectStandardOutput = true;
-                    info.UseShellExecute = false;
-                    infos.Add(info);
-                }
-
-                _runner.RunProcesses(infos.ToArray(), "Custom encode");
-            });
-        }
-
         private void btnDownloadFromWeb_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Go to the Chrome Inspector, go to the Network tab, " +
@@ -832,6 +789,12 @@ namespace CsDownloadVid
                     _runner.Trace("Download complete, to " + destName);
                 });
             }
+        }
+
+        void FormGetVideo_Load(object sender, EventArgs e)
+        {
+            // Run this here, ahead of time, since we're on main thread and can safely open a dialog
+            Utils.GetSoftDeleteDestination("");
         }
     }
 

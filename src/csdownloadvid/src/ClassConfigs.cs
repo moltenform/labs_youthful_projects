@@ -41,6 +41,7 @@ namespace CsDownloadVid
         MRUSyncDirectoryLeft,
         MRUSyncDirectoryRight,
         MRUCustomEncode,
+        MRUCustomEncodeAv1
     }
 
     // The inputbox dialog keeps a MRU list of recently used strings.
@@ -61,7 +62,8 @@ namespace CsDownloadVid
         EditCategoriesString,
         SyncDirectoryLeft,
         SyncDirectoryRight,
-        CustomEncode
+        CustomEncode,
+        CustomEncodeAv1
     }
 
     public static class ConfirmChecksums

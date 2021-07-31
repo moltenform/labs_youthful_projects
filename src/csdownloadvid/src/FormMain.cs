@@ -38,6 +38,12 @@ namespace CsDownloadVid
                 form.ShowDialog(this);
         }
 
+        private void mnuEncodeCustom_Click(object sender, EventArgs e)
+        {
+            using (Form form = new FormMediaJoin(true))
+                form.ShowDialog(this);
+        }
+
         private void mnuOpenHelpWebsite_Click(object sender = null, EventArgs e = null)
         {
             Process.Start("https://github.com/moltenform/labs_youthful_projects/" +

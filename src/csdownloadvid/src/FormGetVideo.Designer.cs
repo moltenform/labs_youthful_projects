@@ -46,7 +46,6 @@ namespace CsDownloadVid
             this.label6 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.lblNamePattern = new System.Windows.Forms.Label();
-            this.btnEncode = new System.Windows.Forms.Button();
             this.btnGetPlaylist = new System.Windows.Forms.Button();
             this.chkAutoCombineAV = new System.Windows.Forms.CheckBox();
             this.chkDashToM4a = new System.Windows.Forms.CheckBox();
@@ -71,7 +70,7 @@ namespace CsDownloadVid
             this.chkShowAdvanced.Location = new System.Drawing.Point(695, 15);
             this.chkShowAdvanced.Margin = new System.Windows.Forms.Padding(4);
             this.chkShowAdvanced.Name = "chkShowAdvanced";
-            this.chkShowAdvanced.Size = new System.Drawing.Size(145, 20);
+            this.chkShowAdvanced.Size = new System.Drawing.Size(155, 21);
             this.chkShowAdvanced.TabIndex = 0;
             this.chkShowAdvanced.Text = "Advanced options...";
             this.chkShowAdvanced.UseVisualStyleBackColor = true;
@@ -83,7 +82,7 @@ namespace CsDownloadVid
             this.lbl1Basic.Location = new System.Drawing.Point(17, 52);
             this.lbl1Basic.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbl1Basic.Name = "lbl1Basic";
-            this.lbl1Basic.Size = new System.Drawing.Size(164, 16);
+            this.lbl1Basic.Size = new System.Drawing.Size(177, 17);
             this.lbl1Basic.TabIndex = 1;
             this.lbl1Basic.Text = "Step 1: Enter URL of video";
             // 
@@ -94,6 +93,7 @@ namespace CsDownloadVid
             this.txtUrl.Name = "txtUrl";
             this.txtUrl.Size = new System.Drawing.Size(664, 22);
             this.txtUrl.TabIndex = 2;
+            this.txtUrl.Text = "https://www.youtube.com/watch?v=aaaaaaa";
             // 
             // btnNextStepIsToChooseQuality
             // 
@@ -146,7 +146,7 @@ namespace CsDownloadVid
             this.label2.Location = new System.Drawing.Point(15, 5);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(203, 16);
+            this.label2.Size = new System.Drawing.Size(214, 17);
             this.label2.TabIndex = 0;
             this.label2.Text = "Step 2: Choose download quality";
             // 
@@ -171,7 +171,6 @@ namespace CsDownloadVid
             this.panelAdvanced.Controls.Add(this.label6);
             this.panelAdvanced.Controls.Add(this.label4);
             this.panelAdvanced.Controls.Add(this.lblNamePattern);
-            this.panelAdvanced.Controls.Add(this.btnEncode);
             this.panelAdvanced.Controls.Add(this.btnGetPlaylist);
             this.panelAdvanced.Controls.Add(this.chkAutoCombineAV);
             this.panelAdvanced.Controls.Add(this.chkDashToM4a);
@@ -183,7 +182,7 @@ namespace CsDownloadVid
             // 
             // btnDownloadFromWeb
             // 
-            this.btnDownloadFromWeb.Location = new System.Drawing.Point(188, 263);
+            this.btnDownloadFromWeb.Location = new System.Drawing.Point(160, 263);
             this.btnDownloadFromWeb.Margin = new System.Windows.Forms.Padding(4);
             this.btnDownloadFromWeb.Name = "btnDownloadFromWeb";
             this.btnDownloadFromWeb.Size = new System.Drawing.Size(108, 32);
@@ -224,7 +223,7 @@ namespace CsDownloadVid
             this.label5.Location = new System.Drawing.Point(21, 217);
             this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(98, 16);
+            this.label5.Size = new System.Drawing.Size(102, 17);
             this.label5.TabIndex = 39;
             this.label5.Text = "Additional args";
             // 
@@ -234,7 +233,7 @@ namespace CsDownloadVid
             this.label6.Location = new System.Drawing.Point(21, 28);
             this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(102, 16);
+            this.label6.Size = new System.Drawing.Size(106, 17);
             this.label6.TabIndex = 39;
             this.label6.Text = "Advanced opts:";
             // 
@@ -244,7 +243,7 @@ namespace CsDownloadVid
             this.label4.Location = new System.Drawing.Point(21, 169);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(197, 16);
+            this.label4.Size = new System.Drawing.Size(206, 17);
             this.label4.TabIndex = 39;
             this.label4.Text = "Wait between dloads (seconds)";
             // 
@@ -254,20 +253,9 @@ namespace CsDownloadVid
             this.lblNamePattern.Location = new System.Drawing.Point(23, 98);
             this.lblNamePattern.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblNamePattern.Name = "lblNamePattern";
-            this.lblNamePattern.Size = new System.Drawing.Size(108, 16);
+            this.lblNamePattern.Size = new System.Drawing.Size(114, 17);
             this.lblNamePattern.TabIndex = 39;
             this.lblNamePattern.Text = "Filename pattern";
-            // 
-            // btnEncode
-            // 
-            this.btnEncode.Location = new System.Drawing.Point(105, 263);
-            this.btnEncode.Margin = new System.Windows.Forms.Padding(4);
-            this.btnEncode.Name = "btnEncode";
-            this.btnEncode.Size = new System.Drawing.Size(75, 32);
-            this.btnEncode.TabIndex = 38;
-            this.btnEncode.Text = "Encode";
-            this.btnEncode.UseVisualStyleBackColor = true;
-            this.btnEncode.Click += new System.EventHandler(this.btnEncode_Click);
             // 
             // btnGetPlaylist
             // 
@@ -288,7 +276,7 @@ namespace CsDownloadVid
             this.chkAutoCombineAV.Location = new System.Drawing.Point(26, 44);
             this.chkAutoCombineAV.Margin = new System.Windows.Forms.Padding(4);
             this.chkAutoCombineAV.Name = "chkAutoCombineAV";
-            this.chkAutoCombineAV.Size = new System.Drawing.Size(226, 20);
+            this.chkAutoCombineAV.Size = new System.Drawing.Size(242, 21);
             this.chkAutoCombineAV.TabIndex = 0;
             this.chkAutoCombineAV.Text = "auto combine a+v if both selected";
             this.chkAutoCombineAV.UseVisualStyleBackColor = true;
@@ -301,7 +289,7 @@ namespace CsDownloadVid
             this.chkDashToM4a.Location = new System.Drawing.Point(26, 70);
             this.chkDashToM4a.Margin = new System.Windows.Forms.Padding(4);
             this.chkDashToM4a.Name = "chkDashToM4a";
-            this.chkDashToM4a.Size = new System.Drawing.Size(226, 20);
+            this.chkDashToM4a.Size = new System.Drawing.Size(240, 21);
             this.chkDashToM4a.TabIndex = 0;
             this.chkDashToM4a.Text = "fix DASH audio after downloading";
             this.chkDashToM4a.UseVisualStyleBackColor = true;
@@ -312,7 +300,7 @@ namespace CsDownloadVid
             this.lblEnterUrlsAdvanced.Location = new System.Drawing.Point(68, 52);
             this.lblEnterUrlsAdvanced.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblEnterUrlsAdvanced.Name = "lblEnterUrlsAdvanced";
-            this.lblEnterUrlsAdvanced.Size = new System.Drawing.Size(709, 16);
+            this.lblEnterUrlsAdvanced.Size = new System.Drawing.Size(780, 17);
             this.lblEnterUrlsAdvanced.TabIndex = 28;
             this.lblEnterUrlsAdvanced.Text = "Enter URL, list of URLs separated by |, path of a .url file, path of a .txt file " +
     "containing urls, or a directory containing .url files:";
@@ -379,7 +367,7 @@ namespace CsDownloadVid
             this.label1.Location = new System.Drawing.Point(15, 25);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(188, 16);
+            this.label1.Size = new System.Drawing.Size(202, 17);
             this.label1.TabIndex = 1;
             this.label1.Text = "Step 3: Choose output location";
             // 
@@ -389,7 +377,7 @@ namespace CsDownloadVid
             this.lblShortStatus.Location = new System.Drawing.Point(32, 612);
             this.lblShortStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblShortStatus.Name = "lblShortStatus";
-            this.lblShortStatus.Size = new System.Drawing.Size(94, 16);
+            this.lblShortStatus.Size = new System.Drawing.Size(105, 17);
             this.lblShortStatus.TabIndex = 31;
             this.lblShortStatus.Text = "Current status: ";
             // 
@@ -410,7 +398,7 @@ namespace CsDownloadVid
             this.cbUsePytube.Location = new System.Drawing.Point(889, 15);
             this.cbUsePytube.Margin = new System.Windows.Forms.Padding(4);
             this.cbUsePytube.Name = "cbUsePytube";
-            this.cbUsePytube.Size = new System.Drawing.Size(181, 20);
+            this.cbUsePytube.Size = new System.Drawing.Size(194, 21);
             this.cbUsePytube.TabIndex = 0;
             this.cbUsePytube.Text = "Use pytube instead of ytdl";
             this.cbUsePytube.UseVisualStyleBackColor = true;
@@ -436,6 +424,7 @@ namespace CsDownloadVid
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FormGetVideo";
             this.Text = "Download Video";
+            this.Load += new System.EventHandler(this.FormGetVideo_Load);
             this.panelChooseQuality.ResumeLayout(false);
             this.panelChooseQuality.PerformLayout();
             this.panelAdvanced.ResumeLayout(false);
@@ -478,7 +467,6 @@ namespace CsDownloadVid
         private System.Windows.Forms.Button btnGetPlaylist;
         private System.Windows.Forms.CheckBox cbUsePytube;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button btnEncode;
         private System.Windows.Forms.Button btnDownloadFromWeb;
         private System.Windows.Forms.CheckBox chkAutoCombineAV;
     }

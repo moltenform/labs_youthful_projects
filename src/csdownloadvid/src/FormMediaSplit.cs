@@ -15,7 +15,7 @@ namespace CsDownloadVid
         public FormMediaSplit()
         {
             InitializeComponent();
-            txtSplitpoints.Text = "0:20" + Utils.NL + "1:30";
+            txtSplitpoints.Text = "0:40" + Utils.NL + "1:30";
             _runner = new RunToolHelper(txtStatus, lblShortStatus,
                 FormAudioFromVideo.GetFfmpegStdoutFilter());
         }
@@ -232,6 +232,10 @@ namespace CsDownloadVid
             {
                 return 60 * double.Parse(parts[0]) + double.Parse(parts[1]);
             }
+            else if (parts.Length == 3)
+            {
+                return 60 * 60 * double.Parse(parts[0]) + 60 * double.Parse(parts[1]) + double.Parse(parts[2]);
+            }
             else
             {
                 throw new CsDownloadVidException("we currently require either (seconds) or " +
@@ -241,6 +245,11 @@ namespace CsDownloadVid
 
         List<double> GetSplitTimes(string text)
         {
+            // Sites like YouTube sometimes insert this left-to-right mark character.
+            string leftToRightMark = "" +(char)8206;
+            string spaceMark = "" +(char)8203;
+            text = text.Replace(leftToRightMark, "").Replace(spaceMark, "");
+
             List<double> times = new List<double>();
             foreach (var line in Utils.SplitLines(text))
             {
