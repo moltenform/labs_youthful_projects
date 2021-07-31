@@ -15,7 +15,7 @@ namespace CsDownloadVid
     public partial class FormMediaJoin : Form
     {
         RunToolHelper _runner;
-        public FormMediaJoin()
+        public FormMediaJoin(bool showCustom=false)
         {
             InitializeComponent();
             txtInput.Text = "";
@@ -23,6 +23,17 @@ namespace CsDownloadVid
             txtInput.BackColor = SystemColors.Control;
             _runner = new RunToolHelper(this.txtStatus, this.lblShortStatus,
                 FormAudioFromVideo.GetFfmpegStdoutFilter());
+            if (showCustom)
+            {
+                this.Text = "Encode audio or video...";
+                this.label2.Text = "Choose some input files...";
+                this.label1.Visible = false;
+                this.tbOutputFormat.Visible = false;
+            }
+
+            this.btnJoin.Visible = !showCustom;
+            this.btnMakeAudioLouder.Visible = showCustom;
+            this.btnMakeAudioLouder.Visible = showCustom;
         }
 
         private void btnGetInput_Click(object sender, EventArgs e)
@@ -147,6 +158,118 @@ namespace CsDownloadVid
             }
 
             return lines;
+        }
+
+        private void btnMakeAudioLouder_Click(object sender, EventArgs e)
+        {
+            var inputs = this.GetInputFiles(1);
+            _runner.RunInThread(() =>
+            {
+                foreach (var input in inputs)
+                {
+                    if (input.Contains(".madelouder"))
+                    {
+                        _runner.Trace("skipping" + input + " because it contains .makelouder");
+                    }
+                    else
+                    {
+                        this.makeLouderOnes(input);
+                    }
+                }
+            },
+                "Making audio louder...");
+        }
+
+        private void makeLouderOnes(string input)
+        {
+            foreach (var scale in new List<string>(){ "2.0", "4.0", "8.0", "16.0", "32.0"})
+            {
+                var outfile = input + ".makelouder" + scale + ".wav";
+                var args = new List<string>();
+                args.Add("-nostdin");
+                args.Add("-i");
+                args.Add(input);
+                args.Add("-filter:a");
+                args.Add("volume="+scale);
+                args.Add(outfile);
+                var info = new ProcessStartInfo();
+                info.FileName = CsDownloadVidFilepaths.GetFfmpeg();
+                info.Arguments = Utils.CombineProcessArguments(args.ToArray());
+                info.CreateNoWindow = true;
+                info.RedirectStandardError = true;
+                info.RedirectStandardOutput = true;
+                info.UseShellExecute = false;
+                _runner.RunProcessSync(info, "Make Louder");
+                if (!File.Exists(outfile))
+                {
+                    _runner.Trace("expected to see output at " + outfile);
+                    throw new Exception("expected to see output at " + outfile);
+                }
+
+                var pathOut = Utils.RunM4aConversion(outfile, "flac");
+                if (new FileInfo(pathOut).Length > 1)
+                {
+                   File.Delete(outfile);
+                }
+            }
+        }
+
+        private void doCustomEncode(string example, InputBoxHistory key)
+        {
+            var files = this.GetInputFiles(1);
+            var cmd = InputBoxForm.GetStrInput("Command for the ffmpeg encoder:", example,
+                key);
+            if (String.IsNullOrEmpty(cmd))
+            {
+                return;
+            }
+            else if (!cmd.Contains("%in%") && !Utils.AskToConfirm("Did not see '%in%', " +
+                "won't process input files. Continue?"))
+            {
+                return;
+            }
+
+            if (!Utils.AskToConfirm("Run the command right now? (or copy the command line to the clipboard)"))
+            {
+                var s = "";
+                foreach (var file in files)
+                {
+                    s += "\r\n\"" + CsDownloadVidFilepaths.GetFfmpeg() + "\" ";
+                    s += cmd.Replace("%in%", files[0]);
+                }
+
+                Clipboard.SetText(s);
+                MessageBox.Show("Command was copied to the clipboard.");
+                return;
+            }
+
+            RunToolHelper.RunAndCatch(() =>
+            {
+                var infos = new List<ProcessStartInfo>();
+                foreach (var file in files)
+                {
+                    var info = new ProcessStartInfo();
+                    info.FileName = CsDownloadVidFilepaths.GetFfmpeg();
+                    info.Arguments = cmd.Replace("%in%", file);
+                    info.CreateNoWindow = true;
+                    info.RedirectStandardError = true;
+                    info.RedirectStandardOutput = true;
+                    info.UseShellExecute = false;
+                    infos.Add(info);
+                }
+
+                _runner.RunProcesses(infos.ToArray(), "Custom encode");
+            });
+        }
+
+        private void btnEncodeAv1_Click(object sender, EventArgs e)
+        {
+            this.doCustomEncode("-i \"%in%\" -crf 20 -vf \"scale=iw/2:ih/2\" -c:v libaom-av1 -b:v 0 -cpu-used 4 -c:a copy \"%in%.mkv\"", InputBoxHistory.CustomEncodeAv1);
+        }
+
+        private void btnEncode_Click(object sender, EventArgs e)
+        {
+            this.doCustomEncode("-i \"%in%\" -c:v libx264 -crf 23 -preset slower -c:a copy \"%in%.mp4\"", InputBoxHistory.CustomEncode);
         }
     }
 }
