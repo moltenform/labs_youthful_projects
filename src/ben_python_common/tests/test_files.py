@@ -640,7 +640,7 @@ class TestRunRSync(object):
         assert expect == listDirectoryToString(src)
 
         # run rsync with exclusions
-        runRsync(src, dest, deleteExisting=True, excludeFiles=['a1.txt', 'newfile', 'other.txt'], excludeDirs=['ss1'])
+        runRsync(src, dest, deleteExisting=True, excludeFilesRel=['a1.txt', 'newfile', 'other.txt'], excludeDirsRel=['ss1'])
         expect = 'P1.PNG,15|a1.txt,15|a2.txt,15|s1,0|s1/ss1,0|s1/ss1/file.txt,17|s1/ss2,0|s2,0|s2/other.txt,18'
         assert expect == listDirectoryToString(dest)
 

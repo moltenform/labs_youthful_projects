@@ -77,7 +77,8 @@ def ensureEmptyDirectory(d):
     else:
         _os.makedirs(d)
 
-def copy(srcfile, destfile, overwrite, traceToStdout=False, useDestModifiedTime=False):
+def copy(srcfile, destfile, overwrite, traceToStdout=False,
+        useDestModifiedTime=False, createParent=False):
     if not isfile(srcfile):
         raise IOError('source path does not exist or is not a file')
 
@@ -88,6 +89,9 @@ def copy(srcfile, destfile, overwrite, traceToStdout=False, useDestModifiedTime=
 
     if traceToStdout:
         trace('copy()', srcfile, destfile)
+
+    if createParent and not exists(getparent(destfile)):
+        makedirs(getparent(destfile))
 
     if srcfile == destfile:
         pass
@@ -110,7 +114,7 @@ def copy(srcfile, destfile, overwrite, traceToStdout=False, useDestModifiedTime=
         setModTimeNs(destfile, toSetModTime)
 
 def move(srcfile, destfile, overwrite, warnBetweenDrives=False,
-        traceToStdout=False, allowDirs=False, useDestModifiedTime=False):
+        traceToStdout=False, allowDirs=False, useDestModifiedTime=False, createParent=False):
     if not exists(srcfile):
         raise IOError('source path does not exist')
     if not allowDirs and not isfile(srcfile):
@@ -123,6 +127,9 @@ def move(srcfile, destfile, overwrite, warnBetweenDrives=False,
 
     if traceToStdout:
         trace('move()', srcfile, destfile)
+
+    if createParent and not exists(getparent(destfile)):
+        makedirs(getparent(destfile))
 
     if srcfile == destfile:
         pass
@@ -658,10 +665,10 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
             args.append('--delete-after')
         for ex in emptyIfNone(excludeFilesRel) + emptyIfNone(excludeDirsRel):
             assertTrue(not _os.path.isabs(ex), ex)
-            args.append(f'--exclude=/{ex}')
+            args.append('--exclude=/'+ ex)
         for ex in emptyIfNone(excludeFilesWithName) + emptyIfNone(excludeDirsWithName):
             assertTrue(not _os.path.isabs(ex), ex)
-            args.append(f'--exclude={ex}')
+            args.append('--exclude=' + ex)
 
         assertTrue(not excludeFilesAbs and not excludeDirsAbs, "Not yet supported")
         args.append(srcDir)
