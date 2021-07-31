@@ -9,7 +9,10 @@ from . import files
 try:
     import gnureadline
 except:
-    pass
+    try:
+        import readline
+    except:
+        pass
 
 def getInputBool(prompt, flushOutput=True):
     prompt += ' '

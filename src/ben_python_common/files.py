@@ -653,7 +653,7 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
         for ex in emptyIfNone(excludeDirsRel) + emptyIfNone(excludeDirsAbs):
             args.append('/XD')
             args.append(ex)
-        assertTrue(not excludeFilesWithName and not excludeDirsWithName, "Not yet supported")
+        assertTrue(not excludeFilesWithName and not excludeDirsWithName, "Not supported")
     else:
         bin = '/usr/local/bin/rsync' if isfile('/usr/local/bin/rsync') else 'rsync'
         args.append(bin)
@@ -670,7 +670,7 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
             assertTrue(not _os.path.isabs(ex), ex)
             args.append('--exclude=' + ex)
 
-        assertTrue(not excludeFilesAbs and not excludeDirsAbs, "Not yet supported")
+        assertTrue(not excludeFilesAbs and not excludeDirsAbs, "Not supported")
         args.append(srcDir)
         args.append(destDir)
 
