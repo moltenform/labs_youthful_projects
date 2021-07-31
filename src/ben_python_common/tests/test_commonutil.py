@@ -85,11 +85,23 @@ class TestStringHelpersSimple(object):
         assert 'a-b-c' == toValidFilename('a\\b/c')
 
     def test_toValidFilenameAndKeepSeps(self):
-        import os
-        currentSep = os.path.sep
-        otherSep = '\\' if currentSep == '/' else '/'
-        test = 'a%sb%sc%sd%se' % (currentSep, otherSep, currentSep, otherSep)
-        expect = 'a-b%sc-d%se' % (otherSep, otherSep)
+        if os.path.sep == '/':
+            test = 'a\n?b\\c/d\\e/f'
+            expect = 'a b-c/d-e/f'
+        else:
+            test = 'a\n?b\\c/d\\e/f'
+            expect = 'a b\\c-d\\e-f'
+            
+        assert expect == toValidFilename(test, dirsepOk=True)
+        
+    def test_toValidFilenameAndKeepSepsWithSpaces(self):
+        if os.path.sep == '/':
+            test = 'a\n?b\\ c/ d\\ e/ f'
+            expect = 'a b, c/ d, e/ f'
+        else:
+            test = 'a\n?b\\ c/ d\\ e/ f'
+            expect = 'a b\\ c, d\\ e, f'
+            
         assert expect == toValidFilename(test, dirsepOk=True)
 
     # stripHtmlTags

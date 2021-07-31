@@ -65,11 +65,16 @@ def trace(*args):
     print(' '.join(map(getPrintable, args)))
 
 def toValidFilename(s, dirsepOk=False):
-    import os
-    if not (os.path.sep == '/' and dirsepOk):
-        s = s.replace(u'/ ', u', ').replace(u'/', u'-')
-    if not (os.path.sep == '\\' and dirsepOk):
+    if dirsepOk:
+        # sometimes we want to leave directory-separator characters in the string.
+        import os
+        if os.path.sep == '/':
+            s = s.replace(u'\\ ', u', ').replace(u'\\', u'-')
+        else:
+            s = s.replace(u'/ ', u', ').replace(u'/', u'-')
+    else:
         s = s.replace(u'\\ ', u', ').replace(u'\\', u'-')
+        s = s.replace(u'/ ', u', ').replace(u'/', u'-')
 
     return s.replace(u'\u2019', u"'").replace(u'?', u'').replace(u'!', u'') \
         .replace(u': ', u', ').replace(u':', u'-') \
