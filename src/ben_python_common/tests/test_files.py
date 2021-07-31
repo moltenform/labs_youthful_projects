@@ -627,7 +627,7 @@ class TestRunRSync(object):
         expect = 'P1.PNG,15|a1.txt,15|a2.txt,15|a2png,14|newfile,11|s1,0|s1/ss1,0|s1/ss1/file.txt,35|s1/ss2,0|s2,0|s2/other.txt,34'
         assert expect == listDirectoryToString(dest)
 
-    def test_excludes(self, fixture_dir):
+    def test_winExcludes(self, fixture_dir):
         # create a modified dir
         src = join(fixture_dir, 'src')
         restoreDirectoryContents(src)
@@ -640,8 +640,37 @@ class TestRunRSync(object):
         assert expect == listDirectoryToString(src)
 
         # run rsync with exclusions
-        runRsync(src, dest, deleteExisting=True, excludeFilesRel=['a1.txt', 'newfile', 'other.txt'], excludeDirsRel=['ss1'])
-        expect = 'P1.PNG,15|a1.txt,15|a2.txt,15|s1,0|s1/ss1,0|s1/ss1/file.txt,17|s1/ss2,0|s2,0|s2/other.txt,18'
+        if sys.platform.startswith('win'):
+            runRsync(src, dest, deleteExisting=True, winExcludeFiles=['a1.txt', 'newfile', 'other.txt'], winExcludeDirs=['ss1'])
+            expect = 'P1.PNG,15|a1.txt,15|a2.txt,15|s1,0|s1/ss1,0|s1/ss1/file.txt,17|s1/ss2,0|s2,0|s2/other.txt,18'
+            assert expect == listDirectoryToString(dest)
+
+    def test_dirExcludes(self, fixture_dir):
+        src = join(fixture_dir, 'src')
+        restoreDirectoryContents(src)
+        dest = join(fixture_dir, 'dest')
+        restoreDirectoryContents(dest)
+
+        # modify a file
+        writeall(join(src, 'a2png'), 'mm')
+
+        # add ignored files
+        makedirs(join(src, 'ignorethis'))
+        writeall(join(src, 'ignorethis', 'a.txt'), 't1')
+        writeall(join(src, 'ignorethis', 'b.txt'), 't2')
+        writeall(join(src, 'ign.txt'), 't')
+        expect = 'P1.PNG,15|a1.txt,15|a2png,14|s1,0|s1/ss1,0|s1/ss1/file.txt,17|s1/ss2,0|s2,0|s2/other.txt,18'
+        assert expect == listDirectoryToString(dest)
+        expect = 'P1.PNG,15|a1.txt,15|a2png,2|ign.txt,1|ignorethis,0|ignorethis/a.txt,2|ignorethis/b.txt,2|' + \
+            's1,0|s1/ss1,0|s1/ss1/file.txt,17|s1/ss2,0|s2,0|s2/other.txt,18'
+        assert expect == listDirectoryToString(src)
+
+        # run rsync with exclusions
+        if sys.platform.startswith('win'):
+            runRsync(src, dest, deleteExisting=True, winExcludeFiles=['ign.txt'], winExcludeDirs=['ignorethis'])
+        else:
+            runRsync(src, dest, deleteExisting=True, linExcludeRelative=['ign.txt', 'ignorethis'])
+        expect = 'P1.PNG,15|a1.txt,15|a2png,2|s1,0|s1/ss1,0|s1/ss1/file.txt,17|s1/ss2,0|s2,0|s2/other.txt,18'
         assert expect == listDirectoryToString(dest)
 
     def test_expectFailure(self, fixture_dir):

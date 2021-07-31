@@ -178,7 +178,7 @@ def gitpTop_SlowCopyToAltRepo():
     dest = dest if dest else defaultDest
     if not files.exists(dest) and getInputBool('create dest directory?'):
         files.makedirs(dest)
-    files.runRsync(src, dest, deleteExisting=True, excludeDirsRel=[
+    files.runRsync(src, dest, deleteExisting=True, linExcludeRelative=[
         '.git', 'node_modules', 'dist'
     ])
 

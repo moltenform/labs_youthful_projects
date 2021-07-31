@@ -622,13 +622,14 @@ def windowsUrlFileWrite(path, url):
     s += 'URL=%s\n' % url
     writeall(path, s)
 
-def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsRel=None,
-        excludeFilesAbs=None, excludeDirsAbs=None,
-        excludeFilesWithName=None, excludeDirsWithName=None,
+def runRsync(srcDir, destDir, deleteExisting,
+        winExcludeFiles=None, winExcludeDirs=None,
+        linExcludeRelative=None, linExcludeWithName=None,
         throwOnFailure=True, checkExist=True):
-    # excludeFilesRel: relative paths to file (or a pattern matching files)
-    # excludeFilesAbs: absolute paths to file (or a pattern matching files)
-    # excludeFilesWithName: exclude files with this name, regardless of dir
+    # Specifying exclusions is complicated.
+    # There's absolute paths, relative paths, glob patterns,
+    # and "by name" (should "/XF foo.txt" also exclude "dir/subdir/foo.txt"?)
+    # For now, separate based on platform.
     emptyIfNone = lambda lst: list(lst) if lst else []
     if checkExist:
         assertTrue(isdir(srcDir), "not a dir", srcDir)
@@ -647,13 +648,13 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
         if deleteExisting:
             args.append('/MIR')
         args.append('/E')  # copy all, including empty dirs
-        for ex in emptyIfNone(excludeFilesRel) + emptyIfNone(excludeFilesAbs):
+        for ex in emptyIfNone(winExcludeFiles):
             args.append('/XF')
             args.append(ex)
-        for ex in emptyIfNone(excludeDirsRel) + emptyIfNone(excludeDirsAbs):
+        for ex in emptyIfNone(winExcludeDirs):
             args.append('/XD')
             args.append(ex)
-        assertTrue(not excludeFilesWithName and not excludeDirsWithName, "Not supported")
+        assertTrue(not linExcludeRelative and not linExcludeWithName, "Not supported")
     else:
         bin = '/usr/local/bin/rsync' if isfile('/usr/local/bin/rsync') else 'rsync'
         args.append(bin)
@@ -663,14 +664,14 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
             srcDir += '/'
         if deleteExisting:
             args.append('--delete-after')
-        for ex in emptyIfNone(excludeFilesRel) + emptyIfNone(excludeDirsRel):
+        for ex in emptyIfNone(linExcludeRelative):
             assertTrue(not _os.path.isabs(ex), ex)
             args.append('--exclude=/' + ex)
-        for ex in emptyIfNone(excludeFilesWithName) + emptyIfNone(excludeDirsWithName):
+        for ex in emptyIfNone(linExcludeWithName):
             assertTrue(not _os.path.isabs(ex), ex)
             args.append('--exclude=' + ex)
 
-        assertTrue(not excludeFilesAbs and not excludeDirsAbs, "Not supported")
+        assertTrue(not winExcludeFiles and not winExcludeDirs, "Not supported")
         args.append(srcDir)
         args.append(destDir)
 
