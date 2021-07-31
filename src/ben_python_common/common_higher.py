@@ -374,7 +374,7 @@ class CheckedConfigParserKeySchema(object):
         self.fallback = fallback
         self.min = min
         self.max = max
-        self.knownTypes=dict(
+        self.knownTypes = dict(
             str='Expected a string',
             int='Expected an integer number',
             float='Expected a floating point number',
@@ -433,22 +433,22 @@ def checkedConfigParserPath(path, **kwargs):
 
 # wrapper around ConfigParser that 1) doesn't need main section 2) validates schema 3) has better defaults.
 def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsertDefaultSection=True,
-    interpolation=None, allowNewLinesInValues=True, delimiters='='):
+        interpolation=None, allowNewLinesInValues=True, delimiters='='):
     assertTrue(False, 'feature is still under development')
     assertTrue(isPy3OrNewer, 'Py2 not supported, it might have different behavior in ConfigParser')
     from configparser import ConfigParser
     expectSection = '[' + defaultSectionName + ']\n'
     if not (text.startswith(expectSection) or ('\n' + expectSection) in text):
         text = expectSection + text
-    
+
     ret = Bucket()
     p = ConfigParser(strict=True, allowNewLinesInValues=True, interpolation=interpolation, delimiters=delimiters)
-    p.optionxform = str # make it case-sensitive, rather than the default case-insensitive
+    p.optionxform = str  # make it case-sensitive, rather than the default case-insensitive
     p.read_string(text)
-    
+
     if not schema:
         schema = CheckedConfigParserSchema([], allowExtraSections=True)
-    
+
     # add all fallback values for all sections
     for section in schema.sections:
         fakeSection = Bucket()
@@ -456,7 +456,7 @@ def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsert
         for key in section.entries:
             if key.fallback:
                 fakeSection[key.identifier] = key.fallback
-    
+
     # go through each section
     sawSection = [False] * len(schema.sections)
     for sectionName in p.sections():
@@ -474,12 +474,12 @@ def checkedConfigParser(text, schema=None, defaultSectionName='main', autoInsert
             ret[sectionName] = Bucket()
 
         _processSection(p, sectionName, sectionSpec, ret[sectionName])
-    
+
     # check for missing sections
     for i, val in enumerate(sawSection):
         if not val and not schema.sections[i].optional:
             raise CheckedConfigParserException("Did not see section %s" % schema.sections[i].identifier)
-    
+
     return ret
 
 def _processSection(p, sectionName, sectionSpec, ret):
@@ -498,9 +498,8 @@ def _processSection(p, sectionName, sectionSpec, ret):
             subcontext = "%s for key %s" % (sContext, keyName)
             keySpec = sectionSpec.entries[iKey]
             ret[keyName] = keySpec.parseInput(val, subcontext)
-    
+
     # check for missing keys
     for i, val in enumerate(sawKey):
         if not val and not sectionSpec.entries[i].fallback:
             raise CheckedConfigParserException("%s missing key %s" % (sContext, sectionSpec.entries[i].identifier))
-

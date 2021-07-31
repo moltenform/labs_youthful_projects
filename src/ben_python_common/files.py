@@ -51,7 +51,7 @@ def deletesure(s, traceToStdout=False):
     if exists(s):
         delete(s, traceToStdout)
     assertTrue(not exists(s))
-    
+
 def makedirs(s):
     try:
         _os.makedirs(s)
@@ -665,7 +665,7 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
             args.append('--delete-after')
         for ex in emptyIfNone(excludeFilesRel) + emptyIfNone(excludeDirsRel):
             assertTrue(not _os.path.isabs(ex), ex)
-            args.append('--exclude=/'+ ex)
+            args.append('--exclude=/' + ex)
         for ex in emptyIfNone(excludeFilesWithName) + emptyIfNone(excludeDirsWithName):
             assertTrue(not _os.path.isabs(ex), ex)
             args.append('--exclude=' + ex)
@@ -673,7 +673,7 @@ def runRsync(srcDir, destDir, deleteExisting, excludeFilesRel=None, excludeDirsR
         assertTrue(not excludeFilesAbs and not excludeDirsAbs, "Not yet supported")
         args.append(srcDir)
         args.append(destDir)
-    
+
     retcode, stdout, stderr = run(args, throwOnFailure=False)
     isOk, status = runRsyncErrMap(retcode)
     if throwOnFailure and not isOk:

@@ -395,13 +395,13 @@ class TestDirectoryList(object):
         # filter out nearly everything
         def filter(p):
             return getname(p) != 'foobar'
-        assert 'r3.txt' == listDirectoryToStringFileInfo(fixture_dir_with_many, True, {'fnFilterDirs': filter })
-        assert 'r3.txt' == listDirectoryToStringFileInfo(fixture_dir_with_many, False, {'fnFilterDirs': filter })
+        assert 'r3.txt' == listDirectoryToStringFileInfo(fixture_dir_with_many, True, {'fnFilterDirs': filter})
+        assert 'r3.txt' == listDirectoryToStringFileInfo(fixture_dir_with_many, False, {'fnFilterDirs': filter})
 
         # intentionally can't filter out root dir
         expected = 'a/baz/aa.txt|a/baz/bb.txt|a/baz/zz.txt|a/r1.txt|r2.txt'
-        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many + '/foobar', True, {'fnFilterDirs': filter })
-        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many + '/foobar', False, {'fnFilterDirs': filter })
+        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many + '/foobar', True, {'fnFilterDirs': filter})
+        assert expected == listDirectoryToStringFileInfo(fixture_dir_with_many + '/foobar', False, {'fnFilterDirs': filter})
 
     def test_checkNamedParameters(self, fixture_dir):
         with pytest.raises(ValueError) as exc:
@@ -853,16 +853,16 @@ def fixture_dir_with_many():
     basedir = ustr(basedir)
     ensureEmptyDirectory(basedir)
     lst = [
-        'foobar/a/foobar/a.txt', 
-        'foobar/a/foobar/b.txt', 
-        'foobar/a/foobar/c/c0.txt', 
-        'foobar/a/foobar/c/c1.txt', 
-        'foobar/a/baz/aa.txt', 
-        'foobar/a/baz/bb.txt', 
-        'foobar/a/baz/foobar/cc.txt', 
-        'foobar/a/baz/zz.txt', 
-        'foobar/a/r1.txt', 
-        'foobar/foobar/cc.txt', 
+        'foobar/a/foobar/a.txt',
+        'foobar/a/foobar/b.txt',
+        'foobar/a/foobar/c/c0.txt',
+        'foobar/a/foobar/c/c1.txt',
+        'foobar/a/baz/aa.txt',
+        'foobar/a/baz/bb.txt',
+        'foobar/a/baz/foobar/cc.txt',
+        'foobar/a/baz/zz.txt',
+        'foobar/a/r1.txt',
+        'foobar/foobar/cc.txt',
         'foobar/r2.txt',
         'r3.txt'
     ]
@@ -870,7 +870,7 @@ def fixture_dir_with_many():
         fullpath = os.path.join(basedir, item)
         makedirs(getparent(fullpath))
         writeall(fullpath, 'test')
-        
+
     yield basedir
     ensureEmptyDirectory(basedir)
 

@@ -91,9 +91,9 @@ class TestStringHelpersSimple(object):
         else:
             test = 'a\n?b\\c/d\\e/f'
             expect = 'a b\\c-d\\e-f'
-            
+
         assert expect == toValidFilename(test, dirsepOk=True)
-        
+
     def test_toValidFilenameAndKeepSepsWithSpaces(self):
         if os.path.sep == '/':
             test = 'a\n?b\\ c/ d\\ e/ f'
@@ -101,7 +101,7 @@ class TestStringHelpersSimple(object):
         else:
             test = 'a\n?b\\ c/ d\\ e/ f'
             expect = 'a b\\ c, d\\ e, f'
-            
+
         assert expect == toValidFilename(test, dirsepOk=True)
 
     # stripHtmlTags

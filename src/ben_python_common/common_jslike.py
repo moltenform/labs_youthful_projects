@@ -60,6 +60,7 @@ def times(n, fn):
     # return a list with n items, values from calling fn
     return [fn() for _ in range(n)]
 
+
 notProvided = object()
 
 def reduce(lst, fn, initialVal=notProvided):
