@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SyncConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <m_src>chg1</m_src>
+  <m_destination>chg2</m_destination>
+  <m_excludeDirs>chg3</m_excludeDirs>
+  <m_excludeFiles>chg4</m_excludeFiles>
+  <m_mirror>true</m_mirror>
+  <m_copySubDirsAndEmptySubdirs>false</m_copySubDirsAndEmptySubdirs>
+  <m_copyFlags>#1</m_copyFlags>
+  <m_directoryCopyFlags>#2</m_directoryCopyFlags>
+  <m_ipg>#3</m_ipg>
+  <m_nRetries>#4</m_nRetries>
+  <m_waitBetweenRetries>#5</m_waitBetweenRetries>
+  <m_nThreads>#6</m_nThreads>
+  <m_custom>#7</m_custom>
+  <m_symlinkNotTarget>true</m_symlinkNotTarget>
+  <m_fatTimes>false</m_fatTimes>
+  <m_compensateDst>true</m_compensateDst>
+  <m_isDeleteDuplicates>false</m_isDeleteDuplicates>
+</SyncConfiguration>
