@@ -1,7 +1,11 @@
 # BenPythonCommon,
 # 2020 Ben Fisher, released under the GPLv3 license.
 
-import builtins
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
+
 from .common_util import *
 
 # array methods
