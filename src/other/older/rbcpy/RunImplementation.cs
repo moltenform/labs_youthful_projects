@@ -51,16 +51,16 @@ namespace rbcpy
 
 
         static void RunExeWithArguments(string sExe, string args, bool createWindow, bool waitForExit)
-		{
-			Process process = new Process();
+        {
+            Process process = new Process();
             process.StartInfo.CreateNoWindow = !createWindow;
-			process.StartInfo.UseShellExecute = false;
-			process.StartInfo.FileName = sExe;
-			process.StartInfo.Arguments = args;
-			process.Start();
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.FileName = sExe;
+            process.StartInfo.Arguments = args;
+            process.Start();
             if (waitForExit)
-			    process.WaitForExit();
-		}
+                process.WaitForExit();
+        }
         
         internal static string[] getLines(string slines)
         {
