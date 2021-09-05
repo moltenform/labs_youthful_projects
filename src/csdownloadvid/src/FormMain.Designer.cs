@@ -37,9 +37,9 @@ namespace CsDownloadVid
             this.audioFromVideoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitMediaIntoPartsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinTwoVideosLosslessToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuEncodeCustom = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.helpAndTutorialsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuEncodeCustom = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -111,6 +111,13 @@ namespace CsDownloadVid
             this.joinTwoVideosLosslessToolStripMenuItem.Text = "Join the pieces of a video or a song (Lossless)...";
             this.joinTwoVideosLosslessToolStripMenuItem.Click += new System.EventHandler(this.mnuOpenFormMediaJoin_Click);
             // 
+            // mnuEncodeCustom
+            // 
+            this.mnuEncodeCustom.Name = "mnuEncodeCustom";
+            this.mnuEncodeCustom.Size = new System.Drawing.Size(401, 26);
+            this.mnuEncodeCustom.Text = "Encode video or audio...";
+            this.mnuEncodeCustom.Click += new System.EventHandler(this.mnuEncodeCustom_Click);
+            // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
@@ -123,13 +130,6 @@ namespace CsDownloadVid
             this.helpAndTutorialsToolStripMenuItem.Text = "Online info and tutorials...";
             this.helpAndTutorialsToolStripMenuItem.Click += new System.EventHandler(this.mnuOpenHelpWebsite_Click);
             // 
-            // mnuEncodeCustom
-            // 
-            this.mnuEncodeCustom.Name = "mnuEncodeCustom";
-            this.mnuEncodeCustom.Size = new System.Drawing.Size(401, 26);
-            this.mnuEncodeCustom.Text = "Encode video or audio...";
-            this.mnuEncodeCustom.Click += new System.EventHandler(this.mnuEncodeCustom_Click);
-            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -137,8 +137,9 @@ namespace CsDownloadVid
             this.ClientSize = new System.Drawing.Size(581, 325);
             this.Controls.Add(this.lblMain);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FormMain";
             this.Text = "CsDownloadVid";
             this.menuStrip1.ResumeLayout(false);
