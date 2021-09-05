@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace rbcpy
@@ -16,7 +11,6 @@ namespace rbcpy
     public partial class FormSyncMain : Form
     {
         RbcpyGlobalSettings m_globalSettings = new RbcpyGlobalSettings();
-        
         Dictionary<string, TextBox> m_mapTextItems;
         Dictionary<string, CheckBox> m_mapCheckItems;
         RunSyncOnBackgroundThread m_runner;
@@ -60,57 +54,6 @@ namespace rbcpy
             }
         }
 
-        private SyncConfiguration GetCurrentConfigFromUI()
-        {
-            SyncConfiguration config = new SyncConfiguration();
-            Type type = config.GetType();
-            FieldInfo[] properties = type.GetFields();
-
-            foreach (FieldInfo property in properties)
-            {
-                if (property.Name.StartsWith("m_"))
-                {
-                    if (m_mapTextItems.ContainsKey(property.Name))
-                    {
-                        property.SetValue(config, m_mapTextItems[property.Name].Text);
-                    }
-                    else if (m_mapCheckItems.ContainsKey(property.Name))
-                    {
-                        property.SetValue(config, m_mapCheckItems[property.Name].Checked);
-                    }
-                    else
-                    {
-                        MessageBox.Show("unknown property:" + property.Name);
-                    }
-                }
-            }
-            return config;
-        }
-        private void SetCurrentConfigToUI(SyncConfiguration config)
-        {
-            Type type = config.GetType();
-            FieldInfo[] properties = type.GetFields();
-            foreach (FieldInfo property in properties)
-            {
-                if (property.Name.StartsWith("m_"))
-                {
-                    if (m_mapTextItems.ContainsKey(property.Name))
-                    {
-                        m_mapTextItems[property.Name].Text = (string)property.GetValue(config);
-                    }
-                    else if (m_mapCheckItems.ContainsKey(property.Name))
-                    {
-                        m_mapCheckItems[property.Name].Checked = (bool)property.GetValue(config);
-                    }
-                    else
-                    {
-                        MessageBox.Show("unknown property:" + property.Name);
-                    }
-                }
-            }
-        }
-        
-
         private void chkAdvanced_CheckedChanged(object sender, EventArgs e)
         {
             panelAdvancedSettings.Visible = (sender as CheckBox).Checked;
@@ -128,6 +71,7 @@ namespace rbcpy
                 saved.m_filename = file.Replace("configs\\", "").Replace("configs/", "").Replace(".xml", "");
                 this.listBoxConfigs.Items.Add(saved);
             }
+
             this.listBoxConfigs.Items.Add(new SavedConfigForListbox());
             listBoxConfigs_SelectedIndexChanged(null, null);
         }
@@ -153,14 +97,16 @@ namespace rbcpy
                 mnuSaveAs_Click(null, null);
                 return;
             }
+
             var newFilename = "configs/" + currentName + ".xml";
             SyncConfiguration.Serialize(this.GetCurrentConfigFromUI(), newFilename);
             MessageBox.Show("Saved.");
         }
+
         private void mnuSaveAs_Click(object sender, EventArgs e)
         {
             var currentName = GetCurrentConfigName();
-            currentName = currentName!=null ? "" : currentName;
+            currentName = currentName != null ? "" : currentName;
             var sNewName = InputBoxForm.GetStrInput("Choose a name:", currentName);
             if (sNewName == null) return;
             if (sNewName.Contains("\\") || sNewName.Contains("/") || sNewName.Contains("."))
@@ -168,17 +114,19 @@ namespace rbcpy
                 MessageBox.Show("Invalid character in name.");
                 return;
             }
+
             var newFilename = "configs/" + sNewName + ".xml";
             if (File.Exists(newFilename))
             {
                 MessageBox.Show("A configuration already exists with this name.");
                 return;
             }
+            
             SyncConfiguration.Serialize(this.GetCurrentConfigFromUI(), newFilename);
             this.CreateSyncMain_Load(null, null);
 
             var justName = Path.GetFileNameWithoutExtension(newFilename);
-            foreach(var item in listBoxConfigs.Items)
+            foreach (var item in listBoxConfigs.Items)
             {
                 if ((item as SavedConfigForListbox).m_filename == justName)
                 {
@@ -212,11 +160,15 @@ namespace rbcpy
         private string GetCurrentConfigName()
         {
             if (this.listBoxConfigs.SelectedItem == null)
+            {
                 return null;
+            }
 
             var selectedItem = this.listBoxConfigs.SelectedItem as SavedConfigForListbox;
             if (selectedItem == null || selectedItem.m_filename == null)
+            {
                 return null;
+            }
 
             return selectedItem.m_filename;
         }
@@ -232,18 +184,22 @@ namespace rbcpy
         {
             OnTextFieldChange(sender as TextBox, this.txtSrcShowValid);
         }
+
         private void txtDest_TextChanged(object sender, EventArgs e)
         {
             OnTextFieldChange(sender as TextBox, this.txtDestShowValid);
         }
-        
 
         private void OnTextFieldChange(TextBox textBox, Label label)
         {
-            if (Directory.Exists(textBox.Text))
+            if (Directory.Exists(textBox.Text)) 
+            {
                 label.Text = "✓";
+            }
             else
+            {
                 label.Text = "X";
+            }
         }
 
         private void btnPreviewRun_Click(object sender, EventArgs e)
@@ -257,6 +213,7 @@ namespace rbcpy
                 config = config,
                 preview = true
             };
+
             m_runner.Run();
         }
 
@@ -290,26 +247,79 @@ namespace rbcpy
             RunImplementation.OpenWinmerge(m_globalSettings.m_winMergeDir, config.m_src, config.m_destination, true);
         }
 
+        private SyncConfiguration GetCurrentConfigFromUI()
+        {
+            SyncConfiguration config = new SyncConfiguration();
+            Type type = config.GetType();
+            FieldInfo[] properties = type.GetFields();
+
+            foreach (FieldInfo property in properties)
+            {
+                if (property.Name.StartsWith("m_"))
+                {
+                    if (m_mapTextItems.ContainsKey(property.Name))
+                    {
+                        property.SetValue(config, m_mapTextItems[property.Name].Text);
+                    }
+                    else if (m_mapCheckItems.ContainsKey(property.Name))
+                    {
+                        property.SetValue(config, m_mapCheckItems[property.Name].Checked);
+                    }
+                    else
+                    {
+                        MessageBox.Show("unknown property:" + property.Name);
+                    }
+                }
+            }
+
+            return config;
+        }
+
+        private void SetCurrentConfigToUI(SyncConfiguration config)
+        {
+            Type type = config.GetType();
+            FieldInfo[] properties = type.GetFields();
+            foreach (FieldInfo property in properties)
+            {
+                if (property.Name.StartsWith("m_"))
+                {
+                    if (m_mapTextItems.ContainsKey(property.Name))
+                    {
+                        m_mapTextItems[property.Name].Text = (string)property.GetValue(config);
+                    }
+                    else if (m_mapCheckItems.ContainsKey(property.Name))
+                    {
+                        m_mapCheckItems[property.Name].Checked = (bool)property.GetValue(config);
+                    }
+                    else
+                    {
+                        MessageBox.Show("unknown property:" + property.Name);
+                    }
+                }
+            }
+        }
+
         static void Test_CheckUIElements(SyncConfiguration config, FormSyncMain form)
         {
-            Testing.AssertEqual(config.m_src, form.txtSrc.Text);
-            Testing.AssertEqual(config.m_destination, form.txtDest.Text);
-            Testing.AssertEqual(config.m_excludeDirs, form.txtExcludeDirs.Text);
-            Testing.AssertEqual(config.m_excludeFiles, form.txtExcludeFiles.Text);
-            Testing.AssertEqual(config.m_copyFlags, form.txtCopyFlags.Text);
-            Testing.AssertEqual(config.m_directoryCopyFlags, form.txtDirCopyFlags.Text);
-            Testing.AssertEqual(config.m_ipg, form.txtIpg.Text);
-            Testing.AssertEqual(config.m_nRetries, form.txtnRetries.Text);
-            Testing.AssertEqual(config.m_waitBetweenRetries, form.txtnWaitBetweenRetries.Text);
-            Testing.AssertEqual(config.m_nThreads, form.txtnThreads.Text);
-            Testing.AssertEqual(config.m_custom, form.txtCustom.Text);
+            Utils.AssertEq(config.m_src, form.txtSrc.Text);
+            Utils.AssertEq(config.m_destination, form.txtDest.Text);
+            Utils.AssertEq(config.m_excludeDirs, form.txtExcludeDirs.Text);
+            Utils.AssertEq(config.m_excludeFiles, form.txtExcludeFiles.Text);
+            Utils.AssertEq(config.m_copyFlags, form.txtCopyFlags.Text);
+            Utils.AssertEq(config.m_directoryCopyFlags, form.txtDirCopyFlags.Text);
+            Utils.AssertEq(config.m_ipg, form.txtIpg.Text);
+            Utils.AssertEq(config.m_nRetries, form.txtnRetries.Text);
+            Utils.AssertEq(config.m_waitBetweenRetries, form.txtnWaitBetweenRetries.Text);
+            Utils.AssertEq(config.m_nThreads, form.txtnThreads.Text);
+            Utils.AssertEq(config.m_custom, form.txtCustom.Text);
 
-            Testing.AssertEqual(config.m_mirror, form.chkMirror.Checked);
-            Testing.AssertEqual(config.m_copySubDirsAndEmptySubdirs, form.chkCopySubdirs.Checked);
-            Testing.AssertEqual(config.m_symlinkNotTarget, form.chkSymlinkNotTarget.Checked);
-            Testing.AssertEqual(config.m_fatTimes, form.chkFatTimes.Checked);
-            Testing.AssertEqual(config.m_compensateDst, form.chkCompensateDST.Checked);
+            Utils.AssertEq(config.m_mirror, form.chkMirror.Checked);
+            Utils.AssertEq(config.m_copySubDirsAndEmptySubdirs, form.chkCopySubdirs.Checked);
+            Utils.AssertEq(config.m_symlinkNotTarget, form.chkSymlinkNotTarget.Checked);
+            Utils.AssertEq(config.m_fatTimes, form.chkFatTimes.Checked);
+            Utils.AssertEq(config.m_compensateDst, form.chkCompensateDST.Checked);
         }
+
         static void Test_SetUIElements(SyncConfiguration config, FormSyncMain form)
         {
             form.txtSrc.Text = config.m_src;
@@ -330,6 +340,7 @@ namespace rbcpy
             form.chkFatTimes.Checked = config.m_fatTimes;
             form.chkCompensateDST.Checked = config.m_compensateDst;
         }
+
         static void Test_CheckUIElementsAfterLoad(FormSyncMain form)
         {
             var prevConfig = form.GetCurrentConfigFromUI();
@@ -341,6 +352,7 @@ namespace rbcpy
             Test_CheckUIElements(config2, form);
             form.SetCurrentConfigToUI(prevConfig);
         }
+
         static void Test_SaveFromUIElements(FormSyncMain form)
         {
             var prevConfig = form.GetCurrentConfigFromUI();
@@ -366,6 +378,7 @@ namespace rbcpy
                 MessageBox.Show("Directory does not exist");
                 return;
             }
+
             if (sNewName != null)
             {
                 this.m_globalSettings.m_directoryForDeletedFiles = sNewName;
@@ -448,7 +461,7 @@ namespace rbcpy
         public string m_filename;
         public override string ToString()
         {
-            return m_filename!=null ? m_filename : "<New>";
+            return m_filename != null ? m_filename : "<New>";
         }
     }
 
@@ -464,7 +477,9 @@ namespace rbcpy
         public void Run()
         {
             if (!SyncConfiguration.Validate(config))
+            {
                 return;
+            }
 
             btnToTemporarilyDisable.Text = "Running...";
             btnToTemporarilyDisable.Enabled = false;
@@ -478,19 +493,28 @@ namespace rbcpy
             {
                 if (config.m_isDeleteDuplicates && preview)
                 {
-                    if (duplicatesFoundPreviously != null) MessageBox.Show("why is duplicatesFoundPreviously not null?");
+                    if (duplicatesFoundPreviously != null)
+                    {
+                        MessageBox.Show("why is duplicatesFoundPreviously not null?");
+                    }
+
                     results = RunDelDupes.Run(config);
                 }
                 else if (config.m_isDeleteDuplicates && !preview)
                 {
-                    if (duplicatesFoundPreviously == null) MessageBox.Show("why is duplicatesFoundPreviously null?");
+                    if (duplicatesFoundPreviously == null)
+                    {
+                        MessageBox.Show("why is duplicatesFoundPreviously null?");
+                    }
+
                     results = RunDelDupes.ExecuteResultsSet(duplicatesFoundPreviously);
                 }
                 else
                 {
                     string sLogFilename = RunImplementation.GetLogFilename();
                     RunImplementation.Go(config, sLogFilename, preview, false);
-                    results = CCreateSyncResultsSet.ParseFromLogFile(config, sLogFilename, preview);
+                    results = CCreateSyncResultsSet.ParseFromLogFile(
+                        config, sLogFilename, preview);
                 }
             }
             catch (Exception e)
@@ -507,7 +531,7 @@ namespace rbcpy
             btnToTemporarilyDisable.Enabled = true;
             if (sExceptionOccurred != null)
             {
-                MessageBox.Show("Exception: "+sExceptionOccurred);
+                MessageBox.Show("Exception: " + sExceptionOccurred);
             }
             if (results != null)
             {

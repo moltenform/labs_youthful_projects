@@ -9,56 +9,27 @@ namespace rbcpy
 {
     public static class RbcpyTests
     {
-        static void TestMethod_Asserts_EqualIntsShouldCompareEqual()
-        {
-            Testing.AssertEqual(1, 1);
-        }
-        static void TestMethod_Asserts_EqualStringsShouldCompareEqual()
-        {
-            Testing.AssertEqual("abcd", "abcd");
-        }
-        static void TestMethod_Asserts_EqualBoolsShouldCompareEqual()
-        {
-            Testing.AssertEqual(true, true);
-            Testing.AssertEqual(false, false);
-        }
-        static void TestMethod_Asserts_CheckAssertMessage()
-        {
-            Action fn = delegate() { throw new RbcpyTestException("test123"); };
-            Testing.AssertExceptionMessageIncludes(fn, "test123");
-        }
-        static void TestMethod_Asserts_NonEqualIntsShouldCompareNonEqual()
-        {
-            Testing.AssertExceptionMessageIncludes(() => Testing.AssertEqual(1, 2), "expected 1 but got 2");
-        }
-        static void TestMethod_Asserts_NonEqualStrsShouldCompareNonEqual()
-        {
-            Testing.AssertExceptionMessageIncludes(() => Testing.AssertEqual("abcd", "abce"), "expected abcd but got abce");
-        }
-        static void TestMethod_Asserts_NonEqualBoolsShouldCompareNonEqual()
-        {
-            Testing.AssertExceptionMessageIncludes(() => Testing.AssertEqual(true, false), "expected True but got False");
-        }
         static void TestMethod_SyncConfiguration_Deserialize()
         {
             var config = SyncConfiguration.Deserialize(Testing.GetTestFile("test_cfg_01.xml"));
-            Testing.AssertEqual(config.m_src, "chg1");
-            Testing.AssertEqual(config.m_destination, "chg2");
-            Testing.AssertEqual(config.m_excludeDirs, "chg3");
-            Testing.AssertEqual(config.m_excludeFiles, "chg4");
-            Testing.AssertEqual(config.m_mirror, true);
-            Testing.AssertEqual(config.m_copySubDirsAndEmptySubdirs, false);
-            Testing.AssertEqual(config.m_copyFlags, "#1");
-            Testing.AssertEqual(config.m_directoryCopyFlags, "#2");
-            Testing.AssertEqual(config.m_ipg, "#3");
-            Testing.AssertEqual(config.m_nRetries, "#4");
-            Testing.AssertEqual(config.m_waitBetweenRetries, "#5");
-            Testing.AssertEqual(config.m_nThreads, "#6");
-            Testing.AssertEqual(config.m_custom, "#7");
-            Testing.AssertEqual(config.m_symlinkNotTarget, true);
-            Testing.AssertEqual(config.m_fatTimes, false);
-            Testing.AssertEqual(config.m_compensateDst, true);
+            Utils.AssertEq(config.m_src, "chg1");
+            Utils.AssertEq(config.m_destination, "chg2");
+            Utils.AssertEq(config.m_excludeDirs, "chg3");
+            Utils.AssertEq(config.m_excludeFiles, "chg4");
+            Utils.AssertEq(config.m_mirror, true);
+            Utils.AssertEq(config.m_copySubDirsAndEmptySubdirs, false);
+            Utils.AssertEq(config.m_copyFlags, "#1");
+            Utils.AssertEq(config.m_directoryCopyFlags, "#2");
+            Utils.AssertEq(config.m_ipg, "#3");
+            Utils.AssertEq(config.m_nRetries, "#4");
+            Utils.AssertEq(config.m_waitBetweenRetries, "#5");
+            Utils.AssertEq(config.m_nThreads, "#6");
+            Utils.AssertEq(config.m_custom, "#7");
+            Utils.AssertEq(config.m_symlinkNotTarget, true);
+            Utils.AssertEq(config.m_fatTimes, false);
+            Utils.AssertEq(config.m_compensateDst, true);
         }
+
         static void TestMethod_SyncConfiguration_Serialize()
         {
             var config = new SyncConfiguration();
@@ -85,8 +56,9 @@ namespace rbcpy
             sGot = sGot.Replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"");
             sExpected = sExpected.Replace("\r", "").Replace("\n", "").Replace("  <", "<");
             sGot = sGot.Replace("\r", "").Replace("\n", "").Replace("  <", "<");
-            Testing.AssertEqual(sExpected, sGot);
+            Utils.AssertEq(sExpected, sGot);
         }
+
         static SyncConfiguration GetValidConfig()
         {
             var config = new SyncConfiguration();
@@ -94,87 +66,99 @@ namespace rbcpy
             config.m_destination = Testing.GetTestDirectory() + "\\testsync\\dest";
             return config;
         }
+
         static void TestMethod_ValidationShouldSucceed()
         {
-            Testing.AssertEqual(true, SyncConfiguration.Validate(GetValidConfig()));
+            Utils.AssertEq(true, SyncConfiguration.Validate(GetValidConfig()));
         }
+
         static void TestMethod_ValidationShouldFailBadSrc()
         {
             // make it not validate
             var config = GetValidConfig();
             config.m_src = "notexist";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationShouldFailBadDestination()
         {
             // make it not validate
             var config = GetValidConfig();
             config.m_destination = "notexist";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationShouldFailSrcEndsWithSlash()
         {
             var config = GetValidConfig();
             config.m_src += "\\";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationShouldFailDestEndsWithSlash()
         {
             var config = GetValidConfig();
             config.m_destination += "\\";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationShouldFailIfIntersection1()
         {
             var config = GetValidConfig();
             config.m_src = Testing.GetTestDirectory() + "\\testsync\\src";
             config.m_destination = Testing.GetTestDirectory() + "\\TestSync";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationShouldFailIfIntersection2()
         {
             var config = GetValidConfig();
             config.m_src = Testing.GetTestDirectory() + "\\testSync";
             config.m_destination = Testing.GetTestDirectory() + "\\testsync\\dest";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationNThreadsShouldBeInt()
         {
             // make it not validate
             var config = GetValidConfig();
             config.m_nThreads = "4a";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
             config.m_nThreads = "5";
-            Testing.AssertEqual(true, SyncConfiguration.Validate(config));
+            Utils.AssertEq(true, SyncConfiguration.Validate(config));
             config.m_nRetries = "6a";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
             config.m_nRetries = "7";
-            Testing.AssertEqual(true, SyncConfiguration.Validate(config));
+            Utils.AssertEq(true, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_ValidationQuotesAreDisallowed()
         {
             var config = GetValidConfig();
             config.m_copyFlags = "with\"quote";
-            Testing.AssertEqual(false, SyncConfiguration.Validate(config));
+            Utils.AssertEq(false, SyncConfiguration.Validate(config));
             config.m_copyFlags = "without quote";
-            Testing.AssertEqual(true, SyncConfiguration.Validate(config));
+            Utils.AssertEq(true, SyncConfiguration.Validate(config));
             config.m_custom = "ok to have with\"quote";
-            Testing.AssertEqual(true, SyncConfiguration.Validate(config));
+            Utils.AssertEq(true, SyncConfiguration.Validate(config));
         }
+
         static void TestMethod_GetCommandLineParameters01()
         {
             var config = SyncConfiguration.Deserialize(Testing.GetTestFile("test_cfg_01.xml"));
             var sArguments = RunImplementation.GetCommandLineArgs(config);
             var sExpected = " \"chg1\" \"chg2\"  /XD \"chg3\"  /XF \"chg4\"  /MIR  /COPY:#1  /DCOPY:#2  /IPG:#3  /R:#4  /W:#5  /MT:#6  #7  /SL  /DST ";
-            Testing.AssertEqual(sExpected, sArguments);
+            Utils.AssertEq(sExpected, sArguments);
         }
+
         static void TestMethod_GetCommandLineParameters02()
         {
             var config = SyncConfiguration.Deserialize(Testing.GetTestFile("test_cfg_02.xml"));
             var sArguments = RunImplementation.GetCommandLineArgs(config);
             var sExpected = " \"chg8\" \"chg9\"  /XD \"chg10\"  /XF \"chg11\"  /E  /COPY:#1@  /DCOPY:#2@  /IPG:#3@  /R:#4@  /W:#5@  /MT:#6@  #7@  /FFT ";
-            Testing.AssertEqual(sExpected, sArguments);
+            Utils.AssertEq(sExpected, sArguments);
         }
+
         static void TestMethod_TestPreviewOfFileSyncAndActualSync()
         {
             string sDirectory = Testing.SetUpSynctestEnvironment();
@@ -194,7 +178,7 @@ namespace rbcpy
             RunImplementation.Go(config, sLogFilename, false /*preview*/, false);
             var results = CCreateSyncResultsSet.ParseFromLogFile(config, sLogFilename, false /*preview*/);
             File.Delete(sLogFilename);
-            Testing.AssertEqual("Total    Copied   Skipped  Mismatch    Failed    Extras\r\n    Dirs :         5         5         2         0         0         2\r\n   Files :        22         8        14         0         0         2\r\n   Bytes :   632.0 k   126.6 k   505.4 k         0         0    30.7 k", results.sSummary.Trim());
+            Utils.AssertEq("Total    Copied   Skipped  Mismatch    Failed    Extras\r\n    Dirs :         5         5         2         0         0         2\r\n   Files :        22         8        14         0         0         2\r\n   Bytes :   632.0 k   126.6 k   505.4 k         0         0    30.7 k", results.sSummary.Trim());
 
             // check files
             string[] filesExpected = @"..\..\test\testsync\dest
@@ -254,14 +238,14 @@ namespace rbcpy
             List<string> filesGot = Directory.GetFileSystemEntries(sDirectory, "*", SearchOption.AllDirectories).ToList();
             filesGot.Sort();
             Testing.AssertStringArrayEqual(filesExpected, filesGot);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\src\\Licenses\\Cyrus-Sasl-License.txt").Length, 1861L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\src\\Licenses\\OpenSsl-License.txt").Length, 6286L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\src\\Licenses\\Apr-License.txt").Length, 18324L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\src\\Licenses\\Serf-License.txt").Length, 11562L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\dest\\Licenses\\Cyrus-Sasl-License.txt").Length, 1861L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\dest\\Licenses\\OpenSsl-License.txt").Length, 6286L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\dest\\Licenses\\Apr-License.txt").Length, 18324L);
-            Testing.AssertEqual(new FileInfo(sDirectory + "\\dest\\Licenses\\Serf-License.txt").Length, 11562L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\src\\Licenses\\Cyrus-Sasl-License.txt").Length, 1861L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\src\\Licenses\\OpenSsl-License.txt").Length, 6286L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\src\\Licenses\\Apr-License.txt").Length, 18324L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\src\\Licenses\\Serf-License.txt").Length, 11562L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\Cyrus-Sasl-License.txt").Length, 1861L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\OpenSsl-License.txt").Length, 6286L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\Apr-License.txt").Length, 18324L);
+            Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\Serf-License.txt").Length, 11562L);
         }
 
         static void TestMethod_TestActualCheckDuplicatesSync()
@@ -275,17 +259,17 @@ namespace rbcpy
             File.WriteAllText(config.m_destination + "\\shortbl2.dat", "");
 
             var previewResults = RunDelDupes.Run(config);
-            Testing.AssertEqual(false, previewResults.sSummary.Contains("find internal"));
-            Testing.AssertEqual(true, previewResults.sSummary.Contains(" 2 small files in dest and 2 small files in src"));
-            Testing.AssertEqual(14, previewResults.items.Count);
+            Utils.AssertEq(false, previewResults.sSummary.Contains("find internal"));
+            Utils.AssertEq(true, previewResults.sSummary.Contains(" 2 small files in dest and 2 small files in src"));
+            Utils.AssertEq(14, previewResults.items.Count);
             var nFilesBefore = Directory.GetFileSystemEntries(sDirectory, "*", SearchOption.AllDirectories).ToList().Count;
             var realResults = RunDelDupes.ExecuteResultsSet(previewResults);
             List<string> filesGot = Directory.GetFileSystemEntries(sDirectory, "*", SearchOption.AllDirectories).ToList();
             var nFilesAfter = filesGot.Count;
-            Testing.AssertEqual(false, realResults.sSummary.Contains("find internal"));
-            Testing.AssertEqual(true, realResults.sSummary.Contains(" 2 small files in dest and 2 small files in src"));
-            Testing.AssertEqual(14, realResults.items.Count);
-            Testing.AssertEqual(14, nFilesBefore - nFilesAfter);
+            Utils.AssertEq(false, realResults.sSummary.Contains("find internal"));
+            Utils.AssertEq(true, realResults.sSummary.Contains(" 2 small files in dest and 2 small files in src"));
+            Utils.AssertEq(14, realResults.items.Count);
+            Utils.AssertEq(14, nFilesBefore - nFilesAfter);
             string[] filesExpected = @"..\..\test\testsync\dest
 ..\..\test\testsync\dest\Images
 ..\..\test\testsync\dest\Images\b.png
@@ -339,7 +323,7 @@ namespace rbcpy
             string sLogFilename = RunImplementation.GetLogFilename();
             RunImplementation.Go(config, sLogFilename, true /*preview*/, false);
             var results = CCreateSyncResultsSet.ParseFromLogFile(config, sLogFilename, true /*preview*/);
-            Testing.AssertEqual("Total    Copied   Skipped  Mismatch    Failed    Extras\r\n    Dirs :         5         5         2         0         0         2\r\n   Files :        22         8        14         0         0         2\r\n   Bytes :   632.0 k   126.6 k   505.4 k         0         0    30.7 k", results.sSummary.Trim());
+            Utils.AssertEq("Total    Copied   Skipped  Mismatch    Failed    Extras\r\n    Dirs :         5         5         2         0         0         2\r\n   Files :        22         8        14         0         0         2\r\n   Bytes :   632.0 k   126.6 k   505.4 k         0         0    30.7 k", results.sSummary.Trim());
             File.Delete(sLogFilename);
 
             {
@@ -356,7 +340,7 @@ Update()		\Licenses\Cyrus-Sasl-License.txt
 Create		\Licenses\noext
 Update()		\Licenses\OpenSsl-License.txt
 Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
-                Testing.AssertEqual(sExpected, sGot);
+                Utils.AssertEq(sExpected, sGot);
             }
 
             {
@@ -373,7 +357,7 @@ Delete		\Images\remdir\c.png
 Delete		\Images\new.png
 Create		\Images\addir\a.PNG
 Create		\Images\a.png".Replace("\r\n", "\n");
-                Testing.AssertEqual(sExpected, sGot);
+                Utils.AssertEq(sExpected, sGot);
             }
 
             {
@@ -390,7 +374,7 @@ Update		\Licenses\Apr-License.txt
 Update		\Licenses\Serf-License.txt
 Update()		\Licenses\Cyrus-Sasl-License.txt
 Update()		\Licenses\OpenSsl-License.txt".Replace("\r\n", "\n");
-                Testing.AssertEqual(sExpected, sGot);
+                Utils.AssertEq(sExpected, sGot);
             }
 
             {
@@ -407,7 +391,7 @@ Update		\Licenses\Apr-License.txt
 Update()		\Licenses\Cyrus-Sasl-License.txt
 Update()		\Licenses\OpenSsl-License.txt
 Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
-                Testing.AssertEqual(sExpected, sGot);
+                Utils.AssertEq(sExpected, sGot);
             }
         }
 
@@ -422,9 +406,9 @@ Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
             string sLogFilename = RunImplementation.GetLogFilename();
             RunImplementation.Go(config, sLogFilename, true /*preview*/, false);
             var results = CCreateSyncResultsSet.ParseFromLogFile(config, sLogFilename, true /*preview*/);
-            Testing.AssertEqual(0, results.items.Count);
-            Testing.AssertEqual(true, results.sSummary.Contains("looks like errors occurred:"));
-            Testing.AssertEqual(true, results.sSummary.Contains("The system cannot find the file specified."));
+            Utils.AssertEq(0, results.items.Count);
+            Utils.AssertEq(true, results.sSummary.Contains("looks like errors occurred:"));
+            Utils.AssertEq(true, results.sSummary.Contains("The system cannot find the file specified."));
             File.Delete(sLogFilename);
         }
 
@@ -443,14 +427,15 @@ Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
                 results = CCreateSyncResultsSet.ParseFromLogFile(config, sLogFilename, false /*preview*/);
                 File.Delete(sLogFilename);
             }
+
             CCreateSyncResultsSet.showWarnings = true;
 
-            Testing.AssertEqual(0, results.items.Count);
-            Testing.AssertEqual(true, results.sSummary.Contains("Summary indicated failures"));
-            Testing.AssertEqual(true, results.sSummary.Contains("*EXTRA File"));
-            Testing.AssertEqual(true, results.sSummary.Contains("it is being used by another process"));
-            Testing.AssertEqual(true, results.sSummary.Contains("RETRY LIMIT EXCEEDED"));
-            Testing.AssertEqual(true, results.sSummary.Contains("Bytes :"));
+            Utils.AssertEq(0, results.items.Count);
+            Utils.AssertEq(true, results.sSummary.Contains("Summary indicated failures"));
+            Utils.AssertEq(true, results.sSummary.Contains("*EXTRA File"));
+            Utils.AssertEq(true, results.sSummary.Contains("it is being used by another process"));
+            Utils.AssertEq(true, results.sSummary.Contains("RETRY LIMIT EXCEEDED"));
+            Utils.AssertEq(true, results.sSummary.Contains("Bytes :"));
         }
 
         static void TestActualDeleteInternalDuplicates(string sDirectory)
@@ -468,13 +453,13 @@ Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
             File.WriteAllText(config.m_src + "\\Images\\shortbl2.dat", "");
 
             var previewResults = RunDelDupes.Run(config);
-            Testing.AssertEqual(true, previewResults.sSummary.Contains("find internal"));
-            Testing.AssertEqual(true, previewResults.sSummary.Contains(" 4 small files"));
-            Testing.AssertEqual(3, previewResults.items.Count);
+            Utils.AssertEq(true, previewResults.sSummary.Contains("find internal"));
+            Utils.AssertEq(true, previewResults.sSummary.Contains(" 4 small files"));
+            Utils.AssertEq(3, previewResults.items.Count);
             var realResults = RunDelDupes.ExecuteResultsSet(previewResults);
-            Testing.AssertEqual(true, realResults.sSummary.Contains("find internal"));
-            Testing.AssertEqual(true, realResults.sSummary.Contains(" 4 small files"));
-            Testing.AssertEqual(3, realResults.items.Count);
+            Utils.AssertEq(true, realResults.sSummary.Contains("find internal"));
+            Utils.AssertEq(true, realResults.sSummary.Contains(" 4 small files"));
+            Utils.AssertEq(3, realResults.items.Count);
             string[] filesExpected = @"..\..\test\testsync\dest
 ..\..\test\testsync\dest\Images
 ..\..\test\testsync\dest\Images\a.png
@@ -548,7 +533,10 @@ Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
             config.m_fatTimes = false;
 
             if (nThreads > 1)
+            {
                 config.m_nThreads = "" + nThreads;
+            }
+
             return config;
         }
 

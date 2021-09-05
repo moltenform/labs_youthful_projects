@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,12 +14,12 @@ namespace rbcpy
     {
         CCreateSyncResultsSet m_results;
         RbcpyGlobalSettings m_globalSettings;
+        RunSyncOnBackgroundThread m_runner;
         bool m_includeProgress = false;
         int m_nSortCol = 3;
         const int m_rowDetail = 2;
         const int m_rowSummary = 3;
         bool m_bPreview = false;
-        RunSyncOnBackgroundThread m_runner;
         public FormSyncItems(CCreateSyncResultsSet results, RbcpyGlobalSettings globalSettings, bool bPreview)
         {
             InitializeComponent();
@@ -57,7 +55,7 @@ namespace rbcpy
             listView.SmallImageList = imageList1;
             txtSummary.ReadOnly = true;
             txtSummary.Text = results.sSummary;
-            ReaddItems();
+            ReAddItems();
             ShowSummary();
             txtSummary.Select(0, 0);
             listView.Focus();
@@ -79,7 +77,7 @@ namespace rbcpy
             ShowSummary();
         }
 
-        private void ReaddItems()
+        private void ReAddItems()
         {
             CCreateSyncItem.SortFromColumnNumber(m_results.items, m_nSortCol);
 
@@ -94,6 +92,7 @@ namespace rbcpy
 
                 listView.Items.Add(item.GetListItem(m_bPreview));
             }
+
             listView.ResumeLayout();
         }
 
@@ -101,7 +100,10 @@ namespace rbcpy
         {
             StringBuilder sb = new StringBuilder();
             foreach (var item in IterateListViewItems(false))
+            {
                 sb.AppendLine(item.ToString());
+            }
+
             sb.AppendLine();
             Clipboard.SetText(sb.ToString());
         }
@@ -110,7 +112,10 @@ namespace rbcpy
         {
             StringBuilder sb = new StringBuilder();
             foreach (var item in IterateListViewItems(true))
+            {
                 sb.AppendLine(item.ToString());
+            }
+
             sb.AppendLine();
             Clipboard.SetText(sb.ToString());
         }
@@ -119,7 +124,7 @@ namespace rbcpy
         {
             if (m_results.config.m_isDeleteDuplicates)
             {
-                //"Keep both"
+                // "Keep both"
                 var dictToRemove = new Dictionary<CCreateSyncItem, bool>();
                 foreach (var item in IterateListViewItems(true))
                 {
@@ -131,11 +136,11 @@ namespace rbcpy
                 }
 
                 m_results.items = (from item in m_results.items where !dictToRemove.ContainsKey(item) select item).ToList();
-                ReaddItems();
+                ReAddItems();
             }
             else
             {
-                //"View in winmerge"
+                // "View in winmerge"
                 foreach (var item in IterateListViewItems(true))
                 {
                     var itemObj = item as CCreateSyncItem;
@@ -191,7 +196,7 @@ namespace rbcpy
                 return;
 
             FileInfo recentLeft = null, recentRight = null;
-            long nCountLeft = 0, nCountRight = 0, nTotalLeft=0, nTotalRight=0;
+            long nCountLeft = 0, nCountRight = 0, nTotalLeft = 0, nTotalRight = 0;
             foreach (var item in IterateListViewItems(true /*only selected*/))
             {
                 if (item.IsInLeft())
@@ -204,7 +209,9 @@ namespace rbcpy
                     }
 
                     if (item.status == CCreateSyncItemStatus.DeleteDuplicate)
+                    {
                         sbLeft.AppendLine(item.GetLeftPath(this.m_results.config));
+                    }
                 }
                 if (item.IsInRight())
                 {
@@ -215,8 +222,9 @@ namespace rbcpy
                         nTotalRight += recentRight.Length;
                     }
 
-                    if (item.status == CCreateSyncItemStatus.DeleteDuplicate)
+                    if (item.status == CCreateSyncItemStatus.DeleteDuplicate) { 
                         sbRight.AppendLine(item.GetRightPath(this.m_results.config));
+                    }
                 }
             }
 
@@ -263,11 +271,15 @@ namespace rbcpy
         {
             int nCol = e.Column + 1;
             if (m_nSortCol == nCol)
+            {
                 m_nSortCol *= -1;
+            }
             else
+            {
                 m_nSortCol = nCol;
+            }
 
-            ReaddItems();
+            ReAddItems();
         }
 
         private void btnRun_Click(object sender, EventArgs e)
@@ -281,13 +293,14 @@ namespace rbcpy
                 preview = false,
                 duplicatesFoundPreviously = m_results
             };
+
             m_runner.Run();
         }
 
         private void viewIncludeTempEntries_Click(object sender, EventArgs e)
         {
             m_includeProgress = !m_includeProgress;
-            ReaddItems();
+            ReAddItems();
         }
 
         private void FormSyncItems_FormClosed(object sender, FormClosedEventArgs e)
@@ -304,8 +317,6 @@ namespace rbcpy
                 }
             }
         }
-
-        
 
         private void ManualCopyFileImpl(string s1, string s2)
         {
@@ -339,13 +350,17 @@ namespace rbcpy
                         try
                         {
                             if (leftToRight)
+                            {
                                 File.Delete(itemObj.GetLeftPath(m_results.config));
+                            }
                             else
+                            {
                                 File.Delete(itemObj.GetRightPath(m_results.config));
+                            }
 
                             dictToRemove[itemObj] = true;
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
                             sExceptions += "\r\n" + e;
                         }
@@ -358,7 +373,7 @@ namespace rbcpy
                 }
 
                 m_results.items = (from item in m_results.items where !dictToRemove.ContainsKey(item) select item).ToList();
-                ReaddItems();
+                ReAddItems();
             }
             else
             {

@@ -17,10 +17,12 @@ namespace rbcpy
         {
             return "configs/templog" + s_random.Next() + ".txt";
         }
+
         public static string GetRandomNumbersInString()
         {
             return "" + s_random.Next();
         }
+
         public static string Go(SyncConfiguration config, string logfilename, bool previewOnly, bool getCommandOnly)
         {
             if (!getCommandOnly && config.m_isDeleteDuplicates)
@@ -32,23 +34,29 @@ namespace rbcpy
             File.Delete(logfilename);
             string args = GetCommandLineArgs(config);
             if (previewOnly)
+            {
                 args += " /L ";
+            }
+
             args += " /NS "; // no sizes in output
             args += " /FP "; // full paths in logs
             args += " /NP /UNILOG:" + logfilename;
             if (!getCommandOnly)
+            {
                 RunExeWithArguments("robocopy", args, false, true);
+            }
+
             return args;
         }
+
         public static void ShowInExplorer(string path)
         {
-            if (!File.Exists(path))
-                return;
-
-            string argument = "/select, \"" + path + "\"";
-            System.Diagnostics.Process.Start("explorer.exe", argument);
+            if (File.Exists(path))
+            {
+                string argument = "/select, \"" + path + "\"";
+                System.Diagnostics.Process.Start("explorer.exe", argument);
+            }
         }
-
 
         static void RunExeWithArguments(string sExe, string args, bool createWindow, bool waitForExit)
         {
@@ -59,7 +67,9 @@ namespace rbcpy
             process.StartInfo.Arguments = args;
             process.Start();
             if (waitForExit)
+            {
                 process.WaitForExit();
+            }
         }
         
         internal static string[] getLines(string slines)
@@ -76,14 +86,14 @@ namespace rbcpy
             var lines = getLines(config.m_excludeDirs);
             foreach(var line in lines)
             {
-                Testing.AssertEqual(true, !line.Contains("\""));
+                Utils.AssertEq(true, !line.Contains("\""));
                 args += " /XD \"" + line + "\" ";
             }
 
             lines = getLines(config.m_excludeFiles);
             foreach (var line in lines)
             {
-                Testing.AssertEqual(true, !line.Contains("\""));
+                Utils.AssertEq(true, !line.Contains("\""));
                 args += " /XF \"" + line + "\" ";
             }
             
@@ -111,6 +121,7 @@ namespace rbcpy
                 args += " /FFT ";
             if (config.m_compensateDst)
                 args += " /DST ";
+
             return args;
         }
 
@@ -121,9 +132,13 @@ namespace rbcpy
                 MessageBox.Show("First indicate where winmerge is, from the file menu.");
                 return;
             }
+            
             string sArgs = "/e ";
             if (recursive)
+            { 
                 sArgs += "/r ";
+            }
+
             sArgs += " \"" + src + "\" \"" + dest + "\" ";
             RunExeWithArguments(sWinmerge, sArgs, true, false);
         }
@@ -168,9 +183,14 @@ namespace rbcpy
                 s += "Update()\t\t";
 
             if (status == CCreateSyncItemStatus.DeleteDuplicate)
+            {
                 s += path.Substring(0, path.IndexOf('|'));
+            }
             else
+            {
                 s += path;
+            }
+
             return s;
         }
 
@@ -178,6 +198,7 @@ namespace rbcpy
         {
             int imageIndex = -1;
             string sAction = "";
+
             if (status == CCreateSyncItemStatus.AddedInSrc)
             {
                 imageIndex = nAddNew;
@@ -217,9 +238,14 @@ namespace rbcpy
             string sType = (sAction == " ") ? " " : "File";
             string sDisplayPath;
             if (status == CCreateSyncItemStatus.DeleteDuplicate)
+            {
                 sDisplayPath = path.Substring(0, path.IndexOf('|'));
+            }
             else
+            {
                 sDisplayPath = path;
+            }
+
             ListViewItem viewItem = new ListViewItem(new string[] { sType, sAction, sDisplayPath });
             viewItem.Tag = this;
             viewItem.ImageIndex = imageIndex;
@@ -234,28 +260,38 @@ namespace rbcpy
             }
             else
             {
-                var tmppath = path;
-                if (tmppath.StartsWith("\\")) tmppath = tmppath.Substring(1);
-                return Path.Combine(config.m_src, tmppath);
+                var tmpPath = path;
+                if (tmpPath.StartsWith("\\"))
+                {
+                    tmpPath = tmpPath.Substring(1);
+                }
+
+                return Path.Combine(config.m_src, tmpPath);
             }
         }
         public string GetRightPath(SyncConfiguration config)
         {
             if (status == CCreateSyncItemStatus.DeleteDuplicate)
             {
-                return path.Substring(path.IndexOf('|')+1);
+                return path.Substring(path.IndexOf('|') + 1);
             }
             else
             {
                 var tmppath = path;
-                if (tmppath.StartsWith("\\")) tmppath = tmppath.Substring(1);
+                if (tmppath.StartsWith("\\"))
+                {
+                    tmppath = tmppath.Substring(1);
+                }
+
                 return Path.Combine(config.m_destination, tmppath);
             }
         }
+
         public bool IsInLeft()
         {
             return (status == CCreateSyncItemStatus.AddedInSrc || status == CCreateSyncItemStatus.ChangedAndDestNewer || status == CCreateSyncItemStatus.ChangedAndSrcNewer || status == CCreateSyncItemStatus.DeleteDuplicate);
         }
+
         public bool IsInRight()
         {
             return (status == CCreateSyncItemStatus.AddedInDest || status == CCreateSyncItemStatus.ChangedAndDestNewer || status == CCreateSyncItemStatus.ChangedAndSrcNewer || status == CCreateSyncItemStatus.DeleteDuplicate);
@@ -280,14 +316,22 @@ namespace rbcpy
                     var o1status = o1.status;
                     var o2status = o2.status;
                     if (bCombineUpdateTypes && o1status == CCreateSyncItemStatus.ChangedAndDestNewer)
+                    {
                         o1status = CCreateSyncItemStatus.ChangedAndSrcNewer;
+                    }
+
                     if (bCombineUpdateTypes && o2status == CCreateSyncItemStatus.ChangedAndDestNewer)
+                    {
                         o2status = CCreateSyncItemStatus.ChangedAndSrcNewer;
+                    }
 
                     if (o1status == o2status)
+                    {
                         return nMult * o1.path.CompareTo(o2.path);
-
-                    return nMult * o1.status.CompareTo(o2.status);
+                    } else
+                    {
+                        return nMult * o1.status.CompareTo(o2.status);
+                    }
                 });
             }
         }
@@ -306,10 +350,18 @@ namespace rbcpy
             // use non capturing groups (?:)
             var regex = new Regex("(?:" + Regex.Escape(config.m_src) + ")|(?:" + Regex.Escape(config.m_destination) + ")", RegexOptions.IgnoreCase);
             var segments = regex.Split(strSection);
-            for (int i=0; i<segments.Length; i++)
+            for (int i = 0; i < segments.Length; i++)
             {
-                if (segments[i].Contains("\r")) segments[i] = segments[i].Substring(0, segments[i].IndexOf("\r"));
-                if (segments[i].Contains("\t")) segments[i] = segments[i].Substring(0, segments[i].IndexOf("\t"));
+                if (segments[i].Contains("\r"))
+                {
+                    segments[i] = segments[i].Substring(0, segments[i].IndexOf("\r"));
+                }
+
+                if (segments[i].Contains("\t"))
+                {
+                    segments[i] = segments[i].Substring(0, segments[i].IndexOf("\t"));
+                }
+
                 yield return segments[i].Trim();
             }
         }
@@ -323,17 +375,27 @@ namespace rbcpy
             List<CCreateSyncItem> ret = new List<CCreateSyncItem>();
             var sections = Regex.Split(sLogContents, "\r\n---------------------+\r\n");
             if (sections.Length < 5)
+            {
                 throw new InvalidDataException("Summary section not found");
+            }
 
             foreach (var line in sections[4].Split(new string[] { "\r\n" }, StringSplitOptions.None))
             {
                 var sTrimmed = line.Trim();
                 if (!sTrimmed.StartsWith("Times :") && !sTrimmed.StartsWith("Ended :"))
+                {
                     sbSummary.AppendLine(line);
+                }
+
                 if (sTrimmed.StartsWith("Dirs :") && LookForFailuresInSummary(sTrimmed))
+                {
                     bFailuresSeen = true;
+                }
+
                 if (sTrimmed.StartsWith("Files :") && LookForFailuresInSummary(sTrimmed))
+                {
                     bFailuresSeen = true;
+                }
             }
 
             int nUnknowns = 0;
@@ -342,8 +404,11 @@ namespace rbcpy
                 var left = config.m_src + segment;
                 var right = config.m_destination + segment;
 
-                if (segment.Trim() == "") continue; 
-                if (segment.EndsWith("\\"))
+                if (segment.Trim() == "")
+                {
+                    continue;
+                }
+                else if (segment.EndsWith("\\"))
                 {
                     if (bPreview && !Directory.Exists(left) && !Directory.Exists(right))
                         MessageBox.Show("directory does not exist");
@@ -357,7 +422,10 @@ namespace rbcpy
                 if (!leftExists && !rightExists)
                 {
                     if (bPreview)
+                    {
                         MessageBox.Show("file does not exist");
+                    }
+
                     continue;
                 }
                 else if (leftExists && !rightExists)
@@ -371,17 +439,23 @@ namespace rbcpy
                 else if (rightExists && leftExists)
                 {
                     if (new FileInfo(right).LastWriteTime > new FileInfo(left).LastWriteTime)
+                    {
                         status = CCreateSyncItemStatus.ChangedAndDestNewer;
+                    }
                     else
+                    {
                         status = CCreateSyncItemStatus.ChangedAndSrcNewer;
+                    }
                 }
 
                 ret.Add(new CCreateSyncItem { status = status, path = segment, mirror = config.m_mirror });
-                
             }
 
             if (showWarnings && nUnknowns > 0)
+            {
                 MessageBox.Show("note: at least one log entry was not parsed");
+            }
+
             return ret;
         }
 
@@ -424,7 +498,9 @@ namespace rbcpy
             }
 
             if (nTotalLinesWithDashes > 4)
+            {
                 sbSummary.AppendLine("Note, more than 4 lines with dashes (" + nTotalLinesWithDashes + ")");
+            }
 
             ret.sSummary = sbSummary.ToString();
             ret.sSummary = ret.sSummary.Replace("FAILED", "Failed");
@@ -434,7 +510,7 @@ namespace rbcpy
         private static bool LookForFailuresInSummary(string sTrimmed)
         {
             var parts = Regex.Split(sTrimmed, "  +");
-            Debug.Assert(parts.Length == 7);
+            Utils.AssertTrue(parts.Length == 7);
             string sFailed = parts[5];
             return int.Parse(sFailed) != 0;
         }
@@ -476,6 +552,7 @@ namespace rbcpy
                         nTotalLinesWithDashes++;
                 }
             }
+
             return nTotalLinesWithDashes;
         }
     }

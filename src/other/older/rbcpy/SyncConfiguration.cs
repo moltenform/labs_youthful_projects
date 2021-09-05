@@ -25,6 +25,7 @@ namespace rbcpy
                 serializer.Serialize(wr, config);
             }
         }
+
         public static RbcpyGlobalSettings Deserialize(string sFilename)
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(RbcpyGlobalSettings));
@@ -68,25 +69,36 @@ namespace rbcpy
             if (!Directory.Exists(config.m_src) || !config.m_src.Contains("\\"))
             {
                 if (!s_disableMessageBox)
+                {
                     MessageBox.Show("Source dir does not exist");
+                }
+
                 return false;
             }
 
             if (!Directory.Exists(config.m_destination) || !config.m_destination.Contains("\\"))
             {
                 if (!s_disableMessageBox)
+                {
                     MessageBox.Show("Dest dir does not exist");
+                }
+
                 return false;
             }
 
             if (config.m_src.EndsWith("\\") || config.m_destination.EndsWith("\\"))
             {
                 if (!s_disableMessageBox)
+                {
                     MessageBox.Show("Directories should not end with a \\ character.");
+                }
+
                 return false;
             }
 
-            if (config.m_destination == config.m_src && config.m_isDeleteDuplicates && (!s_disableMessageBox || MessageBox.Show("Check for internal dupes?", "", MessageBoxButtons.YesNo) == DialogResult.Yes))
+            if (config.m_destination == config.m_src && config.m_isDeleteDuplicates && 
+                (!s_disableMessageBox || MessageBox.Show(
+                    "Check for internal dupes?", "", MessageBoxButtons.YesNo) == DialogResult.Yes))
             {
             }
             else
@@ -94,7 +106,10 @@ namespace rbcpy
                 if (config.m_destination == config.m_src)
                 {
                     if (!s_disableMessageBox)
+                    {
                         MessageBox.Show("Src and destination should not be the same.");
+                    }
+
                     return false;
                 }
 
@@ -102,15 +117,21 @@ namespace rbcpy
                 if (tmpDest.Contains(tmpSrc) || tmpSrc.Contains(tmpDest))
                 {
                     if (!s_disableMessageBox)
+                    {
                         MessageBox.Show("Src and destination should not intersect.");
+                    }
+
                     return false;
                 }
             }
 
             if (config.m_isDeleteDuplicates && (!String.IsNullOrEmpty(config.m_excludeDirs) || !String.IsNullOrEmpty(config.m_excludeFiles)))
             {
-                 if (!s_disableMessageBox)
+                if (!s_disableMessageBox)
+                {
                     MessageBox.Show("Delete duplicates does not support m_excludeDirs or m_excludeFiles.");
+                }
+
                 return false;
             }
 
@@ -156,6 +177,7 @@ namespace rbcpy
                 serializer.Serialize(wr, config);
             }
         }
+
         public static SyncConfiguration Deserialize(string sFilename)
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(SyncConfiguration));

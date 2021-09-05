@@ -165,8 +165,8 @@ namespace rbcpy
                 System.Windows.Forms.MessageBox.Show("Files are not equal, \nlength of "+s1+" \n="+ length1+"\nlength of "+s2+" \n="+length2+".");
                 return;
             }
-            var hash1 = Hashing.GetHash(s1);
-            var hash2 = Hashing.GetHash(s2);
+            var hash1 = Utils.GetSha512(s1);
+            var hash2 = Utils.GetSha512(s2);
             if (hash1 != hash2)
             {
                 System.Windows.Forms.MessageBox.Show("Hashes are not equal, \nhash of " + s1 + " \n=" + hash1 + "\nhash of " + s2 + " \n=" + hash2 + ".");

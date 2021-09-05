@@ -14,7 +14,6 @@ namespace rbcpy
         public RbcpyTestException(string message) : base(message) { }
     }
 
-
     public static class Testing
     {
         public static void AssertEqual(object expected, object actual)
@@ -70,27 +69,42 @@ namespace rbcpy
         public static string GetTestDirectory()
         {
             if (Directory.Exists(@"..\..\test"))
+            {
                 return @"..\..\test";
+            }
             else if (Directory.Exists(@".\test\"))
+            {
                 return @".\test";
+            }
             else if (Directory.Exists(@"..\..\..\test"))
+            {
                 return @"..\..\..\test";
+            }
             else
+            {
                 throw new RbcpyTestException("test directory not found.");
+            }
         }
         public static string GetTestFile(string sFilename)
         {
             string ret = GetTestDirectory() + "\\" + sFilename;
             if (File.Exists(ret))
+            {
                 return ret;
+            }
             else
+            {
                 throw new RbcpyTestException("test file " + sFilename + " not found.");
+            }
         }
 
         public static string GetTestTempFile(string p)
         {
             if (!Directory.Exists(@".\configs\tmp"))
+            {
                 Directory.CreateDirectory(@".\configs\tmp");
+            }
+
             return @".\configs\tmp\" + p;
         }
 
@@ -98,7 +112,9 @@ namespace rbcpy
         {
             var testSyncPath = GetTestTempFile("testsync");
             if (!Directory.Exists(testSyncPath))
+            {
                 Directory.CreateDirectory(testSyncPath);
+            }
 
             // use rbcpy itself to set up the sync test :)
             var config = new SyncConfiguration();
@@ -107,6 +123,12 @@ namespace rbcpy
             config.m_mirror = true;
             config.m_copySubDirsAndEmptySubdirs = true;
             config.m_copyFlags = "DA"; // don't copy times
+
+            if (!File.Exists(GetTestDirectory() + @"\testsync\src\Images\b.png"))
+            {
+                System.Windows.Forms.MessageBox.Show("Please unzip testFiles.zip to " + Path.GetFullPath(GetTestDirectory()) + @"\testsync");
+                throw new Exception("Path not found.");
+            }
 
             string sLogFilename = RunImplementation.GetLogFilename();
             RunImplementation.Go(config, sLogFilename, false /*preview*/, false);
@@ -165,17 +187,17 @@ namespace rbcpy
 ..\..\test\testsync\src\pic1.png".Replace("\r\n", "\n").Replace(@"..\..\test\testsync\", testSyncPath+"\\").Split(new char[] { '\n' });
             List<string> filesGot = Directory.GetFileSystemEntries(testSyncPath, "*", SearchOption.AllDirectories).ToList();
             filesGot.Sort();
-            var sfilesExpected = string.Join("\r\n", filesExpected);
-            var sfilesGot = string.Join("\r\n", filesGot);
-            Testing.AssertEqual(sfilesExpected, sfilesGot);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\src\\Licenses\\Cyrus-Sasl-License.txt").Length, 1861L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\src\\Licenses\\OpenSsl-License.txt").Length, 6286L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\src\\Licenses\\Apr-License.txt").Length, 18324L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\src\\Licenses\\Serf-License.txt").Length, 11562L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\dest\\Licenses\\Cyrus-Sasl-License.txt").Length, 1865L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\dest\\Licenses\\OpenSsl-License.txt").Length, 6288L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\dest\\Licenses\\Apr-License.txt").Length, 18320L);
-            Testing.AssertEqual(new FileInfo(testSyncPath + "\\dest\\Licenses\\Serf-License.txt").Length, 11558L);
+            var sFilesExpected = string.Join("\r\n", filesExpected);
+            var sFilesGot = string.Join("\r\n", filesGot);
+            Utils.AssertEq(sFilesExpected, sFilesGot);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\src\\Licenses\\Cyrus-Sasl-License.txt").Length, 1861L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\src\\Licenses\\OpenSsl-License.txt").Length, 6286L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\src\\Licenses\\Apr-License.txt").Length, 18324L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\src\\Licenses\\Serf-License.txt").Length, 11562L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\dest\\Licenses\\Cyrus-Sasl-License.txt").Length, 1865L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\dest\\Licenses\\OpenSsl-License.txt").Length, 6288L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\dest\\Licenses\\Apr-License.txt").Length, 18320L);
+            Utils.AssertEq(new FileInfo(testSyncPath + "\\dest\\Licenses\\Serf-License.txt").Length, 11558L);
 
             // adjust file mod times
             MakeFileNewer(testSyncPath + "\\dest\\Licenses\\Cyrus-Sasl-License.txt");
@@ -185,26 +207,24 @@ namespace rbcpy
             return testSyncPath;
         }
 
-        private static void MakeFileNewer(string p)
+        private static void MakeFileNewer(string path)
         {
-            var filetime = File.GetLastWriteTime(p);
+            var filetime = File.GetLastWriteTime(path);
             filetime.AddSeconds(10);
-            File.SetLastWriteTime(p, filetime);
+            File.SetLastWriteTime(path, filetime);
         }
 
-        public static void CallAllTestMethods(Type t, object[] arParams)
+        public static void CallAllTestMethods(Type type, object[] arParams)
         {
-            MethodInfo[] methodInfos = t.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo[] methodInfos = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
             foreach (MethodInfo methodInfo in methodInfos)
             {
                 if (methodInfo.Name.StartsWith("TestMethod_"))
                 {
-                    Debug.Assert(methodInfo.GetParameters().Length == 0);
+                    Utils.AssertTrue(methodInfo.GetParameters().Length == 0);
                     methodInfo.Invoke(null, arParams);
                 }
             }
         }
-
-        
     }
 }
