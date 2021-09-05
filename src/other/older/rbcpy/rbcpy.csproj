@@ -81,7 +81,6 @@
     <Compile Include="InputBox.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RunDelDupes.cs" />
     <Compile Include="SyncConfiguration.cs" />
     <Compile Include="RunImplementation.cs" />
     <Compile Include="Program.cs" />

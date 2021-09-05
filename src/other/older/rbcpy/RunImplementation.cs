@@ -25,12 +25,6 @@ namespace rbcpy
 
         public static string Go(SyncConfiguration config, string logfilename, bool previewOnly, bool getCommandOnly)
         {
-            if (!getCommandOnly && config.m_isDeleteDuplicates)
-            {
-                MessageBox.Show("Didn't expect m_isDeleteDuplicates.");
-                return "";
-            }
-
             File.Delete(logfilename);
             string args = GetCommandLineArgs(config);
             if (previewOnly)
@@ -151,7 +145,6 @@ namespace rbcpy
         AddedInDest,
         ChangedAndSrcNewer,
         ChangedAndDestNewer,
-        DeleteDuplicate,
         Unknown
     }
 
@@ -171,8 +164,6 @@ namespace rbcpy
             string s = "";
             if (status == CCreateSyncItemStatus.AddedInSrc)
                 s += "Create\t\t";
-            else if (status == CCreateSyncItemStatus.DeleteDuplicate)
-                s += "Delete\t\t";
             else if (status == CCreateSyncItemStatus.AddedInDest && mirror)
                 s += "Delete\t\t";
             else if (status == CCreateSyncItemStatus.AddedInDest && !mirror)
@@ -182,14 +173,7 @@ namespace rbcpy
             else if (status == CCreateSyncItemStatus.ChangedAndDestNewer)
                 s += "Update()\t\t";
 
-            if (status == CCreateSyncItemStatus.DeleteDuplicate)
-            {
-                s += path.Substring(0, path.IndexOf('|'));
-            }
-            else
-            {
-                s += path;
-            }
+            s += path;
 
             return s;
         }
@@ -203,11 +187,6 @@ namespace rbcpy
             {
                 imageIndex = nAddNew;
                 sAction = bPreview ? "Create" : "Created";
-            }
-            else if (status == CCreateSyncItemStatus.DeleteDuplicate)
-            {
-                imageIndex = nRemove;
-                sAction = bPreview ? "Delete" : "Deleted";
             }
             else if (status == CCreateSyncItemStatus.AddedInDest && mirror)
             {
@@ -236,15 +215,7 @@ namespace rbcpy
             }
 
             string sType = (sAction == " ") ? " " : "File";
-            string sDisplayPath;
-            if (status == CCreateSyncItemStatus.DeleteDuplicate)
-            {
-                sDisplayPath = path.Substring(0, path.IndexOf('|'));
-            }
-            else
-            {
-                sDisplayPath = path;
-            }
+            string sDisplayPath = path;
 
             ListViewItem viewItem = new ListViewItem(new string[] { sType, sAction, sDisplayPath });
             viewItem.Tag = this;
@@ -254,47 +225,33 @@ namespace rbcpy
 
         public string GetLeftPath(SyncConfiguration config)
         {
-            if (status == CCreateSyncItemStatus.DeleteDuplicate)
+            var tmpPath = path;
+            if (tmpPath.StartsWith("\\"))
             {
-                return path.Substring(0, path.IndexOf('|'));
+                tmpPath = tmpPath.Substring(1);
             }
-            else
-            {
-                var tmpPath = path;
-                if (tmpPath.StartsWith("\\"))
-                {
-                    tmpPath = tmpPath.Substring(1);
-                }
 
-                return Path.Combine(config.m_src, tmpPath);
-            }
+            return Path.Combine(config.m_src, tmpPath);
         }
         public string GetRightPath(SyncConfiguration config)
         {
-            if (status == CCreateSyncItemStatus.DeleteDuplicate)
+            var tmppath = path;
+            if (tmppath.StartsWith("\\"))
             {
-                return path.Substring(path.IndexOf('|') + 1);
+                tmppath = tmppath.Substring(1);
             }
-            else
-            {
-                var tmppath = path;
-                if (tmppath.StartsWith("\\"))
-                {
-                    tmppath = tmppath.Substring(1);
-                }
 
-                return Path.Combine(config.m_destination, tmppath);
-            }
+            return Path.Combine(config.m_destination, tmppath);
         }
 
         public bool IsInLeft()
         {
-            return (status == CCreateSyncItemStatus.AddedInSrc || status == CCreateSyncItemStatus.ChangedAndDestNewer || status == CCreateSyncItemStatus.ChangedAndSrcNewer || status == CCreateSyncItemStatus.DeleteDuplicate);
+            return (status == CCreateSyncItemStatus.AddedInSrc || status == CCreateSyncItemStatus.ChangedAndDestNewer || status == CCreateSyncItemStatus.ChangedAndSrcNewer);
         }
 
         public bool IsInRight()
         {
-            return (status == CCreateSyncItemStatus.AddedInDest || status == CCreateSyncItemStatus.ChangedAndDestNewer || status == CCreateSyncItemStatus.ChangedAndSrcNewer || status == CCreateSyncItemStatus.DeleteDuplicate);
+            return (status == CCreateSyncItemStatus.AddedInDest || status == CCreateSyncItemStatus.ChangedAndDestNewer || status == CCreateSyncItemStatus.ChangedAndSrcNewer);
         }
 
         public static void SortFromColumnNumber(List<CCreateSyncItem> items, int nSortCol)

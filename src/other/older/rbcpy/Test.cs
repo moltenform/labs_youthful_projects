@@ -168,7 +168,6 @@ namespace rbcpy
             TestActualSync(sDirectory, 1 /*nThreads*/);
             Testing.SetUpSynctestEnvironment();
             TestActualSync(sDirectory, 4 /*nThreads*/);
-            TestActualDeleteInternalDuplicates(sDirectory);
         }
 
         static void TestActualSync(string sDirectory, int nThreads)
@@ -246,74 +245,6 @@ namespace rbcpy
             Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\OpenSsl-License.txt").Length, 6286L);
             Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\Apr-License.txt").Length, 18324L);
             Utils.AssertEq(new FileInfo(sDirectory + "\\dest\\Licenses\\Serf-License.txt").Length, 11562L);
-        }
-
-        static void TestMethod_TestActualCheckDuplicatesSync()
-        {
-            string sDirectory = Testing.SetUpSynctestEnvironment();
-            var config = GetRealConfig(sDirectory, 1 /*nThreads*/);
-            config.m_isDeleteDuplicates = true;
-            File.WriteAllText(config.m_src + "\\short.txt", "a");
-            File.WriteAllText(config.m_src + "\\shortbl.txt", "");
-            File.WriteAllText(config.m_destination + "\\Images\\short2.txt", "a");
-            File.WriteAllText(config.m_destination + "\\shortbl2.dat", "");
-
-            var previewResults = RunDelDupes.Run(config);
-            Utils.AssertEq(false, previewResults.sSummary.Contains("find internal"));
-            Utils.AssertEq(true, previewResults.sSummary.Contains(" 2 small files in dest and 2 small files in src"));
-            Utils.AssertEq(14, previewResults.items.Count);
-            var nFilesBefore = Directory.GetFileSystemEntries(sDirectory, "*", SearchOption.AllDirectories).ToList().Count;
-            var realResults = RunDelDupes.ExecuteResultsSet(previewResults);
-            List<string> filesGot = Directory.GetFileSystemEntries(sDirectory, "*", SearchOption.AllDirectories).ToList();
-            var nFilesAfter = filesGot.Count;
-            Utils.AssertEq(false, realResults.sSummary.Contains("find internal"));
-            Utils.AssertEq(true, realResults.sSummary.Contains(" 2 small files in dest and 2 small files in src"));
-            Utils.AssertEq(14, realResults.items.Count);
-            Utils.AssertEq(14, nFilesBefore - nFilesAfter);
-            string[] filesExpected = @"..\..\test\testsync\dest
-..\..\test\testsync\dest\Images
-..\..\test\testsync\dest\Images\b.png
-..\..\test\testsync\dest\Images\c.png
-..\..\test\testsync\dest\Images\d.png
-..\..\test\testsync\dest\Images\DB44-20-x64.jpg
-..\..\test\testsync\dest\Images\e.png
-..\..\test\testsync\dest\Images\f.gif
-..\..\test\testsync\dest\Images\new.png
-..\..\test\testsync\dest\Images\remdir
-..\..\test\testsync\dest\Images\remdir\c.png
-..\..\test\testsync\dest\Images\remempty
-..\..\test\testsync\dest\Images\short2.txt
-..\..\test\testsync\dest\Licenses
-..\..\test\testsync\dest\Licenses\Apr-License.txt
-..\..\test\testsync\dest\Licenses\Apr-Util-License.txt
-..\..\test\testsync\dest\Licenses\BerkeleyDB-License.txt
-..\..\test\testsync\dest\Licenses\Cyrus-Sasl-License.txt
-..\..\test\testsync\dest\Licenses\GetText-Runtime-License.txt
-..\..\test\testsync\dest\Licenses\OpenSsl-License.txt
-..\..\test\testsync\dest\Licenses\Serf-License.txt
-..\..\test\testsync\dest\Licenses\SharpSvn-License.txt
-..\..\test\testsync\dest\Licenses\Subversion-License.txt
-..\..\test\testsync\dest\loren.html
-..\..\test\testsync\dest\loren.txt
-..\..\test\testsync\dest\pic1.png
-..\..\test\testsync\dest\shortbl2.dat
-..\..\test\testsync\src
-..\..\test\testsync\src\Images
-..\..\test\testsync\src\Images\a.png
-..\..\test\testsync\src\Images\addempty
-..\..\test\testsync\src\Images\addir
-..\..\test\testsync\src\Images\addir\a.PNG
-..\..\test\testsync\src\Licenses
-..\..\test\testsync\src\Licenses\.weirdext
-..\..\test\testsync\src\Licenses\Apr-License.txt
-..\..\test\testsync\src\Licenses\Cyrus-Sasl-License.txt
-..\..\test\testsync\src\Licenses\noext
-..\..\test\testsync\src\Licenses\OpenSsl-License.txt
-..\..\test\testsync\src\Licenses\Serf-License.txt
-..\..\test\testsync\src\short.txt
-..\..\test\testsync\src\shortbl.txt".Replace("\r\n", "\n").Replace(@"..\..\test\testsync\", sDirectory + "\\").Split(new char[] { '\n' });
-            filesGot.Sort();
-            Testing.AssertStringArrayEqual(filesExpected, filesGot);
         }
 
         private static void TestSyncPreview(string sDirectory, int nThreads)
@@ -436,91 +367,6 @@ Update		\Licenses\Serf-License.txt".Replace("\r\n", "\n");
             Utils.AssertEq(true, results.sSummary.Contains("it is being used by another process"));
             Utils.AssertEq(true, results.sSummary.Contains("RETRY LIMIT EXCEEDED"));
             Utils.AssertEq(true, results.sSummary.Contains("Bytes :"));
-        }
-
-        static void TestActualDeleteInternalDuplicates(string sDirectory)
-        {
-            var config = GetRealConfig(sDirectory, 1 /*nThreads*/);
-            config.m_isDeleteDuplicates = true;
-            config.m_src = config.m_destination;
-            File.Copy(config.m_src + "\\loren.txt", config.m_src + "\\Images\\L2");
-            File.Copy(config.m_src + "\\loren.txt", config.m_src + "\\Images\\addir\\L3");
-            File.Copy(config.m_src + "\\loren.txt", config.m_src + "\\Images\\addir\\L4");
-            File.AppendAllText(config.m_src + "\\Images\\addir\\L4", "a");
-            File.WriteAllText(config.m_src + "\\short.txt", "a");
-            File.WriteAllText(config.m_src + "\\Images\\short2.txt", "a");
-            File.WriteAllText(config.m_src + "\\shortbl.txt", "");
-            File.WriteAllText(config.m_src + "\\Images\\shortbl2.dat", "");
-
-            var previewResults = RunDelDupes.Run(config);
-            Utils.AssertEq(true, previewResults.sSummary.Contains("find internal"));
-            Utils.AssertEq(true, previewResults.sSummary.Contains(" 4 small files"));
-            Utils.AssertEq(3, previewResults.items.Count);
-            var realResults = RunDelDupes.ExecuteResultsSet(previewResults);
-            Utils.AssertEq(true, realResults.sSummary.Contains("find internal"));
-            Utils.AssertEq(true, realResults.sSummary.Contains(" 4 small files"));
-            Utils.AssertEq(3, realResults.items.Count);
-            string[] filesExpected = @"..\..\test\testsync\dest
-..\..\test\testsync\dest\Images
-..\..\test\testsync\dest\Images\a.png
-..\..\test\testsync\dest\Images\addempty
-..\..\test\testsync\dest\Images\addir
-..\..\test\testsync\dest\Images\addir\L4
-..\..\test\testsync\dest\Images\b.png
-..\..\test\testsync\dest\Images\c.png
-..\..\test\testsync\dest\Images\d.png
-..\..\test\testsync\dest\Images\DB44-20-x64.jpg
-..\..\test\testsync\dest\Images\e.png
-..\..\test\testsync\dest\Images\f.gif
-..\..\test\testsync\dest\Images\short2.txt
-..\..\test\testsync\dest\Images\shortbl2.dat
-..\..\test\testsync\dest\Licenses
-..\..\test\testsync\dest\Licenses\.weirdext
-..\..\test\testsync\dest\Licenses\Apr-License.txt
-..\..\test\testsync\dest\Licenses\Apr-Util-License.txt
-..\..\test\testsync\dest\Licenses\BerkeleyDB-License.txt
-..\..\test\testsync\dest\Licenses\Cyrus-Sasl-License.txt
-..\..\test\testsync\dest\Licenses\GetText-Runtime-License.txt
-..\..\test\testsync\dest\Licenses\noext
-..\..\test\testsync\dest\Licenses\OpenSsl-License.txt
-..\..\test\testsync\dest\Licenses\Serf-License.txt
-..\..\test\testsync\dest\Licenses\SharpSvn-License.txt
-..\..\test\testsync\dest\Licenses\Subversion-License.txt
-..\..\test\testsync\dest\loren.html
-..\..\test\testsync\dest\loren.txt
-..\..\test\testsync\dest\pic1.png
-..\..\test\testsync\dest\short.txt
-..\..\test\testsync\dest\shortbl.txt
-..\..\test\testsync\src
-..\..\test\testsync\src\Images
-..\..\test\testsync\src\Images\a.png
-..\..\test\testsync\src\Images\addempty
-..\..\test\testsync\src\Images\addir
-..\..\test\testsync\src\Images\addir\a.PNG
-..\..\test\testsync\src\Images\b.png
-..\..\test\testsync\src\Images\c.png
-..\..\test\testsync\src\Images\d.png
-..\..\test\testsync\src\Images\DB44-20-x64.jpg
-..\..\test\testsync\src\Images\e.png
-..\..\test\testsync\src\Images\f.gif
-..\..\test\testsync\src\Licenses
-..\..\test\testsync\src\Licenses\.weirdext
-..\..\test\testsync\src\Licenses\Apr-License.txt
-..\..\test\testsync\src\Licenses\Apr-Util-License.txt
-..\..\test\testsync\src\Licenses\BerkeleyDB-License.txt
-..\..\test\testsync\src\Licenses\Cyrus-Sasl-License.txt
-..\..\test\testsync\src\Licenses\GetText-Runtime-License.txt
-..\..\test\testsync\src\Licenses\noext
-..\..\test\testsync\src\Licenses\OpenSsl-License.txt
-..\..\test\testsync\src\Licenses\Serf-License.txt
-..\..\test\testsync\src\Licenses\SharpSvn-License.txt
-..\..\test\testsync\src\Licenses\Subversion-License.txt
-..\..\test\testsync\src\loren.html
-..\..\test\testsync\src\loren.txt
-..\..\test\testsync\src\pic1.png".Replace("\r\n", "\n").Replace(@"..\..\test\testsync\", sDirectory + "\\").Split(new char[] { '\n' });
-            List<string> filesGot = Directory.GetFileSystemEntries(sDirectory, "*", SearchOption.AllDirectories).ToList();
-            filesGot.Sort();
-            Testing.AssertStringArrayEqual(filesExpected, filesGot);
         }
 
         private static SyncConfiguration GetRealConfig(string sDirectory, int nThreads)

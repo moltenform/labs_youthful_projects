@@ -31,13 +31,6 @@ namespace rbcpy
             {
                 this.Text = "Preview";
                 this.lblNameOfAction.Text = "Preview:";
-
-                if (results.config.m_isDeleteDuplicates)
-                {
-                    btnCompareWinmerge.Text = "Keep Both";
-                    btnLeftToRight.Text = "Delete left";
-                    btnRightToLeft.Text = "Delete right";
-                }
             }
             else
             {
@@ -122,33 +115,14 @@ namespace rbcpy
 
         private void btnCompareWinmerge_Click(object sender, EventArgs e)
         {
-            if (m_results.config.m_isDeleteDuplicates)
+            // "View in winmerge"
+            foreach (var item in IterateListViewItems(true))
             {
-                // "Keep both"
-                var dictToRemove = new Dictionary<CCreateSyncItem, bool>();
-                foreach (var item in IterateListViewItems(true))
+                var itemObj = item as CCreateSyncItem;
+                if (itemObj != null && (itemObj.status == CCreateSyncItemStatus.ChangedAndDestNewer || itemObj.status == CCreateSyncItemStatus.ChangedAndSrcNewer))
                 {
-                    var itemObj = item as CCreateSyncItem;
-                    if (itemObj != null && (itemObj.status == CCreateSyncItemStatus.DeleteDuplicate))
-                    {
-                        dictToRemove[itemObj] = true;
-                    }
-                }
-
-                m_results.items = (from item in m_results.items where !dictToRemove.ContainsKey(item) select item).ToList();
-                ReAddItems();
-            }
-            else
-            {
-                // "View in winmerge"
-                foreach (var item in IterateListViewItems(true))
-                {
-                    var itemObj = item as CCreateSyncItem;
-                    if (itemObj != null && (itemObj.status == CCreateSyncItemStatus.ChangedAndDestNewer || itemObj.status == CCreateSyncItemStatus.ChangedAndSrcNewer))
-                    {
-                        RunImplementation.OpenWinmerge(m_globalSettings.m_winMergeDir,
-                            itemObj.GetLeftPath(m_results.config), itemObj.GetRightPath(m_results.config), false);
-                    }
+                    RunImplementation.OpenWinmerge(m_globalSettings.m_winMergeDir,
+                        itemObj.GetLeftPath(m_results.config), itemObj.GetRightPath(m_results.config), false);
                 }
             }
         }
@@ -207,11 +181,6 @@ namespace rbcpy
                         recentLeft = new FileInfo(item.GetLeftPath(this.m_results.config));
                         nTotalLeft += recentLeft.Length;
                     }
-
-                    if (item.status == CCreateSyncItemStatus.DeleteDuplicate)
-                    {
-                        sbLeft.AppendLine(item.GetLeftPath(this.m_results.config));
-                    }
                 }
                 if (item.IsInRight())
                 {
@@ -220,10 +189,6 @@ namespace rbcpy
                         nCountRight++;
                         recentRight = new FileInfo(item.GetRightPath(this.m_results.config));
                         nTotalRight += recentRight.Length;
-                    }
-
-                    if (item.status == CCreateSyncItemStatus.DeleteDuplicate) { 
-                        sbRight.AppendLine(item.GetRightPath(this.m_results.config));
                     }
                 }
             }
@@ -291,7 +256,6 @@ namespace rbcpy
                 globalSettings = m_globalSettings,
                 config = m_results.config,
                 preview = false,
-                duplicatesFoundPreviously = m_results
             };
 
             m_runner.Run();
@@ -337,59 +301,18 @@ namespace rbcpy
         }
         private void ManualCopyFile(bool leftToRight)
         {
-            if (this.m_bPreview && m_results.config.m_isDeleteDuplicates)
+            // "copy left to right"
+            if (MessageBox.Show("Confirm copy?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                // "delete left"
-                var dictToRemove = new Dictionary<CCreateSyncItem, bool>();
-                var sExceptions = "";
-                foreach (var item in IterateListViewItems(true))
+                foreach (var item in IterateListViewItems(true /*only selected*/))
                 {
-                    var itemObj = item as CCreateSyncItem;
-                    if (itemObj != null && (itemObj.status == CCreateSyncItemStatus.DeleteDuplicate))
+                    if (leftToRight && item.IsInLeft())
                     {
-                        try
-                        {
-                            if (leftToRight)
-                            {
-                                File.Delete(itemObj.GetLeftPath(m_results.config));
-                            }
-                            else
-                            {
-                                File.Delete(itemObj.GetRightPath(m_results.config));
-                            }
-
-                            dictToRemove[itemObj] = true;
-                        }
-                        catch (Exception e)
-                        {
-                            sExceptions += "\r\n" + e;
-                        }
+                        ManualCopyFileImpl(item.GetLeftPath(m_results.config), item.GetRightPath(m_results.config));
                     }
-                }
-
-                if (sExceptions.Length > 0)
-                {
-                    MessageBox.Show("Exceptions occurred:\r\n"+sExceptions);
-                }
-
-                m_results.items = (from item in m_results.items where !dictToRemove.ContainsKey(item) select item).ToList();
-                ReAddItems();
-            }
-            else
-            {
-                // "copy left to right"
-                if (MessageBox.Show("Confirm copy?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                {
-                    foreach (var item in IterateListViewItems(true /*only selected*/))
+                    else if (!leftToRight && item.IsInRight())
                     {
-                        if (leftToRight && item.IsInLeft())
-                        {
-                            ManualCopyFileImpl(item.GetLeftPath(m_results.config), item.GetRightPath(m_results.config));
-                        }
-                        else if (!leftToRight && item.IsInRight())
-                        {
-                            ManualCopyFileImpl(item.GetRightPath(m_results.config), item.GetLeftPath(m_results.config));
-                        }
+                        ManualCopyFileImpl(item.GetRightPath(m_results.config), item.GetLeftPath(m_results.config));
                     }
                 }
             }

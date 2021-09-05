@@ -56,7 +56,6 @@ namespace rbcpy
         public bool m_symlinkNotTarget;
         public bool m_fatTimes = true;
         public bool m_compensateDst;
-        public bool m_isDeleteDuplicates = false;
         internal static bool s_disableMessageBox = false;
 
         public static bool ShouldBeInt(string sFieldName)
@@ -96,40 +95,23 @@ namespace rbcpy
                 return false;
             }
 
-            if (config.m_destination == config.m_src && config.m_isDeleteDuplicates && 
-                (!s_disableMessageBox || MessageBox.Show(
-                    "Check for internal dupes?", "", MessageBoxButtons.YesNo) == DialogResult.Yes))
-            {
-            }
-            else
-            {
-                if (config.m_destination == config.m_src)
-                {
-                    if (!s_disableMessageBox)
-                    {
-                        MessageBox.Show("Src and destination should not be the same.");
-                    }
-
-                    return false;
-                }
-
-                string tmpDest = (config.m_destination.ToLower()+"\\"), tmpSrc = (config.m_src.ToLower()+"\\");
-                if (tmpDest.Contains(tmpSrc) || tmpSrc.Contains(tmpDest))
-                {
-                    if (!s_disableMessageBox)
-                    {
-                        MessageBox.Show("Src and destination should not intersect.");
-                    }
-
-                    return false;
-                }
-            }
-
-            if (config.m_isDeleteDuplicates && (!String.IsNullOrEmpty(config.m_excludeDirs) || !String.IsNullOrEmpty(config.m_excludeFiles)))
+            
+            if (config.m_destination == config.m_src)
             {
                 if (!s_disableMessageBox)
                 {
-                    MessageBox.Show("Delete duplicates does not support m_excludeDirs or m_excludeFiles.");
+                    MessageBox.Show("Src and destination should not be the same.");
+                }
+
+                return false;
+            }
+
+            string tmpDest = (config.m_destination.ToLower()+"\\"), tmpSrc = (config.m_src.ToLower()+"\\");
+            if (tmpDest.Contains(tmpSrc) || tmpSrc.Contains(tmpDest))
+            {
+                if (!s_disableMessageBox)
+                {
+                    MessageBox.Show("Src and destination should not intersect.");
                 }
 
                 return false;

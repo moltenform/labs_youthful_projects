@@ -34,7 +34,6 @@
             this.btnPickDest = new System.Windows.Forms.Button();
             this.btnPickSrc = new System.Windows.Forms.Button();
             this.panelAdvancedSettings = new System.Windows.Forms.Panel();
-            this.chkDeleteDupes = new System.Windows.Forms.CheckBox();
             this.chkCompensateDST = new System.Windows.Forms.CheckBox();
             this.chkFatTimes = new System.Windows.Forms.CheckBox();
             this.chkSymlinkNotTarget = new System.Windows.Forms.CheckBox();
@@ -156,7 +155,6 @@
             // 
             // panelAdvancedSettings
             // 
-            this.panelAdvancedSettings.Controls.Add(this.chkDeleteDupes);
             this.panelAdvancedSettings.Controls.Add(this.chkCompensateDST);
             this.panelAdvancedSettings.Controls.Add(this.chkFatTimes);
             this.panelAdvancedSettings.Controls.Add(this.chkSymlinkNotTarget);
@@ -178,16 +176,6 @@
             this.panelAdvancedSettings.Name = "panelAdvancedSettings";
             this.panelAdvancedSettings.Size = new System.Drawing.Size(492, 167);
             this.panelAdvancedSettings.TabIndex = 0;
-            // 
-            // chkDeleteDupes
-            // 
-            this.chkDeleteDupes.AutoSize = true;
-            this.chkDeleteDupes.Location = new System.Drawing.Point(6, 141);
-            this.chkDeleteDupes.Name = "chkDeleteDupes";
-            this.chkDeleteDupes.Size = new System.Drawing.Size(199, 17);
-            this.chkDeleteDupes.TabIndex = 40;
-            this.chkDeleteDupes.Text = "Delete Duplicates instead of copying";
-            this.chkDeleteDupes.UseVisualStyleBackColor = true;
             // 
             // chkCompensateDST
             // 
@@ -724,7 +712,6 @@
         private System.Windows.Forms.Button btnPickSrc;
         private System.Windows.Forms.Button btnPickDest;
         private System.Windows.Forms.Button btnShowCmd;
-        private System.Windows.Forms.CheckBox chkDeleteDupes;
         private System.Windows.Forms.ToolStripMenuItem runTestsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
     }

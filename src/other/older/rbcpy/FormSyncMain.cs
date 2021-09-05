@@ -38,7 +38,6 @@ namespace rbcpy
                 {"m_symlinkNotTarget", this.chkSymlinkNotTarget},
                 {"m_fatTimes", this.chkFatTimes},
                 {"m_compensateDst", this.chkCompensateDST},
-                {"m_isDeleteDuplicates", this.chkDeleteDupes},
             };
 
             var directory = AppDomain.CurrentDomain.BaseDirectory.ToLowerInvariant();
@@ -421,24 +420,12 @@ namespace rbcpy
             if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
             {
                 string[] filePaths = (string[])(e.Data.GetData(DataFormats.FileDrop));
-                if (filePaths.Length == 0)
-                {
-                }
-                else if (filePaths.Length == 1)
+                if (filePaths.Length == 1)
                 {
                     if (txtSrc.Text.StartsWith("Enter ") || txtSrc.Text.Trim().Length == 0)
                         txtSrc.Text = filePaths[0];
                     else
                         txtDest.Text = filePaths[0];
-                }
-                else if (filePaths.Length >= 2)
-                {
-                    txtSrc.Text = filePaths[0];
-                    txtDest.Text = filePaths[1];
-                    if (filePaths.Length == 2 && File.Exists(filePaths[0]) && File.Exists(filePaths[1]))
-                    {
-                        RunDelDupes.CompareTwoFiles(filePaths[0], filePaths[1]);
-                    }
                 }
             }
         }
@@ -472,7 +459,6 @@ namespace rbcpy
         public RbcpyGlobalSettings globalSettings;
         public SyncConfiguration config;
         public bool preview;
-        public CCreateSyncResultsSet duplicatesFoundPreviously;
 
         public void Run()
         {
@@ -485,37 +471,17 @@ namespace rbcpy
             btnToTemporarilyDisable.Enabled = false;
             ThreadPool.QueueUserWorkItem(delegate { RunCopyingOnSeparateThread(); }, null);
         }
+
         void RunCopyingOnSeparateThread()
         {
             CCreateSyncResultsSet results = null;
             string sExceptionOccurred = null;
             try
             {
-                if (config.m_isDeleteDuplicates && preview)
-                {
-                    if (duplicatesFoundPreviously != null)
-                    {
-                        MessageBox.Show("why is duplicatesFoundPreviously not null?");
-                    }
-
-                    results = RunDelDupes.Run(config);
-                }
-                else if (config.m_isDeleteDuplicates && !preview)
-                {
-                    if (duplicatesFoundPreviously == null)
-                    {
-                        MessageBox.Show("why is duplicatesFoundPreviously null?");
-                    }
-
-                    results = RunDelDupes.ExecuteResultsSet(duplicatesFoundPreviously);
-                }
-                else
-                {
-                    string sLogFilename = RunImplementation.GetLogFilename();
-                    RunImplementation.Go(config, sLogFilename, preview, false);
-                    results = CCreateSyncResultsSet.ParseFromLogFile(
-                        config, sLogFilename, preview);
-                }
+                string sLogFilename = RunImplementation.GetLogFilename();
+                RunImplementation.Go(config, sLogFilename, preview, false);
+                results = CCreateSyncResultsSet.ParseFromLogFile(
+                    config, sLogFilename, preview);
             }
             catch (Exception e)
             {
