@@ -169,7 +169,5 @@ namespace rbcpy
             return (SyncConfiguration)obj;
         }
     }
-
-
 }
 

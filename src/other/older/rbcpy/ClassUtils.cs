@@ -221,43 +221,9 @@ namespace rbcpy
                 !s2.StartsWith(s1, comparison);
         }
 
-        // "soft delete" just means moving to a designated 'trash' location.
-        public static string GetSoftDeleteDestination(string path)
-        {
-            var deleteDir = Configs.Current.Get(ConfigKey.SoftDeleteDir);
-            if (!Directory.Exists(deleteDir))
-            {
-                while(true)
-                {
-                    var got = Utils.AskOpenFileDialog("Please choose a file in the 'trash' " + 
-                        "directory where we'll send deleted files.");
-                    if (!string.IsNullOrEmpty(got) && Directory.Exists(Path.GetDirectoryName(got)))
-                    {
-                        deleteDir = Path.GetDirectoryName(got);
-                        Configs.Current.Set(ConfigKey.SoftDeleteDir, deleteDir);
-                        break;
-                    }
-                }
-            }
-
-            // as a prefix, the first 2 chars of the parent directory
-            var prefix = FirstTwoChars(Path.GetFileName(Path.GetDirectoryName(path))) + "_";
-            return Path.Combine(deleteDir, prefix + Path.GetFileName(path) + GetRandomDigits());
-        }
-
         public static string GetRandomDigits() 
         {
             return random.Next().ToString();
-        }
-
-        public static void SoftDelete(string path)
-        {
-            var newPath = GetSoftDeleteDestination(path);
-            if (newPath != null)
-            {
-                SimpleLog.Current.WriteLog("Moving (" + path + ") to (" + newPath + ")");
-                File.Move(path, newPath);
-            }
         }
 
         public static string CombineProcessArguments(string[] args)
@@ -393,167 +359,6 @@ namespace rbcpy
             {
                 return stderr;
             }
-        }
-
-        public static void RunPythonScriptOnSeparateThread(string pyScript,
-            string[] listArgs, bool createWindow = false, bool autoWorkingDir = false,
-            string workingDir = null)
-        {
-            ThreadPool.QueueUserWorkItem(delegate
-            {
-                RunPythonScript(pyScript, listArgs, createWindow: createWindow,
-                    workingDir: autoWorkingDir ? Path.GetDirectoryName(pyScript) : workingDir);
-            });
-        }
-
-        public static string RunPythonScript(string pyScript,
-            string[] listArgs, bool createWindow = false,
-            bool warnIfStdErr = true, string workingDir = null)
-        {
-            if (!pyScript.Contains(Utils.Sep))
-            {
-                pyScript = Path.Combine(Configs.Current.Directory, pyScript);
-            }
-
-            if (!File.Exists(pyScript))
-            {
-                MessageBox("Script not found " + pyScript);
-                return "Script not found";
-            }
-
-            string python = null;
-            if (string.IsNullOrEmpty(python) || !File.Exists(python))
-            {
-                MessageBox("Python not found. Go to the main screen and to the " +
-                    "option menu and click Options->Set python location...");
-                return "Python not found.";
-            }
-
-            var args = new List<string> { pyScript };
-            args.AddRange(listArgs);
-            int exitCode = Run(python, args.ToArray(), shellExecute: false,
-                waitForExit: true, hideWindow: !createWindow, getStdout: true,
-                outStdout: out string stdout, outStderr: out string stderr, workingDir: workingDir);
-
-            if (warnIfStdErr && exitCode != 0)
-            {
-                MessageBox("warning, error from script: " + FormatPythonError(stderr) ?? "");
-            }
-
-            return stderr;
-        }
-
-        public static void RunImageConversion(string pathInput, string pathOutput,
-            string resizeSpec, int jpgQuality)
-        {
-            if (File.Exists(pathOutput))
-            {
-                MessageBox("File already exists, " + pathOutput);
-                return;
-            }
-
-            // send the working directory for the script so that it can find options.ini
-            var workingDir = Path.Combine(Configs.Current.Directory,
-                "ben_python_img");
-            var script = Path.Combine(Configs.Current.Directory,
-                "ben_python_img", "img_convert_resize.py");
-            var args = new string[] { "convert_resize",
-                pathInput, pathOutput, resizeSpec, jpgQuality.ToString() };
-            var stderr = RunPythonScript(script, args,
-                createWindow: false, warnIfStdErr: false, workingDir: workingDir);
-
-            if (!string.IsNullOrEmpty(stderr) || !File.Exists(pathOutput))
-            {
-                MessageBox("RunImageConversion failed, " + FormatPythonError(stderr));
-            }
-        }
-
-        public static string RunM4aConversion(string path, string qualitySpec)
-        {
-            var qualities = new string[] { "16", "24", "96", "128", "144",
-                "160", "192", "224", "256", "288", "320", "640", "flac" };
-            if (Array.IndexOf(qualities, qualitySpec) == -1)
-            {
-                throw new RbCpyException("Unsupported bitrate.");
-            }
-            else if (!path.EndsWith(".wav", StringComparison.Ordinal) &&
-                !path.EndsWith(".flac", StringComparison.Ordinal))
-            {
-                throw new RbCpyException("Unsupported input format.");
-            }
-            else
-            {
-                string encoder = null;
-                if (!File.Exists(encoder))
-                {
-                    throw new RbCpyException("M4a encoder not found, use Options->Set m4a encoder.");
-                }
-
-                var pathOutput = Path.GetDirectoryName(path) + Sep +
-                    Path.GetFileNameWithoutExtension(path) +
-                    (qualitySpec == "flac" ? ".flac" : ".m4a");
-                var script = Path.GetDirectoryName(encoder) + Sep +
-                    "dropq" + qualitySpec + ".py";
-                var args = new string[] { path };
-                var stderr = RunPythonScript(
-                    script, args, createWindow: false, warnIfStdErr: false);
-
-                if (!File.Exists(pathOutput))
-                {
-                    throw new RbCpyException("RunM4aConversion failed, " + FormatPythonError(stderr));
-                }
-                else
-                {
-                    return pathOutput;
-                }
-            }
-        }
-
-        public static void JpgStripThumbnails(string path)
-        {
-            // delete IFD1 tags, removes the Thumbnailimage + all associated tags.
-            var exiftool = Configs.Current.Directory + "/exiftool/exiftool" +
-                (Utils.IsWindows() ? ".exe" : "");
-            if (!File.Exists(exiftool))
-            {
-                throw new RbCpyException("exiftool not found, expected to be seen at " + exiftool);
-            }
-
-            var args = new string[] { "-ifd1:all=", "-PreviewImage=", "-overwrite_original", path };
-            Run(exiftool, args, hideWindow: true, waitForExit: true, shellExecute: false);
-        }
-
-        public static void JpgLosslessOptimize(string path, string pathOut, bool stripAllExif)
-        {
-            var jpegtran = Configs.Current.Directory + "/mozjpeg/jpegtran" +
-                (Utils.IsWindows() ? ".exe" : "");
-            if (!File.Exists(jpegtran))
-            {
-                throw new RbCpyException("mozjpeg not found, expected to be seen at " + jpegtran);
-            }
-
-            var args = new string[] { "-outfile", pathOut, "-optimise",
-                "-progressive", "-copy", stripAllExif ? "none" : "all", path };
-            Run(jpegtran, args, hideWindow: true, waitForExit: true, shellExecute: false);
-        }
-
-        public static void PlayMedia(string path)
-        {
-            if (path == null)
-                path = Path.Combine(Configs.Current.Directory, "silence.flac");
-
-            string player = null;
-            if (string.IsNullOrEmpty(player) || !File.Exists(player))
-            {
-                MessageBox("Media player not found. Go to the main screen " +
-                    "and to the option menu and click Options->Set media player location...");
-                return;
-            }
-
-            var args = player.ToLower().Contains("foobar") ? new string[] { "/playnow", path } :
-                new string[] { path };
-
-            Run(player, args, hideWindow: true, waitForExit: false, shellExecute: false);
         }
 
         public static string GetClipboard()
@@ -727,7 +532,7 @@ namespace rbcpy
 
         public static void MessageBox(string msg, bool checkIfSuppressed = false)
         {
-            if (!checkIfSuppressed || !Configs.Current.SuppressDialogs)
+            if (!checkIfSuppressed)
             {
                 System.Windows.Forms.MessageBox.Show(msg);
             }
@@ -1208,14 +1013,6 @@ namespace rbcpy
         public void WriteError(string s)
         {
             WriteLog("[error] " + s);
-        }
-
-        public void WriteVerbose(string s)
-        {
-            if (Configs.Current.GetBool(ConfigKey.EnableVerboseLogging))
-            {
-                WriteLog("[vb] " + s);
-            }
         }
     }
 

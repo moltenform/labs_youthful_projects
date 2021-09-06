@@ -124,12 +124,6 @@ namespace rbcpy
             config.m_copySubDirsAndEmptySubdirs = true;
             config.m_copyFlags = "DA"; // don't copy times
 
-            if (!File.Exists(GetTestDirectory() + @"\testsync\src\Images\b.png"))
-            {
-                System.Windows.Forms.MessageBox.Show("Please unzip testFiles.zip to " + Path.GetFullPath(GetTestDirectory()) + @"\testsync");
-                throw new Exception("Path not found.");
-            }
-
             string sLogFilename = RunImplementation.GetLogFilename();
             RunImplementation.Go(config, sLogFilename, false /*preview*/, false);
             File.Delete(sLogFilename);

@@ -461,6 +461,14 @@ namespace rbcpy
 
             ret.sSummary = sbSummary.ToString();
             ret.sSummary = ret.sSummary.Replace("FAILED", "Failed");
+            
+            // delete Speed: section
+            int indexSpeed = ret.sSummary.IndexOf("Speed :");
+            if (indexSpeed != -1)
+            {
+                ret.sSummary = ret.sSummary.Substring(0, indexSpeed).Trim();
+            }
+
             return ret;
         }
 

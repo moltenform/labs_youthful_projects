@@ -40,16 +40,24 @@ namespace rbcpy
                 {"m_compensateDst", this.chkCompensateDST},
             };
 
-            var directory = AppDomain.CurrentDomain.BaseDirectory.ToLowerInvariant();
-            Directory.SetCurrentDirectory(directory);
-            if (!Directory.Exists("configs"))
+            try
             {
-                Directory.CreateDirectory("configs");
+                var directory = AppDomain.CurrentDomain.BaseDirectory.ToLowerInvariant();
+                Directory.SetCurrentDirectory(directory);
+                if (!Directory.Exists("configs"))
+                {
+                    Directory.CreateDirectory("configs");
+                }
+
+                if (File.Exists("configs/globalconfig.xml"))
+                {
+                    m_globalSettings = RbcpyGlobalSettings.Deserialize("configs/globalconfig.xml");
+                }
             }
-            
-            if (File.Exists("configs/globalconfig.xml"))
+            catch
             {
-                m_globalSettings = RbcpyGlobalSettings.Deserialize("configs/globalconfig.xml");
+                MessageBox.Show("Error loading. Please place in a writable directory.");
+                m_globalSettings = new RbcpyGlobalSettings();
             }
         }
 
@@ -65,7 +73,10 @@ namespace rbcpy
             foreach (var file in Directory.EnumerateFiles("configs", "*.xml"))
             {
                 if (file.IndexOf("globalconfig") != -1)
+                {
                     continue;
+                }
+
                 SavedConfigForListbox saved = new SavedConfigForListbox();
                 saved.m_filename = file.Replace("configs\\", "").Replace("configs/", "").Replace(".xml", "");
                 this.listBoxConfigs.Items.Add(saved);
@@ -220,12 +231,10 @@ namespace rbcpy
         {
             var args = RunImplementation.Go(GetCurrentConfigFromUI(), RunImplementation.GetLogFilename(), true, true);
             MessageBox.Show(args);
-        }
-
-        private void mnuCopyCmd_Click(object sender, EventArgs e)
-        {
-            var args = RunImplementation.Go(GetCurrentConfigFromUI(), RunImplementation.GetLogFilename(), true, true);
-            Clipboard.SetText(args);
+            if (Utils.AskToConfirm("Copy to clipboard?"))
+            {
+                Clipboard.SetText(args);
+            }
         }
 
         private void Txt_CallSelectOnEnter(object sender, EventArgs e)
@@ -368,17 +377,20 @@ namespace rbcpy
             form.SetCurrentConfigToUI(prevConfig);
         }
 
-        private void mnuManuallyDeleted_Click(object sender, EventArgs e)
+        private void mnuSetDeletedPath_Click(object sender, EventArgs e)
         {
             var prevDir = this.m_globalSettings.m_directoryForDeletedFiles ?? "c:\\";
             var sNewName = InputBoxForm.GetStrInput("Please enter a directory where manually deleted files will be moved, or enter no text to disable this feature:", prevDir);
-            if (!Directory.Exists(sNewName))
+            if (string.IsNullOrEmpty(sNewName))
+            {
+                return;
+            }
+            else if (!Directory.Exists(sNewName))
             {
                 MessageBox.Show("Directory does not exist");
                 return;
             }
-
-            if (sNewName != null)
+            else
             {
                 this.m_globalSettings.m_directoryForDeletedFiles = sNewName;
                 RbcpyGlobalSettings.Serialize(this.m_globalSettings, "configs/globalconfig.xml");
@@ -423,9 +435,13 @@ namespace rbcpy
                 if (filePaths.Length == 1)
                 {
                     if (txtSrc.Text.StartsWith("Enter ") || txtSrc.Text.Trim().Length == 0)
+                    {
                         txtSrc.Text = filePaths[0];
+                    }
                     else
+                    {
                         txtDest.Text = filePaths[0];
+                    }
                 }
             }
         }
@@ -435,11 +451,17 @@ namespace rbcpy
             RbcpyTests.RunTests();
             Test_SaveFromUIElements(this);
             Test_CheckUIElementsAfterLoad(this);
+            MessageBox.Show("Tests complete.");
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Rbcpy, by Ben Fisher, 2017");
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 
@@ -487,6 +509,7 @@ namespace rbcpy
             {
                 sExceptionOccurred = e.ToString();
             }
+
             Action action = delegate() { OnRunComplete(results, sExceptionOccurred); };
             btnToTemporarilyDisable.BeginInvoke(action);
         }
@@ -499,6 +522,7 @@ namespace rbcpy
             {
                 MessageBox.Show("Exception: " + sExceptionOccurred);
             }
+
             if (results != null)
             {
                 var child = new FormSyncItems(results, globalSettings, preview);
