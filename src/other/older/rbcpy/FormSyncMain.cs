@@ -14,6 +14,7 @@ namespace rbcpy
         Dictionary<string, TextBox> m_mapTextItems;
         Dictionary<string, CheckBox> m_mapCheckItems;
         RunSyncOnBackgroundThread m_runner;
+        Dictionary<string, string> m_variables = new Dictionary<string, string>();
 
         public FormSyncMain()
         {
@@ -149,8 +150,12 @@ namespace rbcpy
         private void listBoxConfigs_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.panelAdvancedSettings.Visible = this.chkAdvanced.Checked;
-            SyncConfiguration config = new SyncConfiguration();
             var name = GetCurrentConfigName();
+            SetCurrentConfigToUI(this.getConfigFromFilename(name, false) ?? new SyncConfiguration());
+        }
+
+        private SyncConfiguration getConfigFromFilename(string name, bool applyVars)
+        {
             if (name != null)
             {
                 var newFilename = "configs/" + name + ".xml";
@@ -160,11 +165,11 @@ namespace rbcpy
                 }
                 else
                 {
-                    config = SyncConfiguration.Deserialize(newFilename);
+                    return SyncConfiguration.Deserialize(newFilename, applyVars ? m_variables : null);
                 }
             }
-            
-            SetCurrentConfigToUI(config);
+
+            return null;
         }
 
         private string GetCurrentConfigName()
@@ -202,7 +207,7 @@ namespace rbcpy
 
         private void OnTextFieldChange(TextBox textBox, Label label)
         {
-            if (Directory.Exists(textBox.Text)) 
+            if (Directory.Exists(RunImplementation.applyVariables(textBox.Text, m_variables)))
             {
                 label.Text = "✓";
             }
@@ -214,14 +219,44 @@ namespace rbcpy
 
         private void btnPreviewRun_Click(object sender, EventArgs e)
         {
-            var config = GetCurrentConfigFromUI();
+            bool isPreview = true;
+            var configs = new List<SyncConfiguration>();
+            if (listBoxConfigs.SelectedItems.Count == 1)
+            {
+                configs.Add(GetCurrentConfigFromUI(true));
+            }
+            else if (listBoxConfigs.SelectedItems.Count > 1)
+            {
+                MessageBox.Show("Note: because many tasks are selected, we'll use the Saved versions.");
+                isPreview = Utils.AskToConfirm("Preview before running?");
+                foreach (var item in listBoxConfigs.SelectedItems) {
+                    var selectedItem = item as SavedConfigForListbox;
+                    if (selectedItem != null && selectedItem.m_filename != null)
+                    {
+                        var cfg = getConfigFromFilename(selectedItem.m_filename, true);
+                        if (cfg == null)
+                        {
+                            return;
+                        }
+
+                        configs.Add(cfg);
+                    }
+                }
+            }
+
+            if (configs.Count == 0)
+            {
+                MessageBox.Show("No tasks selected.");
+                return;
+            }
+
             m_runner = new RunSyncOnBackgroundThread
             {
                 btnToTemporarilyDisable = btnPreviewRun,
                 sPreviousButtonName = "Preview / Run",
                 globalSettings = m_globalSettings,
-                config = config,
-                preview = true
+                configs = configs.ToArray(),
+                preview = isPreview
             };
 
             m_runner.Run();
@@ -229,7 +264,7 @@ namespace rbcpy
 
         private void btnShowCmd_Click(object sender, EventArgs e)
         {
-            var args = RunImplementation.Go(GetCurrentConfigFromUI(), RunImplementation.GetLogFilename(), true, true);
+            var args = RunImplementation.Go(GetCurrentConfigFromUI(true), RunImplementation.GetLogFilename(), true, true);
             MessageBox.Show(args);
             if (Utils.AskToConfirm("Copy to clipboard?"))
             {
@@ -248,14 +283,14 @@ namespace rbcpy
 
         private void btnOpenWinmerge_Click(object sender, EventArgs e)
         {
-            var config = GetCurrentConfigFromUI();
+            var config = GetCurrentConfigFromUI(true);
             if (!SyncConfiguration.Validate(config))
                 return;
 
             RunImplementation.OpenWinmerge(m_globalSettings.m_winMergeDir, config.m_src, config.m_destination, true);
         }
 
-        private SyncConfiguration GetCurrentConfigFromUI()
+        private SyncConfiguration GetCurrentConfigFromUI(bool applyVars = false)
         {
             SyncConfiguration config = new SyncConfiguration();
             Type type = config.GetType();
@@ -267,7 +302,9 @@ namespace rbcpy
                 {
                     if (m_mapTextItems.ContainsKey(property.Name))
                     {
-                        property.SetValue(config, m_mapTextItems[property.Name].Text);
+                        var v = m_mapTextItems[property.Name].Text;
+                        v = applyVars ? RunImplementation.applyVariables(v, m_variables) : v;
+                        property.SetValue(config, v);
                     }
                     else if (m_mapCheckItems.ContainsKey(property.Name))
                     {
@@ -463,6 +500,28 @@ namespace rbcpy
         {
             this.Close();
         }
+
+        private void mnuSetVariable_Click(object sender, EventArgs e)
+        {
+            var varName = InputBoxForm.GetStrInput("Name of variable:", "$base");
+            if (!string.IsNullOrEmpty(varName) && varName.StartsWith("$"))
+            {
+                var val = InputBoxForm.GetStrInput("Value of variable:", "");
+                if (!string.IsNullOrEmpty(val))
+                {
+                    this.m_variables[varName] = val;
+                }
+            }
+
+            // Refresh UI
+            this.listBoxConfigs_SelectedIndexChanged(null, null);
+        }
+
+        private void openConfigDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var dir = Path.GetFullPath(".") + Utils.Sep + "configs";
+            Utils.OpenDirInExplorer(dir);
+        }
     }
 
     public class SavedConfigForListbox
@@ -479,14 +538,17 @@ namespace rbcpy
         public Button btnToTemporarilyDisable;
         public string sPreviousButtonName;
         public RbcpyGlobalSettings globalSettings;
-        public SyncConfiguration config;
+        public SyncConfiguration[] configs;
         public bool preview;
 
         public void Run()
         {
-            if (!SyncConfiguration.Validate(config))
+            foreach (var config in this.configs)
             {
-                return;
+                if (!SyncConfiguration.Validate(config))
+                {
+                    return;
+                }
             }
 
             btnToTemporarilyDisable.Text = "Running...";
@@ -496,28 +558,38 @@ namespace rbcpy
 
         void RunCopyingOnSeparateThread()
         {
-            CCreateSyncResultsSet results = null;
-            string sExceptionOccurred = null;
-            try
+            foreach (var config in this.configs)
             {
-                string sLogFilename = RunImplementation.GetLogFilename();
-                RunImplementation.Go(config, sLogFilename, preview, false);
-                results = CCreateSyncResultsSet.ParseFromLogFile(
-                    config, sLogFilename, preview);
-            }
-            catch (Exception e)
-            {
-                sExceptionOccurred = e.ToString();
+                CCreateSyncResultsSet results = null;
+                string sExceptionOccurred = null;
+                try
+                {
+                    string sLogFilename = RunImplementation.GetLogFilename();
+                    RunImplementation.Go(config, sLogFilename, preview, false);
+                    results = CCreateSyncResultsSet.ParseFromLogFile(
+                        config, sLogFilename, preview);
+                }
+                catch (Exception e)
+                {
+                    sExceptionOccurred = e.ToString();
+                }
+
+                Action action = delegate () { OnRunComplete(results, sExceptionOccurred); };
+                btnToTemporarilyDisable.BeginInvoke(action);
             }
 
-            Action action = delegate() { OnRunComplete(results, sExceptionOccurred); };
-            btnToTemporarilyDisable.BeginInvoke(action);
+            // Don't restore btn text until all configs were processed
+            Action restoreBtnText = delegate ()
+            {
+                btnToTemporarilyDisable.Text = sPreviousButtonName;
+                btnToTemporarilyDisable.Enabled = true;
+            };
+
+            btnToTemporarilyDisable.BeginInvoke(restoreBtnText);
         }
 
         void OnRunComplete(CCreateSyncResultsSet results, string sExceptionOccurred)
         {
-            btnToTemporarilyDisable.Text = sPreviousButtonName;
-            btnToTemporarilyDisable.Enabled = true;
             if (sExceptionOccurred != null)
             {
                 MessageBox.Show("Exception: " + sExceptionOccurred);

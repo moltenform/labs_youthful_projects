@@ -79,9 +79,14 @@ namespace rbcpy
             foreach (var item in m_results.items)
             {
                 if (item.status == CCreateSyncItemStatus.Unknown && !m_includeProgress)
+                {
                     continue;
+                }
+                
                 if (item.status == CCreateSyncItemStatus.AddedInDest && !m_results.config.m_mirror && !m_includeProgress)
+                { 
                     continue;
+                }
 
                 listView.Items.Add(item.GetListItem(m_bPreview));
             }
@@ -131,7 +136,9 @@ namespace rbcpy
         {
             ICollection lists = listView.Items;
             if (onlySelected)
+            {
                 lists = listView.SelectedItems;
+            }
 
             foreach (var item in lists)
             {
@@ -167,7 +174,9 @@ namespace rbcpy
         private void GetSelectedDetailsText(StringBuilder sbLeft, StringBuilder sbRight)
         {
             if (!m_bPreview)
+            {
                 return;
+            }
 
             FileInfo recentLeft = null, recentRight = null;
             long nCountLeft = 0, nCountRight = 0, nTotalLeft = 0, nTotalRight = 0;
@@ -254,7 +263,7 @@ namespace rbcpy
                 btnToTemporarilyDisable = btnRun,
                 sPreviousButtonName = "Run Synchronization",
                 globalSettings = m_globalSettings,
-                config = m_results.config,
+                configs = new SyncConfiguration[] { m_results.config },
                 preview = false,
             };
 

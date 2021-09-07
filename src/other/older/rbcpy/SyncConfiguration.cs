@@ -51,7 +51,7 @@ namespace rbcpy
         public string m_nRetries = "3";
         public string m_waitBetweenRetries = "1";
 
-        public string m_nThreads = "8";
+        public string m_nThreads = "3";
         public string m_custom = "";
         public bool m_symlinkNotTarget;
         public bool m_fatTimes = true;
@@ -160,11 +160,18 @@ namespace rbcpy
             }
         }
 
-        public static SyncConfiguration Deserialize(string sFilename)
+        public static SyncConfiguration Deserialize(string sFilename, Dictionary<string, string> vars = null)
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(SyncConfiguration));
             TextReader reader = new StreamReader(sFilename);
-            object obj = deserializer.Deserialize(reader);
+            var txt = reader.ReadToEnd();
+            if (vars != null)
+            {
+                txt = RunImplementation.applyVariables(txt, vars);
+            }
+
+            var stm = new MemoryStream(Encoding.UTF8.GetBytes(txt));
+            object obj = deserializer.Deserialize(stm);
             reader.Close();
             return (SyncConfiguration)obj;
         }
