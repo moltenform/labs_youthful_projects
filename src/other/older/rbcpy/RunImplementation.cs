@@ -65,6 +65,17 @@ namespace rbcpy
                 process.WaitForExit();
             }
         }
+
+        public static string applyVariables(string s, Dictionary<string, string> d)
+        {
+            foreach (var v in d)
+            {
+                Utils.AssertTrue(!v.Value.Contains("<") && !v.Value.Contains(">"));
+                s = s.Replace(v.Key, v.Value);
+            }
+
+            return s;
+        }
         
         internal static string[] getLines(string slines)
         {
@@ -380,7 +391,7 @@ namespace rbcpy
                 {
                     if (bPreview)
                     {
-                        MessageBox.Show("file does not exist");
+                        MessageBox.Show("file does not exist " + left + "|" + right);
                     }
 
                     continue;
@@ -450,7 +461,7 @@ namespace rbcpy
             {
                 // show the entire results in the summary if a failure occurs
                 ret.items.Clear();
-                ret.sSummary = RetrieveTextPastSectionNumber(sLogFilename, 3, "Summary indicated failures (can be caused by broken symlinks):");
+                ret.sSummary = RetrieveTextPastSectionNumber(sLogFilename, 3, "Summary indicated failures (can be caused by broken symlinks, we recommend ensuring no symlinks are present in target):");
                 return ret;
             }
 
