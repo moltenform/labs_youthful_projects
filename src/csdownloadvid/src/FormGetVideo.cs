@@ -794,7 +794,7 @@ namespace CsDownloadVid
         void FormGetVideo_Load(object sender, EventArgs e)
         {
             // Run this here, ahead of time, since we're on main thread and can safely open a dialog
-            Utils.GetSoftDeleteDestination("");
+            Utils.GetSoftDeleteDestination("(example)");
         }
     }
 

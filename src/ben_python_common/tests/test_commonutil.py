@@ -104,6 +104,38 @@ class TestStringHelpersSimple(object):
 
         assert expect == toValidFilename(test, dirsepOk=True)
 
+    def test_toValidFilenameLengthOK(self):
+        s = 'a/'.replace('/', os.path.sep) + 'a' * 42 + '.jpg'
+        assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a/'.replace('/', os.path.sep) + 'a' * 43 + '.jpg'
+        assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
+        assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
+    
+    def test_toValidFilenameLengthTooLong(self):
+        s = 'a/'.replace('/', os.path.sep) + 'a' * 45 + '.jpg'
+        expected = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
+        assert expected == toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a/'.replace('/', os.path.sep) + 'a' * 46 + '.jpg'
+        expected = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
+        assert expected == toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a/'.replace('/', os.path.sep) + 'a' * 47 + '.jpg'
+        expected = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
+        assert expected == toValidFilename(s, dirsepOk=True, maxLen=50)
+    
+    def test_toValidFilenameDirLengthTooLong(self):
+        s = 'a' * 44 + '/a.jpg'.replace('/', os.path.sep)
+        assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a' * 45 + '/a.jpg'.replace('/', os.path.sep)
+        expected = 'a' * 45 + '/.jpg'.replace('/', os.path.sep)
+        assert expected == toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a' * 46 + '/a.jpg'.replace('/', os.path.sep)
+        with pytest.raises(AssertionError):
+            toValidFilename(s, dirsepOk=True, maxLen=50)
+        s = 'a' * 47 + '/a.jpg'.replace('/', os.path.sep)
+        with pytest.raises(AssertionError):
+            toValidFilename(s, dirsepOk=True, maxLen=50)
+
     # stripHtmlTags
     def test_stripHtmlTagsBasic(self):
         assert 'a b c' == stripHtmlTags('a b c')
@@ -208,7 +240,33 @@ class TestStringHelpersSimple(object):
 
     def test_formatSizeZeroB(self):
         assert '0b' == formatSize(0)
-
+    
+    # add/append
+    def test_addOrAppendToArrayInDictNoRepeats(self):
+        d = {}
+        addOrAppendToArrayInDict(d, 'a', 'a')
+        addOrAppendToArrayInDict(d, 'b', 'b')
+        addOrAppendToArrayInDict(d, 'c', 'c')
+        assert d == dict(a=['a'], b=['b'], c=['c'])
+    
+    def test_addOrAppendToArrayInDictManyRepeats(self):
+        d = {}
+        addOrAppendToArrayInDict(d, 'a', 'a')
+        addOrAppendToArrayInDict(d, 'a', 'a')
+        addOrAppendToArrayInDict(d, 'b', 'b')
+        addOrAppendToArrayInDict(d, 'b', 'b')
+        addOrAppendToArrayInDict(d, 'c', 'c')
+        addOrAppendToArrayInDict(d, 'c', 'c')
+        assert d == dict(a=['a', 'a'], b=['b', 'b'], c=['c', 'c'])
+    
+    def test_addOrAppendToArrayInDictAlternateRepeats(self):
+        d = {}
+        addOrAppendToArrayInDict(d, 'a', 'a')
+        addOrAppendToArrayInDict(d, 'b', 'b')
+        addOrAppendToArrayInDict(d, 'c', 'c')
+        addOrAppendToArrayInDict(d, 'a', 'a')
+        addOrAppendToArrayInDict(d, 'b', 'b')
+        assert d == dict(a=['a', 'a'], b=['b', 'b'], c=['c'])
 
 class TestDataStructures(object):
     # takeBatch

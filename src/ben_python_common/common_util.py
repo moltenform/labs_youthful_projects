@@ -64,7 +64,8 @@ def getPrintable(s, okToIgnore=False):
 def trace(*args):
     print(' '.join(map(getPrintable, args)))
 
-def toValidFilename(s, dirsepOk=False):
+def toValidFilename(sOrig, dirsepOk=False, maxLen=None):
+    s = sOrig
     if dirsepOk:
         # sometimes we want to leave directory-separator characters in the string.
         import os
@@ -76,12 +77,25 @@ def toValidFilename(s, dirsepOk=False):
         s = s.replace(u'\\ ', u', ').replace(u'\\', u'-')
         s = s.replace(u'/ ', u', ').replace(u'/', u'-')
 
-    return s.replace(u'\u2019', u"'").replace(u'?', u'').replace(u'!', u'') \
+    result = s.replace(u'\u2019', u"'").replace(u'?', u'').replace(u'!', u'') \
         .replace(u': ', u', ').replace(u':', u'-') \
         .replace(u'| ', u', ').replace(u'|', u'-') \
         .replace(u'*', u'') \
         .replace(u'"', u"'").replace(u'<', u'[').replace(u'>', u']') \
         .replace(u'\r\n', u' ').replace(u'\r', u' ').replace(u'\n', u' ')
+
+    if maxLen and len(result) > maxLen:
+        import os as _os
+        assertTrue(maxLen > 1)
+        ext = _os.path.splitext(s)[1]
+        beforeExt = s[0:-len(ext)]
+        while len(result) > maxLen:
+            result = beforeExt + ext
+            beforeExt = beforeExt[0:-1]
+        # if it ate into the directory, though, through an error
+        assertTrue(_os.path.split(sOrig)[0] == _os.path.split(result)[0])
+
+    return result
 
 def stripHtmlTags(s, removeRepeatedWhitespace=True):
     import re
@@ -145,6 +159,13 @@ def formatSize(n):
         return '%.2fKB' % (n / (1024.0))
     else:
         return '%db' % n
+
+def addOrAppendToArrayInDict(d, key, val):
+    got = d.get(key, None)
+    if got:
+        got.append(val)
+    else:
+        d[key] = [val]
 
 def takeBatchOnArbitraryIterable(iterable, size):
     import itertools
