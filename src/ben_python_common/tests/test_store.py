@@ -8,7 +8,7 @@ from ..files import join, getsize, writeall, ensureEmptyDirectory
 
 class TestStorage(object):
     def test_that_schema_version_is_set(self, fixture_temp_db):
-        db, dbpath = fixture_temp_db
+        db, _ = fixture_temp_db
         assert db.row_exists(db.cursor(), 'SELECT * FROM ben_python_common_store_properties WHERE schema_version==1')
 
     def test_that_wrong_schema_version_is_not_set(self, fixture_temp_db):
@@ -74,7 +74,7 @@ class StoreDemo(Store):
         cursor.execute('CREATE TABLE testtable(a, b, c)')
         cursor.execute('CREATE INDEX ix_testtable_c on testtable(c)')
 
-    def currrent_schema_version_number(self):
+    def current_schema_version_number(self):
         return 1
 
 @pytest.fixture()
