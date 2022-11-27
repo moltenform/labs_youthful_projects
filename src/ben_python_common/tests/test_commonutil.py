@@ -111,7 +111,7 @@ class TestStringHelpersSimple(object):
         assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
         s = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
         assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
-    
+
     def test_toValidFilenameLengthTooLong(self):
         s = 'a/'.replace('/', os.path.sep) + 'a' * 45 + '.jpg'
         expected = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
@@ -122,7 +122,7 @@ class TestStringHelpersSimple(object):
         s = 'a/'.replace('/', os.path.sep) + 'a' * 47 + '.jpg'
         expected = 'a/'.replace('/', os.path.sep) + 'a' * 44 + '.jpg'
         assert expected == toValidFilename(s, dirsepOk=True, maxLen=50)
-    
+
     def test_toValidFilenameDirLengthTooLong(self):
         s = 'a' * 44 + '/a.jpg'.replace('/', os.path.sep)
         assert s == toValidFilename(s, dirsepOk=True, maxLen=50)
@@ -240,7 +240,7 @@ class TestStringHelpersSimple(object):
 
     def test_formatSizeZeroB(self):
         assert '0b' == formatSize(0)
-    
+
     # add/append
     def test_addOrAppendToArrayInDictNoRepeats(self):
         d = {}
@@ -248,7 +248,7 @@ class TestStringHelpersSimple(object):
         addOrAppendToArrayInDict(d, 'b', 'b')
         addOrAppendToArrayInDict(d, 'c', 'c')
         assert d == dict(a=['a'], b=['b'], c=['c'])
-    
+
     def test_addOrAppendToArrayInDictManyRepeats(self):
         d = {}
         addOrAppendToArrayInDict(d, 'a', 'a')
@@ -258,7 +258,7 @@ class TestStringHelpersSimple(object):
         addOrAppendToArrayInDict(d, 'c', 'c')
         addOrAppendToArrayInDict(d, 'c', 'c')
         assert d == dict(a=['a', 'a'], b=['b', 'b'], c=['c', 'c'])
-    
+
     def test_addOrAppendToArrayInDictAlternateRepeats(self):
         d = {}
         addOrAppendToArrayInDict(d, 'a', 'a')

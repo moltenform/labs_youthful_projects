@@ -366,6 +366,13 @@ def listfileinfo(root, followSymlinks=False, filesOnly=True):
 
 def isemptydir(dir):
     return len(_os.listdir(dir)) == 0
+    
+def getSizeRecurse(dir, followSymlinks=False, fnFilterDirs=None, fnDirectExceptionsTo=None):
+    total = 0
+    for obj in recursefileinfo(dir, followSymlinks=followSymlinks,
+            fnFilterDirs=fnFilterDirs, fnDirectExceptionsTo=fnDirectExceptionsTo):
+        total += obj.size()
+    return total
 
 def fileContentsEqual(f1, f2):
     import filecmp
@@ -529,6 +536,12 @@ def hasherFromString(s):
         return hashlib.shake_128()
     elif s == 'shake_256':
         return hashlib.shake_256()
+    elif s == 'xxhash_32':
+        import xxhash
+        return xxhash.xxh32()
+    elif s == 'xxhash_64':
+        import xxhash
+        return xxhash.xxh64()
     else:
         raise ValueError('Unknown hash type ' + s)
 
@@ -541,7 +554,7 @@ def computeHash(path, hasher='sha1', buffersize=0x40000):
     with open(path, 'rb') as f:
         return computeHashImpl(f, hasher, buffersize)
 
-def computeHashImpl(f, hasher, buffersize):
+def computeHashImpl(f, hasher, buffersize=0x40000):
     if hasher == 'crc32':
         import zlib
         crc = zlib.crc32(bytes(), 0)
@@ -553,6 +566,16 @@ def computeHashImpl(f, hasher, buffersize):
             crc = zlib.crc32(buffer, crc)
         crc = crc & 0xffffffff
         return '%08x' % crc
+    elif hasher == 'crc64':
+        from crc64iso.crc64iso import crc64_pair, format_crc64_pair
+        cur = None
+        while True:
+            # update the hash with the contents of the file
+            buffer = f.read(buffersize)
+            if not buffer:
+                break
+            cur = crc64_pair(buffer, cur)
+        return format_crc64_pair(cur)
     else:
         if isinstance(hasher, str):
             hasher = hasherFromString(hasher)
