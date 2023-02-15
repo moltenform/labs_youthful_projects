@@ -504,7 +504,7 @@ namespace CsDownloadVid
 
         public override string GetUrl()
         {
-            return "https://github.com/nficano/pytube/archive/master.zip";
+            return "https://github.com/pytube/pytube/archive/master.zip";
         }
 
         public override void DoPostProcessing(string dir, string pathIncomingDir)
