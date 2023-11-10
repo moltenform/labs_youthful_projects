@@ -69,7 +69,7 @@ def getOutDirs():
 def filesSortedInverseLmt(dir):
     out = []
     for f, short in files.listfiles(dir):
-        out.append(((f, short), files.modtime(f)))
+        out.append(((f, short), files.getFileLastModifiedTime(f)))
     out.sort(key=lambda entry: entry[1], reverse=True)
     return [entry[0] for entry in out]
 
