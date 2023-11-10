@@ -32,8 +32,8 @@ def getGitResults(cmdSeperatedByUnder, addArgs=None, okIfErrTxt=None, strip=True
         assertTrue(not isinstance(addArgs, anystringtype))
         cmd.extend(map(str, addArgs))
     retcode, stdout, stderr = files.run(cmd, throwOnFailure=False)
-    stdout = stdout.decode('utf-8')
-    stderr = stderr.decode('utf-8')
+    stdout = stdout.decode('utf-8').replace('\r\n', '\n')
+    stderr = stderr.decode('utf-8').replace('\r\n', '\n')
     if retcode != 0 and (not okIfErrTxt or okIfErrTxt not in stderr):
         exceptionText = 'retcode is not 0 for process ' + \
             str(cmd) + '\nretcode was ' + str(retcode) + \
@@ -53,6 +53,25 @@ def getLast10Commits(nCommits=10):
         retIds.append(id)
         retText.append(text)
     return retIds, retText
+
+def getLastNCommitsWithAuthor(nCommits):
+    ret = getGitResults(f'git_log_--format=short_-n', [nCommits])
+    parts = ret.strip().split('\ncommit ')[1:]
+    ret = []
+    for part in parts:
+        lines = part.split(os.linesep)
+        hash = (lines[0] + ' ').split(' ')[0]
+        assertTrue(39 <= len(hash) <= 45, 'hash wrong length', hash, len(hash))
+        author = jslike.find(lines, lambda ln: ln.startswith('Author: '))
+        merge = jslike.find(lines, lambda ln: ln.startswith('Merge: '))
+        text = part.split(os.linesep + os.linesep, 1)[1].strip() if (os.linesep + os.linesep) in part else ''
+        assertTrue(author, 'author not found', part)
+        ret.append(Bucket(hash=hash, 
+            text=text,
+            merge=merge[len('Merge: '):] if merge else '',
+            author=author[len('Author: '):] if author else ''))
+
+    return ret
 
 def findCommitInTheLast10OrThrow(searchFor, nCommits=10):
     # returns list of commit ids until a match found
@@ -167,33 +186,42 @@ def getRestoreBranchAndPrepMoveBranch(d):
         curBranch = mainBranch(d)
     return curBranch
 
-def determineRootPaths(checkTempRepo=True):
+def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, removeDsStore=False):
     dir = os.path.abspath(os.getcwd())
-    removeAllDsStore()
-    assertGitPacket(files.isdir(dir + '/.git'), 'please cd to the root of a git repo')
+    if removeDsStore:
+        removeAllDsStore()
+    if strict:
+        assertGitPacket(files.isdir(dir + '/.git'), 'please cd to the root of a git repo')
     assertGitPacket(dir in workingRepos, f'dir {dir} not found in workingRepos, please add to gitp_util.py')
-    assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {dir}?')
-    curBranch = getGitResults('git_branch_--show-current')
-    assertGitPacket(curBranch == 'gpworking', f'please create a branch called "gpworking" off of basis-commit {basisCommits.get(dir, "")} from {mainBranch(dir)}')
-    curCommit = currentCommitId()
-    assertGitPacket(dir in basisCommits, f'no corresponding entry in basisCommits for {dir}, please add to gitp_util.py')
-    assertGitPacket(shasMatch(basisCommits[dir], curCommit), f'expected to be at commit {basisCommits[dir]} but is {curCommit}, please update gitp_util.py or go to that commit')
-    assertGitPacket(not areThereStagedFiles(), f'should be no staged files in {dir}, please reset them')
+    if strict:
+        assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {dir}?')
+        curBranch = getGitResults('git_branch_--show-current')
+        assertGitPacket(curBranch == 'gpworking', f'please create a branch called "gpworking" off of basis-commit {basisCommits.get(dir, "")} from {mainBranch(dir)}')
+        curCommit = currentCommitId()
+        assertGitPacket(dir in basisCommits, f'no corresponding entry in basisCommits for {dir}, please add to gitp_util.py')
+        assertGitPacket(shasMatch(basisCommits[dir], curCommit), f'expected to be at commit {basisCommits[dir]} but is {curCommit}, please update gitp_util.py or go to that commit')
+        assertGitPacket(not areThereStagedFiles(), f'should be no staged files in {dir}, please reset them')
     if checkTempRepo:
-        assertGitPacket(dir in tempRepos, f'no corresponding entry in tempRepos for {dir}, please add to gitp_util.py')
-        assertGitPacket(files.isdir(tempRepos[dir] + '/.git'), f'tempRepos entry {tempRepos[dir]} is not the root of a git repo')
-        assertGitPacket(os.path.isabs(tempRepos[dir]), f'tempRepos entry {tempRepos[dir]} is not an absolute path')
-        with ChangeCurrentDirectory(tempRepos[dir]) as cd:
-            removeAllDsStore()
+        if specifyTmpRepo:
+           tmpRepo = specifyTmpRepo
+        else:
+            assertGitPacket(dir in tempRepos, f'no corresponding entry in tempRepos for {dir}, please add to gitp_util.py')
+            tmpRepo = tempRepos[dir]
+        assertGitPacket(files.isdir(tmpRepo + '/.git'), f'tempRepos entry {tmpRepo} is not the root of a git repo')
+        assertGitPacket(os.path.isabs(tmpRepo), f'tempRepos entry {tmpRepo} is not an absolute path')
+        with ChangeCurrentDirectory(tmpRepo) as cd:
+            if removeDsStore:
+                removeAllDsStore()
             curBranch = getGitResults('git_branch_--show-current')
             if curBranch.startswith('gitptemp-'):
-                getGitResults('git_co', [mainBranch(tempRepos[dir])])
-            assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {tempRepos[dir]}?')
-            assertGitPacket(not areThereStagedFiles(), f'should not have staged files in {tempRepos[dir]}')
-            assertGitPacket(not areThereUnstagedFiles(), f'should not have unstaged files in {tempRepos[dir]}')
-            findCommitInTheLast10OrThrow(basisCommits[dir])
+                getGitResults('git_co', [mainBranch(tmpRepo)])
+            assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {tmpRepo}?')
+            assertGitPacket(not areThereStagedFiles(), f'should not have staged files in {tmpRepo}')
+            assertGitPacket(not areThereUnstagedFiles(), f'should not have unstaged files in {tmpRepo}')
+            if strict:
+                findCommitInTheLast10OrThrow(basisCommits[dir])
 
-    root, tmproot = dir, tempRepos.get(dir, '')
+    root, tmproot = dir, specifyTmpRepo if specifyTmpRepo else tempRepos.get(dir, '')
     endsWithB = lambda s: s.endswith('b') or files.getname(files.getparent(s)).endswith('b')
     assertTrue(endsWithB(tmproot), 'expect tmpRepos entry to end with b')
     assertTrue(not endsWithB(root), 'expect repos entry to not end with b')

@@ -2,6 +2,7 @@
 # Copyright (c) 2021, MIT License
 
 from .gitp_gitutil import *
+from .gitp_withorigin import *
 import zipfile
 import time
 

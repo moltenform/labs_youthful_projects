@@ -13,6 +13,7 @@ def main(argv):
         cmds = OrderedDict(
             diffdev=gitpTop_DiffMain,
             diffprev=gitpTop_DiffPrev,
+            diffwithorigin=gitpTop_DiffWithOrigin,
             copytoaltrepo=gitpTop_CopyToAltRepo,
             slowcopytoaltrepo=gitpTop_SlowCopyToAltRepo,
             pack=gitpTop_Pack,
