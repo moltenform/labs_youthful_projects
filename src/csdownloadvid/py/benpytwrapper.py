@@ -4,16 +4,17 @@
 # a script for csdownloadvid, 
 # wraps pytube and makes it look/act like ytdl does
 
-# ben_python_common is available from
-# https://github.com/moltenform/labs_coordinate_music
+# shinerainsoftsevenutil is available from
+# https://github.com/moltenform/shinerainsoftsevenutil
 
-from ben_python_common import *
+from shinerainsoftsevenutil.standard import * # auto-transitioned
+from shinerainsoftsevenutil.core import *
 import os
 import sys
 
 myPath = os.path.split(os.path.realpath(__file__))[0]
 pytPath = os.path.join(myPath, 'tools', 'pytubemasterdir', 'pytube-master')
-assertTrue(files.isdir(pytPath), 'cannot find tools/pytubemasterdir')
+assertTrue(files.isDir(pytPath), 'cannot find tools/pytubemasterdir')
 sys.path.append(pytPath)
 
 def goMain():
@@ -55,7 +56,7 @@ def goImpl(opts):
         assertTrue(ffmpegPath, 'forgot to specify ffmpegPath!!')
         outPath = opts.get('outPath', None)
         assertTrue(outPath, 'forgot to specify outPath!!')
-        assertTrue(files.isdir(outPath), 'outPath not a dir!!')
+        assertTrue(files.isDir(outPath), 'outPath not a dir!!')
         format = opts.get('format', None)
         assertTrue(format, 'forgot to specify format!!')
         chosenObj = None
@@ -86,7 +87,7 @@ def downloadIt(chosenObj, outdir, ffmpegPath, url, format):
     ytId = getYtIdFromUrl(url)
     writtenFile = chosenObj.download(outdir)
     trace(f'wrote to {writtenFile}')
-    newName = os.path.splitext(files.getname(writtenFile))[0]
+    newName = os.path.splitext(files.getName(writtenFile))[0]
 
     # make it title case
     newName = ChangeCasing().title(newName)

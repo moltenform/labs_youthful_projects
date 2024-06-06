@@ -4,7 +4,8 @@
 import random
 import os
 from .gitp_impl import *
-from ben_python_common import *
+from shinerainsoftsevenutil.standard import * # auto-transitioned
+from shinerainsoftsevenutil.core import *
 
 def createManyRandomFiles(dir, seed):
     random.seed(seed)
@@ -20,7 +21,7 @@ def makeTestFiles(dir, nFiles, exts, binary):
         makeTestFile(dir, exts, binary)
 
 def makeTestFile(dir, exts, binary, append=False):
-    files.makedirs(dir)
+    files.makeDirs(dir)
     path = f"{dir}/{random.choice(wordlist)}-{random.choice(wordlist)}{random.choice(exts)}".lower()
     def getWord():
         s = random.choice(wordlist)
@@ -48,10 +49,10 @@ def changeFile(path, tmpdir, binary=False):
     # because we're operating on full lines, we won't interfere with utf8 sequences
     split = lambda data: splitBytesBySize(data, random.choice((50, 500))) if binary else data.split(b'\n')
     join = lambda lst: b''.join(lst) if binary else b'\n'.join(lst)
-    tempSrcDataPath = makeTestFile(tmpdir, [files.getext(path)], binary=binary)
-    tempSrcData = files.readall(tempSrcDataPath, 'rb')
+    tempSrcDataPath = makeTestFile(tmpdir, [files.getExt(path)], binary=binary)
+    tempSrcData = files.readAll(tempSrcDataPath, 'rb')
     srcLines = split(tempSrcData)
-    destBytes = files.readall(path, 'rb')
+    destBytes = files.readAll(path, 'rb')
     destLines = split(destBytes)
     hasDoneOne = False
     for _ in range(random.randint(1, 5)):
@@ -68,13 +69,13 @@ def changeFile(path, tmpdir, binary=False):
             destLines[destTarget:destTarget+random.randint(1,3)] = [newText]
         elif op == 'delete':
             destLines.pop(destTarget)
-    files.writeall(path, join(destLines), 'wb')
+    files.writeAll(path, join(destLines), 'wb')
 
 def makeChanges(dir, tmpdir, nAdds=2, nModifies=3, nDeletes=1):
     with ChangeCurrentDirectory(dir) as cd:
         for isBinary in [True, False]:
-            allTs = [f for (f,short) in files.recursefiles(dir) if f.endswith('.ts')]
-            allPng = [f for (f,short) in files.recursefiles(dir) if f.endswith('.png')]
+            allTs = [f for (f,short) in files.recurseFiles(dir) if f.endswith('.ts')]
+            allPng = [f for (f,short) in files.recurseFiles(dir) if f.endswith('.png')]
             exts = ['.png', '.gif'] if isBinary else ['.ts', '.js']
             arFiles = allPng if isBinary else allTs
             for i in range(nAdds):
@@ -83,7 +84,7 @@ def makeChanges(dir, tmpdir, nAdds=2, nModifies=3, nDeletes=1):
             for i in range(nModifies):
                 changeFile(random.choice(arFiles), tmpdir, binary=isBinary)
             for i in range(nDeletes):
-                files.deletesure(random.choice(arFiles))
+                files.deleteSure(random.choice(arFiles))
 
 def getTestSetup(testDir, forceRebuild=False, seed=123):
     os.chdir(testDir)
@@ -103,7 +104,7 @@ def getTestSetup(testDir, forceRebuild=False, seed=123):
             basisCommits[root] = currentCommitId()
         return
     elif forceRebuild:
-        files.deletesure('testtmpdata/done.txt')
+        files.deleteSure('testtmpdata/done.txt')
     
     createManyRandomFiles(root, seed=seed)
     with ChangeCurrentDirectory(root) as cd:
@@ -120,7 +121,7 @@ def getTestSetup(testDir, forceRebuild=False, seed=123):
             makeChanges(root, tmpDir)
             getGitResults('git_add_-A')
             getGitResults(f'git_commit_-m_othermainchanges{i}')
-    files.makedirs(tmproot)
+    files.makeDirs(tmproot)
     files.runRsync(root, tmproot, deleteExisting=True)
     workingRepos.append(root)
     tempRepos[root] = tmproot
@@ -148,11 +149,11 @@ def getTestSetup(testDir, forceRebuild=False, seed=123):
     files.ensureEmptyDirectory(tmpmodel)
     files.runRsync(root, model, deleteExisting=True)
     files.runRsync(tmproot, tmpmodel, deleteExisting=True)
-    files.writeall('testtmpdata/done.txt', 'done')
+    files.writeAll('testtmpdata/done.txt', 'done')
 
 def getDirSummary(d):
-    fls = sorted(f for f, short in files.recursefiles(d))
-    hashes = jslike.map(fls, lambda f: files.getname(f) + ': ' + getHashNormalized(f))
+    fls = sorted(f for f, short in files.recurseFiles(d))
+    hashes = jslike.map(fls, lambda f: files.getName(f) + ': ' + getHashNormalized(f))
     return fls, hashes
 
 def getHashNormalized(path):
@@ -173,7 +174,7 @@ def compareTwoDirs(d1, d2):
 
 def testPackAndApply(testDir):
     outDir, tmpDir = getOutDirs()
-    for f, short in list(files.listfiles(outDir)):
+    for f, short in list(files.listFiles(outDir)):
         if 'ztestgitptest' in short:
             files.delete(f)
     for i, seed in enumerate([123, 124, 125, 126, 127]):

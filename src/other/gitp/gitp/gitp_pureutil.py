@@ -2,7 +2,8 @@
 # Copyright (c) 2021, MIT License
 
 import zipfile
-from ben_python_common import *
+from shinerainsoftsevenutil.standard import * # auto-transitioned
+from shinerainsoftsevenutil.core import *
 import re
 
 class GitPacketException(RuntimeError):
@@ -52,18 +53,18 @@ def withoutNumber(s):
     return '.'.join(lst)
 
 def transformPath(s, suffix):
-    withsuffix = files.splitext(s)[0] + '.' + suffix + files.splitext(s)[1]
+    withsuffix = files.splitExt(s)[0] + '.' + suffix + files.splitExt(s)[1]
     return withsuffix.replace('\\', ';').replace('/', ';')
 
 def compareTwoFiles(f1, f2):
     # in the future, might add logic where whitespace-only changes are ok
-    txt1 = files.readall(f1, encoding='latin-1').replace('\r\n', '\n').strip()
-    txt2 = files.readall(f2, encoding='latin-1').replace('\r\n', '\n').strip()
+    txt1 = files.readAll(f1, encoding='latin-1').replace('\r\n', '\n').strip()
+    txt2 = files.readAll(f2, encoding='latin-1').replace('\r\n', '\n').strip()
     return txt1 == txt2
 
 def compareWithFileInZip(zip, path, suffix):
     import io
-    txt1 = files.readall(path, encoding='latin-1').replace('\r\n', '\n').strip()
+    txt1 = files.readAll(path, encoding='latin-1').replace('\r\n', '\n').strip()
     innerName = transformPath(path, suffix)
     if not innerName in zip.namelist():
         trace(f'zip file doesn\'t contain {innerName}')
@@ -172,8 +173,8 @@ def compareTwoFilesTests():
         return b.replace(b'$', bytes([240, 241, 242])).replace(b'^', bytes([240, 241, 243]))
 
     for b1, b2, expected in testSets:
-        files.writeall('tmp1.test', replaceSymbols(b1), 'wb')
-        files.writeall('tmp2.test', replaceSymbols(b2), 'wb')
+        files.writeAll('tmp1.test', replaceSymbols(b1), 'wb')
+        files.writeAll('tmp2.test', replaceSymbols(b2), 'wb')
         assertEq(expected, compareTwoFiles('tmp1.test', 'tmp2.test'))
         assertEq(expected, compareTwoFiles('tmp2.test', 'tmp1.test'))
         with zipfile.ZipFile('tmp.zip', 'w') as zip:

@@ -3,18 +3,19 @@
 
 import sys
 import os
-from ben_python_common import *
+from shinerainsoftsevenutil.standard import * # auto-transitioned
+from shinerainsoftsevenutil.core import *
 
 def go():
     if not sys.platform == 'darwin':
         return
 
     path = os.path.expandvars('$HOME/.config/git/gitk')
-    if files.isfile(path):
-        before = files.readall(path, encoding='utf-8')
+    if files.isFile(path):
+        before = files.readAll(path, encoding='utf-8')
         after = before.replace('set geometry(state) zoomed', 
             'set geometry(state) normal')
-        files.writeall(path, after, encoding='utf-8')
+        files.writeAll(path, after, encoding='utf-8')
     else:
         trace('Cannot fixgitk, settings not found.')
 
