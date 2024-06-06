@@ -581,7 +581,14 @@ namespace rbcpy
             // Don't restore btn text until all configs were processed
             Action restoreBtnText = delegate ()
             {
-                btnToTemporarilyDisable.Text = sPreviousButtonName;
+                if (sPreviousButtonName.Contains("/"))
+                {
+                    btnToTemporarilyDisable.Text = sPreviousButtonName;
+                } else
+                {
+                    btnToTemporarilyDisable.Text = sPreviousButtonName + " (Completed)";
+                }
+
                 btnToTemporarilyDisable.Enabled = true;
             };
 
