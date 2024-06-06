@@ -26,6 +26,12 @@ namespace rbcpy
         public static string Go(SyncConfiguration config, string logfilename, bool previewOnly, bool getCommandOnly)
         {
             File.Delete(logfilename);
+            if (config.m_src.Contains("\\\\") || config.m_destination.Contains("\\\\"))
+            {
+                MessageBox.Show("Source and destination cannot contain \\\\");
+                return "";
+            }
+
             string args = GetCommandLineArgs(config);
             if (previewOnly)
             {
