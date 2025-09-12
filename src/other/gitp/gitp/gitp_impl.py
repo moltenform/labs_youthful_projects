@@ -13,7 +13,7 @@ def showGitkAndReset():
     files.run('git_add_-A'.split('_')) # stage them so new files show up
     files.run('git_commit_--no-verify_-m_(Temporary commit for diffing)'.split('_')) # commit them so gitk shows it first
     showInSeparateThreadAndContinue(['gitk'], 10)
-    files.deletesure(getTrueTmp() + '/gitp_is_prob_running')
+    files.deleteSure(getTrueTmp() + '/gitp_is_prob_running')
     files.run('git_reset_HEAD~'.split('_'))
 
 def gitpTop_DiffPrev():
@@ -51,7 +51,7 @@ def gitpTop_Pack(projname=None, desc=None):
     shortdesc, longdesc = desc.split(':', 1) if desc else promptPacketName()
     filename = getLatestProjCount(proj, shortdesc)
     fullfilename = outDir + '/' + filename
-    assertTrue(not files.isfile(fullfilename), "file already exists")
+    assertTrue(not files.isFile(fullfilename), "file already exists")
     with zipfile.ZipFile(fullfilename, 'w') as zip:
         patchPath = gitpTop_Pack_AddPatch(root, tmproot, zip)
         gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patchPath, changes)
@@ -146,7 +146,7 @@ def gitpTop_Pack_AddPatch(root, tmproot, zip):
         assertGitPacket(not areThereUnstagedFiles(), f'expect no unstaged files in {tmproot}')
         patchPath = makeAFormatPatchInTmpDir(tmpdir, 'gitptemp-workingforpatchgen1')
         getGitResults('git_co', [restoreBranch])
-        assertTrue(files.exists(patchPath) and files.getsize(patchPath) > 0, 'not found or empty', patchPath)
+        assertTrue(files.exists(patchPath) and files.getSize(patchPath) > 0, 'not found or empty', patchPath)
         addFileToZip(zip, 'patch.patch', patchPath)
         getGitResults('git_branch_-D_gitptemp-workingforpatchgen1', okIfErrTxt='not found.')
         getGitResults('git_branch_-D_gitptemp-workingforpatchgen2', okIfErrTxt='not found.')
@@ -178,7 +178,7 @@ def gitpTop_SlowCopyToAltRepo():
     dest = rinput(f'Enter full path to a dest dir:\ndefault={defaultDest}\n')
     dest = dest if dest else defaultDest
     if not files.exists(dest) and getInputBool('create dest directory?'):
-        files.makedirs(dest)
+        files.makeDirs(dest)
     files.runRsync(src, dest, deleteExisting=True, linExcludeRelative=[
         '.git', 'node_modules', 'dist'
     ])
@@ -200,7 +200,7 @@ def getDirPairWithoutValidating():
 def gitpTop_CdAltRepo():
     defaultSrc, defaultDest = getDirPairWithoutValidating()
     assertGitPacket(defaultSrc and defaultDest, "directory not found")
-    files.writeall(getTrueTmp() + '/changedir.txt', defaultDest)
+    files.writeAll(getTrueTmp() + '/changedir.txt', defaultDest)
 
 def gitpTop_CopyToAltRepo():
     root, tmproot = determineRootPaths(checkTempRepo=True)
@@ -275,7 +275,7 @@ def gitpTop_ShowPacketDiff(fullpathtozip=None):
                 files.move(wroteTo, withoutNumber(wroteTo), True)
             for path in manifest['deleted']:
                 onDisk = withoutNumber(transformPath(path, '000'))
-                files.writeall(onDisk, '(File was deleted)')
+                files.writeAll(onDisk, '(File was deleted)')
             getGitResults('git_add_-A')
             getGitResults('git_commit_-m_beforepatch')
             for part in partsV1:
@@ -283,7 +283,7 @@ def gitpTop_ShowPacketDiff(fullpathtozip=None):
                 files.move(wroteTo, withoutNumber(wroteTo), True)
             for path in manifest['deleted']:
                 onDisk = withoutNumber(transformPath(path, '000'))
-                files.deletesure(onDisk)
+                files.deleteSure(onDisk)
             showGitkAndReset()
         files.ensureEmptyDirectory(fakeRepo)
 
@@ -302,7 +302,7 @@ def gitpTop_ResetHardAll():
         getGitResults('git_reset_--hard')
         fls = getUnstagedFiles()
         for k in fls.added:
-            files.delete(k, traceToStdout=True)
+            files.delete(k, doTrace=True)
 
 def gitpTop_UpdateBasis():
     root, tmproot = determineRootPaths(checkTempRepo=True)

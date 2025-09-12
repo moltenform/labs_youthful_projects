@@ -4,8 +4,11 @@
 import random
 import os
 from .gitp_impl import *
-from shinerainsoftsevenutil.standard import * # auto-transitioned
-from shinerainsoftsevenutil.core import *
+try:
+    from shinerainsoftsevenutil.standard import *
+    from shinerainsoftsevenutil.core import *
+except ImportError:
+    print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
 
 def createManyRandomFiles(dir, seed):
     random.seed(seed)

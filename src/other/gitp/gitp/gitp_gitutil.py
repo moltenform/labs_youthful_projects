@@ -8,7 +8,7 @@ import zipfile
 
 def addAndCheckNoDupe(d, s):
     assertTrue(not s in d, 'encountered same path twice?', s, d)
-    assertGitPacket('.' in files.getname(s), "we don't yet support files with no extensions", s)
+    assertGitPacket('.' in files.getName(s), "we don't yet support files with no extensions", s)
     d[s] = True
 
 def areThereUnstagedFiles():
@@ -126,16 +126,16 @@ def getUnstagedFiles():
         status = line[0:2]
         path = line[3:]
         addAndCheckNoDupe(ret.allchanged, path)
-        assertGitPacket(not files.isdir(path), "path should not be a directory.", path)
+        assertGitPacket(not files.isDir(path), "path should not be a directory.", path)
         if status == ' M':
             addAndCheckNoDupe(ret.modified, path)
-            assertGitPacket(files.isfile(path), "path not found", path)
+            assertGitPacket(files.isFile(path), "path not found", path)
         elif status == ' D':
             addAndCheckNoDupe(ret.deleted, path)
-            assertGitPacket(not files.isfile(path), "path found but thought to be deleted", path)
+            assertGitPacket(not files.isFile(path), "path found but thought to be deleted", path)
         elif status == '??':
             addAndCheckNoDupe(ret.added, path)
-            assertGitPacket(files.isfile(path), "path not found", path)
+            assertGitPacket(files.isFile(path), "path not found", path)
         else:
             assertGitPacket('unexpected status. do you have staged files/are you in the middle of merging?', '\n'.join(results))
     
@@ -145,23 +145,23 @@ def makeDestLookExactlyLikeSrc(src, dest, pathsPossiblyModified):
     # we'd use rsync-and-skip-.git-directories for this,
     # but that is slow for very large repos since filetimes are different.
     # we want the same result as rsync, but faster.
-    assertTrue(files.isdir(src+'/.git'), 'not a git repo')
-    assertTrue(files.isdir(dest+'/.git'), 'not a git repo')
+    assertTrue(files.isDir(src+'/.git'), 'not a git repo')
+    assertTrue(files.isDir(dest+'/.git'), 'not a git repo')
     for path in pathsPossiblyModified:
         assertTrue(not path.startswith('/') and not path.startswith('\\'))
         p1 = files.join(src, path)
         p2 = files.join(dest, path)
-        assertTrue(not files.isdir(p1), 'dir?', p1)
-        assertTrue(not files.isdir(p2), 'dir?', p2)
-        if files.isfile(p1) and files.isfile(p2):
-            files.makedirs(files.getparent(p2))
+        assertTrue(not files.isDir(p1), 'dir?', p1)
+        assertTrue(not files.isDir(p2), 'dir?', p2)
+        if files.isFile(p1) and files.isFile(p2):
+            files.makeDirs(files.getParent(p2))
             files.copy(p1, p2, True)
-        elif files.isfile(p1) and not files.isfile(p2):
-            files.makedirs(files.getparent(p2))
+        elif files.isFile(p1) and not files.isFile(p2):
+            files.makeDirs(files.getParent(p2))
             files.copy(p1, p2, True)
-        elif not files.isfile(p1) and files.isfile(p2):
+        elif not files.isFile(p1) and files.isFile(p2):
             files.delete(p2)
-        elif not files.isfile(p1) and not files.isfile(p2):
+        elif not files.isFile(p1) and not files.isFile(p2):
             pass
         else:
             assertTrue(False, 'not reached')
@@ -191,7 +191,7 @@ def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, rem
     if removeDsStore:
         removeAllDsStore()
     if strict:
-        assertGitPacket(files.isdir(dir + '/.git'), 'please cd to the root of a git repo')
+        assertGitPacket(files.isDir(dir + '/.git'), 'please cd to the root of a git repo')
     assertGitPacket(dir in workingRepos, f'dir {dir} not found in workingRepos, please add to gitp_util.py')
     if strict:
         assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {dir}?')
@@ -207,7 +207,7 @@ def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, rem
         else:
             assertGitPacket(dir in tempRepos, f'no corresponding entry in tempRepos for {dir}, please add to gitp_util.py')
             tmpRepo = tempRepos[dir]
-        assertGitPacket(files.isdir(tmpRepo + '/.git'), f'tempRepos entry {tmpRepo} is not the root of a git repo')
+        assertGitPacket(files.isDir(tmpRepo + '/.git'), f'tempRepos entry {tmpRepo} is not the root of a git repo')
         assertGitPacket(os.path.isabs(tmpRepo), f'tempRepos entry {tmpRepo} is not an absolute path')
         with ChangeCurrentDirectory(tmpRepo) as cd:
             if removeDsStore:
@@ -222,13 +222,13 @@ def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, rem
                 findCommitInTheLast10OrThrow(basisCommits[dir])
 
     root, tmproot = dir, specifyTmpRepo if specifyTmpRepo else tempRepos.get(dir, '')
-    endsWithB = lambda s: s.endswith('b') or files.getname(files.getparent(s)).endswith('b')
+    endsWithB = lambda s: s.endswith('b') or files.getName(files.getParent(s)).endswith('b')
     assertTrue(endsWithB(tmproot), 'expect tmpRepos entry to end with b')
     assertTrue(not endsWithB(root), 'expect repos entry to not end with b')
     return root, tmproot
 
 def removeAllDsStore():
-    for f, short in list(files.recursefiles('.')):
+    for f, short in list(files.recurseFiles('.')):
         if short == '.DS_Store':
             files.delete(f)
 
@@ -245,14 +245,14 @@ def makeAFormatPatchInTmpDir(tmpDir, baseBranch):
         baseBranch
     ])
 
-    fls = [f for f, short in files.listfiles(tmpDir) if f.endswith('.patch')]
+    fls = [f for f, short in files.listFiles(tmpDir) if f.endswith('.patch')]
     assertEq(1, len(fls), "expected exactly one patch", fls)
     return fls[0]
 
 def applyPatch(patchfile, dest):
     with ChangeCurrentDirectory(dest) as cd:
         # don't use the --binary or --inaccurate-eof flags
-        assertTrue(files.isfile(patchfile), "not found", patchfile)
+        assertTrue(files.isFile(patchfile), "not found", patchfile)
         retcode, stdout, stderr = files.run(['git', 'apply', '--check', patchfile], throwOnFailure=None)
         assertGitPacket(retcode == 0, "We weren't certain the patch will apply, due to:", 
             stdout.decode('utf-8'), stderr.decode('utf-8'))

@@ -61,15 +61,15 @@ addTests()
 #     3) opendiff
 
 def getOutDirs():
-    assertGitPacket(files.isdir(outDir), 'not found, please edit outDir in gitp_util.py')
+    assertGitPacket(files.isDir(outDir), 'not found, please edit outDir in gitp_util.py')
     tmpDir = outDir + '/tmp'
     files.ensureEmptyDirectory(tmpDir)
     return outDir, tmpDir
 
 def filesSortedInverseLmt(dir):
     out = []
-    for f, short in files.listfiles(dir):
-        out.append(((f, short), files.getFileLastModifiedTime(f)))
+    for f, short in files.listFiles(dir):
+        out.append(((f, short), files.getLastModTime(f)))
     out.sort(key=lambda entry: entry[1], reverse=True)
     return [entry[0] for entry in out]
 
@@ -118,7 +118,7 @@ def choosePacket(projname, outDir):
     i, chosen = getInputFromChoices('Choose a packet', opts)
     assertGitPacket(i >= 0, "User canceled.")
     fullpath = files.join(outDir, chosen)
-    assertTrue(files.isfile(fullpath))
+    assertTrue(files.isFile(fullpath))
     return fullpath
 
 def promptPacketName():
@@ -137,7 +137,7 @@ def promptPacketName():
 
 def getLatestProjCount(proj, shortdesc):
     outDir, tmpDir = getOutDirs()
-    filelist = [short for (f, short) in files.listfiles(outDir)]
+    filelist = [short for (f, short) in files.listFiles(outDir)]
     return getLatestProjCountImpl(proj, shortdesc, filelist)
 
 def checkOtherInstancesWhenStarting():
@@ -149,12 +149,12 @@ def checkOtherInstancesWhenStarting():
         warn('It looks like gitp did not exit cleanly, please fix up the repos first.')
         return
     
-    atexit.register(lambda: files.deletesure(getTrueTmp() + '/gitp_is_prob_running'))
-    files.writeall(getTrueTmp() + '/gitp_is_prob_running', '')
-    files.writeall(getTrueTmp() + '/gitp_is_not_clean_exit', '')
+    atexit.register(lambda: files.deleteSure(getTrueTmp() + '/gitp_is_prob_running'))
+    files.writeAll(getTrueTmp() + '/gitp_is_prob_running', '')
+    files.writeAll(getTrueTmp() + '/gitp_is_not_clean_exit', '')
 
 def markCleanExitWhenEnding():
-    files.deletesure(getTrueTmp() + '/gitp_is_not_clean_exit')
+    files.deleteSure(getTrueTmp() + '/gitp_is_not_clean_exit')
 
 def getTrueTmp():
     return '/Users/bf/Documents/temp/'
@@ -222,7 +222,7 @@ def addFileToZip(zip, destname, srcfile):
 def addTextToZip(zip, destname, srctxt):
     outdir, tmpdir = getOutDirs()
     tmpname = tmpdir + '/tmp.txt'
-    files.writeall(tmpname, srctxt, encoding='utf-8')
+    files.writeAll(tmpname, srctxt, encoding='utf-8')
     addFileToZip(zip, destname, tmpname)
     files.delete(tmpname)
 

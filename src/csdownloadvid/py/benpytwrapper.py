@@ -4,11 +4,12 @@
 # a script for csdownloadvid, 
 # wraps pytube and makes it look/act like ytdl does
 
-# shinerainsoftsevenutil is available from
-# https://github.com/moltenform/shinerainsoftsevenutil
+try:
+    from shinerainsoftsevenutil.standard import *
+    from shinerainsoftsevenutil.core import *
+except ImportError:
+    print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
 
-from shinerainsoftsevenutil.standard import * # auto-transitioned
-from shinerainsoftsevenutil.core import *
 import os
 import sys
 

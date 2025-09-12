@@ -2,9 +2,12 @@
 # Copyright (c) 2021, MIT License
 
 import zipfile
-from shinerainsoftsevenutil.standard import * # auto-transitioned
-from shinerainsoftsevenutil.core import *
 import re
+try:
+    from shinerainsoftsevenutil.standard import *
+    from shinerainsoftsevenutil.core import *
+except ImportError:
+    print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
 
 class GitPacketException(RuntimeError):
     pass

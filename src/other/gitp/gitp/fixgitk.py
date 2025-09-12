@@ -3,8 +3,11 @@
 
 import sys
 import os
-from shinerainsoftsevenutil.standard import * # auto-transitioned
-from shinerainsoftsevenutil.core import *
+try:
+    from shinerainsoftsevenutil.standard import *
+    from shinerainsoftsevenutil.core import *
+except ImportError:
+    print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
 
 def go():
     if not sys.platform == 'darwin':
