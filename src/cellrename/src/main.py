@@ -304,7 +304,7 @@ def stripHistory(obj):
     keys = [key for key in obj]
     for key in keys:
         obj[key] = obj[key][0:maxHistoryPerKey]
-        for i, entry in enumerate(obj[key]):
+        for i, _entry in enumerate(obj[key]):
             obj[key][i] = obj[key][i][0:maxHistoryEntryLen]
             obj[key][i] = ''.join(c for c in obj[key][i] if isOkChar(c))
 
@@ -373,6 +373,7 @@ class MyApp(wx.App):
         
         if sys.version_info[0] <= 2:
             sDirectory = unicode(sDirectory)
+
         sFilter = '*'
         bIncludeDirs = False
         
@@ -381,6 +382,7 @@ class MyApp(wx.App):
             sclip = wxutil.getClipboardText()
         except:
             sclip = None
+
         if sclip and os.sep in sclip:
             if isListableDir(sclip):
                 sDirectory = sclip

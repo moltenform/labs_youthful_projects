@@ -259,7 +259,7 @@ def applyPatch(patchfile, dest):
 
         getGitResults(f'git_apply', [patchfile])
 
-def gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patch, changes):
+def gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patchfile, changes):
     basis = basisCommits[root]
     with ChangeCurrentDirectory(tmproot) as cd:
         restoreBranch = getRestoreBranchAndPrepMoveBranch(tmproot)
@@ -268,7 +268,7 @@ def gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patch, changes):
         getGitResults(f'git_co_-b_gitptemp-confirmmerge')
 
         # apply it
-        applyPatch(patch, tmproot)
+        applyPatch(patchfile, tmproot)
 
         # confirm changes
         for path in changes.allchanged.keys():

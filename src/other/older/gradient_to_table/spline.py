@@ -30,6 +30,9 @@ else:
         pass
     func = nothing()
     func.FuncOps = nothing
+    import math
+    log = math.log
+    exp = math.exp
 
 BadInput = "Bad xa input to routine splint."
 

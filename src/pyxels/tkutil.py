@@ -6,13 +6,13 @@ except ImportError:
 
 def bindShortcuts(root, d):
     for key in d:
-        root.bind(key, lambda evt=None, fn=d[key]: fn() ) #it doesn't take an arg
+        root.bind(key, lambda _=None, fn=d[key]: fn() ) #it doesn't take an arg
     #effect is something like:
     #root.bind('<Control-r>', self.onBtnSaveWave)
     
-def addMenuItems(menu, l):
-    assert len(l)%2==0 #length is even
-    for menuname, function in _group(l, 2): #iterate through l, two at a time
+def addMenuItems(menu, length):
+    assert len(length)%2==0 #length is even
+    for menuname, function in _group(length, 2): #iterate through l, two at a time
         if menuname=='_':
             menu.add_separator()
             continue
@@ -66,8 +66,8 @@ class PseudoFile(object):
         self.name = name
     def write(self, s):
         self.writefn(s)
-    def writelines(self, l):
-        list(map(self.write, l))
+    def writelines(self, length):
+        list(map(self.write, length))
     def flush(self):
         pass
     def isatty(self):
@@ -94,11 +94,11 @@ def select_all_binding(fld):
     """Add Ctrl+A -> select all binding"""
     def sel(fld):
         """Select all text in the field."""
-        fld.basecontrol.tag_add(SEL, '1.0', 'end-1c')
-        fld.basecontrol.mark_set(INSERT, '1.0')
-        fld.basecontrol.see(INSERT)
+        fld.basecontrol.tag_add(tkinter.SEL, '1.0', 'end-1c')
+        fld.basecontrol.mark_set(tkinter.INSERT, '1.0')
+        fld.basecontrol.see(tkinter.INSERT)
         return 'break'
-    fld.bind('<Control-a>',lambda event: sel(fld), '+')
+    fld.bind('<Control-a>',lambda _: sel(fld), '+')
         
 def gettext(fld):
     return fld.get(1.0, tkinter.END)

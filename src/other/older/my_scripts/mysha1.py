@@ -6,12 +6,8 @@
 import hashlib
 
 def gethash(file):
-    if False:
-        print('md5')
-        objHash = hashlib.md5()
-    else:
-        print('sha1')
-        objHash = hashlib.sha1()
+    print('sha1')
+    objHash = hashlib.sha1()
 
     f=open(file,'rb')
     while 1:

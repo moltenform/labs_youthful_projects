@@ -1,5 +1,5 @@
 
-#Small timer. Yes, I do know about timeit.
+#Small timer. simpler than timeit.
 
 class Minitimer(object):
     def getTime(self):

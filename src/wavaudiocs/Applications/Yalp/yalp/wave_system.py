@@ -492,8 +492,7 @@ if sys.platform=='win32':
                     return 0
                 user32.TranslateMessage(byref(msg))
                 user32.DispatchMessageA(byref(msg))
-            return 1;
-
+            return 1
         def wait(self, delay):
             """ Utility for recording a timed chunk of audio """
             end_time = time.time()+delay

@@ -18,7 +18,6 @@ class Interpreter(object):
         self.locals = locals
 
     def run_code(self, source):
-        
         code = compile(source, '<user-provided code>', 'exec')
         try:
             exec(code, self.locals)

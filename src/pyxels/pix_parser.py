@@ -183,7 +183,7 @@ def runCode(source, imgInput):
     dlocals['rim'],dlocals['gim'],dlocals['bim'] = rim, gim, bim # I don't expect this to be used often
     
     #expose modules
-    dlocals['Image'] = Image; dlocals['ImageChops'] = ImageChops; dlocals['ImageEnhance'] = ImageEnhance; dlocals['ImageFilter'] = ImageFilter;  dlocals['ImageOps'] = ImageOps;
+    dlocals['Image'] = Image; dlocals['ImageChops'] = ImageChops; dlocals['ImageEnhance'] = ImageEnhance; dlocals['ImageFilter'] = ImageFilter;  dlocals['ImageOps'] = ImageOps
     if 'ImageDraw' in source:
         dlocals['ImageDraw'] = ImageDraw
     if 'ImageStat' in source:

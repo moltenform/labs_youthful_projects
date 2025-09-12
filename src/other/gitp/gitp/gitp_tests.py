@@ -84,9 +84,9 @@ def makeChanges(dir, tmpdir, nAdds=2, nModifies=3, nDeletes=1):
             for i in range(nAdds):
                 path = 'src/a2/a2a' if i > 0 else 'src/new'
                 makeTestFile(path, exts, binary=isBinary)
-            for i in range(nModifies):
+            for _ in range(nModifies):
                 changeFile(random.choice(arFiles), tmpdir, binary=isBinary)
-            for i in range(nDeletes):
+            for _ in range(nDeletes):
                 files.deleteSure(random.choice(arFiles))
 
 def getTestSetup(testDir, forceRebuild=False, seed=123):
@@ -161,7 +161,7 @@ def getDirSummary(d):
 
 def getHashNormalized(path):
     import zlib
-    crc = zlib.crc32(bytes(), 0)
+    crc = zlib.crc32(b'', 0)
     with open(path, 'rb') as f:
         data = f.read().replace(b'\r\n', b'\n').strip()
     crc = zlib.crc32(data, crc) & 0xffffffff

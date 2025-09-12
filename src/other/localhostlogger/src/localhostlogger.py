@@ -8,6 +8,7 @@
 
 PORT = 9123
 LOGFILE = './localhostlog.log'
+ASKSETTINGSFILE = './localhostlogsettings.json'
 ENCODING = 'utf-8'
 
 # provide a value in response if certain text appears in the post.
@@ -86,6 +87,7 @@ def run(port):
         filename=LOGFILE,
         filemode='a',
         level=logging.INFO)
+
     server_address = ('', port)
     httpd = HTTPServer(server_address, LocalhostLoggerServer)
     current_time = datetime.now().strftime("%H:%M:%S")
@@ -94,6 +96,7 @@ def run(port):
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
+
     httpd.server_close()
     logging.info('Stopping httpd...\n')
 

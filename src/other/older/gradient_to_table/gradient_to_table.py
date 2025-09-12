@@ -35,7 +35,7 @@ def main():
             print('@', xpoints[-1])
         elif thelist[i].startswith('color='):
             r,g,b = parsecolor(parsevalue(thelist[i]))
-            rpoints.append(r); gpoints.append(g); bpoints.append(b); 
+            rpoints.append(r); gpoints.append(g); bpoints.append(b)
             print('@@@r=%d\tg=%d\tb=%d' % (rpoints[-1],gpoints[-1],bpoints[-1]))
         else:
             break

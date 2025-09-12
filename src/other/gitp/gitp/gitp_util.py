@@ -112,7 +112,7 @@ def chooseExistingProjName(outDir):
 
 def choosePacket(projname, outDir):
     opts = []
-    for f, short in filesSortedInverseLmt(outDir):
+    for _f, short in filesSortedInverseLmt(outDir):
         if short.startswith(f'{projname}_') and short.endswith('.gitp.zip'):
             opts.append(short)
     i, chosen = getInputFromChoices('Choose a packet', opts)

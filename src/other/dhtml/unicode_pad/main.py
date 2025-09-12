@@ -29,14 +29,16 @@ class App(object):
 	currentFilename = ''
 	currentSaved = True
 	currentMap, currentMapname = 'default.py.js', ''
-	manualbindings = {}
+	manualbindings = None
 	dictModes = None
 	dictHotkeys = None
 	textFormat = ('Times New Roman', 12, 'normal')
-	undoStack = []
+	undoStack = None
 	undoIndex = -1
 	enableUndo = True
 	def __init__(self, root):
+		self.manualbindings = {}
+		self.undoStack = []
 		root.title('Unicode Pad')
 		
 		frameMain = Frame(width=400, height=100)

@@ -23,27 +23,6 @@ Copyright 2005 Allen B. Downey
 	
 """
 
-class Interpreter(object):
-	"""this object encapsulates the environment where user-provided
-	code will execute
-	"""
-	def __init__(self, app):
-		#~ self.locals = recursiveshapes.getglobals()
-		# make sure the environment contains a reference to the app
-		self.locals['app'] = app
-
-	def run_code_thread(self, *args):
-		"""run the given code in a new thread"""
-		MyThread(self.run_code, *args)
-		
-	def run_code(self, source, filename):
-		"""run the given code in the saved environment"""
-		code = compile(source, filename, 'exec')
-		try:
-			exec(code, self.locals)
-		except KeyboardInterrupt:
-			self.world.quit()
-
 class Callable(object):
 	def __init__(self, func, *args, **kwds):
 		self.func = func

@@ -2,9 +2,9 @@
 # Copyright (c) 2021, MIT License
 
 from .gitp_gitutil import *
-from .gitp_withorigin import *
 import zipfile
 import time
+import sys
 
 def showGitkAndReset():
     from . import fixgitk
@@ -179,7 +179,9 @@ def gitpTop_SlowCopyToAltRepo():
     dest = dest if dest else defaultDest
     if not files.exists(dest) and getInputBool('create dest directory?'):
         files.makeDirs(dest)
-    files.runRsync(src, dest, deleteExisting=True, linExcludeRelative=[
+    
+    assertTrue(not sys.platform.startswith('win'), 'windows not yet supported')
+    files.runRsync(src, dest, deleteExisting=True, excludeRelative=[
         '.git', 'node_modules', 'dist'
     ])
 
@@ -303,6 +305,9 @@ def gitpTop_ResetHardAll():
         fls = getUnstagedFiles()
         for k in fls.added:
             files.delete(k, doTrace=True)
+
+def gitpTop_DiffWithOrigin():
+    print('Tool not yet released to the public.')
 
 def gitpTop_UpdateBasis():
     root, tmproot = determineRootPaths(checkTempRepo=True)
