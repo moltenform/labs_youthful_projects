@@ -185,13 +185,14 @@ class IntermediateList(object):
     timesig=None
     baseDivisions = 64 #each qtr note can be divided into this many pieces. 64 units always = 1 qtr note
     
-    atomicnotes = [int(old_div(baseDivisions,n)) for n in [ 0.25, 0.5, 1, 2, 4, 8, 16, 32]]
-    #							     whole, half, qtr, 8th, 16, 32, 64, 138
+    
     
     def __init__(self, timesig, bSharps=True):
         self.timesig=timesig
         self.bSharps=bSharps
         self.noteList=[]
+        self.atomicnotes = [int(old_div(self.baseDivisions,n)) for n in [ 0.25, 0.5, 1, 2, 4, 8, 16, 32]]
+    #							     whole, half, qtr, 8th, 16, 32, 64, 138
 
     def effectivelyTieLongNotes(self, currentMeasureTime, length): 
         #spell a long note on the beat. for example, turn something 3 beats long into halfnote tied to qtr

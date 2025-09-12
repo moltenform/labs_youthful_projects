@@ -68,7 +68,7 @@ def scaleTime(n):
     return float(n) / 128. #A half note is one second long
     
     
-def add_at_length(baseArray, bankArray, nSamples):
+def add_at_length(self, baseArray, bankArray, nSamples):
     # trunc or add silence to get the right length
     if len(bankArray)==nSamples:
         baseArray.extend( bankArray )

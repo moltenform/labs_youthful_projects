@@ -95,7 +95,7 @@ class BMidiSecondsLength(object):
             currentTempo = newarr[i][1]
             currentTime = newarr[i][0]
             nextTime = newarr[i+1][0]
-            totalTime += (nextTime-currentTime) * 1.0e-6 * float(currentTempo)/self.ticksPerQuarterNote;
+            totalTime += (nextTime-currentTime) * 1.0e-6 * float(currentTempo)/self.ticksPerQuarterNote
             if newarr[i+1][1]==-1: #reached the time we are interested in.
                 break
         return totalTime
@@ -129,7 +129,8 @@ def transposeMidi(midiObject, amt, tracknum='all'): #track can be number, like 0
 '''excerpt midi. cuts out all of the notes. has to leave the non-note events, though... '''
 def getMidiExcerpt(midiObject, nTics): #note: is destructive, modifies things
     spaceForEvents = 5 #noteevents start at tick 5, now.
-    if nTics<=spaceForEvents: return
+    if nTics<=spaceForEvents:
+        return
         
     #remove all note events, and pitch wheel events, before it.
     for track in midiObject.tracks: 

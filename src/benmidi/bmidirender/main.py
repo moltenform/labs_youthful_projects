@@ -104,7 +104,7 @@ class App(object):
         root.bind('<Control-space>', self.onBtnPlay)
         root.bind('<Control-r>', self.onBtnSaveWave)
         root.bind('<Control-f>', self.openSoundfontWindow)
-        root.bind('<Alt-F4>', lambda x:root.quit)
+        root.bind('<Alt-F4>', lambda:root.quit)
         root.bind('<Control-o>', self.menu_openMidi)
         root.bind('<Control-S>', self.saveModifiedMidi)
         root.bind('<Control-m>', self.openMixerView)

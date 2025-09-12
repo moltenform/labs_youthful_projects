@@ -182,7 +182,6 @@ class SfZoneType(object):
 
 
 def ustr(Arg):
-    import sys
     if sys.version_info[0] > 2:
         if isinstance(Arg, int):
             return str(Arg)

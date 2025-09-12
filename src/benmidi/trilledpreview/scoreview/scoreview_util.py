@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 class Callable(object):
     def __init__(self, func, *args, **kwds):

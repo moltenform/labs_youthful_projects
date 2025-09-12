@@ -96,7 +96,9 @@ All Public Methods
 from . import bmidilib
 from . import midiutil
 
-class BuilderException(Exception): pass
+class BuilderException(Exception):
+    pass
+
 class BMidiBuilder(object):
     tempo = 120
     instrument = None
@@ -115,9 +117,11 @@ class BMidiBuilder(object):
         except ValueError:
             #interpret string like 'c#4' into a pitch
             lastLetter = pitch[-1]
-            if not lastLetter in '0123456789': pitch += '4' #assume octave 4 if none given
+            if not lastLetter in '0123456789':
+                pitch += '4' #assume octave 4 if none given
+
             n = bmidilib.nameToPitch(pitch)
-            if n==None: 
+            if n is None: 
                 raise BuilderException('Unable to interpret note name , use the format "c#" or "c#4".')
         assert duration>0
         assert n>=0
@@ -132,8 +136,10 @@ class BMidiBuilder(object):
         self.currentTime += timestep
     def insertMidiEvent(self, evt, bUseCurrentTime=True):
         if bUseCurrentTime: evt.time=self.ourTimingToTicks(self.currentTime)
-        if not isinstance(evt, bmidilib.BMidiEvent): raise BuilderException("Must be a BMidiEvent instance.")
-        if evt.channel != None: raise BuilderException("Must leave channel blank, it will be assigned correctly upon build time.")
+        if not isinstance(evt, bmidilib.BMidiEvent):
+            raise BuilderException("Must be a BMidiEvent instance.")
+        if evt.channel != None:
+            raise BuilderException("Must leave channel blank, it will be assigned correctly upon build time.")
         self.notes.append(evt)
     def insertMidiEventInstrumentChange(self, n):
         evt = bmidilib.BMidiEvent()

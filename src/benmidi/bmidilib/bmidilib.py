@@ -35,7 +35,9 @@ BNote
 note that channel, here, is 1 based. values 1 through 16 inclusive are valid channels, not 0-15.
 """
 
-import sys, string, types
+import sys
+import string
+import types
 from .midiutil import *
 from . import bmidiconstants
 
@@ -81,11 +83,12 @@ class BMidiFile(object):
             ticksPerFrame = division & 0xFF
             assert ticksPerFrame == 24 or ticksPerFrame == 25 or \
                    ticksPerFrame == 29 or ticksPerFrame == 30
-            if ticksPerFrame == 29: ticksPerFrame = 30  # drop frame
+            if ticksPerFrame == 29:
+                ticksPerFrame = 30  # drop frame
             self.ticksPerSecond = ticksPerFrame * framesPerSecond
         else:
             self.ticksPerQuarterNote = division & 0x7FFF
-        for i in range(numTracks):
+        for _ in range(numTracks):
             trk = BMidiTrack()
             b = trk.read(b)
             self.tracks.append(trk)
@@ -203,10 +206,12 @@ class BMidiEvent(object):
         self.time = None
         self.channel = self.pitch = self.velocity = self.data = None
     def __cmp__(self, other):
-        if other==None: return 1 #allows comparisons like evt==None
+        if other==None:
+            return 1 #allows comparisons like evt==None
         return cmp(self.time, other.time)
     def __lt__(self, other):
-        if other==None: return False #allows comparisons like evt==None
+        if other is None:
+            return False #allows comparisons like evt==None
         return self.time < other.time
     def __repr__(self):
         if False: #old text representation

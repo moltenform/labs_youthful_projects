@@ -131,7 +131,7 @@ class Interp(object):
             beforeQuote, insideQuote, afterQuote = inside.split('"')
             bparts = beforeQuote.split()
             if len(bparts)==2: track=int(bparts[1])-1 
-            elif len(bparts)==1: track = 0;
+            elif len(bparts)==1: track = 0
             else: raise InterpException('wrong # of args')
                 
             try:

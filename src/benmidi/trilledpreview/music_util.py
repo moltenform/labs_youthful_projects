@@ -72,8 +72,14 @@ def parseNoteString(s, defaultOctave=4):
 def _tests():
     assert parseNoteString('c')!=None
     assert parseNoteString('c4')==60
-    assert parseNoteString('c#4')==61; assert parseNoteString('c+4')==61;assert parseNoteString('c-4')==59;assert parseNoteString('c-4')==59;
-    assert parseNoteString('C#4')==61; assert parseNoteString('C+4')==61;assert parseNoteString('C-4')==59;assert parseNoteString('C-4')==59;
+    assert parseNoteString('c#4')==61
+    assert parseNoteString('c+4')==61
+    assert parseNoteString('c-4')==59
+    assert parseNoteString('c-4')==59
+    assert parseNoteString('C#4')==61
+    assert parseNoteString('C+4')==61
+    assert parseNoteString('C-4')==59
+    assert parseNoteString('C-4')==59
     assert parseNoteString('c5')==72
     
 if __name__=='__main__':

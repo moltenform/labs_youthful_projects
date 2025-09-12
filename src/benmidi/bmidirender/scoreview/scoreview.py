@@ -166,12 +166,12 @@ class ScoreViewFrame(Frame):
         elif posy >= 12:
             tempy = posy - posy%2 #round posy down to nearest even number
             while tempy >= 12: 
-                drawledger(xPixels, tempy + 2); #add two because treble clef, move up
+                drawledger(xPixels, tempy + 2) #add two because treble clef, move up
                 tempy-=2
         elif posy <= -12:
             tempy = posy + posy%2 #round posy down to nearest even number
             while tempy <= -12: 
-                drawledger(xPixels, tempy - 2); # two because bass clef, move down
+                drawledger(xPixels, tempy - 2) # two because bass clef, move down
                 tempy+=2
             
         #draw stem

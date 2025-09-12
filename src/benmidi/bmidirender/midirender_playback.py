@@ -62,9 +62,11 @@ class BMidiRenderPlayback(object):
             
     
     def actionPlay(self, midiCopy, arParams, strConfig, directoryForOldTimidity, bRenderPreview = False):
-        if self.playingState == 'playing': return
+        if self.playingState == 'playing':
+            return
         
-        if self.midiPlayerObject != None and self.midiPlayerObject.isPlaying: return #evidently still playing something...
+        if self.midiPlayerObject != None and self.midiPlayerObject.isPlaying:
+            return #evidently still playing something...
         
         #update the currentTime
         self.currentTime = self.fnGetSlider()

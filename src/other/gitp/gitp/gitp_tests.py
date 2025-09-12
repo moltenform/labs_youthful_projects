@@ -5,8 +5,8 @@ import random
 import os
 from .gitp_impl import *
 try:
-    from shinerainsoftsevenutil.standard import *
-    from shinerainsoftsevenutil.core import *
+    from shinerainsevenlib.standard import *
+    from shinerainsevenlib.core import *
 except ImportError:
     print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
 

@@ -5,7 +5,7 @@ from yalp.wave_synthesis import *
 
 
 class Synth_bank(Tunescript_bank):
-    def __init__():
+    def __init__(self):
         self.sampleSize = 1
         self.sampleRate = 22050
         self.synthList = get_instruments()

@@ -54,7 +54,7 @@ class App(object):
         self.create_menubar(root)
         
     def create_menubar(self,root):
-        root.bind('<Alt-F4>', lambda x:root.quit)
+        root.bind('<Alt-F4>', lambda:root.quit)
         root.bind('<Control-o>', self.menu_openMidi)
         menubar = Menu(root)
         

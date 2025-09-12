@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 class Callable(object):
     def __init__(self, func, *args, **kwds):
@@ -58,5 +59,5 @@ def alert(message, title=None, icon='info'):
     elif icon=='error':
         return tkMessageBox.showerror(title=title, message=message)
  
- isPy3OrNewer = sys.version_info[0] > 2
+isPy3OrNewer = sys.version_info[0] > 2
  

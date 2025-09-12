@@ -10,7 +10,11 @@ from midirender_util import bmidilib, bmidirenderdirectory, bmiditools
 
 class MixerTrackInfo(object):
     def __init__(self,trackNumber, enableVar, volWidget, panWidget,transposeVar,scalevolVar):
-        self.trackNumber = trackNumber; self.enableVar = enableVar; self.volWidget = volWidget; self.panWidget = panWidget; self.transposeVar = transposeVar
+        self.trackNumber = trackNumber
+        self.enableVar = enableVar
+        self.volWidget = volWidget
+        self.panWidget = panWidget
+        self.transposeVar = transposeVar
         self.scalevolVar = scalevolVar
 
 class BMixerWindow(object):
@@ -48,7 +52,7 @@ class BMixerWindow(object):
             scvol = Scale(frameTop, from_=127, to=0, orient=VERTICAL)
             scvol.grid(row=ROW_VOL, column=col, sticky='NS')
             Label(frameTop, text='    Track %d    '%trackNumber).grid(row=ROW_NAME, column=col)
-            checkvar = IntVar(); 
+            checkvar = IntVar()
             Checkbutton(frameTop, text='', var=checkvar).grid(row=ROW_CHECK, column=col)
             scalevolvar = StringVar(); scalevolvar.set('1.0')
             Entry(frameTop, width=4, textvariable=scalevolvar).grid(row=ROW_SCALEVOL, column=col)
@@ -102,10 +106,16 @@ class BMixerWindow(object):
                 volValue = trackInfo.volWidget.get()
                 panValue = trackInfo.panWidget.get() + 64 #is from 0 to 127, instead of -63 to 63
                 
-                try: transposeValue=int(trackInfo.transposeVar.get())
-                except: trackInfo.transposeVar.set('0'); transposeValue = 0
-                try: scaleVolValue=float(trackInfo.scalevolVar.get())
-                except: trackInfo.scalevolVar.set('1.0'); scaleVolValue = 1.0
+                try:
+                    transposeValue=int(trackInfo.transposeVar.get())
+                except:
+                    trackInfo.transposeVar.set('0')
+                    transposeValue = 0
+                try:
+                    scaleVolValue=float(trackInfo.scalevolVar.get())
+                except:
+                    trackInfo.scalevolVar.set('1.0')
+                    scaleVolValue = 1.0
                 
                 #modify the event directly, if it exists. Otherwise, create and add a new event.
                 (firstpan, firstvol, bMultiplePans, bMultipleVols) = getFirstVolumeAndPanEvents(midiObject.tracks[trackNumber])

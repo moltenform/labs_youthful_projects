@@ -138,7 +138,7 @@ class ScoreViewFrame(Frame):
             assert currentTime<=self.ticksPerMeasure
             if currentTime==self.ticksPerMeasure:
                 self.drawbarline(currentPos)
-                currentPos += old_div(self.intermed.baseDivisions,8); #some extra space for barline
+                currentPos += old_div(self.intermed.baseDivisions,8) #some extra space for barline
                 currentTime=0
         
         self.lastTick = currentPos #important change.
@@ -192,23 +192,23 @@ class ScoreViewFrame(Frame):
             if posy >= 12:
                 tempy = posy - posy%2 #round posy down to nearest even number
                 while tempy >= 12: 
-                    drawledger(xPixels, tempy + 2); #add two because treble clef, move up
+                    drawledger(xPixels, tempy + 2) #add two because treble clef, move up
                     tempy-=2
             elif posy <= 0:
                 tempy = posy - posy%2 #round posy down to nearest even number
                 while tempy <= 0: 
-                    drawledger(xPixels, tempy + 2); # add two because treble clef, move up
+                    drawledger(xPixels, tempy + 2) # add two because treble clef, move up
                     tempy+=2
         elif not self.bTrebleClef: #bass clef
             if posy >= 0:
                 tempy = posy - posy%2 #round posy down to nearest even number
                 while tempy >= 0: 
-                    drawledger(xPixels, tempy - 2); #two because bass clef, move down
+                    drawledger(xPixels, tempy - 2) #two because bass clef, move down
                     tempy-=2
             elif posy <= -12:
                 tempy = posy - posy%2 #round posy down to nearest even number
                 while tempy <= -12: 
-                    drawledger(xPixels, tempy - 2); #two because bass clef, move down
+                    drawledger(xPixels, tempy - 2) #two because bass clef, move down
                     tempy+=2
         
             

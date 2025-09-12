@@ -168,12 +168,12 @@ class MciMidiPlayer(BaseMidiPlayer): #there should probably be only one instance
         self.mci.send('set cursong time format milliseconds')
         buflength = self.mci.send('status cursong length ')
         slength = buflength if sys.version_info[0] <= 2 else buflength.decode('utf-8')
-        fTotalLength =  int(int(buflength)/1000.0)
+        fTotalLength =  int(int(slength)/1000.0)
         fStartingPos = int(fromMs/1000.0)
         if fStartingPos>fTotalLength: 
             return 0.0
             
-        self.mci.send('play cursong from %s to %s'%(int(fromMs),int(buflength)))
+        self.mci.send('play cursong from %s to %s'%(int(fromMs),int(slength)))
         return fTotalLength - fStartingPos
         
         

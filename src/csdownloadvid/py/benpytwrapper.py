@@ -4,14 +4,14 @@
 # a script for csdownloadvid, 
 # wraps pytube and makes it look/act like ytdl does
 
+import os
+import sys
 try:
-    from shinerainsoftsevenutil.standard import *
-    from shinerainsoftsevenutil.core import *
+    from shinerainsevenlib.standard import *
+    from shinerainsevenlib.core import *
 except ImportError:
     print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
 
-import os
-import sys
 
 myPath = os.path.split(os.path.realpath(__file__))[0]
 pytPath = os.path.join(myPath, 'tools', 'pytubemasterdir', 'pytube-master')

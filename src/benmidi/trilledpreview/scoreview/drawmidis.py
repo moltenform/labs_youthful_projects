@@ -93,14 +93,12 @@ class NoteRenderer(object):
 
     
 if __name__=='__main__':
-    print(getnoteposition(60, 0, 'b'))
-    print(getnoteposition(61, 0, 'b'))
-    print(getnoteposition(61, 0, '#'))
-    print(getnoteposition(60 + 12, 0, 'b'))
-    print(getnoteposition(61 + 12, 0, 'b'))
-    print(getnoteposition(61 + 12, 0, '#'))
+    pass
+    # print(getnoteposition(60, 0, 'b'))
+    # print(getnoteposition(61, 0, 'b'))
+    # print(getnoteposition(61, 0, '#'))
+    # print(getnoteposition(60 + 12, 0, 'b'))
+    # print(getnoteposition(61 + 12, 0, 'b'))
+    # print(getnoteposition(61 + 12, 0, '#'))
     
-    
-    
-
 

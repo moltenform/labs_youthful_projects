@@ -4,10 +4,11 @@
 import zipfile
 import re
 try:
-    from shinerainsoftsevenutil.standard import *
-    from shinerainsoftsevenutil.core import *
+    from shinerainsevenlib.standard import *
+    from shinerainsevenlib.core import *
 except ImportError:
     print('Please install shinerainsevenlib; python -m pip install shinerainsevenlib')
+
 
 class GitPacketException(RuntimeError):
     pass

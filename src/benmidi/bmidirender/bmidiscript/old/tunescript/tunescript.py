@@ -107,7 +107,7 @@ def shell():
             import copy
             newseq = copy.deepcopy(memory_sequences[strSplit[0]])
             thenotes = copy.deepcopy(memory_sequences[strSplit[0]].notes)
-            for i in range(nTimes-1):
+            for _ in range(nTimes-1):
                 newseq.notes.extend(thenotes)
             playSequence(newseq)
             

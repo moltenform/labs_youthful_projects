@@ -7,9 +7,9 @@ import yalpsequence
 
 class Wave_bank(Tunescript_bank):
     def __init__(self):
-        cachedAudio = {} #Rendered audio samples
-        cachedAudioOriginals = {} #The basis pitch and content of the original wave
-        cachedAudioBitrates = {}
+        self.cachedAudio = {} #Rendered audio samples
+        self.cachedAudioOriginals = {} #The basis pitch and content of the original wave
+        self.cachedAudioBitrates = {}
         
     
     def playSequence(self,seq):
