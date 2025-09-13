@@ -1,6 +1,17 @@
-namespace shinerainsevencs
+// Copyright (c) Ben Fisher, 2016.
+// Licensed under GPLv3. See LICENSE in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Forms;
+
+namespace ShineRainSevenCsCommon
 {
-    public static class CoordinatePicturesTests
+    public static class UtilsTests
     {
         static void TestMethod_Asserts_EqualIntsShouldCompareEqual()
         {
@@ -32,7 +43,7 @@ namespace shinerainsevencs
         {
             Action fn = () =>
             {
-                throw new CoordinatePicturesTestException("test123");
+                throw new ShineRainSevenCsTestException("test123");
             };
 
             TestUtil.AssertExceptionMessage(fn, "test123");
@@ -482,170 +493,152 @@ namespace shinerainsevencs
             set = new HashSet<int>(listOfInts);
             TestUtil.IsEq(listOfInts.Count, set.Count);
         }
+    }
 
-        static void TestMethod_FileListNavigation()
+    public static class TestUtil
+    {
+        static readonly object NullPlaceholder = new object();
+
+        public static void IsEq(object expected, object actual)
         {
-            // create files
-            var dir = TestUtil.GetTestSubDirectory("filelist");
-            File.WriteAllText(Path.Combine(dir, "dd.png"), "content");
-            File.WriteAllText(Path.Combine(dir, "cc.png"), "content");
-            File.WriteAllText(Path.Combine(dir, "bb.png"), "content");
-            File.WriteAllText(Path.Combine(dir, "aa.png"), "content");
-            List<string> neighbors = new List<string>(new string[4]);
+            // use a token to make sure that IsEq(null, null) works.
+            expected = expected ?? NullPlaceholder;
+            actual = actual ?? NullPlaceholder;
 
-            { // test gonext, gofirst
-                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+            if (!expected.Equals(actual))
+            {
+                throw new ShineRainSevenCsTestException(
+                    "Assertion failure, expected " + expected + " but got " + actual);
+            }
+        }
 
-                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%cc.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+        public static void IsTrue(bool actual)
+        {
+            IsEq(true, actual);
+        }
 
-                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%dd.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+        public static void IsStringArrayEq(string expected, IList<string> actual)
+        {
+            if (expected == null)
+            {
+                IsTrue(actual == null || actual.Count == 0);
+            }
+            else
+            {
+                var expectedSplit = expected.Split(new char[] { '|' });
+                IsEq(expectedSplit.Length, actual.Count);
+                for (int i = 0; i < expectedSplit.Length; i++)
+                {
+                    IsEq(expectedSplit[i], actual[i]);
+                }
+            }
+        }
 
-                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%dd.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
-
-                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%dd.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
-
-                nav.GoFirst();
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+        // expect an exception to occur when running the action,
+        // the exception should have the string in its message.
+        public static void AssertExceptionMessage(Action fn, string expectExceptionMessage)
+        {
+            string exceptionMessage = null;
+            try
+            {
+                fn();
+            }
+            catch (Exception exc)
+            {
+                exceptionMessage = exc.ToString();
             }
 
-            { // test golast, goprev
-                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+            if (exceptionMessage == null || !exceptionMessage.Contains(expectExceptionMessage))
+            {
+                throw new ShineRainSevenCsException(
+                    "Testing.AssertExceptionMessageIncludes expected " +
+                    expectExceptionMessage + " but got " + exceptionMessage + ".");
+            }
+        }
 
-                nav.GoLast();
-                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+        // use reflection to call all methods that start with TestMethod_
+        public static void CallAllTestMethods(Type type, object[] arParams)
+        {
+            MethodInfo[] methodInfos = type.GetMethods(
+                BindingFlags.Static | BindingFlags.NonPublic);
+            var sortedMethods = methodInfos.OrderBy(item => item.Name);
+            foreach (MethodInfo methodInfo in sortedMethods)
+            {
+                if (methodInfo.Name.StartsWith("TestMethod_", StringComparison.InvariantCulture))
+                {
+                    TestUtil.IsTrue(methodInfo.GetParameters().Length == 0);
+                    methodInfo.Invoke(null, arParams);
+                }
+            }
+}
 
-                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%bb.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
-
-                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%aa.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
-
-                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%aa.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
-
-                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%aa.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+        public static string GetTestWriteDirectory()
+        {
+            string directory = Path.Combine(Path.GetTempPath(), "test_labs_coordinate_pictures");
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
             }
 
-            { // test gonext when file is missing
-                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
-                nav.GoLast();
-                nav.TrySetPath(Path.Combine(dir, "().png"), false);
-                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%bb.png|%cc.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+            return directory;
+        }
 
-                nav.GoLast();
-                nav.TrySetPath(Path.Combine(dir, "ab.png"), false);
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
-
-                nav.GoLast();
-                nav.TrySetPath(Path.Combine(dir, "bc.png"), false);
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
-
-                nav.GoFirst();
-                nav.TrySetPath(Path.Combine(dir, "zz.png"), false);
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+        public static string GetTestSubDirectory(string name, bool ensureEmpty = false)
+        {
+            string directory = GetTestWriteDirectory() + Utils.Sep + name;
+            Directory.CreateDirectory(directory);
+            if (ensureEmpty)
+            {
+                Directory.Delete(directory, true);
+                Directory.CreateDirectory(directory);
             }
 
-            { // test goprev when file is missing
-                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
-                nav.GoLast();
-                nav.TrySetPath(Path.Combine(dir, "().png"), false);
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+            return directory;
+        }
 
-                nav.GoLast();
-                nav.TrySetPath(Path.Combine(dir, "bc.png"), false);
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
-
-                nav.GoLast();
-                nav.TrySetPath(Path.Combine(dir, "cd.png"), false);
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
-
-                nav.GoFirst();
-                nav.TrySetPath(Path.Combine(dir, "zz.png"), false);
-                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
-                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
-                TestUtil.IsStringArrayEq(
-                    "%cc.png|%bb.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+        public static void RunTests()
+        {
+            // for the case where FilepathDeletedFilesDir isn't set,
+            // we shouldn't leave junk behind.
+            var localTrash = Path.Combine(Configs.Current.Directory, "(deleted)");
+            var shouldCleanLocalTrash = !Directory.Exists(localTrash);
+            if (Utils.GetSoftDeleteDestination("abc" + Utils.Sep + "abc") == null)
+            {
+                Utils.MessageBox("Skipping tests until a trash directory is chosen.");
+                return;
             }
 
-            { // gonext and goprev after deleted file
-                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
-                nav.GoFirst();
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
-                File.Delete(Path.Combine(dir, "bb.png"));
+            try
+            {
+                string dir = TestUtil.GetTestWriteDirectory();
 
-                // call NotifyFileChanges, the test runs more quickly than event can be received
-                nav.NotifyFileChanges();
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
-                File.Delete(Path.Combine(dir, "cc.png"));
-                nav.NotifyFileChanges();
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                if (Directory.Exists(dir))
+                {
+                    Directory.Delete(dir, true);
+                }
+            }
+            catch (Exception)
+            {
+                Utils.MessageErr("Could not clear unit test directory. Is another instance of " +
+                    "coordinate pictures already running?");
+                return;
+            }
 
-                // go down to 1 file
-                File.Delete(Path.Combine(dir, "dd.png"));
-                nav.NotifyFileChanges();
-                nav.GoLast();
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+            Configs.Current.SuppressDialogs = true;
+            try
+            {
+                TestUtil.CallAllTestMethods(typeof(UtilsTests), null);
+            }
+            finally
+            {
+                Configs.Current.SuppressDialogs = false;
 
-                // go down to no files
-                File.Delete(Path.Combine(dir, "aa.png"));
-                nav.NotifyFileChanges();
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(null, nav.Current);
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(null, nav.Current);
-                nav.GoFirst();
-                TestUtil.IsEq(null, nav.Current);
-                nav.GoLast();
-                TestUtil.IsEq(null, nav.Current);
-
-                // recover from no files
-                File.WriteAllText(Path.Combine(dir, "new.png"), "content");
-                nav.NotifyFileChanges();
-                nav.GoNextOrPrev(true);
-                TestUtil.IsEq(Path.Combine(dir, "new.png"), nav.Current);
-                nav.GoNextOrPrev(false);
-                TestUtil.IsEq(Path.Combine(dir, "new.png"), nav.Current);
+                if (shouldCleanLocalTrash && Directory.Exists(localTrash))
+                {
+                    Directory.Delete(localTrash, false);
+                }
             }
         }
     }
 }
+

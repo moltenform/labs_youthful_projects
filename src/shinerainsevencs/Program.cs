@@ -12,25 +12,32 @@ namespace ShineRainSevenCsCommon
         [STAThread]
         static int Main(string[] args)
         {
-            var currentExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var currentExePathD = Path.GetDirectoryName(currentExePath);
+            var currentExePathD = Utils.GetCurrentExecutableDir();
 
             SimpleLog.Init(Path.Combine(currentExePathD, "log.txt"));
             SimpleLog.Current.WriteLog("Initializing.");
             Configs.Init(Path.Combine(currentExePathD, "options.ini"));
             Configs.Current.LoadPersisted();
             Configs.Current.Set(ConfigKey.Version, "0.1");
+            FilePathsConfirmedToExist.RecordMainThread();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             
             // This is where typically there would be a Application.Run(new Form())
+
+            if (Array.IndexOf(args, "-m") == -1) {
+                MessageBox.Show("Welcome to ShineRainSevenCsCommon.\r\n\r\n" + 
+                    "Example syntax:\r\n" +
+                    "ShineRainSevenCsCommon.exe -m \"What is your name?\" -d \"Bob\" ");
+                return 0;
+            }
             
             var message = getValue(args, "-m") ?? "Message:";
             string outputPath = getValue(args, "-o");
             string defaultVal = getValue(args, "-d") ?? null;
-            var whichNumber = getValue(args, "-n");
-            var s = "Path" + whichNumber;
+            var whichAppName = getValue(args, "-a");
+            var s = "Path1";
             if (!Enum.TryParse(s, out InputBoxHistory theConfigKey))
             {
                 Console.WriteLine("unknown val");

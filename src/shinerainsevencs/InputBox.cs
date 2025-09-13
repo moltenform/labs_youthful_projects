@@ -273,7 +273,7 @@ namespace ShineRainSevenCsCommon
             {
                 if (!Enum.TryParse("MRU" + _historyKey.ToString(), out _configsKey))
                 {
-                    throw new CsDownloadVidException(
+                    throw new ShineRainSevenCsException(
                         "unknown history key" + _historyKey.ToString());
                 }
             }

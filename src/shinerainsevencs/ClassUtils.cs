@@ -7,13 +7,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace shinerainsevencs
+namespace ShineRainSevenCsCommon
 {
     public static partial class Utils
     {
@@ -75,6 +76,12 @@ namespace shinerainsevencs
             outStderr = stderr;
 
             return waitForExit ? process.ExitCode : 0;
+        }
+
+        public static string GetCurrentExecutableDir()
+        {
+            var currentExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            return Path.GetDirectoryName(currentExePath);
         }
 
         public static bool IsWindows()
@@ -230,18 +237,20 @@ namespace shinerainsevencs
             }
 
             var deleteDir = Configs.Current.Get(ConfigKey.FilepathDeletedFilesDir);
-            if (string.IsNullOrEmpty(deleteDir))
+            if (string.IsNullOrEmpty(deleteDir) || !Directory.Exists(deleteDir))
             {
-                // for ease-of-use, pick a default trash directory
-                deleteDir = Path.Combine(Configs.Current.Directory, "(deleted)");
+                // for ease-of-use, instead of FilePathsConfirmedToExist, pick a default trash directory
+                deleteDir = Path.Combine(Utils.GetCurrentExecutableDir(), "(deleted)");
                 try
                 {
                     if (!Directory.Exists(deleteDir))
+                    {
                         Directory.CreateDirectory(deleteDir);
+                    }
                 }
                 catch (IOException)
                 {
-                    deleteDir = "";
+                    throw new ShineRainSevenCsException("No trash directory set, and current directory not writable.");
                 }
             }
 
@@ -251,7 +260,11 @@ namespace shinerainsevencs
         // "soft delete" just means moving to a designated 'trash' location.
         public static string GetSoftDeleteDestination(string path)
         {
-           
+            var deleteDir = GetSoftDeleteDirectory(path);
+
+            // as a prefix, the first 2 chars of the parent directory
+            var prefix = FirstTwoChars(Path.GetFileName(Path.GetDirectoryName(path))) + "_";
+            return Path.Combine(deleteDir, prefix + Path.GetFileName(path) + GetRandomDigits());
         }
 
         public static string GetRandomDigits()
@@ -452,92 +465,7 @@ namespace shinerainsevencs
             return stderr;
         }
 
-        public static void RunImageConversion(string pathInput, string pathOutput,
-            string resizeSpec, int jpgQuality)
-        {
-            if (File.Exists(pathOutput))
-            {
-                MessageBox("File already exists, " + pathOutput);
-                return;
-            }
-
-            // send the working directory for the script so that it can find options.ini
-            var workingDir = Path.Combine(Configs.Current.Directory,
-                "ben_python_img");
-            var script = Path.Combine(Configs.Current.Directory,
-                "ben_python_img", "img_convert_resize.py");
-            var args = new string[] { "convert_resize",
-                pathInput, pathOutput, resizeSpec, jpgQuality.ToString() };
-            var stderr = RunPythonScript(script, args,
-                createWindow: false, warnIfStdErr: false, workingDir: workingDir);
-
-            if (!string.IsNullOrEmpty(stderr) || !File.Exists(pathOutput))
-            {
-                MessageBox("RunImageConversion failed, " + FormatPythonError(stderr));
-            }
-        }
-
-        public static string RunM4aConversion(string path, string qualitySpec)
-        {
-            var qualities = new string[] { "16", "24", "96", "128", "144",
-                "160", "192", "224", "256", "288", "320", "640", "flac" };
-            if (Array.IndexOf(qualities, qualitySpec) == -1)
-            {
-                throw new ShineRainE("Unsupported bitrate.");
-            }
-            else if (!path.EndsWith(".wav", StringComparison.Ordinal) &&
-                !path.EndsWith(".flac", StringComparison.Ordinal))
-            {
-                throw new ShineRainE("Unsupported input format.");
-            }
-            else
-            {
-                var encoder = Configs.Current.Get(ConfigKey.FilepathM4aEncoder);
-                if (!File.Exists(encoder))
-                {
-                    MessageErr("M4a encoder not found, use Options->Set m4a encoder.");
-                    throw new CoordinatePicturesException("");
-                }
-
-                var pathOutput = Path.GetDirectoryName(path) + Sep +
-                    Path.GetFileNameWithoutExtension(path) +
-                    (qualitySpec == "flac" ? ".flac" : ".m4a");
-                var script = Path.GetDirectoryName(encoder) + Sep +
-                    "dropq" + qualitySpec + ".py";
-                var args = new string[] { path };
-                var stderr = RunPythonScript(
-                    script, args, createWindow: false, warnIfStdErr: false);
-
-                if (!File.Exists(pathOutput))
-                {
-                    MessageErr("RunM4aConversion failed, " + FormatPythonError(stderr));
-                    return null;
-                }
-                else
-                {
-                    return pathOutput;
-                }
-            }
-        }
-
-        public static void PlayMedia(string path)
-        {
-            if (path == null)
-                path = Path.Combine(Configs.Current.Directory, "silence.flac");
-
-            var player = Configs.Current.Get(ConfigKey.FilepathAudioPlayer);
-            if (string.IsNullOrEmpty(player) || !File.Exists(player))
-            {
-                MessageBox("Media player not found. Go to the main screen " +
-                    "and to the option menu and click Options->Set media player location...");
-                return;
-            }
-
-            var args = player.ToLower().Contains("foobar") ? new string[] { "/playnow", path } :
-                new string[] { path };
-
-            Run(player, args, hideWindow: true, waitForExit: false, shellExecute: false);
-        }
+        
 
         public static string GetClipboard()
         {
@@ -981,8 +909,8 @@ namespace shinerainsevencs
         {
             if (Configs.EnableWebp())
             {
-            return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
-                ".gif", ".bmp", ".webp", ".emf", ".wmf", ".jpeg" });
+                return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
+                    ".gif", ".bmp", ".webp", ".emf", ".wmf", ".jpeg" });
             } else
             {
                 return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
@@ -1071,23 +999,20 @@ namespace shinerainsevencs
             // check nothing in path has mark
             if (Path.GetDirectoryName(pathAndCategory).Contains(MarkerString))
             {
-                throw new CoordinatePicturesException("Directories should not have marker");
+                throw new ShineRainSevenCsException("Directories should not have marker");
             }
 
             var parts = Utils.SplitByString(pathAndCategory, MarkerString);
             if (parts.Length != 2)
             {
-                Utils.MessageErr("Path " + pathAndCategory +
-                    " should contain exactly 1 marker.", true);
-
-                throw new CoordinatePicturesException("Path " + pathAndCategory +
+                throw new ShineRainSevenCsException("Path " + pathAndCategory +
                     " should contain exactly 1 marker.");
             }
 
             var partsAfterMarker = parts[1].Split(new char[] { '.' });
             if (partsAfterMarker.Length != 2)
             {
-                throw new CoordinatePicturesException(
+                throw new ShineRainSevenCsException(
                     "Parts after the marker shouldn't have another .");
             }
 
@@ -1166,8 +1091,8 @@ namespace shinerainsevencs
             catch (Exception)
             {
                 if (!Utils.AskToConfirm("Could not write to " + _path +
-                    "; labs_coordinate_pictures.exe currently needs to be " +
-                    "in writable directory. Continue?"))
+                    "; this program needs to be run " +
+                    "in a folder where you have write permissions. Continue?"))
                 {
                     Environment.Exit(1);
                 }
@@ -1259,6 +1184,50 @@ namespace shinerainsevencs
         }
     }
 
+    public static class FilePathsConfirmedToExist
+    {
+        static Dictionary<ConfigKey, bool> _haveConfirmed = new Dictionary<ConfigKey, bool>();
+        static int _mainThread = 0;
+        public static void RecordMainThread()
+        {
+            _mainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
+        }
+        public static bool IsMainThread()
+        {
+            if (_mainThread == 0)
+            {
+                throw new ShineRainSevenCsException("Please make call to RecordMainThread() when your app starts.");
+            }
+
+            return _mainThread == System.Threading.Thread.CurrentThread.ManagedThreadId;
+        }
+        public static void PreemptivelyConfirmPathExists(ConfigKey configKey)
+        {
+            if (!IsMainThread())
+            {
+                throw new ShineRainSevenCsException("This can only be called from the main thread.");
+            }
+
+            var val = Configs.Current.Get(configKey);
+            if (String.IsNullOrEmpty(val) || (!File.Exists(val) && !Directory.Exists(val)))
+            {
+                var s = configKey.ToString().EndsWith("Dir") ? "Please choose any file in the directory for " + configKey : "Please choose a file for " + configKey;
+                var got = Utils.AskOpenFileDialog(s);
+                if (string.IsNullOrEmpty(got))
+                {
+                    throw new ShineRainSevenCsException("A path for " + configKey + " is needed.");
+                }
+
+                if (configKey.ToString().EndsWith("Dir"))
+                {
+                    got = Path.GetDirectoryName(got);
+                }
+
+                Configs.Current.Set(configKey, got);
+            }
+        }
+    }
+
     public sealed class UndoStack<T>
     {
         List<T> _list = new List<T>();
@@ -1305,24 +1274,49 @@ namespace shinerainsevencs
     }
 
     [Serializable]
-    public sealed class CoordinatePicturesException : Exception
+    public sealed class ShineRainSevenCsException : Exception
     {
-        public CoordinatePicturesException(string message, Exception e)
-            : base("CoordinatePicturesException " + message, e)
+        public ShineRainSevenCsException(string message, Exception e)
+            : base("ShineRainSevenCsException " + message, e)
         {
         }
 
-        public CoordinatePicturesException(string message)
+        public ShineRainSevenCsException(string message)
             : this(message, null)
         {
         }
 
-        public CoordinatePicturesException()
+        public ShineRainSevenCsException()
             : this("", null)
         {
         }
 
-        CoordinatePicturesException(System.Runtime.Serialization.SerializationInfo info,
+        ShineRainSevenCsException(System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
+
+    [Serializable]
+    public sealed class ShineRainSevenCsTestException : Exception
+    {
+        public ShineRainSevenCsTestException(string message, Exception e)
+            : base("Test failure " + message, e)
+        {
+        }
+
+        public ShineRainSevenCsTestException(string message)
+            : this(message, null)
+        {
+        }
+
+        public ShineRainSevenCsTestException()
+            : this("", null)
+        {
+        }
+
+        ShineRainSevenCsTestException(SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
             : base(info, context)
         {

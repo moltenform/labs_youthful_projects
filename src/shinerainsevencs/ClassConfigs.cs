@@ -19,8 +19,12 @@ namespace ShineRainSevenCsCommon
         Version,
         EnablePersonalFeatures,
         EnableVerboseLogging,
+        MRUPath1,
+        // Directories should end with Dir. 
         FilepathDeletedFilesDir,
-        FilepathTempDir
+        FilepathTempDir,
+        FilepathM4aEncoder,
+        FilepathPython
     }
 
     // The inputbox dialog keeps a MRU list of recently used strings.
@@ -29,6 +33,7 @@ namespace ShineRainSevenCsCommon
     public enum InputBoxHistory
     {
         None,
+        MRUPath1,
         FilepathDeletedFilesDir,
         FilepathTempDir
     }
@@ -178,12 +183,12 @@ namespace ShineRainSevenCsCommon
 
         public void Set(ConfigKey key, string s)
         {
-            var valueWasChanged = !_dict.TryGetValue(key, out string prev) ||
+            var valueWasChanged = !_persisted.TryGetValue(key, out string prev) ||
                 prev != s ||
                 !File.Exists(_path);
             if (valueWasChanged)
             {
-                _dict[key] = s;
+                _persisted[key] = s;
                 SavePersisted();
             }
         }
@@ -203,6 +208,14 @@ namespace ShineRainSevenCsCommon
         public bool GetBool(ConfigKey key)
         {
             return !string.IsNullOrEmpty(Get(key));
+        }
+
+        public static bool EnableWebp()
+        {
+            // Webp disabled due to security issues,
+            // since the Imazen.Webp library is tied to old insecure webp versions.
+            // We'll need to move to another webp library.
+            return false;
         }
     }
 }
