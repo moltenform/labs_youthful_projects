@@ -13,11 +13,12 @@ Example reading a MIDI file:
     m.open('mymidi.mid')
     m.read()
     m.close()
-    print m #lists all of the events in a human-readable way
+    print(m) #lists all of the events in a human-readable way
     
     #loop through only the note events in 2nd track, and print out pitches and durations
     for note in m.tracks[1].notelist:
-        print note.pitch, note.duration
+        print(note.pitch)
+        print(note.duration)
 
 Example making a MIDI file:
     # For creating midi files, bbuilder.py should be enough for everyday usage.

@@ -439,8 +439,7 @@ One can also see these bindings shown visually (Characters menu -> Visualize Bin
 The program begins in Normal Mode, but you can press Control+L to enter Grave Accent mode. In this mode, typing a vowel like o will produce o with a grave accent. Press Control+Space to return to Normal mode. View the available modes for the current keymap by choosing List Modes from the Characters menu.
 
 Edit the current keymap by choosing "Edit key bindings" from the Characters menu. (Changes take effect when the mode is chosen again from the Characters menu). Create a new map by creating a .py.js file in the keymaps directory.
-		"""
-        )
+""")
 
 
 def unicodechr(c):

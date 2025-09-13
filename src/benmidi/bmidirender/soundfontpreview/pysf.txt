@@ -11,6 +11,6 @@ My email address is bencollver at gmail.com
 http://code.terrorpin.net/pysf/index
 did not seem to work here as it does not seem to write presetId, only id and instrumentId
 for preset in Presets:
-    print preset
+    print(preset)
     is missing presetId key.
 )
