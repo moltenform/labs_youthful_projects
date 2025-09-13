@@ -1,19 +1,24 @@
-
 '''Simple wrappers for wxPython dialogs
 Ben Fisher'''
 
 import os
 import wx
 
-def alertDialog(window, text,title='Message', style = wx.OK):
+
+def alertDialog(window, text, title='Message', style=wx.OK):
     # possible styles: wx.OK, wx.CANCEL, wx.YES_NO
     dlg = wx.MessageDialog(window, text, caption=title, style=style)
     res = dlg.ShowModal()
     dlg.Destroy()
-    if res == wx.ID_YES: return True
-    elif res == wx.ID_NO: return False
-    elif res == wx.ID_OK: return True
-    else: return False
+    if res == wx.ID_YES:
+        return True
+    elif res == wx.ID_NO:
+        return False
+    elif res == wx.ID_OK:
+        return True
+    else:
+        return False
+
 
 def inputDialog(window, text, default=''):
     dlg = wx.TextEntryDialog(window, text)
@@ -22,17 +27,20 @@ def inputDialog(window, text, default=''):
         return dlg.GetValue()
     else:
         return None
-        
+
 
 def saveFileDialog(window, text, defaultDirectory=None, defaultFilename=None):
-    dlg = wx.FileDialog(window, style = wx.SAVE, message=text)
-    
-    if defaultDirectory!=None: dlg.SetDirectory(defaultDirectory)
-    if defaultFilename!=None: dlg.SetFilename(defaultFilename)
+    dlg = wx.FileDialog(window, style=wx.SAVE, message=text)
+
+    if defaultDirectory != None:
+        dlg.SetDirectory(defaultDirectory)
+    if defaultFilename != None:
+        dlg.SetFilename(defaultFilename)
     if dlg.ShowModal() == wx.ID_OK:
         return dlg.GetPath()
     else:
         return None
+
 
 def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, defaultFilename=None):
     try:
@@ -43,12 +51,16 @@ def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, default
         multiple = wx.MULTIPLE
     except AttributeError:
         multiple = wx.FD_MULTIPLE
-    if bMultiple: style = multiple
-    else: style = open
+    if bMultiple:
+        style = multiple
+    else:
+        style = open
     dlg = wx.FileDialog(window, style=style, message=text)
-    
-    if defaultDirectory!=None: dlg.SetDirectory(defaultDirectory)
-    if defaultFilename!=None: dlg.SetFilename(defaultFilename)
+
+    if defaultDirectory != None:
+        dlg.SetDirectory(defaultDirectory)
+    if defaultFilename != None:
+        dlg.SetFilename(defaultFilename)
     if dlg.ShowModal() == wx.ID_OK:
         if bMultiple:
             return dlg.GetPaths()
@@ -56,6 +68,7 @@ def openFileDialog(window, text, bMultiple=False, defaultDirectory=None, default
             return dlg.GetPath()
     else:
         return None
+
 
 # other wrappers:
 def getClipboardText():
@@ -68,6 +81,7 @@ def getClipboardText():
         finally:
             wx.TheClipboard.Close()
     return sRet
+
 
 def setClipboardText(s):
     bRet = False
@@ -82,6 +96,7 @@ def setClipboardText(s):
             wx.TheClipboard.Close()
     return bRet
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     app = wx.PySimpleApp()
     openFileDialog(None, 'Test', True)

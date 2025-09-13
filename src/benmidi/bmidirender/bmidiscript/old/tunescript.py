@@ -1,4 +1,3 @@
-
 from tunescript import tunescript
-tunescript.shell()
 
+tunescript.shell()

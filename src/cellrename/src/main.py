@@ -1,4 +1,3 @@
-
 # cellrename, by Ben Fisher. GPLv3.
 # https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
 
@@ -15,6 +14,7 @@ import cellrename_engine
 import cellrename_grid
 import cellrename_comboboxask
 
+
 class CellRenameMain(wx.Frame):
     sort_reverse_order = False
     menuobj_include_dirs = None
@@ -23,20 +23,22 @@ class CellRenameMain(wx.Frame):
     grid = None
     statusbar = None
     data = None
-    
+
     def __init__(self, parent, id, title, sDirectory, sFilter, bIncludeDirs=False):
         wx.Frame.__init__(self, parent, id, title, wx.DefaultPosition, wx.Size(550, 200))
         self.data = cellrename_data.CellRenameData(sDirectory, sFilter, bIncludeDirs)
         self.addMenuBar()
         self.menuobj_undo.Enable(False)
-        
+
         # create widgets
-        self.grid = cellrename_grid.CellRenameGrid(self, self.data.getLength(), self.onSortEvent)
+        self.grid = cellrename_grid.CellRenameGrid(
+            self, self.data.getLength(), self.onSortEvent
+        )
         self.statusbar = self.CreateStatusBar(2)
         self.statusbar.SetStatusWidths([-1, 280])
         self.statusbar.PushStatusText("Press Ctrl+Enter to rename files.", 0)
         self.statusbar.PushStatusText("", 1)
-        
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.grid, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
@@ -45,24 +47,24 @@ class CellRenameMain(wx.Frame):
 
         # load and display the data!
         self.onMenuFileRefresh()
-        
+
     def addMenuBar(self):
         self.current_event_id = 700
-        
+
         def addMenuSeparator(menu):
             menu.AppendSeparator()
-        
+
         def addMenuItem(menu, sName, fnCallback, sHotkey='', kind=None):
             self.current_event_id += 1
             if sHotkey:
-                sName += '\t'+sHotkey
-            
+                sName += '\t' + sHotkey
+
             self.Bind(wx.EVT_MENU, fnCallback, id=self.current_event_id)
             if kind:
                 return menu.Append(self.current_event_id, sName, '', kind=kind)
             else:
                 return menu.Append(self.current_event_id, sName, '')
-        
+
         menuFile = wx.Menu()
         addMenuItem(menuFile, '&Open...', self.onMenuFileOpen, 'Ctrl+O')
         addMenuItem(menuFile, '&Refresh', self.onMenuFileRefresh, 'F5')
@@ -71,12 +73,17 @@ class CellRenameMain(wx.Frame):
         addMenuSeparator(menuFile)
         addMenuItem(menuFile, 'Filter by &Extension...', self.onMenuFileFilter, 'Ctrl+E')
         self.menuobj_include_dirs = addMenuItem(
-            menuFile, '&Include Directories', self.onMenuFileIncludeDirs, 'Ctrl+D', kind=wx.ITEM_CHECK)
-        addMenuItem(menuFile, 'Sort by last-&modified time',self.onMenuFileSortMod)
-        addMenuItem(menuFile, 'Sort by file-&created time',self.onMenuFileSortCreated)
+            menuFile,
+            '&Include Directories',
+            self.onMenuFileIncludeDirs,
+            'Ctrl+D',
+            kind=wx.ITEM_CHECK
+        )
+        addMenuItem(menuFile, 'Sort by last-&modified time', self.onMenuFileSortMod)
+        addMenuItem(menuFile, 'Sort by file-&created time', self.onMenuFileSortCreated)
         addMenuSeparator(menuFile)
         addMenuItem(menuFile, 'E&xit', self.onMenuFileExit)
-        
+
         menuEdit = wx.Menu()
         self.menuobj_undo = addMenuItem(menuEdit, '&Undo Rename', self.onMenuEditUndo, 'Ctrl+Z')
         addMenuSeparator(menuEdit)
@@ -86,8 +93,11 @@ class CellRenameMain(wx.Frame):
         addMenuItem(menuEdit, 'P&attern...', self.onMenuEditPattern, 'Ctrl+P')
         addMenuSeparator(menuEdit)
         addMenuItem(menuEdit, '&Replace in filenames...', self.onMenuEditReplace, 'Ctrl+H')
-        addMenuItem(menuEdit, 'Replace r&egexp in filenames...', self.onMenuEditRegexReplace, 'Ctrl+Shift+H')
-        
+        addMenuItem(
+            menuEdit, 'Replace r&egexp in filenames...', self.onMenuEditRegexReplace,
+            'Ctrl+Shift+H'
+        )
+
         menuHelp = wx.Menu()
         addMenuItem(menuHelp, '&About CellRename', self.onMenuHelpAbout)
         addMenuItem(menuHelp, '&Tips', self.onMenuHelpTips)
@@ -99,16 +109,18 @@ class CellRenameMain(wx.Frame):
         menubar.Append(menuHelp, '&Help')
         self.SetMenuBar(menubar)
         self.Centre()
-        
+
     def writeStatus(self, s):
         self.SetStatusText(s, 0)
-    
+
     def onMenuFileOpen(self, evt):
         try:
             open = wx.OPEN
         except AttributeError:
             open = wx.FD_OPEN
-        dialog = wx.FileDialog(self, style=open, message="Select any file in the target directory:" )
+        dialog = wx.FileDialog(
+            self, style=open, message="Select any file in the target directory:"
+        )
         try:
             if dialog.ShowModal() == wx.ID_OK and dialog.GetPath():
                 sPath, sFilename = os.path.split(dialog.GetPath())
@@ -122,15 +134,15 @@ class CellRenameMain(wx.Frame):
         self.grid.writeToModel(self.data)
         afrom, ato = self.data.prepareLists()
         self.performRename(afrom, ato)
-        
+
     def onMenuFileRefresh(self, evt=None):
         # first, update status bar with current directory
         sRenderDirectory = self.data.directory
         if len(sRenderDirectory) > 40:
             sRenderDirectory = sRenderDirectory[0:40] + '...'
-        
+
         self.statusbar.PushStatusText(sRenderDirectory, 1)
-        
+
         self.data.refresh()
         self.grid.loadFromModel(self.data)
         for entry in os.listdir(self.data.directory):
@@ -139,7 +151,7 @@ class CellRenameMain(wx.Frame):
                 break
 
     def onMenuFileFilter(self, evt):
-        sPattern = wxutil.inputDialog(self, 'Enter a filter, like *.mp3.','*')
+        sPattern = wxutil.inputDialog(self, 'Enter a filter, like *.mp3.', '*')
         if sPattern:
             self.data.filter = sPattern
             self.onMenuFileRefresh()
@@ -147,7 +159,7 @@ class CellRenameMain(wx.Frame):
     def onMenuFileIncludeDirs(self, evt):
         self.data.include_dirs = self.menuobj_include_dirs.IsChecked()
         self.onMenuFileRefresh()
-        
+
     def onMenuFileSortMod(self, evt):
         self.onSortEvent('modifiedTime', not self.sort_reverse_order)
         self.sort_reverse_order = not self.sort_reverse_order # reverse order for the next sort
@@ -163,52 +175,63 @@ class CellRenameMain(wx.Frame):
         # attempt to undo last rename
         if not self.undo_history:
             return
-        
+
         sPrevdir, ato, afrom = self.undo_history # note reverse order, because rename to from
         if sPrevdir != self.data.directory:
             wxutil.alertDialog(self, 'Cannot undo, first return to the directory.')
             return
-        
-        if not wxutil.alertDialog(self, 'Undo renaming these files?', 'Confirm', wx.OK|wx.CANCEL):
+
+        if not wxutil.alertDialog(
+            self, 'Undo renaming these files?', 'Confirm', wx.OK | wx.CANCEL
+        ):
             return
-        
+
         self.performRename(afrom, ato)
         self.menuobj_undo.Enable(False)
 
     def onSuffixOrPrefix(self, bPrefix):
-        sAdded = wxutil.inputDialog(self, 'Add a ' + ('prefix' if bPrefix else 'suffix') + '.','')
+        sAdded = wxutil.inputDialog(
+            self, 'Add a ' + ('prefix' if bPrefix else 'suffix') + '.', ''
+        )
         if not sAdded:
             return
-        
+
         self.grid.writeToModel(self.data)
         ret = self.data.transformSuffixOrPrefix(bPrefix, sAdded)
         self.grid.loadFromModel(self.data)
         if ret != True and ret:
             wxutil.alertDialog(self, str(ret))
-        
+
     def onMenuEditPrefix(self, evt):
         self.onSuffixOrPrefix(True)
-        
+
     def onMenuEditSuffix(self, evt):
         self.onSuffixOrPrefix(False)
 
     def onMenuEditNumber(self, evt):
-        sFirst = wxutil.inputDialog(self, 'Rename into a sequence like 01, 02, 03, and so on. Please enter the first entry of the sequence (e.g. "1", or "001", or "42").','001')
+        sFirst = wxutil.inputDialog(
+            self,
+            'Rename into a sequence like 01, 02, 03, and so on. Please enter the first entry of the sequence (e.g. "1", or "001", or "42").',
+            '001'
+        )
         if not sFirst:
             return
-        
+
         self.grid.writeToModel(self.data)
         ret = self.data.transformAppendNumber(sFirst)
         self.grid.loadFromModel(self.data)
         if ret != True and ret:
             wxutil.alertDialog(self, str(ret))
-            
+
     def onMenuEditPattern(self, evt):
-        sPattern = wxutil.inputDialog(self, 'Enter a naming pattern. The following can be used:/n/n/t%n=padded number (i.e. 001, 002)/n/t%N=number/n/t%f=file name/n/t%U=uppercase name/n/t%u=lowercase name/n/t%t=titlecase name'.
-            replace('/n',os.linesep).replace('/t','     '),'%f')
+        sPattern = wxutil.inputDialog(
+            self,
+            'Enter a naming pattern. The following can be used:/n/n/t%n=padded number (i.e. 001, 002)/n/t%N=number/n/t%f=file name/n/t%U=uppercase name/n/t%u=lowercase name/n/t%t=titlecase name'
+            .replace('/n', os.linesep).replace('/t', '     '), '%f'
+        )
         if not sPattern:
             return
-        
+
         self.grid.writeToModel(self.data)
         ret = self.data.transformWithPattern(sPattern)
         self.grid.loadFromModel(self.data)
@@ -216,37 +239,42 @@ class CellRenameMain(wx.Frame):
             wxutil.alertDialog(self, str(ret))
 
     def onDoReplace(self, bRegex):
-        sSearch = askWithHistory(self, 'regexsearch' if bRegex else 'search', 'Search for regex pattern: ' if bRegex else 'Search for string: ')
+        sSearch = askWithHistory(
+            self, 'regexsearch' if bRegex else 'search',
+            'Search for regex pattern: ' if bRegex else 'Search for string: '
+        )
         if not sSearch:
             return
-        
+
         sReplace = askWithHistory(self, 'regexrepl' if bRegex else 'repl', 'And replace with: ')
         if sReplace == None:
             return
-        
+
         self.grid.writeToModel(self.data)
-        
+
         if bRegex:
             ret = self.data.transformRegexReplace(sSearch, sReplace, True, True)
         else:
             ret = self.data.transformReplace(sSearch, sReplace)
-        
+
         self.grid.loadFromModel(self.data)
         if ret != True and ret:
             wxutil.alertDialog(self, str(ret))
 
     def onMenuEditReplace(self, evt):
         return self.onDoReplace(False)
-    
+
     def onMenuEditRegexReplace(self, evt):
         return self.onDoReplace(True)
 
     def onMenuHelpAbout(self, evt):
-        wxutil.alertDialog(self, '''cellrename: renaming files with a spreadsheet-like UI.
+        wxutil.alertDialog(
+            self, '''cellrename: renaming files with a spreadsheet-like UI.
         
 Ben Fisher, 2008, GPL
 https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
-https://moltenform.com/page/cellrename/doc/''', 'About')
+https://moltenform.com/page/cellrename/doc/''', 'About'
+        )
 
     def onMenuHelpTips(self, evt):
         sTips = r'''Tips
@@ -260,45 +288,51 @@ See also, the documentation at
 https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename
 '''
         wxutil.alertDialog(self, sTips, 'Tips')
-    
+
     # respond to message sent by grid, sField is the name of the column to sort by
     def onSortEvent(self, sField, bReverse):
         self.grid.writeToModel(self.data)
         self.data.sort(sField, bReverse)
         self.grid.loadFromModel(self.data)
-    
+
     def performRename(self, afrom, ato):
         result = False
         try:
             result = cellrename_engine.renameFiles(self.data.directory, afrom, ato)
         except Exception:
-            wxutil.alertDialog(self, 'Exception occurred: '+str(sys.exc_info()[0]))
+            wxutil.alertDialog(self, 'Exception occurred: ' + str(sys.exc_info()[0]))
             return
-        
+
         if result != True:
             wxutil.alertDialog(self, str(result))
             self.writeStatus("")
             return
-        
+
         self.undo_history = self.data.directory, afrom, ato
         self.menuobj_undo.Enable(True)
         self.onMenuFileRefresh()
         self.writeStatus(str(self.data.getLength()) + ' files renamed.')
-    
+
     def alertRepair(self):
-        wxutil.alertDialog(self, 'It looks like renaming was not successful. When you click OK, the previous filenames will be placed in the clipboard. Please rename back to normal filenames before continuing, and then restart CellRename.','Error')
+        wxutil.alertDialog(
+            self,
+            'It looks like renaming was not successful. When you click OK, the previous filenames will be placed in the clipboard. Please rename back to normal filenames before continuing, and then restart CellRename.',
+            'Error'
+        )
         if self.undo_history and self.undo_history[1]:
             afrom = self.undo_history[1]
             s = os.linesep.join(afrom)
             wxutil.setClipboardText(s)
 
+
 def historyLocation():
     return tempfile.gettempdir() + os.sep + 'cellrename_tmp_history.txt'
+
 
 def stripHistory(obj):
     def isOkChar(c):
         return c in string.printable and c != '\t' and c != '\r' and c != '\n' and c != '\v' and c != '\f'
-    
+
     maxHistoryEntryLen = 100
     maxHistoryPerKey = 10
     keys = [key for key in obj]
@@ -307,6 +341,7 @@ def stripHistory(obj):
         for i, _entry in enumerate(obj[key]):
             obj[key][i] = obj[key][i][0:maxHistoryEntryLen]
             obj[key][i] = ''.join(c for c in obj[key][i] if isOkChar(c))
+
 
 def loadHistory():
     if not os.path.exists(historyLocation()):
@@ -320,6 +355,7 @@ def loadHistory():
         traceback.print_exc()
         return {}
 
+
 def saveHistory(obj):
     stripHistory(obj)
     try:
@@ -329,23 +365,28 @@ def saveHistory(obj):
     except:
         traceback.print_exc()
 
+
 def askWithHistory(parent, key, prompt):
     history = loadHistory()
     if key not in history:
         history[key] = []
-            
+
     arChoices = history[key]
-    val = cellrename_comboboxask.comboboxAsk(None, id=-1, title='CellRename', prompt=prompt, arChoices=arChoices)
+    val = cellrename_comboboxask.comboboxAsk(
+        None, id=-1, title='CellRename', prompt=prompt, arChoices=arChoices
+    )
     if val and val not in arChoices:
         arChoices.insert(0, val)
         saveHistory(history)
-    
+
     return val
+
 
 def openOnlineDocs(context=None):
     import webbrowser
     url = 'https://github.com/moltenform/labs_youthful_projects/tree/master/src/cellrename/README.md'
     webbrowser.open(url, new=1)
+
 
 def isListableDir(s):
     if not os.path.isdir(s):
@@ -355,7 +396,8 @@ def isListableDir(s):
         return True
     except:
         return False
-    
+
+
 class MyApp(wx.App):
     def OnInit(self):
         # find an appropriate starting directory
@@ -370,13 +412,13 @@ class MyApp(wx.App):
             sDirectory = os.environ.get('HOME', '/')
             if not isListableDir(sDirectory):
                 sDirectory = u'/'
-        
+
         if sys.version_info[0] <= 2:
             sDirectory = unicode(sDirectory)
 
         sFilter = '*'
         bIncludeDirs = False
-        
+
         # use a directory from the clipboard if available
         try:
             sclip = wxutil.getClipboardText()
@@ -390,10 +432,11 @@ class MyApp(wx.App):
                 parent = os.path.split(sclip)[0]
                 if isListableDir(parent):
                     sDirectory = parent
-        
+
         frame = CellRenameMain(None, -1, 'CellRename', sDirectory, sFilter, bIncludeDirs)
         frame.Show(True)
         return True
+
 
 if getattr(sys, 'frozen', False):
     sys.stdout = open(tempfile.gettempdir() + os.sep + 'cellrename_tmpstdout.txt', 'w')
@@ -401,4 +444,3 @@ if getattr(sys, 'frozen', False):
 
 app = MyApp(0)
 app.MainLoop()
-

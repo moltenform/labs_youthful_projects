@@ -1,4 +1,3 @@
-
 """
 bmidilib.py , code for reading/creating midi files in Python
 Ben Fisher, 2008. GPL.
@@ -44,6 +43,7 @@ from . import bmidiconstants
 # internally use a bytearray()
 # in order to be both py2 and py3 compatible
 
+
 class BMidiFile(object):
     def __init__(self):
         self.file = None
@@ -75,7 +75,7 @@ class BMidiFile(object):
         assert length == 6
         format, b = getNumber(b, 2)
         self.format = format
-        assert format == 0 or format == 1   # dunno how to handle 2
+        assert format == 0 or format == 1 # dunno how to handle 2
         numTracks, b = getNumber(b, 2)
         division, b = getNumber(b, 2)
         if division & 0x8000:
@@ -84,7 +84,7 @@ class BMidiFile(object):
             assert ticksPerFrame == 24 or ticksPerFrame == 25 or \
                    ticksPerFrame == 29 or ticksPerFrame == 30
             if ticksPerFrame == 29:
-                ticksPerFrame = 30  # drop frame
+                ticksPerFrame = 30 # drop frame
             self.ticksPerSecond = ticksPerFrame * framesPerSecond
         else:
             self.ticksPerQuarterNote = division & 0x7FFF
@@ -105,7 +105,7 @@ class BMidiFile(object):
         b = strToByteList("MThd") + putNumber(6, 4) + putNumber(self.format, 2)
         b = b + putNumber(len(self.tracks), 2)
         b = b + putNumber(division, 2)
-        
+
         for trk in self.tracks:
             b = b + trk.write()
         return b
@@ -113,51 +113,64 @@ class BMidiFile(object):
 
 class BMidiTrack(object):
     def __init__(self):
-        self.events = [ ]
+        self.events = []
         self.notelist = None
         self.length = 0
 
     def read(self, b):
         #Keep track of starting/stopping note events.
-        seenNoteStarts = { } #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
+        seenNoteStarts = {} 
+        #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
         self.notelist = []
-        
+
         time = 0
         assert b[:4] == strToByteList("MTrk")
         length, b = getNumber(b[4:], 4)
         self.length = length
         mystr = b[:length]
         remainder = b[length:]
-        while mystr:            
+        while mystr:
             dt, mystr = delta_time_read(mystr)
             time = time + dt
 
             evt = BMidiEvent()
             mystr = evt.read(time, mystr)
             self.events.append(evt)
-            
-            if evt.type == "NOTE_ON" and evt.velocity!=0:
+
+            if evt.type == "NOTE_ON" and evt.velocity != 0:
                 seenNoteStarts[(evt.channel, evt.pitch)] = evt
-                
+
             elif (evt.type == "NOTE_OFF" or (evt.velocity == 0 and evt.type == "NOTE_ON")):
-                if (evt.channel, evt.pitch) in seenNoteStarts: #otherwise, not much we can do, invalid, but just ignore
+                if (
+                    evt.channel, evt.pitch
+                ) in seenNoteStarts: #otherwise, not much we can do, invalid, but just ignore
                     evtStart = seenNoteStarts[(evt.channel, evt.pitch)]
-                    bnote= BNote(evt.channel, evt.pitch, evtStart.time,evt.time - evtStart.time,evtStart, evt)
+                    bnote = BNote(
+                        evt.channel, evt.pitch, evtStart.time, evt.time - evtStart.time,
+                        evtStart, evt
+                    )
                     self.notelist.append(bnote)
-                
+
         del seenNoteStarts
         return remainder
+
     def createNotelist(self):
         self.notelist = []
-        seenNoteStarts = { } #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
+        seenNoteStarts = {
+        } #keys are tuples in format (channel, pitch). values are reference to the BMidiEvent notestart
         for evt in self.events:
-            if evt.type == "NOTE_ON" and evt.velocity!=0:
+            if evt.type == "NOTE_ON" and evt.velocity != 0:
                 seenNoteStarts[(evt.channel, evt.pitch)] = evt
-                
+
             elif (evt.type == "NOTE_OFF" or (evt.velocity == 0 and evt.type == "NOTE_ON")):
-                if (evt.channel, evt.pitch) in seenNoteStarts: #otherwise, not much we can do, invalid, but just ignore
+                if (
+                    evt.channel, evt.pitch
+                ) in seenNoteStarts: #otherwise, not much we can do, invalid, but just ignore
                     evtStart = seenNoteStarts[(evt.channel, evt.pitch)]
-                    bnote= BNote(evt.channel, evt.pitch, evtStart.time,evt.time - evtStart.time,evtStart, evt)
+                    bnote = BNote(
+                        evt.channel, evt.pitch, evtStart.time, evt.time - evtStart.time,
+                        evtStart, evt
+                    )
                     self.notelist.append(bnote)
 
     def write(self):
@@ -168,11 +181,13 @@ class BMidiTrack(object):
         for e in self.events:
             nexttime = e.time
             if nexttime - curtime < 0:
-                raise 'bad: negative. at time:%d, difference is %d'%(nexttime, nexttime - curtime)
+                raise 'bad: negative. at time:%d, difference is %d' % (
+                    nexttime, nexttime - curtime
+                )
             b = b + putVariableLengthNumber(nexttime - curtime)
             b = b + e.write()
-            curtime=nexttime
-            
+            curtime = nexttime
+
         return strToByteList("MTrk") + putNumber(len(b), 4) + b
 
     def __repr__(self):
@@ -181,73 +196,97 @@ class BMidiTrack(object):
             r = r + "    " + repr(e) + "\n"
         return r + "  >"
 
-    
+
 class BNote(object):
     #NOTE: Modifying instances of this class won't change the midi! To actually, say, change the pitch and duration, the startEvt and endEvts should be modified.
-    channel=None
-    pitch=None
-    time=None
-    duration=None
+    channel = None
+    pitch = None
+    time = None
+    duration = None
     startEvt = None
     endEvt = None
-    def __init__(self, channel, pitch, timeStart,duration,startEvt, endEvt):
+
+    def __init__(self, channel, pitch, timeStart, duration, startEvt, endEvt):
         self.channel = channel
-        self.pitch= pitch; self.time=timeStart; self.duration=duration; self.startEvt=startEvt; self.endEvt= endEvt
+        self.pitch = pitch
+        self.time = timeStart
+        self.duration = duration
+        self.startEvt = startEvt
+        self.endEvt = endEvt
+
     def __repr__(self):
-        return ("ch=%d %6d Note pitch=%d v=%d duration=%d\n" %
-             (self.channel, self.time, self.pitch, self.startEvt.velocity, self.duration))
+        return (
+            "ch=%d %6d Note pitch=%d v=%d duration=%d\n" %
+            (self.channel, self.time, self.pitch, self.startEvt.velocity, self.duration)
+        )
 
 
 # runningStatus appears to want to be an attribute of a MidiTrack. But
 # it doesn't seem to do any harm to implement it as a global.
 runningStatus = None
+
+
 class BMidiEvent(object):
     def __init__(self):
         self.time = None
         self.channel = self.pitch = self.velocity = self.data = None
+
     def __cmp__(self, other):
-        if other==None:
+        if other == None:
             return 1 #allows comparisons like evt==None
         return cmp(self.time, other.time)
+
     def __lt__(self, other):
         if other is None:
             return False #allows comparisons like evt==None
         return self.time < other.time
+
     def __repr__(self):
         if False: #old text representation
-            r = ("<MidiEvent %s, t=%s, channel=%s" %
-                 (self.type,
-                  repr(self.time),
-                  repr(self.channel)))
+            r = (
+                "<MidiEvent %s, t=%s, channel=%s" %
+                (self.type, repr(self.time), repr(self.channel))
+            )
             for attrib in ["pitch", "data", "velocity"]:
                 if getattr(self, attrib) != None:
                     r = r + ", " + attrib + "=" + repr(getattr(self, attrib))
             return r + ">"
         else:
-            schannel = '' if (self.channel==None) else 'ch='+str(self.channel)
-            strType = self.type.lower().replace('_',' ').title()
-            s = '%s %6d %s '%(schannel, self.time, strType)
-            if self.type=='NOTE_ON' or self.type=='NOTE_OFF':
-                s+='pitch=%d, v=%d'%(self.pitch, self.velocity)
-            elif self.type=='CONTROLLER_CHANGE':
-                cname = bmidiconstants.controllerTypes.whatis(self.pitch).lower().replace('_',' ').title() if bmidiconstants.controllerTypes.has_value(self.pitch) else 'Unknown'
-                s+='%d %s v=%d'%(self.pitch, cname, self.velocity)
-            elif self.type=='PROGRAM_CHANGE':
-                iname = bmidiconstants.GM_instruments[self.data] if (self.data < len(bmidiconstants.GM_instruments)) else 'Unknown'
-                s+='%d %s'%(self.data, iname)
-            
-            elif self.type=='PITCH_BEND':
-                bendamt = dataToPitchBend(self.pitch,self.velocity)
-                if bendamt>=0: s+=' +%d'%bendamt
-                else: s+=' %d'%bendamt
-            elif self.type=='SET_TEMPO':
-                s+= ' %d'%dataToTempo(self.data) #in units of microseconds per quarter note
+            schannel = '' if (self.channel == None) else 'ch=' + str(self.channel)
+            strType = self.type.lower().replace('_', ' ').title()
+            s = '%s %6d %s ' % (schannel, self.time, strType)
+            if self.type == 'NOTE_ON' or self.type == 'NOTE_OFF':
+                s += 'pitch=%d, v=%d' % (self.pitch, self.velocity)
+            elif self.type == 'CONTROLLER_CHANGE':
+                cname = bmidiconstants.controllerTypes.whatis(
+                    self.pitch
+                ).lower().replace('_', ' ').title() if bmidiconstants.controllerTypes.has_value(
+                    self.pitch
+                ) else 'Unknown'
+                s += '%d %s v=%d' % (self.pitch, cname, self.velocity)
+            elif self.type == 'PROGRAM_CHANGE':
+                iname = bmidiconstants.GM_instruments[self.data] if (
+                    self.data < len(bmidiconstants.GM_instruments)
+                ) else 'Unknown'
+                s += '%d %s' % (self.data, iname)
+
+            elif self.type == 'PITCH_BEND':
+                bendamt = dataToPitchBend(self.pitch, self.velocity)
+                if bendamt >= 0:
+                    s += ' +%d' % bendamt
+                else:
+                    s += ' %d' % bendamt
+            elif self.type == 'SET_TEMPO':
+                s += ' %d' % dataToTempo(self.data) #in units of microseconds per quarter note
             else:
-                if self.data!=None: s+=', data='+repr(self.data)
-                if self.pitch!=None: s+=', controller='+repr(self.pitch)
-                if self.velocity!=None: s+=', v='+repr(self.velocity)
+                if self.data != None:
+                    s += ', data=' + repr(self.data)
+                if self.pitch != None:
+                    s += ', controller=' + repr(self.pitch)
+                if self.velocity != None:
+                    s += ', v=' + repr(self.velocity)
             return s
-            
+
     def read(self, time, b):
         global runningStatus
         self.time = time
@@ -263,15 +302,14 @@ class BMidiEvent(object):
         if bmidiconstants.channelVoiceMessages.has_value(y):
             self.channel = (x & 0x0F) + 1
             self.type = bmidiconstants.channelVoiceMessages.whatis(y)
-            if (self.type == "PROGRAM_CHANGE" or
-                self.type == "CHANNEL_KEY_PRESSURE"):
+            if (self.type == "PROGRAM_CHANGE" or self.type == "CHANNEL_KEY_PRESSURE"):
                 self.data = z
                 return b[2:]
             else:
                 # Most likely adding a new note-on or note-off
                 self.pitch = z
                 self.velocity = b[2]
-                
+
                 return b[3:]
 
         elif y == 0xB0 and bmidiconstants.channelModeMessages.has_value(z):
@@ -284,7 +322,10 @@ class BMidiEvent(object):
             return b[3:]
 
         elif x == 0xF0 or x == 0xF7:
-            self.type = {0xF0: "F0_SYSEX_EVENT", 0xF7: "F7_SYSEX_EVENT"}[x]
+            self.type = {
+                0xF0: "F0_SYSEX_EVENT",
+                0xF7: "F7_SYSEX_EVENT"
+            }[x]
             length, b = getVariableLengthNumber(b[1:])
             self.data = b[:length]
             return b[length:]
@@ -302,12 +343,13 @@ class BMidiEvent(object):
         raise "Unknown midi event type"
 
     def write(self):
-        sysex_event_dict = {"F0_SYSEX_EVENT": 0xF0, "F7_SYSEX_EVENT": 0xF7}
+        sysex_event_dict = {
+            "F0_SYSEX_EVENT": 0xF0,
+            "F7_SYSEX_EVENT": 0xF7
+        }
         if bmidiconstants.channelVoiceMessages.hasattr(self.type):
-            ret = [(self.channel - 1) +
-                    getattr(bmidiconstants.channelVoiceMessages, self.type)]
-            if (self.type != "PROGRAM_CHANGE" and
-                self.type != "CHANNEL_KEY_PRESSURE"):
+            ret = [(self.channel - 1) + getattr(bmidiconstants.channelVoiceMessages, self.type)]
+            if (self.type != "PROGRAM_CHANGE" and self.type != "CHANNEL_KEY_PRESSURE"):
                 data = [self.pitch, self.velocity]
             else:
                 data = [self.data]
@@ -315,8 +357,7 @@ class BMidiEvent(object):
 
         elif bmidiconstants.channelModeMessages.hasattr(self.type):
             msg = getattr(bmidiconstants.channelModeMessages, self.type)
-            ret = bytearray([0xB0 + (self.channel - 1),
-                 msg])
+            ret = bytearray([0xB0 + (self.channel - 1), msg])
             # this type of event is rare, so cover all possibilities
             if self.data is None:
                 return ret
@@ -333,7 +374,7 @@ class BMidiEvent(object):
             return bytearray(ret) + self.data
 
         elif bmidiconstants.metaEvents.hasattr(self.type):
-            ret = bytearray([0xFF, + getattr(bmidiconstants.metaEvents, self.type)])
+            ret = bytearray([0xFF, +getattr(bmidiconstants.metaEvents, self.type)])
             ret += putVariableLengthNumber(len(self.data))
             if isinstance(self.data, list):
                 print('noooooo')
@@ -348,29 +389,32 @@ def delta_time_read(oldstr):
     time, newstr = getVariableLengthNumber(oldstr)
     return time, newstr
 
+
 def getInstrumentName(n):
-    if n>=0 and n<len(bmidiconstants.GM_instruments):
+    if n >= 0 and n < len(bmidiconstants.GM_instruments):
         return bmidiconstants.GM_instruments[n]
     else:
-        return 'Instrument %d'%n
+        return 'Instrument %d' % n
+
 
 def cmp(a, b):
-    return (a > b) - (a < b) 
+    return (a > b) - (a < b)
+
 
 def main(argv):
     m = BMidiFile()
     m.open('..\\midis\\bossa.mid')
     m.read()
     m.close()
-    
+
     #~ print(m.ticksPerQuarterNote)
     #~ print(m.tracks[2].notelist)
     print(m)
-    
+
     #~ m.open('..\\midis\\bossa_ben_out.mid', "wb")
     #~ m.write()
     #~ m.close()
-    
+
 
 if __name__ == "__main__":
     main(sys.argv)

@@ -23,5 +23,6 @@ def go():
     else:
         trace('Cannot fixgitk, settings not found.')
 
+
 if __name__ == '__main__':
     go()

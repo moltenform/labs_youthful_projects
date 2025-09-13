@@ -6,6 +6,7 @@
 from typing import OrderedDict
 from .gitp_impl import *
 
+
 def main(argv):
     sawGitpException = False
     try:
@@ -27,7 +28,7 @@ def main(argv):
             seepacketinfo=lambda: gitpTop_ShowDescription(False),
             seepacketinfoverbose=lambda: gitpTop_ShowDescription(True),
         )
-        
+
         infoText = OrderedDict(
             diffdev=' (shows diff against main branch, aka "ddd")',
             diffprev=' (shows diff against prev commit on branch)',
@@ -52,12 +53,12 @@ def main(argv):
         # we'll raise GitPacketException when stopping the script intentionally.
         sys.stderr.write(str(e) + '\n')
         sawGitpException = True
-        
+
     # having a GitPacketException currently still counts as a clean exit.
     markCleanExitWhenEnding()
     if sawGitpException:
         sys.exit(1)
 
+
 if __name__ == '__main__':
     main(sys.argv)
-

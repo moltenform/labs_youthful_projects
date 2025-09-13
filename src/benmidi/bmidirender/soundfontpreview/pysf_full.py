@@ -2,6 +2,7 @@
 import aifc, array, chunk, datetime, logging, math, os, os.path
 import struct, sys, tempfile, wave, xml.dom.minidom
 
+
 class SfChunkReader(chunk.Chunk):
     Item = 0
     Form = 'NONE'
@@ -36,6 +37,7 @@ class SfChunkReader(chunk.Chunk):
         self.seek(Pos + 8 + Size)
         return Retval
 
+
 class SfTreeItem:
     Level = None
     CkId = None
@@ -48,6 +50,7 @@ class SfTreeItem:
 
     def ChunkAssign(self, Chunk):
         self.Chunk = Chunk
+
 
 class SfTree:
     Prefix = None
@@ -98,7 +101,8 @@ class SfTree:
                 continue
             if CkId != None and CkId != Item.CkId:
                 continue
-            if Form != None and Form != Item.Form:  continue
+            if Form != None and Form != Item.Form:
+                continue
             Retval = Item
             break
         return Retval
@@ -127,6 +131,7 @@ class SfTree:
                 while Chunk.IsEnd() == False:
                     SubChunk = Chunk.SubChunk()
                     self.Read(SubChunk, Level + 1)
+
 
 class SfZoneType:
     KeyN = None
@@ -158,6 +163,7 @@ class SfZoneType:
         else:
             raise ValueError
 
+
 def PrintUsage():
     UsageStr = 'pysf version ' + str(PysfVersion) + '\n\n\n' + """
 Usage: pysf [conversion] [infile] [outfile]
@@ -165,24 +171,29 @@ Usage: pysf [conversion] [infile] [outfile]
     conversion := --aif2xml | --xml2aif
     conversion := --wav2xml | --xml2wav
 """
-    print UsageStr
+    print(UsageStr)
     sys.exit(0)
+
 
 def ustr(Arg):
     return unicode(str(Arg), 'utf-8')
+
 
 def LogDie(Msg):
     logging.error(Msg)
     sys.exit(1)
 
+
 def DateAsciiGet():
     Retval = datetime.date.today().strftime("%b %d, %Y")
     return Retval
+
 
 def Def(Variable, Default):
     if Variable == None:
         Variable = Default
     return Variable
+
 
 def Val(Dict, Key):
     if Dict == None:
@@ -193,8 +204,10 @@ def Val(Dict, Key):
         Retval = None
     return Retval
 
+
 def ListHas(List, Item):
     return len(filter(lambda x: x == Item, List)) > 0
+
 
 def LdFind(List, Key, Value):
     Retval = None
@@ -203,11 +216,13 @@ def LdFind(List, Key, Value):
         Retval = Results[0]
     return Retval
 
+
 def DataSwap(DataString):
     DataArray = array.array('H', DataString)
     DataArray.byteswap()
     Retval = DataArray.tostring()
     return Retval
+
 
 def ChannelFilter(DataString, Channel):
     Retval = ''
@@ -215,6 +230,7 @@ def ChannelFilter(DataString, Channel):
         Retval = Retval + DataString[Channel * SrcWidth:SrcWidth]
         DataString = DataString[SrcWidth * 2:]
     return Retval
+
 
 def DataSplit24(DataString, SplitPart):
     Retval = ''
@@ -226,6 +242,7 @@ def DataSplit24(DataString, SplitPart):
         Retval = Retval + DataString[RangeBegin:RangeEnd]
         DataString = DataString[3:]
     return Retval
+
 
 def DataJoin24(Data16, Data24):
     # This is little-endian because we always export as wave
@@ -239,8 +256,8 @@ def DataJoin24(Data16, Data24):
 def DataCopy(Src, Dst, SrcWidth, FramesLeft, Byteswap = None, \
     Channel = -1, SplitPart = 'all'):
     if Byteswap == None:
-       Byteswap = False
-       if sys.byteorder == 'big':
+        Byteswap = False
+        if sys.byteorder == 'big':
             Byteswap = True
     S24 = None
     if type(Src) == tuple:
@@ -269,6 +286,7 @@ def DataCopy(Src, Dst, SrcWidth, FramesLeft, Byteswap = None, \
         WriteFunc(DataString)
         FramesLeft = FramesLeft - DataSize
 
+
 def DictToXml(Xml, XmlEl, Dict):
     KeyList = Dict.keys()
     KeyList.sort()
@@ -288,6 +306,7 @@ def DictToXml(Xml, XmlEl, Dict):
             XmlTextEl = Xml.createTextNode(ustr(Dict[Key]))
             XmlSubEl.appendChild(XmlTextEl)
 
+
 def DictToXmlStr(Dict):
     Xml = xml.dom.minidom.parseString(XmlRootStr.encode('UTF-8'))
     XmlEl = Xml.documentElement
@@ -301,6 +320,7 @@ def DictToXmlStr(Dict):
     R = R + '\n'
     Xml.unlink()
     return R
+
 
 def XmlToDict(Xml):
     CTags = ['gen', 'instrument', 'preset', 'wavetable', 'zone']
@@ -328,17 +348,20 @@ def XmlToDict(Xml):
             raise TypeError
     return Dict
 
+
 def XmlFileToDict(FileName):
     Xml = xml.dom.minidom.parse(FileName)
     Retval = XmlToDict(Xml)
     Xml.unlink()
     return Retval
 
+
 def LikeFile(Obj):
     Retval = False
     if type(Obj) == file or Obj.__class__ == tempfile._TemporaryFileWrapper:
         Retval = True
     return Retval
+
 
 def ListToIff(List, OutHandle):
     while len(List) > 0:
@@ -374,6 +397,7 @@ def ListToIff(List, OutHandle):
         OutHandle.write(struct.pack('<I', ChunkSize))
         OutHandle.seek(Pos)
 
+
 def AudOpen(FileName, Mode, Format):
     if Format == 'wav':
         AudOpenFunc = wave.open
@@ -383,18 +407,20 @@ def AudOpen(FileName, Mode, Format):
         LogDie('unsupported format')
     return AudOpenFunc(FileName, Mode)
 
+
 def AudToXml(Src, Dst, Format):
     RawFile = os.path.splitext(Dst)[0] + '.raw'
     Aud = AudOpen(Src, 'rb', Format)
     Xml = open(Dst, 'wb')
     Dict = { ustr(Format): { u'channels': Aud.getnchannels(), 
-         u'sampleSize': Aud.getsampwidth() * 8,
+            u'sampleSize': Aud.getsampwidth() * 8,
          u'sampleRate': Aud.getframerate(), u'file': RawFile } }
     Xml.write(DictToXmlStr(Dict))
     Raw = open(RawFile, 'wb')
     DataCopy(Aud, Raw, Aud.getsampwidth(), Aud.getnframes())
     Raw.close()
     Aud.close()
+
 
 def XmlToAud(Src, Dst, Format):
     Aud = AudOpen(Dst, 'wb', Format)
@@ -429,7 +455,8 @@ def XmlToAud(Src, Dst, Format):
     Aud.close()
     Raw.close()
 
-def SfStr(Str, MaxLen = 256):
+
+def SfStr(Str, MaxLen=256):
     if Str == None:
         Retval = None
     else:
@@ -443,6 +470,7 @@ def SfStr(Str, MaxLen = 256):
         FmtStr = "%ds" % (StrLen)
         Retval = struct.pack(FmtStr, str(Str))
     return Retval
+
 
 def SfWavetableList(Tree):
     Smpl = Tree.CkId('smpl', None, -1)
@@ -523,6 +551,7 @@ def SfWavetableList(Tree):
         Data = Data[FmtLen:]
     return List
 
+
 def SfZoneList(Tree, Zt):
     AchName = 'ZORKMID'
     WBagNdx = -999
@@ -557,7 +586,7 @@ def SfZoneList(Tree, Zt):
             (AchName, WBagNdx) = struct.unpack(HdrFmtStr, HdrD[0:HdrFmtLen])
         elif Zt.KeyN == 'preset':
             (AchName, WPreset, WBank, WBagNdx, DwLibrary, DwGenre,
-                DwMorphology) = struct.unpack(HdrFmtStr, HdrD[0:HdrFmtLen])
+             DwMorphology) = struct.unpack(HdrFmtStr, HdrD[0:HdrFmtLen])
         AchName = AchName.split('\0', 1)[0]
         HdrD = HdrD[HdrFmtLen:]
         if Order > 0:
@@ -624,6 +653,7 @@ def SfZoneList(Tree, Zt):
         Order = Order + 1
     return List
 
+
 def SfItems():
     return [SfTreeItem(0, 'RIFF', 'sfbk', None),
         SfTreeItem(1, 'LIST', 'INFO', None),
@@ -680,12 +710,14 @@ def SfToXml(Src, Dst):
     InHandle.close()
     OutHandle.close()
 
+
 def SfIfil(Dict):
     try:
         Retval = (Dict[u'IFIL'][u'major'], Dict[u'IFIL'][u'minor'])
     except KeyError:
         Retval = None
     return Retval
+
 
 def SfInfo(Dict):
     (SfMajor, SfMinor) = Def(SfIfil(Dict), (2, 1))
@@ -701,11 +733,12 @@ def SfInfo(Dict):
         'ISFT', SfStr(Def(Val(Dict, u'ISFT'), 'SFEDT v1.28'))])
     return List
 
+
 def StereoSampleCheck(Wavetables, Id, Channel, WSampleLink):
     if Channel == 'right':
-       (RightId, LeftId) = (Id, WSampleLink)
+        (RightId, LeftId) = (Id, WSampleLink)
     else:
-       (RightId, LeftId) = (WSampleLink, Id)
+        (RightId, LeftId) = (WSampleLink, Id)
     Left = LdFind(Wavetables, u'id', LeftId)
     if Left == None:
         LogDie("Wavetable %d: Can't find left channel" % (Id))
@@ -716,6 +749,7 @@ def StereoSampleCheck(Wavetables, Id, Channel, WSampleLink):
         LogDie("Wavetable %d: Left channel not linked to right" % (Id))
     if Right[u'link'] != LeftId:
         LogDie("Wavetable %d: Right channel not linked to Left" % (Id))
+
 
 def SfSdtaShdr(Dict):
     ShdrFmtStr = '<20sIIIIIBbHH'
@@ -832,6 +866,7 @@ def SfSdtaShdr(Dict):
         Sdta = [['LIST', 'sdta'], ['smpl', SmplD]]
     return (Sdta, Shdr)
 
+
 def SfRange(Item, Key, Min, Max, DefaultVal, Msg, Warn):
     try:
         Begin = Item[Key][u'begin']
@@ -844,6 +879,7 @@ def SfRange(Item, Key, Min, Max, DefaultVal, Msg, Warn):
             logging.warn("%s: no %s" % (Msg, Key))
     return (Begin, End)
 
+
 def SfLog(Item, Key, DefaultVal):
     Value = float(Def(Val(Item, Key), DefaultVal))
     if Value == 0.0:
@@ -853,6 +889,7 @@ def SfLog(Item, Key, DefaultVal):
     else:
         Value = math.floor(1200.0 * (math.log(Value) / math.log(2)))
     return Value
+
 
 def SfZone(Dict, Zt):
     Order = 0
@@ -978,6 +1015,7 @@ def SfZone(Dict, Zt):
         Order = Order + 1
     return (GenD, ModD, BagD, HdrD, GenC, ModC, BagC, HdrC)
 
+
 def SfPdta(Dict, Shdr):
     (IgenD, ImodD, IbagD, InstD,
      IgenC, ImodC, IbagC, InstC) = SfZone(Dict, SfZoneType('instrument'))
@@ -996,6 +1034,7 @@ def SfPdta(Dict, Shdr):
         'imod', ImodD, 'igen', IgenD, Shdr[0], Shdr[1]]]
     return Pdta
 
+
 def XmlToSf(Src, Dst):
     OutHandle = open(Dst, 'wb')
     try:
@@ -1009,6 +1048,7 @@ def XmlToSf(Src, Dst):
         Pdta[0], Pdta[1]]]
     ListToIff(List, OutHandle)
     OutHandle.close()
+
 
 logging.getLogger().setLevel(logging.WARN)
 PysfVersion = 2
@@ -1096,10 +1136,17 @@ SHMIN = -32768
 SHOOBVAL = -32769
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:             PrintUsage()
-    if (sys.argv[1] == '--sf2xml'):    SfToXml(sys.argv[2], sys.argv[3])
-    elif (sys.argv[1] == '--xml2sf'):  XmlToSf(sys.argv[2], sys.argv[3])
-    elif (sys.argv[1] == '--aif2xml'): AudToXml(sys.argv[2], sys.argv[3], 'aif')
-    elif (sys.argv[1] == '--xml2aif'): XmlToAud(sys.argv[2], sys.argv[3], 'aif')
-    elif (sys.argv[1] == '--wav2xml'): AudToXml(sys.argv[2], sys.argv[3], 'wav')
-    elif (sys.argv[1] == '--xml2wav'): XmlToAud(sys.argv[2], sys.argv[3], 'wav')
+    if len(sys.argv) != 4:
+        PrintUsage()
+    if (sys.argv[1] == '--sf2xml'):
+        SfToXml(sys.argv[2], sys.argv[3])
+    elif (sys.argv[1] == '--xml2sf'):
+        XmlToSf(sys.argv[2], sys.argv[3])
+    elif (sys.argv[1] == '--aif2xml'):
+        AudToXml(sys.argv[2], sys.argv[3], 'aif')
+    elif (sys.argv[1] == '--xml2aif'):
+        XmlToAud(sys.argv[2], sys.argv[3], 'aif')
+    elif (sys.argv[1] == '--wav2xml'):
+        AudToXml(sys.argv[2], sys.argv[3], 'wav')
+    elif (sys.argv[1] == '--xml2wav'):
+        XmlToAud(sys.argv[2], sys.argv[3], 'wav')

@@ -3,68 +3,66 @@ import time
 
 import win32midi
 
-
 #~ can't support too much polyphony, see http://www.sjbaker.org/wiki/index.php?title=Keyboards_Are_Evil
 #~ [s down] [shift down][s up] [shift up]=error
 #~ [shift down][s down][v down][shift up][v up] [s up] = error
 #~ fixed those. now only alt causes problems
 
-
 # On Windows, the best timer is time.clock()
 # On most other platforms the best timer is time.time()
-if sys.platform == "win32": fntimer = time.clock
-else: fntimer = time.time
+if sys.platform == "win32":
+    fntimer = time.clock
+else:
+    fntimer = time.time
 
 
 class NotesRealtimeMidi(object):
     manualbindings = None
     midiplayerdevice = None
     keyCodesCurrentlyHeld = None
-    transposition =60 #default start at c4
+    transposition = 60 #default start at c4
     bRecordingMode = False
     listRecorded = None
-    
+
     def __init__(self, manualbindings):
         self.manualbindings = manualbindings
         self.keyCodesCurrentlyHeld = {} #map from Keycode to Notenumber
         self.midiplayerdevice = win32midi.RealTimePlayer()
         self.midiplayerdevice.openDevice()
-        
+
         assert False #not yet updated to use NotesRealtimeRecordedRaw class
 
-        
-    def addBindings(self,tkTopLevel):
-        
-        #add bindings to toplevel. 
-        
-        
+    def addBindings(self, tkTopLevel):
+
+        #add bindings to toplevel.
+
         #key press/release events
         #(they keep repeating the event when held)
         tkTopLevel.bind_all('<Key>', self._onkey)
         tkTopLevel.bind_all('<Any-Alt-Key>', self._onkey)
         tkTopLevel.bind_all('<Tab>', self._onkey)
         tkTopLevel.bind_all('<Shift-Tab>', self._onkey)
-        
+
         #key release events
         tkTopLevel.bind_all('<KeyRelease>', self._onkeyrelease)
         tkTopLevel.bind_all('<Any-Alt-KeyRelease>', self._onkeyrelease)
-        
-    
+
     def addNotebindings(self, filename):
         self.notebindings = {}
-        f = open(filename,'r')
+        f = open(filename, 'r')
         for line in f:
             line = line.strip()
-            if not line: continue
-            key,note,_ = line.split(',')
+            if not line:
+                continue
+            key, note, _ = line.split(',')
             self.notebindings[int(key)] = int(note)
         f.close()
-    
+
     def setTranspose(self, amount):
-        
+
         self.transposition += amount
         return self.transposition
-        
+
     def setRecordingMode(self, b):
         if b:
             self.listRecorded = []
@@ -76,41 +74,43 @@ class NotesRealtimeMidi(object):
             self.listRecorded = None
             self.bRecordingMode = False
             return l
-    
+
     def _onkey(self, event):
-        if event.keycode==16 or event.keycode==17 or event.keycode==0:
+        if event.keycode == 16 or event.keycode == 17 or event.keycode == 0:
             return
-        if event.keycode==9:
+        if event.keycode == 9:
             self._ontab()
             return 'break'
-        
-        bNoModifierKeys = event.state==0
-        
+
+        bNoModifierKeys = event.state == 0
+
         mods = self._getkeyboardmods(event.state)
-        if (mods,event.keysym) in self.manualbindings:
-            self.manualbindings[(mods,event.keysym)]()
+        if (mods, event.keysym) in self.manualbindings:
+            self.manualbindings[(mods, event.keysym)]()
             return 'break'
-        
-        
+
         if event.keycode in self.notebindings:
             if bNoModifierKeys:
                 if event.keycode not in self.keyCodesCurrentlyHeld:
                     #~ print 'play note',notenumber
                     notenumber = self.notebindings[event.keycode] + self.transposition
                     self.midiplayerdevice.rawNoteOn(notenumber)
-                    if self.bRecordingMode: tm = fntimer()
-                    else: tm=0
-                    self.keyCodesCurrentlyHeld[event.keycode] = notenumber,tm #(need to record notenumber because transposition may have changed)
+                    if self.bRecordingMode:
+                        tm = fntimer()
+                    else:
+                        tm = 0
+
+                    #(need to record notenumber because transposition may have changed)
+                    self.keyCodesCurrentlyHeld[event.keycode] = notenumber, tm 
             else:
                 self.keyCodesCurrentlyHeld[event.keycode] = -1
-        
+
     def _onkeyrelease(self, event):
-        if event.keycode==16 or event.keycode==17 or event.keycode==0:
+        if event.keycode == 16 or event.keycode == 17 or event.keycode == 0:
             return
-        
-        
-        bNoModifierKeys = event.state==0
-        
+
+        bNoModifierKeys = event.state == 0
+
         #~ if bNoModifierKeys and event.keycode in self.notebindings:
         #to fix Shift bugs, don't require noModifierKeys. just call on everything.
         if event.keycode in self.notebindings:
@@ -124,42 +124,39 @@ class NotesRealtimeMidi(object):
             else:
                 notenumber = self.keyCodesCurrentlyHeld[event.keycode]
                 if notenumber != -1:
-                    notenumber, tm=notenumber
+                    notenumber, tm = notenumber
                     self.midiplayerdevice.rawNoteOff(notenumber)
                     if self.bRecordingMode:
                         self.listRecorded.append((notenumber, tm, fntimer()))
-                
+
                 #~ print 'release note',notenumber
                 del self.keyCodesCurrentlyHeld[event.keycode]
-    
+
     def _ontab(self):
         print('t')
         if self.bRecordingMode:
             self.listRecorded.append((-1, fntimer(), None))
-    
+
     def _getkeyboardmods(self, eventstate):
         mods = ''
-        if eventstate & 0x00000004: mods += 'Control+'
-        if eventstate & 0x00020000: mods += 'Alt+'
-        if eventstate & 0x00000001: mods += 'Shift+'
+        if eventstate & 0x00000004:
+            mods += 'Control+'
+        if eventstate & 0x00020000:
+            mods += 'Alt+'
+        if eventstate & 0x00000001:
+            mods += 'Shift+'
         return mods
-            
-    def stopallnotes(self):  #usually called when lost focus.
+
+    def stopallnotes(self): #usually called when lost focus.
         #stop all currently playing notes
         for keyCode in self.keyCodesCurrentlyHeld:
             notenumber = self.keyCodesCurrentlyHeld[keyCode]
-            if notenumber!=-1:
+            if notenumber != -1:
                 self.midiplayerdevice.rawNoteOff(notenumber)
         self.keyCodesCurrentlyHeld = {}
-        
 
     def closeDevice(self):
         if self.midiplayerdevice != None:
             print('closing device')
             self.midiplayerdevice.closeDevice()
-            self.midiplayerdevice= None
-        
-    
-    
-    
-
+            self.midiplayerdevice = None

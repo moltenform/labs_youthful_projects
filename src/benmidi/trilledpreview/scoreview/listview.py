@@ -1,4 +1,3 @@
-
 try:
     from Tkinter import *
     from Tkinter import _cnfmerge
@@ -9,34 +8,36 @@ except ImportError:
 
 class ListViewWindow(object):
     def __init__(self, top, tracknumber, trackdata, opts):
-        top.title('Track %d Events'%tracknumber)
-        frameTop = Frame(top, padx='0m' )
+        top.title('Track %d Events' % tracknumber)
+        frameTop = Frame(top, padx='0m')
         frameTop.pack(expand=YES, fill=BOTH)
-        
+
         #perhaps use a monospace font
         self.lb = ScrolledListbox(frameTop, selectmode=SINGLE, width=60, height=30)
         self.lb.pack(expand=YES, fill=BOTH)
-        
-        
+
         #Insert the data. Actually, just use Notelist, a lot easier
-        superlist = [evt for evt in trackdata.events if evt.type!='NOTE_ON' and evt.type!='NOTE_OFF']
-        superlist.extend( trackdata.notelist )
+        superlist = [
+            evt for evt in trackdata.events if evt.type != 'NOTE_ON' and evt.type != 'NOTE_OFF'
+        ]
+        superlist.extend(trackdata.notelist)
         superlist.sort(key=lambda item: item.time)
-        
+
         for item in superlist:
-            self.lb.insert(END, item.__repr__().replace('\r','').replace('\n','').replace('\t','    '))
-        
-        
-        top.bind('<MouseWheel>',self.scroll) #binding for Windows
-        top.bind('<Button-4>',self.scroll) #binding for Linux
-        top.bind('<Button-5>',self.scroll)
-        
+            self.lb.insert(
+                END,
+                item.__repr__().replace('\r', '').replace('\n', '').replace('\t', '    ')
+            )
+
+        top.bind('<MouseWheel>', self.scroll) #binding for Windows
+        top.bind('<Button-4>', self.scroll) #binding for Linux
+        top.bind('<Button-5>', self.scroll)
+
     def scroll(self, event):
         if event.num == 5 or event.delta == -120:
             self.lb.yview_scroll(5, 'units')
         if event.num == 4 or event.delta == 120:
             self.lb.yview_scroll(-5, 'units')
-
 
 
 class ScrolledListbox(Listbox): #an imitation of ScrolledText
@@ -67,37 +68,31 @@ class ScrolledListbox(Listbox): #an imitation of ScrolledText
         for m in methods:
             if m[0] != '_' and m != 'config' and m != 'configure':
                 setattr(self, m, getattr(self.frame, m))
-        
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     import sys
     sys.path.append('..')
     from bmidilib import bmidilib
-    
+
     class TestApp(object):
         def __init__(self, root):
             root.title('Testing list view')
             Button(root, text='open', command=self.openit).pack()
-        
+
         def openit(self):
             file = bmidilib.BMidiFile()
             file.open('..\\midis\\bossa.mid')
             file.read()
             file.close()
             trackfile = file.tracks[3]
-            
+
             opts = {}
             #~ opts['showonlynotes'] = False
-            
+
             top = Toplevel()
             window = ListViewWindow(top, 5, trackfile, opts)
 
-    
     root = Tk()
     app = TestApp(root)
     root.mainloop()
-    
-    
-    

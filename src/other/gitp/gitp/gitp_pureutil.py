@@ -13,9 +13,11 @@ except ImportError:
 class GitPacketException(RuntimeError):
     pass
 
+
 def assertGitPacket(condition, *msgs):
     if not condition:
         raise GitPacketException(' '.join((str(msg) for msg in msgs)))
+
 
 def shasMatch(sh1, sh2):
     sh1 = sh1.strip()
@@ -32,8 +34,10 @@ def shasMatch(sh1, sh2):
     else:
         return sh1 == sh2
 
+
 def isOkForFilename(s):
     return re.match(r"^[a-zA-Z0-9!@#$%^&()`~+=',; _-]+$", s)
+
 
 def getLatestProjCountImpl(proj, shortdesc, filelist):
     # want the highest one: if there is a 003 but no 002, still return 004
@@ -44,10 +48,11 @@ def getLatestProjCountImpl(proj, shortdesc, filelist):
             sNum = short.split('_')[1].split('.')[0]
             num = int(sNum, 10)
             highestSeen = max(highestSeen, num)
-    
+
     sNum = '%03d' % (highestSeen + 1)
     sDesc = '_' + shortdesc if shortdesc else ''
     return f'{proj}_{sNum}{sDesc}.gitp.zip'
+
 
 def withoutNumber(s):
     lst = s.split('.')
@@ -56,15 +61,18 @@ def withoutNumber(s):
     lst.pop(-2)
     return '.'.join(lst)
 
+
 def transformPath(s, suffix):
     withsuffix = files.splitExt(s)[0] + '.' + suffix + files.splitExt(s)[1]
     return withsuffix.replace('\\', ';').replace('/', ';')
+
 
 def compareTwoFiles(f1, f2):
     # in the future, might add logic where whitespace-only changes are ok
     txt1 = files.readAll(f1, encoding='latin-1').replace('\r\n', '\n').strip()
     txt2 = files.readAll(f2, encoding='latin-1').replace('\r\n', '\n').strip()
     return txt1 == txt2
+
 
 def compareWithFileInZip(zip, path, suffix):
     import io
@@ -79,24 +87,56 @@ def compareWithFileInZip(zip, path, suffix):
             txt2 = fWrapped.read().replace('\r\n', '\n').strip()
         return txt1 == txt2
 
+
 def splitBytesBySize(b, size):
     ints = [int(c) for c in b]
     ret = takeBatch(ints, size)
     return jslike.map(ret, lambda elem: bytes(elem))
 
+
 def tests():
     # shasMatch
-    assertTrue(shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a2', '7ffaef0000f4f1938528c6732886b23c72c9f9a2'))
-    assertTrue(not shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a2', '7ffaef0000f4f1938528c6732886b23c72c9f9a3'))
-    assertTrue(shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a2', '7ffaef0000f4f1938528c6732886b23c72c9f9a'))
+    assertTrue(
+        shasMatch(
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2',
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2'
+        )
+    )
+    assertTrue(
+        not shasMatch(
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2',
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a3'
+        )
+    )
+    assertTrue(
+        shasMatch(
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2',
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a'
+        )
+    )
     assertTrue(not shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a2', '7ffaef0001'))
     assertTrue(shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a2', '7ffaef0000'))
-    assertTrue(shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a2', '7ffaef0000f4f1938528c6732886b23c72c9f9a2'))
-    assertTrue(not shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a3', '7ffaef0000f4f1938528c6732886b23c72c9f9a2'))
-    assertTrue(shasMatch('7ffaef0000f4f1938528c6732886b23c72c9f9a', '7ffaef0000f4f1938528c6732886b23c72c9f9a2'))
+    assertTrue(
+        shasMatch(
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2',
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2'
+        )
+    )
+    assertTrue(
+        not shasMatch(
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a3',
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2'
+        )
+    )
+    assertTrue(
+        shasMatch(
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a',
+            '7ffaef0000f4f1938528c6732886b23c72c9f9a2'
+        )
+    )
     assertTrue(not shasMatch('7ffaef0001', '7ffaef0000f4f1938528c6732886b23c72c9f9a2'))
     assertTrue(shasMatch('7ffaef0000', '7ffaef0000f4f1938528c6732886b23c72c9f9a2'))
-    
+
     # isOkForFilename
     assertTrue(not isOkForFilename(''))
     assertTrue(isOkForFilename(' '))
@@ -143,14 +183,15 @@ def tests():
     compareTwoFilesTests()
 
     # splitBytesBySize
-    assertEq([b'123',b'456',b'789'], splitBytesBySize(b'123456789', 3))
+    assertEq([b'123', b'456', b'789'], splitBytesBySize(b'123456789', 3))
     assertEq([b'123456789'], splitBytesBySize(b'123456789', 11))
     assertEq([b'123456789'], splitBytesBySize(b'123456789', 10))
     assertEq([b'123456789'], splitBytesBySize(b'123456789', 9))
     assertEq([b'12345678', b'9'], splitBytesBySize(b'123456789', 8))
     assertEq([b'12345', b'6789'], splitBytesBySize(b'123456789', 5))
-    
+
     trace('tests complete')
+
 
 def compareTwoFilesTests():
     testSets = [
@@ -172,7 +213,7 @@ def compareTwoFilesTests():
         [b'abc$defghi', b'abc$defGhi', False],
         [b'abc$defghi', b'abc^defghi', False],
     ]
-    
+
     def replaceSymbols(b):
         return b.replace(b'$', bytes([240, 241, 242])).replace(b'^', bytes([240, 241, 243]))
 
@@ -193,6 +234,6 @@ def compareTwoFilesTests():
         files.delete('tmp1.test')
         files.delete('tmp2.test')
 
+
 if __name__ == '__main__':
     tests()
-

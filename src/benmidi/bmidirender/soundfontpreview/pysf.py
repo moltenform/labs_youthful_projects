@@ -14,7 +14,9 @@ import aifc, array, chunk, datetime, logging, math, os, os.path
 import struct, sys, tempfile, wave
 
 
-class PysfException(Exception): pass
+class PysfException(Exception):
+    pass
+
 
 class SfChunkReader(chunk.Chunk):
     Item = 0
@@ -50,6 +52,7 @@ class SfChunkReader(chunk.Chunk):
         self.seek(Pos + 8 + Size)
         return Retval
 
+
 def old_div(a, b):
     "Equivalent to ``a / b`` on Python 2"
     import numbers
@@ -57,6 +60,7 @@ def old_div(a, b):
         return a // b
     else:
         return a / b
+
 
 class SfTreeItem(object):
     Level = None
@@ -70,6 +74,7 @@ class SfTreeItem(object):
 
     def ChunkAssign(self, Chunk):
         self.Chunk = Chunk
+
 
 class SfTree(object):
     Prefix = None
@@ -120,7 +125,8 @@ class SfTree(object):
                 continue
             if CkId != None and CkId != Item.CkId:
                 continue
-            if Form != None and Form != Item.Form:  continue
+            if Form != None and Form != Item.Form:
+                continue
             Retval = Item
             break
         return Retval
@@ -149,6 +155,7 @@ class SfTree(object):
                 while Chunk.IsEnd() == False:
                     SubChunk = Chunk.SubChunk()
                     self.Read(SubChunk, Level + 1)
+
 
 class SfZoneType(object):
     KeyN = None
@@ -198,6 +205,7 @@ def Def(Variable, Default):
         Variable = Default
     return Variable
 
+
 def Val(Dict, Key):
     if Dict == None:
         Retval = None
@@ -207,10 +215,9 @@ def Val(Dict, Key):
         Retval = None
     return Retval
 
+
 def ListHas(List, Item):
     return len([x for x in List if x == Item]) > 0
-
-
 
 
 def SfZoneList(Tree, Zt):
@@ -248,7 +255,7 @@ def SfZoneList(Tree, Zt):
             (AchName, WBagNdx) = struct.unpack(HdrFmtStr, HdrD[0:HdrFmtLen])
         elif Zt.KeyN == b'preset':
             (AchName, WPreset, WBank, WBagNdx, DwLibrary, DwGenre,
-                DwMorphology) = struct.unpack(HdrFmtStr, HdrD[0:HdrFmtLen])
+             DwMorphology) = struct.unpack(HdrFmtStr, HdrD[0:HdrFmtLen])
         AchName = AchName.split(b'\0', 1)[0]
         HdrD = HdrD[HdrFmtLen:]
         if Order > 0:
@@ -319,6 +326,7 @@ def SfZoneList(Tree, Zt):
             List.append(IPDict)
         Order = Order + 1
     return List
+
 
 def SfItems():
     return [SfTreeItem(0, b'RIFF', b'sfbk', None),
@@ -435,4 +443,3 @@ SfSampleModes = {0: b'0_LoopNone',
 SfModTypeDescs = (b'Linear', b'Concave', b'Convex', b'Switch')
 SHMIN = -32768
 SHOOBVAL = -32769
-

@@ -5,11 +5,13 @@ import requests
 import random
 import string
 
+
 def writeToLog(*listText):
     endpoint = 'http://localhost:9123/log'
     text = '; '.join(map(str, listText))
     text = clientId + ': ' + text
     _sendPost(endpoint, text)
+
 
 def askSetting(settingName):
     endpoint = 'http://localhost:9123/asksetting'
@@ -22,12 +24,19 @@ def askSetting(settingName):
     else:
         raise Exception('Server did not reply to the setting ' + settingName)
 
+
 def _sendPost(endpoint, s):
-    return requests.post(url=endpoint, data=s.encode('utf-8'),
-        headers={'Content-Type': 'text/plain; charset=utf-8'})
+    return requests.post(
+        url=endpoint,
+        data=s.encode('utf-8'),
+        headers={
+            'Content-Type': 'text/plain; charset=utf-8'
+        }
+    )
+
 
 def getUniqueId():
     return ''.join(random.choice(string.ascii_letters) for i in range(3))
 
-clientId = getUniqueId()
 
+clientId = getUniqueId()

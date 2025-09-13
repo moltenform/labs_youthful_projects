@@ -19,11 +19,12 @@ import logging
 import json
 from datetime import datetime
 
+
 class LocalhostLoggerServer(BaseHTTPRequestHandler):
     # Overriding parent: called when an options request arrives
-    def do_OPTIONS(self):           
+    def do_OPTIONS(self):
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')                
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
         self._complete_response()
@@ -33,7 +34,9 @@ class LocalhostLoggerServer(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self._complete_response()
-        self.wfile.write("Welcome to localhostlogger. To use, send a post to '/log'.".encode('utf-8'))
+        self.wfile.write(
+            "Welcome to localhostlogger. To use, send a post to '/log'.".encode('utf-8')
+        )
 
     # Overriding parent: called when a post request arrives
     def do_POST(self):
@@ -65,7 +68,7 @@ class LocalhostLoggerServer(BaseHTTPRequestHandler):
     # caller is asking for a setting
     def onAskSetting(self, post_data):
         with open(ASKSETTINGSFILE, encoding='utf-8') as f:
-           allSettings = f.read()
+            allSettings = f.read()
         allSettings = json.loads(allSettings)
         val = ''
         parts = post_data.split('$$$')
@@ -81,6 +84,7 @@ class LocalhostLoggerServer(BaseHTTPRequestHandler):
         current_time = datetime.now().strftime("%H:%M:%S")
         logging.info(f"[{current_time}] {text}")
         return 'Logged.'
+
 
 def run(port):
     logging.basicConfig(
@@ -100,7 +104,6 @@ def run(port):
     httpd.server_close()
     logging.info('Stopping httpd...\n')
 
+
 if __name__ == '__main__':
     run(port=PORT)
-
-

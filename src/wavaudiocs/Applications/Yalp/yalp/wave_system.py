@@ -1,26 +1,28 @@
 import sys
 
-if sys.platform=='win32':
+if sys.platform == 'win32':
     import winsound
+
     # See, http://docs.python.org/lib/module-winsound.html
-    
+
+
     def audio_play(strFilename, bAsync=False):
         if bAsync:
             winsound.PlaySound(strFilename, winsound.SND_ASYNC)
         else:
             winsound.PlaySound(strFilename)
-    
+
     def audio_play_memory(acWaveData):
         """The sound parameter to PlaySound() is a memory image of a WAV file, as a string."""
         winsound.PlaySound(acWaveData, winsound.SND_MEMORY)
-    
+
     def audio_record(strFilename, nDuration, nSampleWidth=16, nSampleRate=22050):
-        r = Recorder(nSampleWidth*8, int(nSampleRate), 1)   # Record
-        r.start(strFilename)         # Record audio into file
-        r.wait(nDuration)          # duration (seconds)
+        r = Recorder(nSampleWidth * 8, int(nSampleRate), 1) # Record
+        r.start(strFilename) # Record audio into file
+        r.wait(nDuration) # duration (seconds)
         # File is closed in wait().
         return 1
-        
+
     #   Windows Audio Recorder
     #   Version : 2.0.0
     #   Author  : John Popplewell
@@ -35,18 +37,18 @@ if sys.platform=='win32':
     #       'ctypes'. see http://sourceforge.net/projects/ctypes/ for details.
     #
     #   Note:
-    #       The code for the callback-window is heavily inspired by similar code 
+    #       The code for the callback-window is heavily inspired by similar code
     #       in Sam Rushings 'DynWin'.
     #       See http://www.nightmare.com/~rushing/dynwin/ for details.
     #
     #   Licence:
     #       The authors hereby grant permission to use, copy, modify, distribute,
-    #       and license this software and its documentation for any purpose, 
-    #       provided that existing copyright notices are retained in all copies 
-    #       and that this notice is included verbatim in any distributions. No 
+    #       and license this software and its documentation for any purpose,
+    #       provided that existing copyright notices are retained in all copies
+    #       and that this notice is included verbatim in any distributions. No
     #       written agreement, license, or royalty fee is required for any of the
     #       authorized uses.
-    #       
+    #
     #       IN NO EVENT SHALL THE AUTHORS OR DISTRIBUTORS BE LIABLE TO ANY PARTY
     #       FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
     #       ARISING OUT OF THE USE OF THIS SOFTWARE, ITS DOCUMENTATION, OR ANY
@@ -72,18 +74,18 @@ if sys.platform=='win32':
         print("See http://sourceforge.net/projects/ctypes/ for details.")
         sys.exit(0)
 
-    user32  = windll.user32
-    kernel32= windll.kernel32
-    gdi32   = windll.gdi32
-    winmm   = windll.winmm
+    user32 = windll.user32
+    kernel32 = windll.kernel32
+    gdi32 = windll.gdi32
+    winmm = windll.winmm
 
     ########################################################################
     WS_OVERLAPPEDWINDOW = 0xCF0000
-    CW_USEDEFAULT       = 0x80000000 if (sys.version_info[0] > 2) else eval('0x80000000L')
+    CW_USEDEFAULT = 0x80000000 if (sys.version_info[0] > 2) else eval('0x80000000L')
 
-    IDI_APPLICATION     = 32512
-    IDC_ARROW           = 32512
-    COLOR_BACKGROUND    = 1
+    IDI_APPLICATION = 32512
+    IDC_ARROW = 32512
+    COLOR_BACKGROUND = 1
 
     class MSG(Structure):
         _fields_ = [
@@ -121,18 +123,19 @@ if sys.platform=='win32':
 
     class WindowClass(object):
         atom = 0
+
         def __init__(self, class_name, wndproc):
             wc = WNDCLASSEX()
             self.class_name = class_name
-            self.wndproc    = WNDPROC(wndproc)
-            wc.class_name   = c_char_p(self.class_name)
-            wc.wndproc      = self.wndproc
-            wc.instance     = module_handle
-            wc.icon         = user32.LoadIconA(0, IDI_APPLICATION)
-            wc.icon_sm      = user32.LoadIconA(0, IDI_APPLICATION)
-            wc.cursor       = user32.LoadCursorA(0, IDC_ARROW)
-            wc.background   = gdi32.GetStockObject(COLOR_BACKGROUND)
-            wc.size         = sizeof(wc)
+            self.wndproc = WNDPROC(wndproc)
+            wc.class_name = c_char_p(self.class_name)
+            wc.wndproc = self.wndproc
+            wc.instance = module_handle
+            wc.icon = user32.LoadIconA(0, IDI_APPLICATION)
+            wc.icon_sm = user32.LoadIconA(0, IDI_APPLICATION)
+            wc.cursor = user32.LoadCursorA(0, IDC_ARROW)
+            wc.background = gdi32.GetStockObject(COLOR_BACKGROUND)
+            wc.size = sizeof(wc)
             self.wc = wc
 
         def register(self):
@@ -142,7 +145,7 @@ if sys.platform=='win32':
                 if self.atom:
                     _window_classes[self.class_name] = self
                 return self
-            raise ValueError("WindowClass() '%s' already registered"%self.class_name)
+            raise ValueError("WindowClass() '%s' already registered" % self.class_name)
 
         def unregister(self):
             global _window_classes
@@ -152,7 +155,9 @@ if sys.platform=='win32':
                     if _window_classes and self.class_name in _window_classes:
                         del _window_classes[self.class_name]
                 return
-            raise ValueError("Attempt to unregister a WindowClass() that has not been registered.")
+            raise ValueError(
+                "Attempt to unregister a WindowClass() that has not been registered."
+            )
 
         def __int__(self):
             if self.atom:
@@ -186,28 +191,29 @@ if sys.platform=='win32':
         return _default_python_window_class
 
     _messages = {
-          2:['WM_DESTROY'],
-        955:['MM_WOM_OPEN'],
-        956:['MM_WOM_CLOSE'],
-        957:['MM_WOM_DONE'],
-        958:['MM_WIM_OPEN'],
-        959:['MM_WIM_CLOSE'],
-        960:['MM_WIM_DATA'],
+        2: ['WM_DESTROY'],
+        955: ['MM_WOM_OPEN'],
+        956: ['MM_WOM_CLOSE'],
+        957: ['MM_WOM_DONE'],
+        958: ['MM_WIM_OPEN'],
+        959: ['MM_WIM_CLOSE'],
+        960: ['MM_WIM_DATA'],
     }
+
     class Window(object):
-        hwnd        = 0
-        style       = WS_OVERLAPPEDWINDOW
-        parent      = 0
-        menu        = 0
-        instance    = 0
-        param       = 0
-        ext_style   = 0
+        hwnd = 0
+        style = WS_OVERLAPPEDWINDOW
+        parent = 0
+        menu = 0
+        instance = 0
+        param = 0
+        ext_style = 0
         x = y = w = h = CW_USEDEFAULT
 
         def __init__(self, wname, wclass=None):
-            self.window_name  = wname
+            self.window_name = wname
             self.window_class = wclass
-            self.instance     = module_handle
+            self.instance = module_handle
 
         def post_quit_message(self):
             return user32.PostQuitMessage(0)
@@ -233,8 +239,7 @@ if sys.platform=='win32':
                 _name = c_char_p(None)
 
             self.hwnd = user32.CreateWindowExA(
-                self.ext_style, _class, _name,
-                self.style, self.x, self.y, self.w, self.h,
+                self.ext_style, _class, _name, self.style, self.x, self.y, self.w, self.h,
                 self.parent, self.menu, self.instance, self.param
             )
             global _window_map
@@ -265,40 +270,40 @@ if sys.platform=='win32':
     class ErrRecord(Exception):
         pass
 
-    WAVE_MAPPER         = -1
+    WAVE_MAPPER = -1
 
-    CALLBACK_NULL       = 0x00000000        # no callback
-    CALLBACK_WINDOW     = 0x00010000        # dwCallback is a HWND
-    CALLBACK_TASK       = 0x00020000        # dwCallback is a HTASK
-    CALLBACK_FUNCTION   = 0x00030000        # dwCallback is a FARPROC
-    CALLBACK_THREAD     = CALLBACK_TASK     # thread ID replaces 16 bit task
-    CALLBACK_EVENT      = 0x00050000        # dwCallback is an EVENT Handle
+    CALLBACK_NULL = 0x00000000 # no callback
+    CALLBACK_WINDOW = 0x00010000 # dwCallback is a HWND
+    CALLBACK_TASK = 0x00020000 # dwCallback is a HTASK
+    CALLBACK_FUNCTION = 0x00030000 # dwCallback is a FARPROC
+    CALLBACK_THREAD = CALLBACK_TASK # thread ID replaces 16 bit task
+    CALLBACK_EVENT = 0x00050000 # dwCallback is an EVENT Handle
 
-    WAVE_FORMAT_QUERY   = 0x0001
-    WAVE_ALLOWSYNC      = 0x0002
-    WAVE_MAPPED         = 0x0004
-    WAVE_FORMAT_DIRECT  = 0x0008
+    WAVE_FORMAT_QUERY = 0x0001
+    WAVE_ALLOWSYNC = 0x0002
+    WAVE_MAPPED = 0x0004
+    WAVE_FORMAT_DIRECT = 0x0008
 
-    WAVE_INVALIDFORMAT  = 0x00000000        # invalid format
-    WAVE_FORMAT_1M08    = 0x00000001        # 11.025 kHz, Mono,   8-bit
-    WAVE_FORMAT_1S08    = 0x00000002        # 11.025 kHz, Stereo, 8-bit
-    WAVE_FORMAT_1M16    = 0x00000004        # 11.025 kHz, Mono,   16-bit
-    WAVE_FORMAT_1S16    = 0x00000008        # 11.025 kHz, Stereo, 16-bit
-    WAVE_FORMAT_2M08    = 0x00000010        # 22.05  kHz, Mono,   8-bit
-    WAVE_FORMAT_2S08    = 0x00000020        # 22.05  kHz, Stereo, 8-bit
-    WAVE_FORMAT_2M16    = 0x00000040        # 22.05  kHz, Mono,   16-bit
-    WAVE_FORMAT_2S16    = 0x00000080        # 22.05  kHz, Stereo, 16-bit
-    WAVE_FORMAT_4M08    = 0x00000100        # 44.1   kHz, Mono,   8-bit
-    WAVE_FORMAT_4S08    = 0x00000200        # 44.1   kHz, Stereo, 8-bit
-    WAVE_FORMAT_4M16    = 0x00000400        # 44.1   kHz, Mono,   16-bit
-    WAVE_FORMAT_4S16    = 0x00000800        # 44.1   kHz, Stereo, 16-bit
+    WAVE_INVALIDFORMAT = 0x00000000 # invalid format
+    WAVE_FORMAT_1M08 = 0x00000001 # 11.025 kHz, Mono,   8-bit
+    WAVE_FORMAT_1S08 = 0x00000002 # 11.025 kHz, Stereo, 8-bit
+    WAVE_FORMAT_1M16 = 0x00000004 # 11.025 kHz, Mono,   16-bit
+    WAVE_FORMAT_1S16 = 0x00000008 # 11.025 kHz, Stereo, 16-bit
+    WAVE_FORMAT_2M08 = 0x00000010 # 22.05  kHz, Mono,   8-bit
+    WAVE_FORMAT_2S08 = 0x00000020 # 22.05  kHz, Stereo, 8-bit
+    WAVE_FORMAT_2M16 = 0x00000040 # 22.05  kHz, Mono,   16-bit
+    WAVE_FORMAT_2S16 = 0x00000080 # 22.05  kHz, Stereo, 16-bit
+    WAVE_FORMAT_4M08 = 0x00000100 # 44.1   kHz, Mono,   8-bit
+    WAVE_FORMAT_4S08 = 0x00000200 # 44.1   kHz, Stereo, 8-bit
+    WAVE_FORMAT_4M16 = 0x00000400 # 44.1   kHz, Mono,   16-bit
+    WAVE_FORMAT_4S16 = 0x00000800 # 44.1   kHz, Stereo, 16-bit
 
-    WAVE_FORMAT_PCM     = 1
+    WAVE_FORMAT_PCM = 1
 
-    MAXERRORLENGTH      = 256
+    MAXERRORLENGTH = 256
 
-    PM_REMOVE           = 0x0001
-    WM_QUIT             = 0x0012
+    PM_REMOVE = 0x0001
+    WM_QUIT = 0x0012
 
     class WAVEINCAPS(Structure):
         _fields_ = [
@@ -313,7 +318,7 @@ if sys.platform=='win32':
 
     class WAVEFORMATEX(Structure):
         _fields_ = [
-            ('FormatTag', c_ushort), 
+            ('FormatTag', c_ushort),
             ('Channels', c_ushort),
             ('SamplesPerSec', c_ulong),
             ('AvgBytesPerSec', c_ulong),
@@ -326,12 +331,12 @@ if sys.platform=='win32':
             self.FormatTag = WAVE_FORMAT_PCM
             self.Channels = channels
             self.BitsPerSample = samplesize
-            self.BlockAlign = old_div(channels*samplesize,8)
+            self.BlockAlign = old_div(channels * samplesize, 8)
             self.SamplesPerSec = samplerate
-            self.AvgBytesPerSec = samplerate*self.BlockAlign
+            self.AvgBytesPerSec = samplerate * self.BlockAlign
             self.cbSize = 0
 
-    class AudioBuffer(Structure): 
+    class AudioBuffer(Structure):
         """ Wraps up a WAVEHDR and audio data."""
         _fields_ = [
             ('lpData', c_void_p),
@@ -384,7 +389,7 @@ if sys.platform=='win32':
     def get_error_text(errcode):
         """ Utility function for error messages """
         msg = create_string_buffer(MAXERRORLENGTH)
-        res = winmm.waveInGetErrorTextA( errcode, byref(msg), MAXERRORLENGTH )
+        res = winmm.waveInGetErrorTextA(errcode, byref(msg), MAXERRORLENGTH)
         if res != 0:
             raise ErrRecord("ERROR: unable to get error text.")
         return msg.value
@@ -392,9 +397,9 @@ if sys.platform=='win32':
     def get_waveInCAPS(dev=WAVE_MAPPER):
         """ Utility function for waveInCAPS """
         wicaps = WAVEINCAPS()
-        res = winmm.waveInGetDevCapsA( dev, byref(wicaps), sizeof(wicaps) )
+        res = winmm.waveInGetDevCapsA(dev, byref(wicaps), sizeof(wicaps))
         if res != 0:
-            raise ErrRecord("ERROR: %s whilst opening device."%(get_error_text(res)))
+            raise ErrRecord("ERROR: %s whilst opening device." % (get_error_text(res)))
         return wicaps
 
     class cbWindow(Window):
@@ -426,11 +431,11 @@ if sys.platform=='win32':
         waveIn works. """
 
         NUM_BUFFERS = 4
-        BUFFER_SIZE = 32   # in Kb
+        BUFFER_SIZE = 32 # in Kb
 
         INITIALIZING, STOPPED, STARTING, RECORDING, STOPPING = list(range(5))
 
-      #  def __init__(self, samplesize=16, samplerate=44100, channels=2):
+        #  def __init__(self, samplesize=16, samplerate=44100, channels=2):
         def __init__(self, samplesize=16, samplerate=22050, channels=1):
             self.status = Recorder.INITIALIZING
             self.maxDevices = winmm.waveInGetNumDevs()
@@ -453,16 +458,19 @@ if sys.platform=='win32':
             self.status = Recorder.STARTING
             self.inside = 0
 
-            self.w = cbWindow('Recording-Callback-Window', self ).create()
+            self.w = cbWindow('Recording-Callback-Window', self).create()
 
             self.hWaveIn = c_long()
-            res = winmm.waveInOpen(byref(self.hWaveIn), WAVE_MAPPER, byref(self.wfx), self.w.hwnd, 0, CALLBACK_WINDOW)
+            res = winmm.waveInOpen(
+                byref(self.hWaveIn), WAVE_MAPPER, byref(self.wfx), self.w.hwnd, 0,
+                CALLBACK_WINDOW
+            )
             if res != 0:
-                raise ErrRecord("ERROR: %s whilst opening device."%get_error_text(res))
+                raise ErrRecord("ERROR: %s whilst opening device." % get_error_text(res))
             self.whdr = {}
 
             for i in range(Recorder.NUM_BUFFERS):
-                buff = AudioBuffer(self.hWaveIn, Recorder.BUFFER_SIZE*1024)
+                buff = AudioBuffer(self.hWaveIn, Recorder.BUFFER_SIZE * 1024)
                 buff.inPrepare()
                 buff.inAdd()
                 self.whdr[addressof(buff)] = buff
@@ -472,7 +480,7 @@ if sys.platform=='win32':
 
             res = winmm.waveInStart(self.hWaveIn)
             if res != 0:
-                raise ErrRecord("ERROR: %s whilst starting recording."%get_error_text(res))
+                raise ErrRecord("ERROR: %s whilst starting recording." % get_error_text(res))
             self.status = Recorder.RECORDING
 
         def stop(self):
@@ -482,7 +490,7 @@ if sys.platform=='win32':
             self.status = Recorder.STOPPING
             res = winmm.waveInReset(self.hWaveIn)
             if res != 0:
-                raise ErrRecord("ERROR: %s whilst reseting device."%get_error_text(res))
+                raise ErrRecord("ERROR: %s whilst reseting device." % get_error_text(res))
 
         def poll(self):
             """ Must be repeatedly called whilst recording. A windows message loop """
@@ -493,16 +501,18 @@ if sys.platform=='win32':
                 user32.TranslateMessage(byref(msg))
                 user32.DispatchMessageA(byref(msg))
             return 1
+
         def wait(self, delay):
             """ Utility for recording a timed chunk of audio """
-            end_time = time.time()+delay
+            end_time = time.time() + delay
             while 1:
                 try:
-                    if not self.poll(): break
+                    if not self.poll():
+                        break
                     curr_time = time.time()
                     if curr_time > end_time:
                         self.stop()
-                    time.sleep(0.01)            # be polite
+                    time.sleep(0.01) # be polite
                 except KeyboardInterrupt:
                     self.stop()
 
@@ -526,7 +536,8 @@ if sys.platform=='win32':
                 if self.status == Recorder.STOPPING:
                     buff.inUnprepare()
                     del self.whdr[whdr_address]
-                    if len(self.whdr) == 0: self._stop()
+                    if len(self.whdr) == 0:
+                        self._stop()
                 elif self.status == Recorder.RECORDING:
                     buff.inAdd()
                 else:
@@ -542,7 +553,6 @@ if sys.platform=='win32':
             except:
                 pass
 
-
     def _main():
         opts, args = getopt.getopt(sys.argv[1:], '')
         if len(args) != 2:
@@ -554,20 +564,15 @@ if sys.platform=='win32':
         filename = args[0]
         duration = float(args[1])
 
-        r = Recorder()            # Defaults to 16-bit, 44100hz, Stereo
-        r.start(filename)         # Record audio into file
+        r = Recorder() # Defaults to 16-bit, 44100hz, Stereo
+        r.start(filename) # Record audio into file
         print("Press Ctrl-C to stop ...")
-        r.wait(duration)          # duration (seconds)
-
-
-
-    
+        r.wait(duration) # duration (seconds)
 
 else:
     print("Platform not supported yet")
-    
-    
-    
+
+
 def old_div(a, b):
     "Equivalent to ``a / b`` on Python 2"
     import numbers
@@ -576,6 +581,7 @@ def old_div(a, b):
     else:
         return a / b
 
+
 def isStringOrBytes(s):
     import sys
     if sys.version_info[0] > 2:
@@ -583,16 +589,16 @@ def isStringOrBytes(s):
     else:
         return isinstance(s, basestring) or isinstance(s, bytes)
 
-    
-if __name__=='__main__':
+
+if __name__ == '__main__':
     # Play some effects
-    winsound.Beep(440,10)
-    winsound.Beep(600,10)
+    winsound.Beep(440, 10)
+    winsound.Beep(600, 10)
     #~ for i in range(40,400,30):
-        #~ winsound.Beep(i,90)
+    #~ winsound.Beep(i,90)
     #~ for i in range(40,400,30):
-        #~ winsound.Beep(i,90)
+    #~ winsound.Beep(i,90)
     #~ for i in range(40,400,30):
-        #~ winsound.Beep(i,90)
+    #~ winsound.Beep(i,90)
     #~ for i in range(40,400,30):
-        #~ winsound.Beep(i,90)
+    #~ winsound.Beep(i,90)

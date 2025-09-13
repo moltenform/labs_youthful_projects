@@ -6,10 +6,12 @@ from .gitp_util import *
 import json
 import zipfile
 
+
 def addAndCheckNoDupe(d, s):
     assertTrue(not s in d, 'encountered same path twice?', s, d)
     assertGitPacket('.' in files.getName(s), "we don't yet support files with no extensions", s)
     d[s] = True
+
 
 def areThereUnstagedFiles():
     results = getGitResults('git_status_--porcelain_--untracked-files=all', strip=False)
@@ -19,12 +21,14 @@ def areThereUnstagedFiles():
             return True
     return False
 
+
 def areThereStagedFiles():
     # when files are staged, git tries to find 'moves', 'copies', etc,
     # which is many cases to consider. I'll use unstaged files instead,
     # only using `git diff --cached` to ask if any files are staged or not
     ret = getGitResults('git_diff_--name-only_--cached')
     return len(ret.split('\n') if ret else []) > 0
+
 
 def getGitResults(cmdSeperatedByUnder, addArgs=None, okIfErrTxt=None, strip=True):
     cmd = cmdSeperatedByUnder.split('_')
@@ -42,6 +46,7 @@ def getGitResults(cmdSeperatedByUnder, addArgs=None, okIfErrTxt=None, strip=True
         raise RuntimeError(getPrintable(exceptionText))
     return stdout.strip() if strip else stdout
 
+
 def getLast10Commits(nCommits=10):
     ret = getGitResults(f'git_log_--oneline_-n', [nCommits])
     lines = ret.strip().split('\n')
@@ -54,6 +59,7 @@ def getLast10Commits(nCommits=10):
         retText.append(text)
     return retIds, retText
 
+
 def getLastNCommitsWithAuthor(nCommits):
     ret = getGitResults(f'git_log_--format=short_-n', [nCommits])
     parts = ret.strip().split('\ncommit ')[1:]
@@ -64,22 +70,31 @@ def getLastNCommitsWithAuthor(nCommits):
         assertTrue(39 <= len(hash) <= 45, 'hash wrong length', hash, len(hash))
         author = jslike.find(lines, lambda ln: ln.startswith('Author: '))
         merge = jslike.find(lines, lambda ln: ln.startswith('Merge: '))
-        text = part.split(os.linesep + os.linesep, 1)[1].strip() if (os.linesep + os.linesep) in part else ''
+        text = part.split(os.linesep + os.linesep,1)[1].strip() if (os.linesep + os.linesep) in part else ''
         assertTrue(author, 'author not found', part)
-        ret.append(Bucket(hash=hash, 
-            text=text,
-            merge=merge[len('Merge: '):] if merge else '',
-            author=author[len('Author: '):] if author else ''))
+        ret.append(
+            Bucket(
+                hash=hash,
+                text=text,
+                merge=merge[len('Merge: '):] if merge else '',
+                author=author[len('Author: '):] if author else ''
+            )
+        )
 
     return ret
+
 
 def findCommitInTheLast10OrThrow(searchFor, nCommits=10):
     # returns list of commit ids until a match found
     lastCommits, lastCommitTexts = getLast10Commits()
     foundIndex = jslike.findIndex(lastCommits, lambda val: shasMatch(val, searchFor))
     if foundIndex == -1:
-        assertGitPacket(False, f"basis not found in the last {nCommits} of {os.getcwd()}, wrong basis? wrong branch? {searchFor}")
-    return lastCommits[0: foundIndex+1], lastCommitTexts[0: foundIndex+1]
+        assertGitPacket(
+            False,
+            f"basis not found in the last {nCommits} of {os.getcwd()}, wrong basis? wrong branch? {searchFor}"
+        )
+    return lastCommits[0:foundIndex + 1], lastCommitTexts[0:foundIndex + 1]
+
 
 def allFilesModifiedInCommit(commitId):
     # includes modifications, new files, deleted files
@@ -88,18 +103,24 @@ def allFilesModifiedInCommit(commitId):
     ret = getGitResults(f'git_show_--name-only', [commitId])
     pts = ret.strip().split('\n\n')
     if len(pts) < 2:
-        assertGitPacket(False, 'expected 3 sections separated by \\n\\n when looking for files in commit', commitId, ret)
+        assertGitPacket(
+            False, 'expected 3 sections separated by \\n\\n when looking for files in commit',
+            commitId, ret
+        )
     if len(pts) < 3:
         hasNoFiles = True
         pts.append('')
     for i, part in enumerate(pts):
-        hasIndent = i != 0 and i != len(pts)-1
+        hasIndent = i != 0 and i != len(pts) - 1
         sublines = part.split('\n')
-        assertGitPacket(jslike.every(sublines, lambda line: line.startswith('    ') == hasIndent),
-            "the results of git show were different than we thought", commitId, ret)
+        assertGitPacket(
+            jslike.every(sublines, lambda line: line.startswith('    ') == hasIndent),
+            "the results of git show were different than we thought", commitId, ret
+        )
 
     filesList = pts[-1].strip()
     return [] if hasNoFiles else filesList.split('\n')
+
 
 def allFilesModifiedInCommits(arrCommits):
     filesMod = {}
@@ -108,16 +129,21 @@ def allFilesModifiedInCommits(arrCommits):
             filesMod[file] = True
     return filesMod
 
+
 def allFilesPotentiallyModifiedSinceCommit(commitId):
     retIds, retText = findCommitInTheLast10OrThrow(commitId)
     return allFilesModifiedInCommits(retIds)
+
 
 def getUnstagedFiles():
     # lists all of the newly added files, and not the directories
     # also includes all deletions
     # git ls-files --other --modified --exclude-standard works as well,
     # but gives us less information.
-    assertGitPacket(not areThereStagedFiles(), "did not expect staged files, please git reset them", os.getcwd())
+    assertGitPacket(
+        not areThereStagedFiles(), "did not expect staged files, please git reset them",
+        os.getcwd()
+    )
     results = getGitResults('git_status_--porcelain_--untracked-files=all', strip=False)
     results = results.split('\n') if results else []
     ret = Bucket(allchanged={}, modified={}, deleted={}, added={})
@@ -132,21 +158,27 @@ def getUnstagedFiles():
             assertGitPacket(files.isFile(path), "path not found", path)
         elif status == ' D':
             addAndCheckNoDupe(ret.deleted, path)
-            assertGitPacket(not files.isFile(path), "path found but thought to be deleted", path)
+            assertGitPacket(
+                not files.isFile(path), "path found but thought to be deleted", path
+            )
         elif status == '??':
             addAndCheckNoDupe(ret.added, path)
             assertGitPacket(files.isFile(path), "path not found", path)
         else:
-            assertGitPacket('unexpected status. do you have staged files/are you in the middle of merging?', '\n'.join(results))
-    
+            assertGitPacket(
+                'unexpected status. do you have staged files/are you in the middle of merging?',
+                '\n'.join(results)
+            )
+
     return ret
+
 
 def makeDestLookExactlyLikeSrc(src, dest, pathsPossiblyModified):
     # we'd use rsync-and-skip-.git-directories for this,
     # but that is slow for very large repos since filetimes are different.
     # we want the same result as rsync, but faster.
-    assertTrue(files.isDir(src+'/.git'), 'not a git repo')
-    assertTrue(files.isDir(dest+'/.git'), 'not a git repo')
+    assertTrue(files.isDir(src + '/.git'), 'not a git repo')
+    assertTrue(files.isDir(dest + '/.git'), 'not a git repo')
     for path in pathsPossiblyModified:
         assertTrue(not path.startswith('/') and not path.startswith('\\'))
         p1 = files.join(src, path)
@@ -166,16 +198,21 @@ def makeDestLookExactlyLikeSrc(src, dest, pathsPossiblyModified):
         else:
             assertTrue(False, 'not reached')
 
+
 def isPendingMerge():
-    return (files.exists('.git/MERGE_HEAD') or # a merge is in progress
-        files.exists('.git/rebase-apply') or
-        files.exists('.git/rebase-merge'))
+    return (
+        files.exists('.git/MERGE_HEAD') or # a merge is in progress
+        files.exists('.git/rebase-apply') or files.exists('.git/rebase-merge')
+    )
+
 
 def currentCommitId():
     return getGitResults('git_rev-parse_--verify_HEAD')
 
+
 def getCommitMsgFromCommitId(commitId):
     return getGitResults('git_show_-s_--format=%B', [commitId]).strip()
+
 
 def getRestoreBranchAndPrepMoveBranch(d):
     assertGitPacket(not areThereStagedFiles(), f"expect no staged files in {d}")
@@ -186,29 +223,53 @@ def getRestoreBranchAndPrepMoveBranch(d):
         curBranch = mainBranch(d)
     return curBranch
 
-def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, removeDsStore=False):
+
+def determineRootPaths(
+    checkTempRepo=True, strict=True, specifyTmpRepo=None, removeDsStore=False
+):
     dir = os.path.abspath(os.getcwd())
     if removeDsStore:
         removeAllDsStore()
     if strict:
         assertGitPacket(files.isDir(dir + '/.git'), 'please cd to the root of a git repo')
-    assertGitPacket(dir in workingRepos, f'dir {dir} not found in workingRepos, please add to gitp_util.py')
+    assertGitPacket(
+        dir in workingRepos, f'dir {dir} not found in workingRepos, please add to gitp_util.py'
+    )
     if strict:
         assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {dir}?')
         curBranch = getGitResults('git_branch_--show-current')
-        assertGitPacket(curBranch == 'gpworking', f'please create a branch called "gpworking" off of basis-commit {basisCommits.get(dir, "")} from {mainBranch(dir)}')
+        assertGitPacket(
+            curBranch == 'gpworking',
+            f'please create a branch called "gpworking" off of basis-commit {basisCommits.get(dir, "")} from {mainBranch(dir)}'
+        )
         curCommit = currentCommitId()
-        assertGitPacket(dir in basisCommits, f'no corresponding entry in basisCommits for {dir}, please add to gitp_util.py')
-        assertGitPacket(shasMatch(basisCommits[dir], curCommit), f'expected to be at commit {basisCommits[dir]} but is {curCommit}, please update gitp_util.py or go to that commit')
-        assertGitPacket(not areThereStagedFiles(), f'should be no staged files in {dir}, please reset them')
+        assertGitPacket(
+            dir in basisCommits,
+            f'no corresponding entry in basisCommits for {dir}, please add to gitp_util.py'
+        )
+        assertGitPacket(
+            shasMatch(basisCommits[dir], curCommit),
+            f'expected to be at commit {basisCommits[dir]} but is {curCommit}, please update gitp_util.py or go to that commit'
+        )
+        assertGitPacket(
+            not areThereStagedFiles(), f'should be no staged files in {dir}, please reset them'
+        )
     if checkTempRepo:
         if specifyTmpRepo:
-           tmpRepo = specifyTmpRepo
+            tmpRepo = specifyTmpRepo
         else:
-            assertGitPacket(dir in tempRepos, f'no corresponding entry in tempRepos for {dir}, please add to gitp_util.py')
+            assertGitPacket(
+                dir in tempRepos,
+                f'no corresponding entry in tempRepos for {dir}, please add to gitp_util.py'
+            )
             tmpRepo = tempRepos[dir]
-        assertGitPacket(files.isDir(tmpRepo + '/.git'), f'tempRepos entry {tmpRepo} is not the root of a git repo')
-        assertGitPacket(os.path.isabs(tmpRepo), f'tempRepos entry {tmpRepo} is not an absolute path')
+        assertGitPacket(
+            files.isDir(tmpRepo + '/.git'),
+            f'tempRepos entry {tmpRepo} is not the root of a git repo'
+        )
+        assertGitPacket(
+            os.path.isabs(tmpRepo), f'tempRepos entry {tmpRepo} is not an absolute path'
+        )
         with ChangeCurrentDirectory(tmpRepo) as cd:
             if removeDsStore:
                 removeAllDsStore()
@@ -216,8 +277,12 @@ def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, rem
             if curBranch.startswith('gitptemp-'):
                 getGitResults('git_co', [mainBranch(tmpRepo)])
             assertGitPacket(not isPendingMerge(), f'pending merge or rebase in {tmpRepo}?')
-            assertGitPacket(not areThereStagedFiles(), f'should not have staged files in {tmpRepo}')
-            assertGitPacket(not areThereUnstagedFiles(), f'should not have unstaged files in {tmpRepo}')
+            assertGitPacket(
+                not areThereStagedFiles(), f'should not have staged files in {tmpRepo}'
+            )
+            assertGitPacket(
+                not areThereUnstagedFiles(), f'should not have unstaged files in {tmpRepo}'
+            )
             if strict:
                 findCommitInTheLast10OrThrow(basisCommits[dir])
 
@@ -227,37 +292,47 @@ def determineRootPaths(checkTempRepo=True, strict=True, specifyTmpRepo=None, rem
     assertTrue(not endsWithB(root), 'expect repos entry to not end with b')
     return root, tmproot
 
+
 def removeAllDsStore():
     for f, short in list(files.recurseFiles('.')):
         if short == '.DS_Store':
             files.delete(f)
+
 
 def makeAFormatPatchInTmpDir(tmpDir, baseBranch):
     assertTrue(not areThereStagedFiles(), "expect no staged files after commit")
     assertTrue(not areThereUnstagedFiles(), "expect no unstaged files after commit")
     # warning: don't use git diff, which wasn't designed for binary data
     files.ensureEmptyDirectory(tmpDir)
-    getGitResults('git_format-patch', [
-        #~ f'--unified=5', # 5 lines of context instead of default 3
-        f'--output-directory={tmpDir}', # specify output dir (there's no way to specify patch path)
-        f'--full-index', # Instead of the first handful of characters, show the full pre- and post-image blob object names on the "index" line 
-        f'--binary', # support binary
-        baseBranch
-    ])
+    getGitResults(
+        'git_format-patch',
+        [
+            #~ f'--unified=5', # 5 lines of context instead of default 3
+            f'--output-directory={tmpDir}', # specify output dir (there's no way to specify patch path)
+            f'--full-index', # Instead of the first handful of characters, show the full pre- and post-image blob object names on the "index" line 
+            f'--binary', # support binary
+            baseBranch
+        ]
+    )
 
     fls = [f for f, short in files.listFiles(tmpDir) if f.endswith('.patch')]
     assertEq(1, len(fls), "expected exactly one patch", fls)
     return fls[0]
 
+
 def applyPatch(patchfile, dest):
     with ChangeCurrentDirectory(dest) as cd:
         # don't use the --binary or --inaccurate-eof flags
         assertTrue(files.isFile(patchfile), "not found", patchfile)
-        retcode, stdout, stderr = files.run(['git', 'apply', '--check', patchfile], throwOnFailure=None)
-        assertGitPacket(retcode == 0, "We weren't certain the patch will apply, due to:", 
-            stdout.decode('utf-8'), stderr.decode('utf-8'))
+        retcode, stdout, stderr = files.run(['git', 'apply', '--check', patchfile],
+                                            throwOnFailure=None)
+        assertGitPacket(
+            retcode == 0, "We weren't certain the patch will apply, due to:",
+            stdout.decode('utf-8'), stderr.decode('utf-8')
+        )
 
         getGitResults(f'git_apply', [patchfile])
+
 
 def gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patchfile, changes):
     basis = basisCommits[root]
@@ -272,13 +347,19 @@ def gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patchfile, changes):
 
         # confirm changes
         for path in changes.allchanged.keys():
-            assertTrue(not path.startswith('/') and not path.startswith('\\') and not os.path.isabs(path))
+            assertTrue(
+                not path.startswith('/') and not path.startswith('\\') and
+                not os.path.isabs(path)
+            )
             f1 = files.join(root, path)
             f2 = files.join(tmproot, path)
             if path in changes.modified or path in changes.added:
                 assertTrue(compareTwoFiles(f1, f2), "bad patch? files not the same", f1, f2)
             elif path in changes.deleted:
-                assertTrue(not files.exists(f1) and not files.exists(f1), "bad patch? still exists after applying a delete", f1, f2)
+                assertTrue(
+                    not files.exists(f1) and not files.exists(f1),
+                    "bad patch? still exists after applying a delete", f1, f2
+                )
             else:
                 assertTrue(False, 'path not in any category?', f1, f2)
 
@@ -288,9 +369,12 @@ def gitpTop_Pack_ConfirmMergeApplies(root, tmproot, patchfile, changes):
         getGitResults(f'git_co', [restoreBranch])
         getGitResults(f'git_branch_-D_gitptemp-confirmmerge', okIfErrTxt='not found.')
 
+
 def grabWorkingVersionsOfFiles(root, tmproot, changes, callback):
     for path in changes.allchanged.keys():
-        assertTrue(not path.startswith('/') and not path.startswith('\\') and not os.path.isabs(path))
+        assertTrue(
+            not path.startswith('/') and not path.startswith('\\') and not os.path.isabs(path)
+        )
         f1 = files.join(root, path)
         # double-check that the change looks like we expect
         if path in changes.modified:
@@ -304,6 +388,7 @@ def grabWorkingVersionsOfFiles(root, tmproot, changes, callback):
         else:
             assertTrue(False, 'path not in any category?', f1)
 
+
 def grabBaseVersionsOfFiles(root, tmproot, changes, callback):
     basis = basisCommits[root]
     with ChangeCurrentDirectory(tmproot) as cd:
@@ -313,17 +398,29 @@ def grabBaseVersionsOfFiles(root, tmproot, changes, callback):
         getGitResults(f'git_co_-b_gitptemp-getbaseversions')
 
         for path in changes.allchanged.keys():
-            assertTrue(not path.startswith('/') and not path.startswith('\\') and not os.path.isabs(path))
+            assertTrue(
+                not path.startswith('/') and not path.startswith('\\') and
+                not os.path.isabs(path)
+            )
             f1 = files.join(root, path)
             f2 = files.join(tmproot, path)
             # double-check that the change looks like we expect
             if path in changes.modified:
-                assertWarn(not compareTwoFiles(f1, f2), "expected modified, but these look the same", f1, f2)
+                assertWarn(
+                    not compareTwoFiles(f1, f2), "expected modified, but these look the same",
+                    f1, f2
+                )
                 callback(f2, path)
             elif path in changes.added:
-                assertWarn(files.exists(f1) and not files.exists(f2), "expected to exist on left but not right", f1, f2)
+                assertWarn(
+                    files.exists(f1) and not files.exists(f2),
+                    "expected to exist on left but not right", f1, f2
+                )
             elif path in changes.deleted:
-                assertWarn(not files.exists(f1) and files.exists(f2), "expected to exist on right but not left", f1, f2)
+                assertWarn(
+                    not files.exists(f1) and files.exists(f2),
+                    "expected to exist on right but not left", f1, f2
+                )
             else:
                 assertTrue(False, 'path not in any category?', f1, f2)
 
@@ -332,4 +429,3 @@ def grabBaseVersionsOfFiles(root, tmproot, changes, callback):
         getGitResults(f'git_clean_-fdx')
         getGitResults(f'git_co', [restoreBranch])
         getGitResults(f'git_branch_-D_gitptemp-getbaseversions', okIfErrTxt='not found.')
-
