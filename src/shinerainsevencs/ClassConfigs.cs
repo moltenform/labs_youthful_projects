@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace shinerainsoftsevenutilcs
+namespace shinerainsevencs
 {
     // Keys for storing persisted settings.
     // Unlike a C++ enum, numeric values aren't used at all,
@@ -20,55 +20,7 @@ namespace shinerainsoftsevenutilcs
         EnablePersonalFeatures,
         EnableVerboseLogging,
         FilepathDeletedFilesDir,
-        FilepathSortMusicToLibraryStagingDir,
-        FilepathSortMusicKeepAsMaterialDir,
-        FilepathSortTwitterImagesDestinationDir,
-        FilepathSortTwitterImagesSourceDir,
-
-        FilepathAudioCrop,
-        FilepathAudioEditor,
-        FilepathAudioPlayer,
-        FilepathCreateSync,
-        FilepathCoordMusicMainPy,
-        FilepathImageEditor,
-        FilepathImageEditorAlt,
-        FilepathImageEditorJpeg,
-        FilepathImageEditorCrop,
-        FilepathM4aEncoder,
-        FilepathPython,
-        FilepathWinMerge,
-        FilepathChecksumAudioCrop,
-        FilepathChecksumAudioEditor,
-        FilepathChecksumAudioPlayer,
-        FilepathChecksumCreateSync,
-        FilepathChecksumCoordMusicMainPy,
-        FilepathChecksumImageEditor,
-        FilepathChecksumImageEditorAlt,
-        FilepathChecksumImageEditorJpeg,
-        FilepathChecksumImageEditorCrop,
-        FilepathChecksumM4aEncoder,
-        FilepathChecksumPython,
-        FilepathChecksumWinMerge,
-
-        CategoriesModeCategorizeAndRename,
-        CategoriesModeResizeKeepExif,
-        CategoriesModeCheckFilesizes,
-        CategoriesModeMarkWavQuality,
-        CategoriesModeMarkMp3Quality,
-        CategoriesModeText,
-        GalleryHideCategories,
-        MRUOpenImageDirectory,
-        MRUOpenImageKeepExifDirectory,
-        MRUOpenAudioDirectory,
-        MRUOpenWavAudioDirectory,
-        MRURenameImage,
-        MRURenameWavAudio,
-        MRURenameOther,
-        MRURenameReplaceInName,
-        MRUEditConvertResizeImage,
-        MRUEditCategoriesString,
-        MRUSyncDirectoryLeft,
-        MRUSyncDirectoryRight,
+        FilepathTempDir
     }
 
     // The inputbox dialog keeps a MRU list of recently used strings.
@@ -77,18 +29,9 @@ namespace shinerainsoftsevenutilcs
     public enum InputBoxHistory
     {
         None,
-        OpenImageDirectory,
-        OpenImageKeepExifDirectory,
+        FilepathDeletedFilesDir,
+        FilepathTempDir,
         OpenAudioDirectory,
-        OpenWavAudioDirectory,
-        RenameImage,
-        RenameWavAudio,
-        RenameOther,
-        RenameReplaceInName,
-        EditConvertResizeImage,
-        EditCategoriesString,
-        SyncDirectoryLeft,
-        SyncDirectoryRight,
     }
 
     public static class ConfirmChecksums
@@ -223,7 +166,7 @@ namespace shinerainsoftsevenutilcs
                 {
                     if (value.Contains("\r") || value.Contains("\n"))
                     {
-                        throw new CoordinatePicturesException(
+                        throw new ShineRainSevenCsException(
                             "config values cannot contain newline, for key " + key);
                     }
 

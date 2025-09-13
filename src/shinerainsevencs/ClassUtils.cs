@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace shinerainsoftsevenutilcs
+namespace shinerainsevencs
 {
     public static partial class Utils
     {

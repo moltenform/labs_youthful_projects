@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace shinerainsoftsevenutilcs
+namespace shinerainsevencs
 {
     public sealed class InputBoxForm : Form
     {
