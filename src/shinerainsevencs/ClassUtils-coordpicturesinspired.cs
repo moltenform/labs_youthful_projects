@@ -251,25 +251,7 @@ namespace shinerainsevencs
         // "soft delete" just means moving to a designated 'trash' location.
         public static string GetSoftDeleteDestination(string path)
         {
-            var deleteDir = Configs.Current.Get(ConfigKey.SoftDeleteDir);
-            if (!Directory.Exists(deleteDir))
-            {
-                while(true)
-                {
-                    var got = Utils.AskOpenFileDialog("Please choose a file in the 'trash' " + 
-                        "directory where we'll send deleted files.");
-                    if (!string.IsNullOrEmpty(got) && Directory.Exists(Path.GetDirectoryName(got)))
-                    {
-                        deleteDir = Path.GetDirectoryName(got);
-                        Configs.Current.Set(ConfigKey.SoftDeleteDir, deleteDir);
-                        break;
-                    }
-                }
-            }
-
-            // as a prefix, the first 2 chars of the parent directory
-            var prefix = FirstTwoChars(Path.GetFileName(Path.GetDirectoryName(path))) + "_";
-            return Path.Combine(deleteDir, prefix + Path.GetFileName(path) + GetRandomDigits());
+           
         }
 
         public static string GetRandomDigits()
@@ -311,7 +293,7 @@ namespace shinerainsevencs
             {
                 if (invalidChar.IsMatch(args[carg]))
                 {
-                    throw new CsDownloadVidException("invalid character (" + carg + ")");
+                    throw new ArgumentOutOfRangeException("invalid character (" + carg + ")");
                 }
 
                 if (string.IsNullOrEmpty(args[carg]))
@@ -501,12 +483,12 @@ namespace shinerainsevencs
                 "160", "192", "224", "256", "288", "320", "640", "flac" };
             if (Array.IndexOf(qualities, qualitySpec) == -1)
             {
-                throw new CsDownloadVidException("Unsupported bitrate.");
+                throw new ShineRainE("Unsupported bitrate.");
             }
             else if (!path.EndsWith(".wav", StringComparison.Ordinal) &&
                 !path.EndsWith(".flac", StringComparison.Ordinal))
             {
-                throw new CsDownloadVidException("Unsupported input format.");
+                throw new ShineRainE("Unsupported input format.");
             }
             else
             {
@@ -741,25 +723,6 @@ namespace shinerainsevencs
 #else
             return false;
 #endif
-        }
-
-        public static void AssertEq(object expected, object actual, string msg = "")
-        {
-            // use a token to make sure that IsEq(null, null) works.
-            expected = expected ?? tokenRepresentingNull;
-            actual = actual ?? tokenRepresentingNull;
-
-            if (!expected.Equals(actual))
-            {
-                throw new CsDownloadVidException(
-                    "Assertion failure, " + Utils.NL + Utils.NL + msg +
-                    ", expected " + expected + " but got " + actual);
-            }
-        }
-
-        public static void AssertTrue(bool actual, string msg = "")
-        {
-            AssertEq(true, actual, msg);
         }
 
         public static string[] SplitLines(string s)
@@ -1016,8 +979,15 @@ namespace shinerainsevencs
 
         public static bool LooksLikeImage(string filepath)
         {
+            if (Configs.EnableWebp())
+            {
             return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
                 ".gif", ".bmp", ".webp", ".emf", ".wmf", ".jpeg" });
+            } else
+            {
+                return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
+                    ".gif", ".bmp", ".emf", ".wmf", ".jpeg" });
+            }
         }
 
         public static bool LooksLikeAudio(string filepath)

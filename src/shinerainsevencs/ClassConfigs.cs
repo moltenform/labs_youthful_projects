@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace shinerainsevencs
+namespace ShineRainSevenCsCommon
 {
     // Keys for storing persisted settings.
     // Unlike a C++ enum, numeric values aren't used at all,
@@ -30,8 +30,7 @@ namespace shinerainsevencs
     {
         None,
         FilepathDeletedFilesDir,
-        FilepathTempDir,
-        OpenAudioDirectory,
+        FilepathTempDir
     }
 
     public static class ConfirmChecksums
@@ -80,7 +79,7 @@ namespace shinerainsevencs
     {
         static Configs _instance;
         string _path;
-        Dictionary<ConfigKey, string> _dict = new Dictionary<ConfigKey, string>();
+        Dictionary<ConfigKey, string> _persisted = new Dictionary<ConfigKey, string>();
 
         internal Configs(string path)
         {
@@ -152,16 +151,16 @@ namespace shinerainsevencs
                     continue;
                 }
 
-                _dict[key] = split[1];
+                _persisted[key] = split[1];
             }
         }
 
         void SavePersisted()
         {
             var sb = new StringBuilder();
-            foreach (var key in from key in _dict.Keys orderby key select key)
+            foreach (var key in from key in _persisted.Keys orderby key select key)
             {
-                var value = _dict[key];
+                var value = _persisted[key];
                 if (!string.IsNullOrEmpty(value))
                 {
                     if (value.Contains("\r") || value.Contains("\n"))
@@ -196,7 +195,7 @@ namespace shinerainsevencs
 
         public string Get(ConfigKey key)
         {
-            var ret = _dict.TryGetValue(key, out string s) ? s : "";
+            var ret = _persisted.TryGetValue(key, out string s) ? s : "";
             ConfirmChecksums.Check(key, ret);
             return ret;
         }

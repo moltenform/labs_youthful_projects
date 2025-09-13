@@ -1,4 +1,6 @@
-public static class CoordinatePicturesTests
+namespace shinerainsevencs
+{
+    public static class CoordinatePicturesTests
     {
         static void TestMethod_Asserts_EqualIntsShouldCompareEqual()
         {
@@ -645,3 +647,5 @@ public static class CoordinatePicturesTests
                 TestUtil.IsEq(Path.Combine(dir, "new.png"), nav.Current);
             }
         }
+    }
+}
