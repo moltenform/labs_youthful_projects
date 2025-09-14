@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Ben Fisher, 2016.
+// Licensed under LGPLv3, refer to LICENSE for details.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;

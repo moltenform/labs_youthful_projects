@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under LGPLv3, refer to LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -18,10 +18,12 @@ namespace rbcpy
         Button _btnOK;
         ComboBox _comboBox;
         Label _label;
+        PersistMostRecentlyUsedList _mru;
 
-        public InputBoxForm()
+        public InputBoxForm(InputBoxHistory currentKey)
         {
             InitializeComponent();
+            _mru = new PersistMostRecentlyUsedList(currentKey);
             this.StartPosition = FormStartPosition.CenterParent;
             this.Text = " ";
             this.AllowDrop = true;
@@ -33,7 +35,8 @@ namespace rbcpy
         }
 
         // add MRU history, suggestions, and clipboard contents to the list of examples.
-        public static IEnumerable<string> GetInputSuggestions(string currentSuggestion,
+        public static IEnumerable<string> GetInputSuggestions(
+            string currentSuggestion, InputBoxHistory historyKey, PersistMostRecentlyUsedList history,
             bool useClipboard, bool mustBeDirectory, string[] more)
         {
             List<string> suggestions = new List<string>();
@@ -49,6 +52,11 @@ namespace rbcpy
                 suggestions.Add(Utils.GetClipboard());
             }
 
+            if (historyKey != InputBoxHistory.None)
+            {
+                suggestions.AddRange(history.Get());
+            }
+
             if (more != null)
             {
                 suggestions.AddRange(more);
@@ -60,10 +68,10 @@ namespace rbcpy
 
         // ask user for string input.
         public static string GetStrInput(string mesage, string currentSuggestion = null,
-            string[] more = null,
+            InputBoxHistory historyKey = InputBoxHistory.None, string[] more = null,
             bool useClipboard = true, bool mustBeDirectory = false, bool taller = false)
         {
-            using (InputBoxForm form = new InputBoxForm())
+            using (InputBoxForm form = new InputBoxForm(historyKey))
             {
                 form._label.Text = mesage;
                 form._btnBrowse.Visible = mustBeDirectory;
@@ -79,7 +87,7 @@ namespace rbcpy
 
                 // fill combo box with suggested input.
                 form._comboBox.Items.Clear();
-                var suggestions = GetInputSuggestions(currentSuggestion, 
+                var suggestions = GetInputSuggestions(currentSuggestion, historyKey, form._mru,
                     useClipboard, mustBeDirectory, more).ToArray();
 
                 foreach (var s in suggestions)
@@ -100,15 +108,18 @@ namespace rbcpy
                     return null;
                 }
 
+                // save to history
+                form._mru.AddToHistory(form._comboBox.Text);
                 return form._comboBox.Text;
             }
         }
 
-        public static int? GetInteger(string message, int defaultInt = 0)
+        public static int? GetInteger(string message, int defaultInt = 0,
+            InputBoxHistory historyKey = InputBoxHistory.None)
         {
             int fromClipboard = 0;
             var clipboardContainsInt = int.TryParse(Utils.GetClipboard(), out fromClipboard);
-            string s = GetStrInput(message, defaultInt.ToString(),
+            string s = GetStrInput(message, defaultInt.ToString(), historyKey,
                 useClipboard: clipboardContainsInt);
 
             if (string.IsNullOrEmpty(s) || !int.TryParse(s, out int result))
@@ -234,6 +245,93 @@ namespace rbcpy
                 if (!string.IsNullOrEmpty(filePath))
                 {
                     _comboBox.Text = filePath;
+                }
+            }
+        }
+    }
+
+    // save MRU history, limits number of entries with a queue structure.
+    public sealed class PersistMostRecentlyUsedList
+    {
+        readonly int _maxHistoryEntries;
+        readonly int _maxEntryLength;
+        readonly string _delimiter = "||||";
+        InputBoxHistory _historyKey = InputBoxHistory.None;
+        ConfigKey _configsKey = ConfigKey.None;
+        Configs _configs;
+        string[] _currentItems;
+        public PersistMostRecentlyUsedList(
+            InputBoxHistory historyKey,
+            Configs configs = null,
+            int maxHistoryEntries = 50)
+        {
+            _historyKey = historyKey;
+            _configs = configs ?? Configs.Current;
+            _maxHistoryEntries = maxHistoryEntries;
+            _maxEntryLength = 300;
+
+            // find the corresponding ConfigKey for this InputBoxHistory
+            if (_historyKey != InputBoxHistory.None)
+            {
+                if (!Enum.TryParse("MRU" + _historyKey.ToString(), out _configsKey))
+                {
+                    throw new RbCpyException(
+                        "unknown history key" + _historyKey.ToString());
+                }
+            }
+        }
+
+        public string[] Get()
+        {
+            if (_configsKey != ConfigKey.None)
+            {
+                _currentItems = _configs.Get(_configsKey).Split(
+                    new string[] { _delimiter }, StringSplitOptions.RemoveEmptyEntries);
+
+                return _currentItems;
+            }
+            else
+            {
+                return new string[] { };
+            }
+        }
+
+        public void AddToHistory(string s)
+        {
+            if (_configsKey != ConfigKey.None)
+            {
+                if (_currentItems == null)
+                {
+                    Get();
+                }
+
+                // only add if it's not already in the list, and s does not contain _delimiter.
+                if (!string.IsNullOrEmpty(s) &&
+                    s.Length < _maxEntryLength && !s.Contains(_delimiter))
+                {
+                    List<string> list = new List<string>(_currentItems);
+
+                    // if it's also elsewhere in the list, remove that one
+                    var indexAlreadyFound = Array.IndexOf(_currentItems, s);
+                    if (indexAlreadyFound != -1)
+                    {
+                        list.RemoveAt(indexAlreadyFound);
+                    }
+
+                    // insert new entry at the top
+                    list.Insert(0, s);
+
+                    // if we've reached the limit, cut out the extra ones
+                    while (list.Count > _maxHistoryEntries)
+                    {
+                        list.RemoveAt(list.Count - 1);
+                    }
+
+                    // save to configs
+                    _configs.Set(_configsKey, string.Join(_delimiter, list));
+
+                    // refresh in-memory cache
+                    Get();
                 }
             }
         }

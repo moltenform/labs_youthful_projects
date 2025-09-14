@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClassConfigs.cs" />
     <Compile Include="ClassUtils.cs" />
     <Compile Include="FormSyncItems.cs">
       <SubType>Form</SubType>

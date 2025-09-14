@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Ben Fisher, 2016.
+// Licensed under GPLv3, refer to LICENSE for details.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -54,6 +57,7 @@ namespace rbcpy
         {
             if (File.Exists(path))
             {
+                // even if path has spaces, doesn't need to be escaped.
                 string argument = "/select," + path;
                 System.Diagnostics.Process.Start("explorer.exe", argument);
             }
@@ -169,18 +173,13 @@ namespace rbcpy
     public class CCreateSyncItem
     {
         public CCreateSyncItemStatus status = CCreateSyncItemStatus.None;
-        public string rawPath = "";
+        public string path = "";
         public bool mirror = false;
         public const int nEmpty = 0;
         public const int nUpdate = 1;
         public const int nAddNew = 2;
         public const int nUpdateWarn = 3;
         public const int nRemove = 4;
-
-        public string path()
-        {
-            return this.rawPath.TrimEnd(new char[] { '*' });
-        }
         
         public override string ToString()
         {
@@ -545,3 +544,37 @@ namespace rbcpy
         }
     }
 }
+
+/*
+Potential future changes:
++        void MarkSe()
++        {
++
++            var its = listView.SelectedItems;
++            foreach (var item in its)
++            {
++                ListViewItem lvitem = item as ListViewItem;
++                if (lvitem != null)
++                {
++                    lvitem.Text += "*";
++                }
++            }
++        }
+
+     public class CCreateSyncItem
+-        public string path = "";
++        public string rawPath = "";
+         public bool mirror = false;
+         public const int nEmpty = 0;
+         public const int nUpdate = 1;
+         public const int nAddNew = 2;
+         public const int nUpdateWarn = 3;
+         public const int nRemove = 4;
++
++        public string path()
++        {
++            return this.rawPath.TrimEnd(new char[] { '*' });
++        }
+could use using Microsoft.VisualBasic.FileIO; to send to recycle bin
+
+*/

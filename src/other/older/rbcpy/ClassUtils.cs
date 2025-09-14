@@ -1,14 +1,16 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under LGPLv3, refer to LICENSE for details.
 
-// see unit tests at
-// https://github.com/moltenform/labs_coordinate_pictures/blob/master/src/labs_coordinate_pictures/TestsSortFiles.cs
+// Unit tests are available at
+// https://github.com/moltenform/labs_coordinate_pictures/blob/master/src/labs_coordinate_pictures/TestsUtils.cs
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,14 +19,10 @@ using System.Windows.Forms;
 
 namespace rbcpy
 {
-    public static class Utils
+    public static partial class Utils
     {
-        // differences from LabsCoordinatePictures 1be22cd489b58e4
-        //      rename CoordinatePicturesException, don't prepend
-        //      add AssertTrue, SplitLines
         public static readonly string Sep = Path.DirectorySeparatorChar.ToString();
         public static readonly string NL = Environment.NewLine;
-        static readonly object tokenRepresentingNull = new object();
         static Random random = new Random();
 
         // returns exit code.
@@ -82,6 +80,12 @@ namespace rbcpy
             return waitForExit ? process.ExitCode : 0;
         }
 
+        public static string GetCurrentExecutableDir()
+        {
+            var currentExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            return Path.GetDirectoryName(currentExePath);
+        }
+
         public static bool IsWindows()
         {
             return Environment.OSVersion.Platform.ToString().StartsWith(
@@ -110,10 +114,10 @@ namespace rbcpy
             return result == DialogResult.Yes;
         }
 
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
         static string BuildFileDialogFilter(string[] extensionFilter, string[] extensionFilterNames)
         {
-            // example: extensionFilter = ["*.BMP;*.JPG;*.GIF", "*.*"]
-            // extensionFilterNames = ["Images", "All Files"]
             if (extensionFilter == null || extensionFilter.Length == 0)
             {
                 return "";
@@ -129,7 +133,12 @@ namespace rbcpy
             return string.Join("|", items);
         }
 
-        public static string AskOpenFileDialog(string title, string[] extensionFilter = null, string[] extensionFilterNames = null, string initialDir = null)
+        /// <param name="title">title</param>
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
+        /// <param name="initialDir">initial folder, although OS might ignore it</param>
+        public static string AskOpenFileDialog(string title, string[] extensionFilter = null,
+            string[] extensionFilterNames = null, string initialDir = null)
         {
             using (OpenFileDialog dlg = new OpenFileDialog())
             {
@@ -148,7 +157,12 @@ namespace rbcpy
             }
         }
 
-        public static string[] AskOpenFilesDialog(string title, string[] extensionFilter = null, string[] extensionFilterNames = null, string initialDir = null)
+        /// <param name="title">title</param>
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
+        /// <param name="initialDir">initial folder, although OS might ignore it</param>
+        public static string[] AskOpenFilesDialog(string title, string[] extensionFilter = null,
+            string[] extensionFilterNames = null, string initialDir = null)
         {
             using (OpenFileDialog dlg = new OpenFileDialog())
             {
@@ -168,7 +182,12 @@ namespace rbcpy
             }
         }
 
-        public static string AskSaveFileDialog(string title, string[] extensionFilter = null, string[] extensionFilterNames = null, string initialDir = null)
+        /// <param name="title">title</param>
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
+        /// <param name="initialDir">initial folder, although OS might ignore it</param>
+        public static string AskSaveFileDialog(string title, string[] extensionFilter = null,
+            string[] extensionFilterNames = null, string initialDir = null)
         {
             using (SaveFileDialog dlg = new SaveFileDialog())
             {
@@ -212,6 +231,9 @@ namespace rbcpy
 
         public static bool ArePathsDistinct(string s1, string s2)
         {
+            // this both resolves relative paths and performs normalization
+            s1 = Path.GetFullPath(s1);
+            s2 = Path.GetFullPath(s2);
             // https://msdn.microsoft.com/en-us/library/dd465121.aspx
             // we'll compare with OrdinalIgnoreCase since that's what msdn recommends
             s1 = s1 + Utils.Sep;
@@ -221,9 +243,59 @@ namespace rbcpy
                 !s2.StartsWith(s1, comparison);
         }
 
-        public static string GetRandomDigits() 
+        public static string GetSoftDeleteDirectory(string path)
+        {
+            var overrideFn = typeof(Utils).GetMethod(
+                "OverrideGetSoftDeleteDir",
+                BindingFlags.Static | BindingFlags.Public);
+
+            if (overrideFn != null)
+            {
+                return overrideFn.Invoke(null, new object[] { path }) as string;
+            }
+
+            var deleteDir = Configs.Current.Get(ConfigKey.FilepathDeletedFilesDir);
+            if (string.IsNullOrEmpty(deleteDir) || !Directory.Exists(deleteDir))
+            {
+                // for ease-of-use, instead of ConfigKeyGetOrAskUserIfNotSet, just
+                // go ahead with a default trash directory.
+                deleteDir = Path.Combine(Utils.GetCurrentExecutableDir(), "(deleted)");
+                try
+                {
+                    if (!Directory.Exists(deleteDir))
+                    {
+                        Directory.CreateDirectory(deleteDir);
+                    }
+                }
+                catch (IOException)
+                {
+                    throw new RbCpyException("No trash directory set, and current directory not writable.");
+                }
+            }
+
+            return deleteDir;
+        }
+
+        // "soft delete" just means moving to a designated 'trash' location.
+        public static string GetSoftDeleteDestination(string path)
+        {
+            var deleteDir = GetSoftDeleteDirectory(path);
+
+            // as a prefix, the first 2 chars of the parent directory
+            var prefix = FirstTwoChars(Path.GetFileName(Path.GetDirectoryName(path))) + "_";
+            return Path.Combine(deleteDir, prefix + Path.GetFileName(path) + GetRandomDigits());
+        }
+
+        public static string GetRandomDigits()
         {
             return random.Next().ToString();
+        }
+
+        public static void SoftDelete(string path)
+        {
+            var newPath = GetSoftDeleteDestination(path);
+            SimpleLog.Current.WriteLog("Moving (" + path + ") to (" + newPath + ")");
+            File.Move(path, newPath);
         }
 
         public static string CombineProcessArguments(string[] args)
@@ -250,7 +322,7 @@ namespace rbcpy
             {
                 if (invalidChar.IsMatch(args[carg]))
                 {
-                    throw new RbCpyException("invalid character (" + carg + ")");
+                    throw new ArgumentOutOfRangeException("invalid character (" + carg + ")");
                 }
 
                 if (string.IsNullOrEmpty(args[carg]))
@@ -309,7 +381,9 @@ namespace rbcpy
             finally
             {
                 if (stream != null)
+                {
                     stream.Close();
+            }
             }
 
             return false;
@@ -319,7 +393,9 @@ namespace rbcpy
         public static string FormatFilesize(string filepath)
         {
             if (!File.Exists(filepath))
+            {
                 return " file not found";
+            }
 
             return FormatFilesize(new FileInfo(filepath).Length);
         }
@@ -340,8 +416,10 @@ namespace rbcpy
             foreach (var process in Process.GetProcessesByName(processName))
             {
                 if (process.Id != thisId)
+                {
                     process.Kill();
             }
+        }
         }
 
         public static string FormatPythonError(string stderr)
@@ -359,6 +437,54 @@ namespace rbcpy
             {
                 return stderr;
             }
+        }
+
+        public static void RunPythonScriptOnSeparateThread(
+            string pyScript, string[] listArgs, bool createWindow = false,
+            bool autoWorkingDir = false, string workingDir = null)
+        {
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                RunPythonScript(pyScript, listArgs, createWindow: createWindow,
+                    workingDir: autoWorkingDir ? Path.GetDirectoryName(pyScript) : workingDir);
+            });
+        }
+
+        public static string RunPythonScript(
+            string pyScript, string[] listArgs, bool createWindow = false,
+            bool warnIfStdErr = true, string workingDir = null)
+        {
+            if (!pyScript.Contains(Utils.Sep))
+            {
+                pyScript = Path.Combine(Configs.Current.Directory, pyScript);
+            }
+
+            if (!File.Exists(pyScript))
+            {
+                MessageBox("Script not found " + pyScript);
+                return "Script not found";
+            }
+
+            var python = Configs.Current.Get(ConfigKey.FilepathPython);
+            if (string.IsNullOrEmpty(python) || !File.Exists(python))
+            {
+                MessageBox("Python not found. Go to the main screen and to the " +
+                    "option menu and click Options->Set python location...");
+                return "Python not found.";
+            }
+
+            var args = new List<string> { pyScript };
+            args.AddRange(listArgs);
+            int exitCode = Run(python, args.ToArray(), shellExecute: false,
+                waitForExit: true, hideWindow: !createWindow, getStdout: true,
+                outStdout: out string stdout, outStderr: out string stderr, workingDir: workingDir);
+
+            if (warnIfStdErr && exitCode != 0)
+            {
+                MessageBox("warning, error from script: " + FormatPythonError(stderr) ?? "");
+            }
+
+            return stderr;
         }
 
         public static string GetClipboard()
@@ -532,7 +658,7 @@ namespace rbcpy
 
         public static void MessageBox(string msg, bool checkIfSuppressed = false)
         {
-            if (!checkIfSuppressed)
+            if (!checkIfSuppressed || !Configs.Current.SuppressDialogs)
             {
                 System.Windows.Forms.MessageBox.Show(msg);
             }
@@ -547,13 +673,25 @@ namespace rbcpy
 #endif
         }
 
+        public static string[] SplitLines(string s)
+        {
+            // let's support both win and unix newlines
+            return s.Replace("\r\n", "\n").Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
         public static void AssertEq(object expected, object actual, string msg = "")
         {
-            // use a token to make sure that IsEq(null, null) works.
-            expected = expected ?? tokenRepresentingNull;
-            actual = actual ?? tokenRepresentingNull;
+            bool areEqual;
+            if (expected == null || actual == null)
+            {
+                areEqual = expected == null && actual == null;
+            }
+            else
+            {
+                areEqual = expected.Equals(actual);
+            }
 
-            if (!expected.Equals(actual))
+            if (!areEqual)
             {
                 throw new RbCpyException(
                     "Assertion failure, " + Utils.NL + Utils.NL + msg +
@@ -564,12 +702,6 @@ namespace rbcpy
         public static void AssertTrue(bool actual, string msg = "")
         {
             AssertEq(true, actual, msg);
-        }
-
-        public static string[] SplitLines(string s)
-        {
-            // let's support both win and unix newlines
-            return s.Replace("\r\n", "\n").Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 
@@ -664,13 +796,13 @@ namespace rbcpy
 
         public void Refresh()
         {
-            _list = new FileListAutoUpdated(BaseDirectory, _list.Recurse);
+            this._list = new FileListAutoUpdated(this.BaseDirectory, this._list.Recurse);
             TrySetPath("");
         }
 
         public void NotifyFileChanges()
         {
-            _list.Dirty();
+            this._list.Dirty();
         }
 
         // try an action twice if necessary.
@@ -679,10 +811,10 @@ namespace rbcpy
         // so tell it to refresh and retry once more.
         void TryAgainIfFileIsMissing(Func<string[], string> fn)
         {
-            var list = GetList();
+            var list = this.GetList();
             if (list.Length == 0)
             {
-                Current = null;
+                this.Current = null;
                 return;
             }
 
@@ -690,18 +822,18 @@ namespace rbcpy
             if (firstTry != null && !File.Exists(firstTry))
             {
                 // refresh the list and try again
-                list = GetList(true);
+                list = this.GetList(true);
                 if (list.Length == 0)
                 {
-                    Current = null;
+                    this.Current = null;
                     return;
                 }
 
-                Current = fn(list);
+                this.Current = fn(list);
             }
             else
             {
-                Current = firstTry;
+                this.Current = firstTry;
             }
         }
 
@@ -719,9 +851,9 @@ namespace rbcpy
         public void GoNextOrPrev(bool isNext, List<string> neighbors = null,
             int retrieveNeighbors = 0)
         {
-            TryAgainIfFileIsMissing((list) =>
+            this.TryAgainIfFileIsMissing((list) =>
             {
-                var index = GetLessThanOrEqual(list, Current ?? "");
+                var index = GetLessThanOrEqual(list, this.Current ?? "");
                 if (isNext)
                 {
                     // caller has asked us to return adjacent items
@@ -736,7 +868,7 @@ namespace rbcpy
                 {
                     // index is LessThanOrEqual, but we want strictly LessThan
                     // so move prev if equal.
-                    if (index > 0 && Current == list[index])
+                    if (index > 0 && this.Current == list[index])
                     {
                         index--;
                     }
@@ -754,7 +886,7 @@ namespace rbcpy
 
         public void GoFirst()
         {
-            TryAgainIfFileIsMissing((list) =>
+            this.TryAgainIfFileIsMissing((list) =>
             {
                 return list[0];
             });
@@ -762,7 +894,7 @@ namespace rbcpy
 
         public void GoLast()
         {
-            TryAgainIfFileIsMissing((list) =>
+            this.TryAgainIfFileIsMissing((list) =>
             {
                 return list[list.Length - 1];
             });
@@ -770,12 +902,12 @@ namespace rbcpy
 
         public void TrySetPath(string current, bool verify = true)
         {
-            Current = current;
+            this.Current = current;
             if (verify)
             {
-                TryAgainIfFileIsMissing((list) =>
+                this.TryAgainIfFileIsMissing((list) =>
                 {
-                    var index = GetLessThanOrEqual(list, Current ?? "");
+                    var index = GetLessThanOrEqual(list, this.Current ?? "");
                     return Utils.ArrayAt(list, index);
                 });
             }
@@ -785,20 +917,20 @@ namespace rbcpy
         {
             Func<string, bool> includeFile = (path) =>
             {
-                if (!includeMarked && _excludeMarked && path.Contains(FilenameUtils.MarkerString))
+                if (!includeMarked && this._excludeMarked && path.Contains(FilenameUtils.MarkerString))
                     return false;
-                else if (!FilenameUtils.IsExtensionInList(path, _extensionsAllowed))
+                else if (!FilenameUtils.IsExtensionInList(path, this._extensionsAllowed))
                     return false;
                 else
                     return true;
             };
 
-            return _list.GetList(forceRefresh).Where(includeFile).ToArray();
+            return this._list.GetList(forceRefresh).Where(includeFile).ToArray();
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -806,9 +938,9 @@ namespace rbcpy
         {
             if (disposing)
             {
-                if (_list != null)
+                if (this._list != null)
                 {
-                    _list.Dispose();
+                    this._list.Dispose();
                 }
             }
         }
@@ -820,8 +952,15 @@ namespace rbcpy
 
         public static bool LooksLikeImage(string filepath)
         {
-            return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
-                ".gif", ".bmp", ".webp", ".emf", ".wmf", ".jpeg" });
+            if (FilenameUtils.EnableWebp())
+            {
+                return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
+                    ".gif", ".bmp", ".webp", ".emf", ".wmf", ".jpeg" });
+            } else
+            {
+                return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
+                    ".gif", ".bmp", ".emf", ".wmf", ".jpeg" });
+            }
         }
 
         public static bool LooksLikeAudio(string filepath)
@@ -875,9 +1014,9 @@ namespace rbcpy
             var nameOnly = Path.GetFileName(filepath);
             if (nameOnly.Length > NumberedPrefixLength() &&
                 nameOnly.StartsWith("([", StringComparison.Ordinal) &&
-                nameOnly.Substring(6, 2) == "])")
+                nameOnly.IndexOf("])", StringComparison.InvariantCulture) > 2)
             {
-                return nameOnly.Substring(NumberedPrefixLength());
+                return nameOnly.Substring(nameOnly.IndexOf("])", StringComparison.InvariantCulture) + 2);
             }
             else
             {
@@ -899,8 +1038,10 @@ namespace rbcpy
                 MarkerString + category + ext;
         }
 
-        public static void GetCategoryFromFilename(string pathAndCategory,
-            out string pathWithoutCategory, out string category)
+        public static void GetCategoryFromFilename(
+            string pathAndCategory,
+            out string pathWithoutCategory,
+            out string category)
         {
             // check nothing in path has mark
             if (Path.GetDirectoryName(pathAndCategory).Contains(MarkerString))
@@ -947,6 +1088,14 @@ namespace rbcpy
                 return false;
             }
         }
+
+        public static bool EnableWebp()
+        {
+            // Webp disabled due to security issues,
+            // since the Imazen.Webp library is tied to old insecure webp versions.
+            // We'll need to move to another webp library.
+            return false;
+        }
     }
 
     // Simple logging class, writes synchronously to a text file.
@@ -954,9 +1103,9 @@ namespace rbcpy
     {
         private const int CheckFileSizePeriod = 32;
         private static SimpleLog _instance;
-        readonly string _path;
-        readonly int _maxFileSize;
-        int _counter;
+        private readonly string _path;
+        private readonly int _maxFileSize;
+        private int _counter;
         public SimpleLog(string path, int maxFileSize = 4 * 1024 * 1024)
         {
             _path = path;
@@ -997,8 +1146,8 @@ namespace rbcpy
             catch (Exception)
             {
                 if (!Utils.AskToConfirm("Could not write to " + _path +
-                    "; labs_coordinate_pictures.exe currently needs to be " +
-                    "in writable directory. Continue?"))
+                    "; this program needs to be run " +
+                    "in a folder where you have write permissions. Continue?"))
                 {
                     Environment.Exit(1);
                 }
@@ -1013,6 +1162,14 @@ namespace rbcpy
         public void WriteError(string s)
         {
             WriteLog("[error] " + s);
+        }
+
+        public void WriteVerbose(string s)
+        {
+            if (Configs.Current.GetBool(ConfigKey.EnableVerboseLogging))
+            {
+                WriteLog("[vb] " + s);
+            }
         }
     }
 
@@ -1082,6 +1239,57 @@ namespace rbcpy
         }
     }
 
+    public static class ConfigKeyGetOrAskUserIfNotSet
+    {
+        static int _mainThread = -1;
+        public static void RecordMainThread()
+        {
+            _mainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
+        }
+
+        public static bool IsMainThread()
+        {
+            if (_mainThread == -1)
+            {
+                throw new RbCpyException("Please make call to RecordMainThread() when your app starts.");
+            }
+
+            return _mainThread == System.Threading.Thread.CurrentThread.ManagedThreadId;
+        }
+
+        public static string GetOrAsk(ConfigKey configKey)
+        {
+            if (!IsMainThread())
+            {
+                // Throw, even if we could have gotten a value. developer needs to call this from main thread.
+                throw new RbCpyException("This can only be called from the main thread.");
+            }
+
+            var val = Configs.Current.Get(configKey);
+            if (string.IsNullOrEmpty(val) || (!File.Exists(val) && !Directory.Exists(val)))
+            {
+                var s = configKey.ToString().EndsWith("Dir", StringComparison.InvariantCulture) ?
+                    "Please choose any file in the directory for " + configKey :
+                    "Please choose a file for " + configKey;
+
+                var got = Utils.AskOpenFileDialog(s);
+                if (string.IsNullOrEmpty(got))
+                {
+                    throw new RbCpyException("A path for " + configKey + " is needed.");
+                }
+
+                if (configKey.ToString().EndsWith("Dir", StringComparison.InvariantCulture))
+                {
+                    got = Path.GetDirectoryName(got);
+                }
+
+                Configs.Current.Set(configKey, got);
+            }
+
+            return Configs.Current.Get(configKey);
+        }
+    }
+
     public sealed class UndoStack<T>
     {
         List<T> _list = new List<T>();
@@ -1131,7 +1339,7 @@ namespace rbcpy
     public sealed class RbCpyException : Exception
     {
         public RbCpyException(string message, Exception e)
-            : base(message, e)
+            : base("ShineRainSevenCsException " + message, e)
         {
         }
 
@@ -1145,7 +1353,34 @@ namespace rbcpy
         {
         }
 
-        RbCpyException(System.Runtime.Serialization.SerializationInfo info,
+        RbCpyException(
+            System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
+
+    [Serializable]
+    public sealed class ShineRainSevenCsTestException : Exception
+    {
+        public ShineRainSevenCsTestException(string message, Exception e)
+            : base("Test failure " + message, e)
+        {
+        }
+
+        public ShineRainSevenCsTestException(string message)
+            : this(message, null)
+        {
+        }
+
+        public ShineRainSevenCsTestException()
+            : this("", null)
+        {
+        }
+
+        ShineRainSevenCsTestException(
+            SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
             : base(info, context)
         {
