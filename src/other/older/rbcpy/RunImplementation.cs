@@ -28,8 +28,9 @@ namespace rbcpy
             File.Delete(logfilename);
             if (config.m_src.Contains("\\\\") || config.m_destination.Contains("\\\\"))
             {
-                MessageBox.Show("Source and destination cannot contain \\\\");
-                return "";
+                if (MessageBox.Show("Source or destination contains \\\\. Continue?", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes) {
+                    return "";
+                }
             }
 
             string args = GetCommandLineArgs(config);
@@ -53,7 +54,7 @@ namespace rbcpy
         {
             if (File.Exists(path))
             {
-                string argument = "/select, \"" + path + "\"";
+                string argument = "/select," + path;
                 System.Diagnostics.Process.Start("explorer.exe", argument);
             }
         }
@@ -168,13 +169,18 @@ namespace rbcpy
     public class CCreateSyncItem
     {
         public CCreateSyncItemStatus status = CCreateSyncItemStatus.None;
-        public string path = "";
+        public string rawPath = "";
         public bool mirror = false;
         public const int nEmpty = 0;
         public const int nUpdate = 1;
         public const int nAddNew = 2;
         public const int nUpdateWarn = 3;
         public const int nRemove = 4;
+
+        public string path()
+        {
+            return this.rawPath.TrimEnd(new char[] { '*' });
+        }
         
         public override string ToString()
         {

@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace rbcpy
 {
@@ -132,6 +135,20 @@ namespace rbcpy
             }
         }
 
+        void MarkSe()
+        {
+
+            var its = listView.SelectedItems;
+            foreach (var item in its)
+            {
+                ListViewItem lvitem = item as ListViewItem;
+                if (lvitem != null)
+                {
+                    lvitem.Text += "*";
+                }
+            }
+        }
+
         private IEnumerable<CCreateSyncItem> IterateListViewItems(bool onlySelected)
         {
             ICollection lists = listView.Items;
@@ -178,6 +195,7 @@ namespace rbcpy
                 return;
             }
 
+            bool hideBtnsWhenFileNotPresent = false;
             FileInfo recentLeft = null, recentRight = null;
             long nCountLeft = 0, nCountRight = 0, nTotalLeft = 0, nTotalRight = 0;
             foreach (var item in IterateListViewItems(true /*only selected*/))
@@ -202,8 +220,11 @@ namespace rbcpy
                 }
             }
 
-            btnLeftToRight.Visible = nCountLeft > 0;
-            btnShowLeft.Visible = nCountLeft > 0;
+            if (hideBtnsWhenFileNotPresent)
+            {
+                btnLeftToRight.Visible = nCountLeft > 0;
+                btnShowLeft.Visible = nCountLeft > 0;
+            }
             sbLeft.AppendLine("\r\n" + nCountLeft + " file(s).");
             sbLeft.AppendLine(String.Format("{0:n0} bytes.", nTotalLeft));
             if (nCountLeft == 1)
@@ -212,8 +233,10 @@ namespace rbcpy
                 sbLeft.AppendLine("Modified: " + recentLeft.LastWriteTime.ToString());
             }
 
-            btnRightToLeft.Visible = nCountRight > 0;
-            btnShowRight.Visible = nCountRight > 0;
+            if (hideBtnsWhenFileNotPresent) { 
+                btnRightToLeft.Visible = nCountRight > 0;
+                btnShowRight.Visible = nCountRight > 0;
+            }
             sbRight.AppendLine("\r\n" + nCountRight + " file(s).");
             sbRight.AppendLine(String.Format("{0:n0} bytes.", nTotalRight));
             if (nCountRight == 1)
@@ -291,27 +314,40 @@ namespace rbcpy
             }
         }
 
-        private void ManualCopyFileImpl(string s1, string s2)
+        private void SoftDeleteFile(string s)
+        {
+            // or could use using Microsoft.VisualBasic.FileIO; to send to recycle bin
+            if (String.IsNullOrEmpty(this.m_globalSettings.m_directoryForDeletedFiles)) {
+                MessageBox.Show("m_directoryForDeletedFiles not set");
+                throw new Exception("m_directoryForDeletedFiles not set");
+            }
+
+            var newName = m_globalSettings.m_directoryForDeletedFiles + "\\" + Path.GetFileName(s) + RunImplementation.GetRandomNumbersInString();
+            File.Move(s, newName);
+        }
+
+        private void CopyFileAndSoftDeleteACopy(string s1, string s2)
         {
             try
             {
-                if (File.Exists(s2) && !String.IsNullOrEmpty(this.m_globalSettings.m_directoryForDeletedFiles))
+                if (File.Exists(s2))
                 {
-                    var newName = m_globalSettings.m_directoryForDeletedFiles + "\\" + Path.GetFileName(s2) + RunImplementation.GetRandomNumbersInString();
-                    File.Copy(s2, newName, true /*okOverwrite*/);
+                    SoftDeleteFile(s2);
                 }
 
                 File.Copy(s1, s2, true /*okOverwrite*/);
             }
             catch (Exception e)
             {
-                MessageBox.Show("Copying "+s1+" to "+s2+". Exception "+e);
+                MessageBox.Show("When copying "+s1+" to "+s2+"... Exception "+e);
             }
         }
         private void ManualCopyFile(bool leftToRight)
         {
+            var first = IterateListViewItems(true).Take(1).First();
+            var s = $"(Example, copying {first.GetLeftPath(m_results.config)} to {first.GetRightPath(m_results.config)}";
             // "copy left to right"
-            if (MessageBox.Show("Confirm copy?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Confirm copy?", "Confirm copy?", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 foreach (var item in IterateListViewItems(true /*only selected*/))
                 {
@@ -324,17 +360,76 @@ namespace rbcpy
                         ManualCopyFileImpl(item.GetRightPath(m_results.config), item.GetLeftPath(m_results.config));
                     }
                 }
+              //  MarkCheckedOff();
             }
         }
 
         private void btnLeftToRight_Click(object sender, EventArgs e)
         {
-            ManualCopyFile(true);
+            Func<CCreateSyncItem, SyncConfiguration, string> fnGetSrc = (item, cfg) => item.GetLeftPath(m_results.config);
+            Func<CCreateSyncItem, SyncConfiguration, string> fnGetDest= (item, cfg) => item.GetRightPath(m_results.config);
+            ClickDirectionally(fnGetSrc, fnGetDest);
         }
 
         private void btnRightToLeft_Click(object sender, EventArgs e)
         {
-            ManualCopyFile(false);
+            Func<CCreateSyncItem, SyncConfiguration, string> fnGetSrc = (item, cfg) => item.GetRightPath(m_results.config);
+            Func<CCreateSyncItem, SyncConfiguration, string> fnGetDest = (item, cfg) => item.GetLeftPath(m_results.config);
+            ClickDirectionally(fnGetSrc, fnGetDest);
+        }
+
+        class ClickDirectionallyItem
+        {
+            string src;
+            string dest;
+            string action;
+            Action<string> fnSoftDeleteFile;
+            ClickDirectionallyItem(string src, string dest, Action<string> fnSoftDeleteFile)
+            {
+                this.src = src;
+                this.dest = dest;
+                this.fnSoftDeleteFile = fnSoftDeleteFile;
+                if (File.Exists(src) && File.Exists(dest))
+                {
+                    action = $"Update {src} -> {dest}";
+                }
+                else if (File.Exists(src) && !File.Exists(dest))
+                {
+                    action = $"Copy {src} -> {dest}";
+                }
+                else if (!File.Exists(src) && File.Exists(dest))
+                {
+                    action = $"Delete {dest}";
+                }
+                else
+                {
+                    action = $"None";
+                }
+            }
+            public override string ToString()
+            {
+                return action;
+            }
+            public void Go()
+            {
+                if (action.StartsWith("Update"))
+                {
+                    this.fnSoftDeleteFile(dest);
+                    File.Copy(src, dest, true);
+                }
+                else if (action.StartsWith("Copy"))
+                {
+                    File.Copy(src, dest, true);
+                }
+                else if (action.StartsWith("Delete"))
+                {
+                    this.fnSoftDeleteFile(dest);
+                }
+            }
+        }
+        private void ClickDirectionally(Func<CCreateSyncItem, SyncConfiguration, string> fnGetSrc, Func<CCreateSyncItem, SyncConfiguration, string> fnGetDest)
+        {
+            
         }
 
         private void btnIncludeBoth_Click(object sender, EventArgs e)
