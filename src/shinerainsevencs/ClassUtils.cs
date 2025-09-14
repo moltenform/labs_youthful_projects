@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Ben Fisher, 2016.
-// Licensed under LGPLv3. See LICENSE in the project root for license information.
+// Licensed under LGPLv3.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,6 @@ namespace ShineRainSevenCsCommon
     {
         public static readonly string Sep = Path.DirectorySeparatorChar.ToString();
         public static readonly string NL = Environment.NewLine;
-        static readonly object tokenRepresentingNull = new object();
         static Random random = new Random();
 
         // returns exit code.
@@ -131,6 +130,10 @@ namespace ShineRainSevenCsCommon
             return string.Join("|", items);
         }
 
+        /// <param name="title">title</param>
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
+        /// <param name="initialDir">initial folder, although OS might ignore it</param>
         public static string AskOpenFileDialog(string title, string[] extensionFilter = null,
             string[] extensionFilterNames = null, string initialDir = null)
         {
@@ -151,6 +154,10 @@ namespace ShineRainSevenCsCommon
             }
         }
 
+        /// <param name="title">title</param>
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
+        /// <param name="initialDir">initial folder, although OS might ignore it</param>
         public static string[] AskOpenFilesDialog(string title, string[] extensionFilter = null,
             string[] extensionFilterNames = null, string initialDir = null)
         {
@@ -172,6 +179,10 @@ namespace ShineRainSevenCsCommon
             }
         }
 
+        /// <param name="title">title</param>
+        /// <param name="extensionFilter">e.g. ["*.jpg;*.png;*.gif", "*.*"]</param>
+        /// <param name="extensionFilterNames">e.g. ["Images", "All Files"]</param>
+        /// <param name="initialDir">initial folder, although OS might ignore it</param>
         public static string AskSaveFileDialog(string title, string[] extensionFilter = null,
             string[] extensionFilterNames = null, string initialDir = null)
         {
@@ -239,7 +250,8 @@ namespace ShineRainSevenCsCommon
             var deleteDir = Configs.Current.Get(ConfigKey.FilepathDeletedFilesDir);
             if (string.IsNullOrEmpty(deleteDir) || !Directory.Exists(deleteDir))
             {
-                // for ease-of-use, instead of FilePathsConfirmedToExist, pick a default trash directory
+                // for ease-of-use, instead of ConfigKeyGetOrAskUserIfNotSet, just
+                // go ahead with a default trash directory.
                 deleteDir = Path.Combine(Utils.GetCurrentExecutableDir(), "(deleted)");
                 try
                 {
@@ -365,7 +377,9 @@ namespace ShineRainSevenCsCommon
             finally
             {
                 if (stream != null)
+                {
                     stream.Close();
+                }
             }
 
             return false;
@@ -375,7 +389,9 @@ namespace ShineRainSevenCsCommon
         public static string FormatFilesize(string filepath)
         {
             if (!File.Exists(filepath))
+            {
                 return " file not found";
+            }
 
             return FormatFilesize(new FileInfo(filepath).Length);
         }
@@ -396,7 +412,9 @@ namespace ShineRainSevenCsCommon
             foreach (var process in Process.GetProcessesByName(processName))
             {
                 if (process.Id != thisId)
+                {
                     process.Kill();
+                }
             }
         }
 
@@ -464,8 +482,6 @@ namespace ShineRainSevenCsCommon
 
             return stderr;
         }
-
-        
 
         public static string GetClipboard()
         {
@@ -657,6 +673,31 @@ namespace ShineRainSevenCsCommon
         {
             // let's support both win and unix newlines
             return s.Replace("\r\n", "\n").Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        public static void AssertEq(object expected, object actual, string msg = "")
+        {
+            bool areEqual;
+            if (expected == null || actual == null)
+            {
+                areEqual = expected == null && actual == null;
+            }
+            else
+            {
+                areEqual = expected.Equals(actual);
+            }
+
+            if (!areEqual)
+            {
+                throw new ShineRainSevenCsException(
+                    "Assertion failure, " + Utils.NL + Utils.NL + msg +
+                    ", expected " + expected + " but got " + actual);
+            }
+        }
+
+        public static void AssertTrue(bool actual, string msg = "")
+        {
+            AssertEq(true, actual, msg);
         }
     }
 
@@ -907,7 +948,7 @@ namespace ShineRainSevenCsCommon
 
         public static bool LooksLikeImage(string filepath)
         {
-            if (Configs.EnableWebp())
+            if (FilenameUtils.EnableWebp())
             {
                 return IsExtensionInList(filepath, new string[] { ".jpg", ".png",
                     ".gif", ".bmp", ".webp", ".emf", ".wmf", ".jpeg" });
@@ -1040,6 +1081,14 @@ namespace ShineRainSevenCsCommon
             {
                 return false;
             }
+        }
+
+        public static bool EnableWebp()
+        {
+            // Webp disabled due to security issues,
+            // since the Imazen.Webp library is tied to old insecure webp versions.
+            // We'll need to move to another webp library.
+            return false;
         }
     }
 
@@ -1184,14 +1233,14 @@ namespace ShineRainSevenCsCommon
         }
     }
 
-    public static class FilePathsConfirmedToExist
+    public static class ConfigKeyGetOrAskUserIfNotSet
     {
-        static Dictionary<ConfigKey, bool> _haveConfirmed = new Dictionary<ConfigKey, bool>();
         static int _mainThread = 0;
         public static void RecordMainThread()
         {
             _mainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
         }
+
         public static bool IsMainThread()
         {
             if (_mainThread == 0)
@@ -1201,17 +1250,21 @@ namespace ShineRainSevenCsCommon
 
             return _mainThread == System.Threading.Thread.CurrentThread.ManagedThreadId;
         }
-        public static void PreemptivelyConfirmPathExists(ConfigKey configKey)
+
+        public static string GetOrAsk(ConfigKey configKey)
         {
             if (!IsMainThread())
             {
+                // Throw, even if we could have gotten a value. developer needs to call this from main thread.
                 throw new ShineRainSevenCsException("This can only be called from the main thread.");
             }
 
             var val = Configs.Current.Get(configKey);
             if (String.IsNullOrEmpty(val) || (!File.Exists(val) && !Directory.Exists(val)))
             {
-                var s = configKey.ToString().EndsWith("Dir") ? "Please choose any file in the directory for " + configKey : "Please choose a file for " + configKey;
+                var s = configKey.ToString().EndsWith("Dir") ? "Please choose any file in the directory for " + configKey :
+                    "Please choose a file for " + configKey;
+
                 var got = Utils.AskOpenFileDialog(s);
                 if (string.IsNullOrEmpty(got))
                 {
@@ -1225,6 +1278,8 @@ namespace ShineRainSevenCsCommon
 
                 Configs.Current.Set(configKey, got);
             }
+
+            return Configs.Current.Get(configKey);
         }
     }
 

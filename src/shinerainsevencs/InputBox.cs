@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under LGPLv3.
 
 using System;
 using System.Collections.Generic;

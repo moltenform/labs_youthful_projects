@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Ben Fisher, 2016.
+// Licensed under LGPLv3.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,7 +22,7 @@ namespace ShineRainSevenCsCommon
             Configs.Init(Path.Combine(currentExePathD, "options.ini"));
             Configs.Current.LoadPersisted();
             Configs.Current.Set(ConfigKey.Version, "0.1");
-            FilePathsConfirmedToExist.RecordMainThread();
+            ConfigKeyGetOrAskUserIfNotSet.RecordMainThread();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -37,14 +40,14 @@ namespace ShineRainSevenCsCommon
             string outputPath = getValue(args, "-o");
             string defaultVal = getValue(args, "-d") ?? null;
             var whichAppName = getValue(args, "-a");
-            var s = "Path1";
-            if (!Enum.TryParse(s, out InputBoxHistory theConfigKey))
+            var s = "MRUPath";
+            if (!Enum.TryParse(s, out InputBoxHistory configKey))
             {
                 Console.WriteLine("unknown val");
                 return 1;
             }
 
-            var userTyped = InputBoxForm.GetStrInput(message, defaultVal, theConfigKey, null, false, false, false);
+            var userTyped = InputBoxForm.GetStrInput(message, defaultVal, configKey, null, false, false, false);
             File.WriteAllText(outputPath, userTyped ?? "");
             return 0;
         }

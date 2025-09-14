@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3. See LICENSE in the project root for license information.
+// Licensed under LGPLv3.
 
 using System;
 using System.Collections.Generic;
@@ -19,11 +19,11 @@ namespace ShineRainSevenCsCommon
         Version,
         EnablePersonalFeatures,
         EnableVerboseLogging,
-        MRUPath1,
+        MRUPath,
+
         // Directories should end with Dir. 
         FilepathDeletedFilesDir,
         FilepathTempDir,
-        FilepathM4aEncoder,
         FilepathPython
     }
 
@@ -33,7 +33,7 @@ namespace ShineRainSevenCsCommon
     public enum InputBoxHistory
     {
         None,
-        MRUPath1,
+        MRUPath,
         FilepathDeletedFilesDir,
         FilepathTempDir
     }
@@ -193,11 +193,7 @@ namespace ShineRainSevenCsCommon
             }
         }
 
-        public void SetBool(ConfigKey key, bool b)
-        {
-            Set(key, b ? "true" : "");
-        }
-
+        // See also, ConfigKeyAutoAskIfNull
         public string Get(ConfigKey key)
         {
             var ret = _persisted.TryGetValue(key, out string s) ? s : "";
@@ -205,17 +201,14 @@ namespace ShineRainSevenCsCommon
             return ret;
         }
 
+        public void SetBool(ConfigKey key, bool b)
+        {
+            Set(key, b ? "true" : "");
+        }
+
         public bool GetBool(ConfigKey key)
         {
             return !string.IsNullOrEmpty(Get(key));
-        }
-
-        public static bool EnableWebp()
-        {
-            // Webp disabled due to security issues,
-            // since the Imazen.Webp library is tied to old insecure webp versions.
-            // We'll need to move to another webp library.
-            return false;
         }
     }
 }

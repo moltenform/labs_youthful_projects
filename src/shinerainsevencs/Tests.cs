@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3. See LICENSE in the project root for license information.
+// Licensed under LGPLv3.
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,10 @@ namespace ShineRainSevenCsCommon
         static void TestMethod_Asserts_EqualIntsShouldCompareEqual()
         {
             TestUtil.IsEq(1, 1);
+            while     (true)
+            {
+                var d=8;
+            }
         }
 
         static void TestMethod_Asserts_EqualStringsShouldCompareEqual()
@@ -335,10 +339,9 @@ namespace ShineRainSevenCsCommon
 
         static void TestMethod_FindSimilarFilenames()
         {
-            var mode = new ModeCategorizeAndRename();
-            var extensions = mode.GetFileTypes();
             bool nameHasSuffix;
             string pathWithoutSuffix;
+            var extensions = new string[] { ".jpg", ".png", ".gif", ".bmp" };
             var filepaths = new string[] {
                 PathSep("c:/a/a.png"),
                 PathSep("c:/a/b.png"),
@@ -492,6 +495,171 @@ namespace ShineRainSevenCsCommon
             listOfInts = Enum.GetValues(typeof(ConfigKey)).Cast<int>().ToList();
             set = new HashSet<int>(listOfInts);
             TestUtil.IsEq(listOfInts.Count, set.Count);
+        }
+
+        static void TestMethod_FileListNavigation()
+        {
+            // create files
+            var dir = TestUtil.GetTestSubDirectory("filelist");
+            File.WriteAllText(Path.Combine(dir, "dd.png"), "content");
+            File.WriteAllText(Path.Combine(dir, "cc.png"), "content");
+            File.WriteAllText(Path.Combine(dir, "bb.png"), "content");
+            File.WriteAllText(Path.Combine(dir, "aa.png"), "content");
+            List<string> neighbors = new List<string>(new string[4]);
+
+            { // test gonext, gofirst
+                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+
+                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%cc.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%dd.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%dd.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%dd.png|%dd.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoFirst();
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+            }
+
+            { // test golast, goprev
+                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+
+                nav.GoLast();
+                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+
+                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%bb.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%aa.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%aa.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%aa.png|%aa.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+            }
+
+            { // test gonext when file is missing
+                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
+                nav.GoLast();
+                nav.TrySetPath(Path.Combine(dir, "().png"), false);
+                nav.GoNextOrPrev(true, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%bb.png|%cc.png|%dd.png|%dd.png".Replace("%", dir + Utils.Sep), neighbors);
+
+                nav.GoLast();
+                nav.TrySetPath(Path.Combine(dir, "ab.png"), false);
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
+
+                nav.GoLast();
+                nav.TrySetPath(Path.Combine(dir, "bc.png"), false);
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
+
+                nav.GoFirst();
+                nav.TrySetPath(Path.Combine(dir, "zz.png"), false);
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+            }
+
+            { // test goprev when file is missing
+                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
+                nav.GoLast();
+                nav.TrySetPath(Path.Combine(dir, "().png"), false);
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+
+                nav.GoLast();
+                nav.TrySetPath(Path.Combine(dir, "bc.png"), false);
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(Path.Combine(dir, "bb.png"), nav.Current);
+
+                nav.GoLast();
+                nav.TrySetPath(Path.Combine(dir, "cd.png"), false);
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
+
+                nav.GoFirst();
+                nav.TrySetPath(Path.Combine(dir, "zz.png"), false);
+                nav.GoNextOrPrev(false, neighbors, neighbors.Count);
+                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+                TestUtil.IsStringArrayEq(
+                    "%cc.png|%bb.png|%aa.png|%aa.png".Replace("%", dir + Utils.Sep), neighbors);
+            }
+
+            { // gonext and goprev after deleted file
+                var nav = new FileListNavigation(dir, new string[] { ".png" }, true);
+                nav.GoFirst();
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                File.Delete(Path.Combine(dir, "bb.png"));
+
+                // call NotifyFileChanges, the test runs more quickly than event can be received
+                nav.NotifyFileChanges();
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "cc.png"), nav.Current);
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "dd.png"), nav.Current);
+                File.Delete(Path.Combine(dir, "cc.png"));
+                nav.NotifyFileChanges();
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+
+                // go down to 1 file
+                File.Delete(Path.Combine(dir, "dd.png"));
+                nav.NotifyFileChanges();
+                nav.GoLast();
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(Path.Combine(dir, "aa.png"), nav.Current);
+
+                // go down to no files
+                File.Delete(Path.Combine(dir, "aa.png"));
+                nav.NotifyFileChanges();
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(null, nav.Current);
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(null, nav.Current);
+                nav.GoFirst();
+                TestUtil.IsEq(null, nav.Current);
+                nav.GoLast();
+                TestUtil.IsEq(null, nav.Current);
+
+                // recover from no files
+                File.WriteAllText(Path.Combine(dir, "new.png"), "content");
+                nav.NotifyFileChanges();
+                nav.GoNextOrPrev(true);
+                TestUtil.IsEq(Path.Combine(dir, "new.png"), nav.Current);
+                nav.GoNextOrPrev(false);
+                TestUtil.IsEq(Path.Combine(dir, "new.png"), nav.Current);
+            }
         }
     }
 
