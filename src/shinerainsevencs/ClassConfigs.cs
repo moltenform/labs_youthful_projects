@@ -19,12 +19,18 @@ namespace ShineRainSevenCsCommon
         Version,
         EnablePersonalFeatures,
         EnableVerboseLogging,
-        MRUPath,
+        Path,
 
-        // Directories should end with Dir. 
+        // Directories should end with Dir.
         FilepathDeletedFilesDir,
         FilepathTempDir,
-        FilepathPython
+        FilepathPython,
+
+        // For input box history
+        MRUPath,
+        MRUFilepathDeletedFilesDir,
+        MRUFilepathTempDir,
+        MRUFilepathPython
     }
 
     // The inputbox dialog keeps a MRU list of recently used strings.
@@ -33,9 +39,10 @@ namespace ShineRainSevenCsCommon
     public enum InputBoxHistory
     {
         None,
-        MRUPath,
+        Path,
         FilepathDeletedFilesDir,
-        FilepathTempDir
+        FilepathTempDir,
+        FilepathPython
     }
 
     public static class ConfirmChecksums
@@ -156,16 +163,16 @@ namespace ShineRainSevenCsCommon
                     continue;
                 }
 
-                _persisted[key] = split[1];
+                this._persisted[key] = split[1];
             }
         }
 
         void SavePersisted()
         {
             var sb = new StringBuilder();
-            foreach (var key in from key in _persisted.Keys orderby key select key)
+            foreach (var key in from key in this._persisted.Keys orderby key select key)
             {
-                var value = _persisted[key];
+                var value = this._persisted[key];
                 if (!string.IsNullOrEmpty(value))
                 {
                     if (value.Contains("\r") || value.Contains("\n"))

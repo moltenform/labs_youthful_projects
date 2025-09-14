@@ -16,10 +16,6 @@ namespace ShineRainSevenCsCommon
         static void TestMethod_Asserts_EqualIntsShouldCompareEqual()
         {
             TestUtil.IsEq(1, 1);
-            while     (true)
-            {
-                var d=8;
-            }
         }
 
         static void TestMethod_Asserts_EqualStringsShouldCompareEqual()
@@ -55,19 +51,22 @@ namespace ShineRainSevenCsCommon
 
         static void TestMethod_Asserts_NonEqualIntsShouldCompareNonEqual()
         {
-            TestUtil.AssertExceptionMessage(() => TestUtil.IsEq(1, 2),
+            TestUtil.AssertExceptionMessage(
+                () => TestUtil.IsEq(1, 2),
                 "expected 1 but got 2");
         }
 
         static void TestMethod_Asserts_NonEqualStrsShouldCompareNonEqual()
         {
-            TestUtil.AssertExceptionMessage(() => TestUtil.IsEq("abcd", "abce"),
+            TestUtil.AssertExceptionMessage(
+                () => TestUtil.IsEq("abcd", "abce"),
                 "expected abcd but got abce");
         }
 
         static void TestMethod_Asserts_NonEqualBoolsShouldCompareNonEqual()
         {
-            TestUtil.AssertExceptionMessage(() => TestUtil.IsEq(true, false),
+            TestUtil.AssertExceptionMessage(
+                () => TestUtil.IsEq(true, false),
                 "expected True but got False");
         }
 
@@ -158,19 +157,23 @@ namespace ShineRainSevenCsCommon
         {
             TestUtil.IsEq("", Utils.FormatPythonError(""));
             TestUtil.IsEq("NotError", Utils.FormatPythonError("NotError"));
-            TestUtil.IsEq("Not Error: Noterror",
+            TestUtil.IsEq(
+                "Not Error: Noterror",
                 Utils.FormatPythonError("Not Error: Noterror"));
-            TestUtil.IsEq("IsError: Details" + Utils.NL + Utils.NL + Utils.NL +
+            TestUtil.IsEq(
+                "IsError: Details" + Utils.NL + Utils.NL + Utils.NL +
                 "Details: text before IsError: Details",
                 Utils.FormatPythonError("text before IsError: Details"));
-            TestUtil.IsEq("IsError:2 some words" + Utils.NL + Utils.NL + Utils.NL +
+            TestUtil.IsEq(
+                "IsError:2 some words" + Utils.NL + Utils.NL + Utils.NL +
                 "Details: text before IsError:1 IsError:2 some words",
                 Utils.FormatPythonError("text before IsError:1 IsError:2 some words"));
 
             var sampleStderr = "test failed, stderr = Traceback (most recent call last): File " +
                 "reallylong string reallylong string reallylong string reallylong string " +
                 ", line 1234, in test.py, raise RuntimeError(errMsg)RuntimeError: the actual msg";
-            TestUtil.IsEq("RuntimeError: the actual msg" + Utils.NL + Utils.NL + Utils.NL +
+            TestUtil.IsEq(
+                "RuntimeError: the actual msg" + Utils.NL + Utils.NL + Utils.NL +
                 "Details: " + sampleStderr,
                 Utils.FormatPythonError(sampleStderr));
         }
@@ -240,8 +243,10 @@ namespace ShineRainSevenCsCommon
             File.WriteAllText(path, "12345678");
             TestUtil.IsEq("filenotfound:", Utils.GetSha512(null));
             TestUtil.IsEq("filenotfound:notexist", Utils.GetSha512("notexist"));
-            TestUtil.IsEq("+lhdichR3TOKcNz1Naoqkv7ng23Wr/EiZYPojgmWK" +
-                "T8WvACcZSgm4PxccGaVoDzdzjcvE57/TROVnabx9dPqvg==", Utils.GetSha512(path));
+            TestUtil.IsEq(
+                "+lhdichR3TOKcNz1Naoqkv7ng23Wr/EiZYPojgmWK" +
+                "T8WvACcZSgm4PxccGaVoDzdzjcvE57/TROVnabx9dPqvg==",
+                Utils.GetSha512(path));
         }
 
         static void TestMethod_SplitByString()
@@ -262,8 +267,8 @@ namespace ShineRainSevenCsCommon
             var fakeFile = PathSep("C:/dirtest/test.doc");
             var deleteDir = Utils.GetSoftDeleteDirectory(fakeFile);
             var deleteDest = Utils.GetSoftDeleteDestination(fakeFile);
-            TestUtil.IsTrue(deleteDest.StartsWith(deleteDir +
-                Utils.Sep + "di_test.doc", StringComparison.Ordinal));
+            TestUtil.IsTrue(deleteDest.StartsWith(
+                deleteDir + Utils.Sep + "di_test.doc", StringComparison.Ordinal));
         }
 
         static void TestMethod_IsExtensionInList()
@@ -284,23 +289,32 @@ namespace ShineRainSevenCsCommon
 
         static void TestMethod_NumberedPrefix()
         {
-            TestUtil.IsEq(PathSep("c:/test/([0000])abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("c:/test/([0000])abc.jpg"),
                 FilenameUtils.AddNumberedPrefix(PathSep("c:/test/abc.jpg"), 0));
-            TestUtil.IsEq(PathSep("c:/test/([0010])abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("c:/test/([0010])abc.jpg"),
                 FilenameUtils.AddNumberedPrefix(PathSep("c:/test/abc.jpg"), 1));
-            TestUtil.IsEq(PathSep("c:/test/([1230])abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("c:/test/([1230])abc.jpg"),
                 FilenameUtils.AddNumberedPrefix(PathSep("c:/test/abc.jpg"), 123));
-            TestUtil.IsEq(PathSep("c:/test/([1230])abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("c:/test/([1230])abc.jpg"),
                 FilenameUtils.AddNumberedPrefix(PathSep("c:/test/([1230])abc.jpg"), 123));
-            TestUtil.IsEq(PathSep("c:/test/([9999])abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("c:/test/([9999])abc.jpg"),
                 FilenameUtils.AddNumberedPrefix(PathSep("c:/test/([9999])abc.jpg"), 123));
-            TestUtil.IsEq(PathSep("a.jpg"),
+            TestUtil.IsEq(
+                PathSep("a.jpg"),
                 FilenameUtils.GetFileNameWithoutNumberedPrefix(PathSep("a.jpg")));
-            TestUtil.IsEq(PathSep("abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("abc.jpg"),
                 FilenameUtils.GetFileNameWithoutNumberedPrefix(PathSep("c:/test/([9999])abc.jpg")));
-            TestUtil.IsEq(PathSep("abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("abc.jpg"),
                 FilenameUtils.GetFileNameWithoutNumberedPrefix(PathSep("c:/test/([0000])abc.jpg")));
-            TestUtil.IsEq(PathSep("abc.jpg"),
+            TestUtil.IsEq(
+                PathSep("abc.jpg"),
                 FilenameUtils.GetFileNameWithoutNumberedPrefix(PathSep("c:/test/([1230])abc.jpg")));
         }
 
@@ -317,23 +331,32 @@ namespace ShineRainSevenCsCommon
                 return pathWithoutCategory + "|" + category;
             };
 
-            TestUtil.IsEq(PathSep("C:/dir/test/file.jpg|123"),
-                testGetCategory(PathSep("C:/dir/test/file__MARKAS__123.jpg")));
-            TestUtil.IsEq(PathSep("C:/dir/test/file.also.jpg|123"),
+            TestUtil.IsEq(
+                PathSep("C:/dir/test/file.jpg|123"),
+                testGetCategory(
+                    PathSep("C:/dir/test/file__MARKAS__123.jpg")));
+            TestUtil.IsEq(
+                PathSep("C:/dir/test/file.also.jpg|123"),
                 testGetCategory(PathSep("C:/dir/test/file.also__MARKAS__123.jpg")));
-            TestUtil.IsEq(PathSep("C:/dir/test/file.jpg|"),
+            TestUtil.IsEq(
+                PathSep("C:/dir/test/file.jpg|"),
                 testGetCategory(PathSep("C:/dir/test/file__MARKAS__.jpg")));
 
             // check that invalid paths cause exception to be thrown.
-            TestUtil.AssertExceptionMessage(() => testGetCategory(
+            TestUtil.AssertExceptionMessage(
+                () => testGetCategory(
                 PathSep("C:/dir/test/dirmark__MARKAS__b/file__MARKAS__123.jpg")), "Directories");
-            TestUtil.AssertExceptionMessage(() => testGetCategory(
+            TestUtil.AssertExceptionMessage(
+                () => testGetCategory(
                 PathSep("C:/dir/test/dirmark__MARKAS__b/file.jpg")), "Directories");
-            TestUtil.AssertExceptionMessage(() => testGetCategory(
+            TestUtil.AssertExceptionMessage(
+                () => testGetCategory(
                 PathSep("C:/dir/test/file__MARKAS__123__MARKAS__123.jpg")), "exactly 1");
-            TestUtil.AssertExceptionMessage(() => testGetCategory(
+            TestUtil.AssertExceptionMessage(
+                () => testGetCategory(
                 PathSep("C:/dir/test/file.jpg")), "exactly 1");
-            TestUtil.AssertExceptionMessage(() => testGetCategory(
+            TestUtil.AssertExceptionMessage(
+                () => testGetCategory(
                 PathSep("C:/dir/test/file__MARKAS__123.dir.jpg")), "after the marker");
         }
 
@@ -367,7 +390,8 @@ namespace ShineRainSevenCsCommon
             TestUtil.IsEq(PathSep("c:/b/a.jpg"), pathWithoutSuffix);
 
             // has similar names with no added suffix
-            TestUtil.IsStringArrayEq(PathSep("c:/a/a.png60.jpg|c:/a/a.png80.jpg"),
+            TestUtil.IsStringArrayEq(
+                PathSep("c:/a/a.png60.jpg|c:/a/a.png80.jpg"),
                 FindSimilarFilenames.FindSimilarNames(
                     PathSep("c:/a/a.png"), extensions, filepaths,
                     out nameHasSuffix, out pathWithoutSuffix));
@@ -375,7 +399,8 @@ namespace ShineRainSevenCsCommon
             TestUtil.IsEq(null, pathWithoutSuffix);
 
             // has similar names with an added suffix
-            TestUtil.IsStringArrayEq(PathSep("c:/a/a.png|c:/a/a.png80.jpg"),
+            TestUtil.IsStringArrayEq(
+                PathSep("c:/a/a.png|c:/a/a.png80.jpg"),
                 FindSimilarFilenames.FindSimilarNames(
                     PathSep("c:/a/a.png60.jpg"), extensions, filepaths,
                     out nameHasSuffix, out pathWithoutSuffix));
@@ -392,7 +417,8 @@ namespace ShineRainSevenCsCommon
             log.WriteError("test e");
             log.WriteWarning("test w");
             log.WriteLog("test l");
-            TestUtil.IsEq("\n[error] test e\n[warning] test w\ntest l",
+            TestUtil.IsEq(
+                "\n[error] test e\n[warning] test w\ntest l",
                 File.ReadAllText(path).Replace("\r\n", "\n"));
 
             // add until over the filesize limit
@@ -457,10 +483,12 @@ namespace ShineRainSevenCsCommon
         {
             string path = Path.Combine(TestUtil.GetTestSubDirectory("testcfg"), "test.ini");
             Configs cfg = new Configs(path);
-            TestUtil.AssertExceptionMessage(() => cfg.Set(
-                ConfigKey.EnableVerboseLogging, "data\rnewline"), "cannot contain newline");
-            TestUtil.AssertExceptionMessage(() => cfg.Set(
-                ConfigKey.EnableVerboseLogging, "data\nnewline"), "cannot contain newline");
+            TestUtil.AssertExceptionMessage(
+                () => cfg.Set(ConfigKey.EnableVerboseLogging, "data\rnewline"),
+                "cannot contain newline");
+            TestUtil.AssertExceptionMessage(
+                () => cfg.Set(ConfigKey.EnableVerboseLogging, "data\nnewline"),
+                "cannot contain newline");
         }
 
         static void TestMethod_ClassConfigsInputBoxHistoryShouldHaveCorrespondingConfig()
@@ -809,4 +837,3 @@ namespace ShineRainSevenCsCommon
         }
     }
 }
-

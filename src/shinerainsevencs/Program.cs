@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace ShineRainSevenCsCommon
 {
-    static class Program
+    public static class Program
     {
         [STAThread]
         static int Main(string[] args)
@@ -26,21 +26,27 @@ namespace ShineRainSevenCsCommon
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            
+
             // This is where typically there would be a Application.Run(new Form())
 
-            if (Array.IndexOf(args, "-m") == -1) {
-                MessageBox.Show("Welcome to ShineRainSevenCsCommon.\r\n\r\n" + 
-                    "Example syntax:\r\n" +
-                    "ShineRainSevenCsCommon.exe -m \"What is your name?\" -d \"Bob\" ");
+            if (Array.IndexOf(args, "--test") != -1)
+            {
+                TestUtil.RunTests();
+                MessageBox.Show("Tests complete.");
                 return 0;
             }
-            
-            var message = getValue(args, "-m") ?? "Message:";
-            string outputPath = getValue(args, "-o");
-            string defaultVal = getValue(args, "-d") ?? null;
-            var whichAppName = getValue(args, "-a");
-            var s = "MRUPath";
+            else if (Array.IndexOf(args, "-m") == -1)
+            {
+                MessageBox.Show("Welcome to ShineRainSevenCsCommon.\r\n\r\n" +
+                "Example syntax:\r\n" +
+                "ShineRainSevenCsCommon.exe -m \"What is your name?\" -d \"Bob\" ");
+                return 0;
+            }
+
+            var message = GetValue(args, "-m") ?? "Message:";
+            string outputPath = GetValue(args, "-o");
+            string defaultVal = GetValue(args, "-d") ?? null;
+            var s = "Path";
             if (!Enum.TryParse(s, out InputBoxHistory configKey))
             {
                 Console.WriteLine("unknown val");
@@ -52,7 +58,7 @@ namespace ShineRainSevenCsCommon
             return 0;
         }
 
-        static string getValue(string[] args, string flag)
+        static string GetValue(string[] args, string flag)
         {
             for (int i = 0; i < args.Length; i++)
             {
@@ -61,6 +67,7 @@ namespace ShineRainSevenCsCommon
                     return args[i + 1];
                 }
             }
+
             return null;
         }
     }

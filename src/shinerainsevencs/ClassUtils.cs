@@ -239,7 +239,8 @@ namespace ShineRainSevenCsCommon
 
         public static string GetSoftDeleteDirectory(string path)
         {
-            var overrideFn = typeof(Utils).GetMethod("OverrideGetSoftDeleteDir",
+            var overrideFn = typeof(Utils).GetMethod(
+                "OverrideGetSoftDeleteDir",
                 BindingFlags.Static | BindingFlags.Public);
 
             if (overrideFn != null)
@@ -435,9 +436,9 @@ namespace ShineRainSevenCsCommon
             }
         }
 
-        public static void RunPythonScriptOnSeparateThread(string pyScript,
-            string[] listArgs, bool createWindow = false, bool autoWorkingDir = false,
-            string workingDir = null)
+        public static void RunPythonScriptOnSeparateThread(
+            string pyScript, string[] listArgs, bool createWindow = false,
+            bool autoWorkingDir = false, string workingDir = null)
         {
             ThreadPool.QueueUserWorkItem(delegate
             {
@@ -446,8 +447,8 @@ namespace ShineRainSevenCsCommon
             });
         }
 
-        public static string RunPythonScript(string pyScript,
-            string[] listArgs, bool createWindow = false,
+        public static string RunPythonScript(
+            string pyScript, string[] listArgs, bool createWindow = false,
             bool warnIfStdErr = true, string workingDir = null)
         {
             if (!pyScript.Contains(Utils.Sep))
@@ -792,13 +793,13 @@ namespace ShineRainSevenCsCommon
 
         public void Refresh()
         {
-            _list = new FileListAutoUpdated(BaseDirectory, _list.Recurse);
+            this._list = new FileListAutoUpdated(this.BaseDirectory, this._list.Recurse);
             TrySetPath("");
         }
 
         public void NotifyFileChanges()
         {
-            _list.Dirty();
+            this._list.Dirty();
         }
 
         // try an action twice if necessary.
@@ -807,10 +808,10 @@ namespace ShineRainSevenCsCommon
         // so tell it to refresh and retry once more.
         void TryAgainIfFileIsMissing(Func<string[], string> fn)
         {
-            var list = GetList();
+            var list = this.GetList();
             if (list.Length == 0)
             {
-                Current = null;
+                this.Current = null;
                 return;
             }
 
@@ -818,18 +819,18 @@ namespace ShineRainSevenCsCommon
             if (firstTry != null && !File.Exists(firstTry))
             {
                 // refresh the list and try again
-                list = GetList(true);
+                list = this.GetList(true);
                 if (list.Length == 0)
                 {
-                    Current = null;
+                    this.Current = null;
                     return;
                 }
 
-                Current = fn(list);
+                this.Current = fn(list);
             }
             else
             {
-                Current = firstTry;
+                this.Current = firstTry;
             }
         }
 
@@ -847,9 +848,9 @@ namespace ShineRainSevenCsCommon
         public void GoNextOrPrev(bool isNext, List<string> neighbors = null,
             int retrieveNeighbors = 0)
         {
-            TryAgainIfFileIsMissing((list) =>
+            this.TryAgainIfFileIsMissing((list) =>
             {
-                var index = GetLessThanOrEqual(list, Current ?? "");
+                var index = GetLessThanOrEqual(list, this.Current ?? "");
                 if (isNext)
                 {
                     // caller has asked us to return adjacent items
@@ -864,7 +865,7 @@ namespace ShineRainSevenCsCommon
                 {
                     // index is LessThanOrEqual, but we want strictly LessThan
                     // so move prev if equal.
-                    if (index > 0 && Current == list[index])
+                    if (index > 0 && this.Current == list[index])
                     {
                         index--;
                     }
@@ -882,7 +883,7 @@ namespace ShineRainSevenCsCommon
 
         public void GoFirst()
         {
-            TryAgainIfFileIsMissing((list) =>
+            this.TryAgainIfFileIsMissing((list) =>
             {
                 return list[0];
             });
@@ -890,7 +891,7 @@ namespace ShineRainSevenCsCommon
 
         public void GoLast()
         {
-            TryAgainIfFileIsMissing((list) =>
+            this.TryAgainIfFileIsMissing((list) =>
             {
                 return list[list.Length - 1];
             });
@@ -898,12 +899,12 @@ namespace ShineRainSevenCsCommon
 
         public void TrySetPath(string current, bool verify = true)
         {
-            Current = current;
+            this.Current = current;
             if (verify)
             {
-                TryAgainIfFileIsMissing((list) =>
+                this.TryAgainIfFileIsMissing((list) =>
                 {
-                    var index = GetLessThanOrEqual(list, Current ?? "");
+                    var index = GetLessThanOrEqual(list, this.Current ?? "");
                     return Utils.ArrayAt(list, index);
                 });
             }
@@ -913,20 +914,20 @@ namespace ShineRainSevenCsCommon
         {
             Func<string, bool> includeFile = (path) =>
             {
-                if (!includeMarked && _excludeMarked && path.Contains(FilenameUtils.MarkerString))
+                if (!includeMarked && this._excludeMarked && path.Contains(FilenameUtils.MarkerString))
                     return false;
-                else if (!FilenameUtils.IsExtensionInList(path, _extensionsAllowed))
+                else if (!FilenameUtils.IsExtensionInList(path, this._extensionsAllowed))
                     return false;
                 else
                     return true;
             };
 
-            return _list.GetList(forceRefresh).Where(includeFile).ToArray();
+            return this._list.GetList(forceRefresh).Where(includeFile).ToArray();
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -934,9 +935,9 @@ namespace ShineRainSevenCsCommon
         {
             if (disposing)
             {
-                if (_list != null)
+                if (this._list != null)
                 {
-                    _list.Dispose();
+                    this._list.Dispose();
                 }
             }
         }
@@ -1034,8 +1035,10 @@ namespace ShineRainSevenCsCommon
                 MarkerString + category + ext;
         }
 
-        public static void GetCategoryFromFilename(string pathAndCategory,
-            out string pathWithoutCategory, out string category)
+        public static void GetCategoryFromFilename(
+            string pathAndCategory,
+            out string pathWithoutCategory,
+            out string category)
         {
             // check nothing in path has mark
             if (Path.GetDirectoryName(pathAndCategory).Contains(MarkerString))
@@ -1097,9 +1100,9 @@ namespace ShineRainSevenCsCommon
     {
         private const int CheckFileSizePeriod = 32;
         private static SimpleLog _instance;
-        readonly string _path;
-        readonly int _maxFileSize;
-        int _counter;
+        private readonly string _path;
+        private readonly int _maxFileSize;
+        private int _counter;
         public SimpleLog(string path, int maxFileSize = 4 * 1024 * 1024)
         {
             _path = path;
@@ -1260,7 +1263,7 @@ namespace ShineRainSevenCsCommon
             }
 
             var val = Configs.Current.Get(configKey);
-            if (String.IsNullOrEmpty(val) || (!File.Exists(val) && !Directory.Exists(val)))
+            if (string.IsNullOrEmpty(val) || (!File.Exists(val) && !Directory.Exists(val)))
             {
                 var s = configKey.ToString().EndsWith("Dir") ? "Please choose any file in the directory for " + configKey :
                     "Please choose a file for " + configKey;
@@ -1346,7 +1349,8 @@ namespace ShineRainSevenCsCommon
         {
         }
 
-        ShineRainSevenCsException(System.Runtime.Serialization.SerializationInfo info,
+        ShineRainSevenCsException(
+            System.Runtime.Serialization.SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
             : base(info, context)
         {
@@ -1371,7 +1375,8 @@ namespace ShineRainSevenCsCommon
         {
         }
 
-        ShineRainSevenCsTestException(SerializationInfo info,
+        ShineRainSevenCsTestException(
+            SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
             : base(info, context)
         {
