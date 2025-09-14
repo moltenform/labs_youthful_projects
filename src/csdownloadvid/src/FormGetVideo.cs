@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using Microsoft.Win32;
 using System;

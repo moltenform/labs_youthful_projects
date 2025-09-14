@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -69,6 +69,7 @@ namespace CsDownloadVid
                 args.Add("-vn");
                 args.Add("-acodec");
                 args.Add("copy");
+
                 args.Add(file + "_audio." + format);
             }
             else

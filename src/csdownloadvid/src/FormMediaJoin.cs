@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -163,6 +163,7 @@ namespace CsDownloadVid
         private void btnMakeAudioLouder_Click(object sender, EventArgs e)
         {
             var inputs = this.GetInputFiles(1);
+            ConfigKeyGetOrAskUserIfNotSet.GetOrAsk(ConfigKey.FilepathM4aEncoder);
             _runner.RunInThread(() =>
             {
                 foreach (var input in inputs)
@@ -206,10 +207,52 @@ namespace CsDownloadVid
                     throw new Exception("expected to see output at " + outfile);
                 }
 
-                var pathOut = Utils.RunM4aConversion(outfile, "flac");
+                var pathOut = RunM4aConversion(outfile, "flac");
                 if (new FileInfo(pathOut).Length > 1)
                 {
-                   File.Delete(outfile);
+                    File.Delete(outfile);
+                }
+            }
+        }
+
+        public static string RunM4aConversion(string path, string qualitySpec)
+        {
+            var qualities = new string[] { "16", "24", "96", "128", "144",
+                "160", "192", "224", "256", "288", "320", "640", "flac" };
+            if (Array.IndexOf(qualities, qualitySpec) == -1)
+            {
+                throw new CsDownloadVidException("Unsupported bitrate.");
+            }
+            else if (!path.EndsWith(".wav", StringComparison.Ordinal) &&
+                !path.EndsWith(".flac", StringComparison.Ordinal))
+            {
+                throw new CsDownloadVidException("Unsupported input format.");
+            }
+            else
+            {
+                var encoder = Configs.Current.Get(ConfigKey.FilepathM4aEncoder);
+                if (!File.Exists(encoder))
+                {
+                    throw new CsDownloadVidException("M4a encoder not found");
+                }
+
+                var pathOutput = Path.GetDirectoryName(path) + Utils.Sep +
+                    Path.GetFileNameWithoutExtension(path) +
+                    (qualitySpec == "flac" ? ".flac" : ".m4a");
+                var script = Path.GetDirectoryName(encoder) + Utils.Sep +
+                    "dropq" + qualitySpec + ".py";
+                var args = new string[] { path };
+                var stderr = Utils.RunPythonScript(
+                    script, args, createWindow: false, warnIfStdErr: false);
+
+                if (!File.Exists(pathOutput))
+                {
+                    Utils.MessageErr("RunM4aConversion failed, " + Utils.FormatPythonError(stderr));
+                    return null;
+                }
+                else
+                {
+                    return pathOutput;
                 }
             }
         }

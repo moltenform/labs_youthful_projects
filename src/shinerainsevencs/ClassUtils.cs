@@ -228,6 +228,9 @@ namespace ShineRainSevenCsCommon
 
         public static bool ArePathsDistinct(string s1, string s2)
         {
+            // this both resolves relative paths and performs normalization
+            s1 = Path.GetFullPath(s1);
+            s2 = Path.GetFullPath(s2);
             // https://msdn.microsoft.com/en-us/library/dd465121.aspx
             // we'll compare with OrdinalIgnoreCase since that's what msdn recommends
             s1 = s1 + Utils.Sep;
@@ -1265,7 +1268,8 @@ namespace ShineRainSevenCsCommon
             var val = Configs.Current.Get(configKey);
             if (string.IsNullOrEmpty(val) || (!File.Exists(val) && !Directory.Exists(val)))
             {
-                var s = configKey.ToString().EndsWith("Dir") ? "Please choose any file in the directory for " + configKey :
+                var s = configKey.ToString().EndsWith("Dir", StringComparison.InvariantCulture) ?
+                    "Please choose any file in the directory for " + configKey :
                     "Please choose a file for " + configKey;
 
                 var got = Utils.AskOpenFileDialog(s);
@@ -1274,7 +1278,7 @@ namespace ShineRainSevenCsCommon
                     throw new ShineRainSevenCsException("A path for " + configKey + " is needed.");
                 }
 
-                if (configKey.ToString().EndsWith("Dir"))
+                if (configKey.ToString().EndsWith("Dir", StringComparison.InvariantCulture))
                 {
                     got = Path.GetDirectoryName(got);
                 }

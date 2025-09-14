@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under LGPLv3, refer to LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -35,8 +35,8 @@ namespace CsDownloadVid
         }
 
         // add MRU history, suggestions, and clipboard contents to the list of examples.
-        public static IEnumerable<string> GetInputSuggestions(string currentSuggestion,
-            InputBoxHistory historyKey, PersistMostRecentlyUsedList history,
+        public static IEnumerable<string> GetInputSuggestions(
+            string currentSuggestion, InputBoxHistory historyKey, PersistMostRecentlyUsedList history,
             bool useClipboard, bool mustBeDirectory, string[] more)
         {
             List<string> suggestions = new List<string>();
@@ -260,8 +260,10 @@ namespace CsDownloadVid
         ConfigKey _configsKey = ConfigKey.None;
         Configs _configs;
         string[] _currentItems;
-        public PersistMostRecentlyUsedList(InputBoxHistory historyKey,
-            Configs configs = null, int maxHistoryEntries = 50)
+        public PersistMostRecentlyUsedList(
+            InputBoxHistory historyKey,
+            Configs configs = null,
+            int maxHistoryEntries = 50)
         {
             _historyKey = historyKey;
             _configs = configs ?? Configs.Current;

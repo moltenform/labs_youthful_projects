@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -233,12 +233,18 @@ namespace CsDownloadVid
 
             var allOfFirst = File.ReadAllBytes(firstPieceAac);
             var allOfSecond = File.ReadAllBytes(secondPieceAac);
-            var offsets = GetFrameOffsets(allOfSecond);
+            var offsets = GetFrameOffsets44100(allOfSecond);
+            if (offsets.Count == 0)
+            {
+                offsets = GetFrameOffsets48000(allOfSecond);
+            }
+
             if (offsets.Count < 4)
             {
-                throw new CsDownloadVidException("Length of fade out is too short, " +
-                    "or this isn't 44100hz 16bit 2ch audio. Could not find aac " +
-                    "frame headers " + offsets.Count);
+                throw new CsDownloadVidException(@"Could not find aac frame headers. 
+                    We support 44.1khz 16bit 2ch audio and 48khz 16bit 2ch audio,
+                    Maybe input is not supported or, length of fade out is too short. " +
+                    offsets.Count);
             }
 
             // for the qaac encoder, this seems to be the best value for removing priming.
@@ -283,7 +289,7 @@ namespace CsDownloadVid
             p.BeginErrorReadLine();
             p.WaitForExit();
             log += "\nRan " + info.FileName + " " + info.Arguments;
-            if (p.ExitCode != 0)
+            if (p.ExitCode != 0 || !File.Exists(outFilename))
             {
                 log += "\nStdout:" + p.StandardOutput.ReadToEnd();
                 log += "\nStderr:" + stderr;
@@ -332,7 +338,7 @@ namespace CsDownloadVid
             return point;
         }
 
-        List<int> GetFrameOffsets(byte[] aacData)
+        List<int> GetFrameOffsets44100(byte[] aacData)
         {
             var offsets = new List<int>();
             for (int i = 0; i < aacData.Length - 4; i++)
@@ -340,6 +346,23 @@ namespace CsDownloadVid
                 if (aacData[i] == 0xff &&
                     aacData[i + 1] == 0xf1 &&
                     aacData[i + 2] == 0x50 &&
+                    aacData[i + 3] == 0x80)
+                {
+                    offsets.Add(i);
+                }
+            }
+
+            return offsets;
+        }
+
+        List<int> GetFrameOffsets48000(byte[] aacData)
+        {
+            var offsets = new List<int>();
+            for (int i = 0; i < aacData.Length - 4; i++)
+            {
+                if (aacData[i] == 0xff &&
+                    aacData[i + 1] == 0xf1 &&
+                    aacData[i + 2] == 0x4c &&
                     aacData[i + 3] == 0x80)
                 {
                     offsets.Add(i);

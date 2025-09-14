@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -13,21 +13,20 @@ namespace CsDownloadVid
     // Unlike a C++ enum, numeric values aren't used at all,
     // it's the names that are important. Changing the names
     // here will cause loss of compatibility.
-    // differences from LabsCoordinatePictures 1be22cd489b58e4:
-    //      Changed ConfigKey enum and namespace
-    //      Rename CoordinatePicturesException to CsDownloadVidException
     public enum ConfigKey
     {
         None,
         Version,
-        PathToPython,
+        FilepathPython,
+        FilepathDeletedFilesDir,
+        FilepathM4aEncoder,
+        EnableVerboseLogging,
         PathToFfmpeg,
         PathToQaac,
+        PathToCoreAudioToolbox,
         PathToYtdl,
         SaveVideosTo,
         SoftDeleteDir,
-        FilepathAudioPlayer, // not currently set
-        EnableVerboseLogging, // not currently set
         MRUOpenImageDirectory,
         MRUOpenImageKeepExifDirectory,
         MRUOpenAudioDirectory,
@@ -112,7 +111,7 @@ namespace CsDownloadVid
     {
         static Configs _instance;
         string _path;
-        Dictionary<ConfigKey, string> _dict = new Dictionary<ConfigKey, string>();
+        Dictionary<ConfigKey, string> _persisted = new Dictionary<ConfigKey, string>();
 
         internal Configs(string path)
         {
@@ -184,16 +183,16 @@ namespace CsDownloadVid
                     continue;
                 }
 
-                _dict[key] = split[1];
+                this._persisted[key] = split[1];
             }
         }
 
         void SavePersisted()
         {
             var sb = new StringBuilder();
-            foreach (var key in from key in _dict.Keys orderby key select key)
+            foreach (var key in from key in this._persisted.Keys orderby key select key)
             {
-                var value = _dict[key];
+                var value = this._persisted[key];
                 if (!string.IsNullOrEmpty(value))
                 {
                     if (value.Contains("\r") || value.Contains("\n"))
@@ -211,26 +210,27 @@ namespace CsDownloadVid
 
         public void Set(ConfigKey key, string s)
         {
-            var valueWasChanged = !_dict.TryGetValue(key, out string prev) ||
+            var valueWasChanged = !_persisted.TryGetValue(key, out string prev) ||
                 prev != s ||
                 !File.Exists(_path);
             if (valueWasChanged)
             {
-                _dict[key] = s;
+                _persisted[key] = s;
                 SavePersisted();
             }
+        }
+
+        // See also, ConfigKeyAutoAskIfNull
+        public string Get(ConfigKey key)
+        {
+            var ret = _persisted.TryGetValue(key, out string s) ? s : "";
+            ConfirmChecksums.Check(key, ret);
+            return ret;
         }
 
         public void SetBool(ConfigKey key, bool b)
         {
             Set(key, b ? "true" : "");
-        }
-
-        public string Get(ConfigKey key)
-        {
-            var ret = _dict.TryGetValue(key, out string s) ? s : "";
-            ConfirmChecksums.Check(key, ret);
-            return ret;
         }
 
         public bool GetBool(ConfigKey key)

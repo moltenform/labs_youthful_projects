@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ namespace CsDownloadVid
     public partial class FormMediaSplit : Form
     {
         RunToolHelper _runner;
+        static bool _haveAddedToPath = false; 
         public FormMediaSplit()
         {
             InitializeComponent();
@@ -109,6 +110,19 @@ namespace CsDownloadVid
             }
         }
 
+        private void AddCoreAudioToPathIfNeeded()
+        {
+            if (!_haveAddedToPath)
+            {
+                _haveAddedToPath = true;
+                var fullPath = CsDownloadVidFilepaths.GetCoreAudioToolbox();
+                var parent = Path.GetDirectoryName(fullPath);
+                Utils.AssertTrue(Directory.Exists(parent), "Directory does not exist " + parent); 
+                string pathvar = System.Environment.GetEnvironmentVariable("PATH");
+                System.Environment.SetEnvironmentVariable("PATH", pathvar + @";" + parent);
+            }
+        }
+
         private void SplitWithFadeout(string inputFile, List<double> splitPoints,
             string sFadeLength)
         {
@@ -138,8 +152,10 @@ namespace CsDownloadVid
                 throw new CsDownloadVidException("Output file already exists " + outFilename);
             }
 
-            // preemptively make sure we have a path to qaac.
+            // while still on main thread, preemptively make sure we have a path to qaac.
             CsDownloadVidFilepaths.GetQaac();
+            CsDownloadVidFilepaths.GetCoreAudioToolbox();
+            AddCoreAudioToPathIfNeeded();
 
             // run all in a separate thread, so that UI remains responsive.
             _runner.RunInThread(() =>
@@ -156,7 +172,7 @@ namespace CsDownloadVid
 
         private void SplitMedia(string inputFile, List<double> splitPoints)
         {
-            const int maxLenSeconds = 9999;
+            const int maxLenSeconds = 999999;
             splitPoints.Insert(0, 0.0);
             var startingPoints = new List<double>();
             var lengths = new List<double>();

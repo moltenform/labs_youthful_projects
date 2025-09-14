@@ -1,5 +1,5 @@
 // Copyright (c) Ben Fisher, 2016.
-// Licensed under GPLv3.
+// Licensed under GPLv3, refer to LICENSE for details.
 
 using Microsoft.Win32;
 using System;
@@ -274,7 +274,7 @@ namespace CsDownloadVid
                 @"C:\python35\python.exe", @"C:\python36\python.exe",
                 @"C:\python37\python.exe" };
 
-            return GetPathToBinary(ConfigKey.PathToPython, "Python 3 (python.exe)", hints);
+            return GetPathToBinary(ConfigKey.FilepathPython, "Python 3 (python.exe)", hints);
         }
 
         public static string GetFfmpeg()
@@ -291,6 +291,13 @@ namespace CsDownloadVid
                 @"..\..\qaac.exe" };
 
             return GetPathToBinary(ConfigKey.PathToQaac, "Qaac (qaac.exe)", hints);
+        }
+
+        public static string GetCoreAudioToolbox()
+        {
+            var hints = new string[] { @".\tools\CoreAudioToolbox.dll" };
+
+            return GetPathToBinary(ConfigKey.PathToCoreAudioToolbox, "CoreAudioToolbox (CoreAudioToolbox.dll)", hints);
         }
 
         private static string GetYtdlImpl(bool usePytube)
