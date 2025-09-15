@@ -69,7 +69,6 @@ namespace CsDownloadVid
                 args.Add("-vn");
                 args.Add("-acodec");
                 args.Add("copy");
-
                 args.Add(file + "_audio." + format);
             }
             else
@@ -152,6 +151,16 @@ namespace CsDownloadVid
             _runner.RunProcesses(tasks.ToArray(), "Extract " + (audioOrVideo ? "Audio" :
                 "Video"));
         }
+
+        /*
+        in an earlier version of this file,
+        for some reason within the audio extraction logic
+        private ProcessStartInfo MakeTask
+        i had deleted the lines
+        args.Add("-acodec");
+        args.Add("copy");
+        i put them back because they seem important to preserving audio.
+        */
 
         private void btnCombineAudioVideo_Click(object sender, EventArgs e)
         {

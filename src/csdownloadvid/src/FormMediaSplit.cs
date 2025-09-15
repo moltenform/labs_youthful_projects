@@ -201,6 +201,14 @@ namespace CsDownloadVid
                 lengths.Add(length);
             }
 
+            bool reEncodeAudio = false;
+            if (inputFile.EndsWith(".flac", StringComparison.InvariantCulture) && 
+                Utils.AskToConfirm("Due to a ffmpeg limitation, cutting a flac doesn't usually work unless" + 
+                " we re-encode. Reencode the audio?"))
+            {
+                reEncodeAudio = true;
+            }
+
             // run all in a separate thread, so that UI remains responsive.
             _runner.RunInThread(() =>
             {
@@ -208,7 +216,7 @@ namespace CsDownloadVid
                 for (int i = 0; i < startingPoints.Count; i++)
                 {
                     new AddFadeoutUsingRawAacData().SplitOneFileSynchronous(
-                        inputFile, startingPoints[i], lengths[i], i, ref log);
+                        inputFile, startingPoints[i], lengths[i], i, ref log, reEncodeAudio);
                 }
 
                 _runner.TraceFiltered(log);

@@ -170,7 +170,7 @@ namespace CsDownloadVid
         }
 
         public string SplitOneFileSynchronous(string input, double start, double length,
-            int i, ref string log)
+            int i, ref string log, bool reEncodeAudioFlac=false)
         {
             var outFilename = input + "." + string.Format(
                 "{0}", i.ToString("D3")) + Path.GetExtension(input);
@@ -185,8 +185,17 @@ namespace CsDownloadVid
             args.Add(start.ToString());
             args.Add("-t");
             args.Add(length.ToString());
-            args.Add("-acodec");
-            args.Add("copy");
+            if (reEncodeAudioFlac)
+            {
+                args.Add("-acodec");
+                args.Add("flac");
+            }
+            else
+            {
+                args.Add("-acodec");
+                args.Add("copy");
+            }
+            
             args.Add("-vcodec");
             args.Add("copy");
 
